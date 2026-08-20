@@ -939,15 +939,6 @@
           <label for="ln-brand">Marca do projetor</label>
           <select id="ln-brand" class="plain">
             <option value="" selected>Todas as marcas</option>
-            <option value="Panasonic">Panasonic</option>
-            <option value="Epson">Epson</option>
-            <option value="Christie">Christie</option>
-            <option value="Digital Projection / ILS">Digital Projection / ILS</option>
-            <option value="NEC">NEC</option>
-            <option value="Barco">Barco</option>
-            <option value="Barco (Boxer)">Barco (Boxer)</option>
-            <option value="Sony">Sony</option>
-            <option value="Outros (folha)">Outros (folha)</option>
           </select>
           <div class="hint">Escolhe a marca para veres só as lentes compatíveis com esse projetor.</div>
         </div>
@@ -1494,6 +1485,15 @@
     lenses.sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
     LENTES_DATA = lenses;
     renderLenses(lenses);
+    var brandSel = document.getElementById("ln-brand");
+    Array.from(new Set(lenses.map(function (l) { return l.marca; })))
+      .sort(function (a, b) { return a.localeCompare(b); })
+      .forEach(function (marca) {
+        var opt = document.createElement("option");
+        opt.value = marca;
+        opt.textContent = marca;
+        brandSel.appendChild(opt);
+      });
 
     calcProjecao();
     calcLed();

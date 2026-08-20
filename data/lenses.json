@@ -18,36 +18,6 @@
     "max": 6.5
   },
   {
-    "marca": "Barco (Boxer)",
-    "modelo": "Fixo 0,90 (folha)",
-    "min": 0.9,
-    "max": 0.9
-  },
-  {
-    "marca": "Barco (Boxer)",
-    "modelo": "Zoom 1,31–1,63 (folha)",
-    "min": 1.31,
-    "max": 1.63
-  },
-  {
-    "marca": "Barco (Boxer)",
-    "modelo": "Zoom 1,63–2,17 (folha)",
-    "min": 1.63,
-    "max": 2.17
-  },
-  {
-    "marca": "Barco (Boxer)",
-    "modelo": "Zoom 2,17–3,89 (folha)",
-    "min": 2.17,
-    "max": 3.89
-  },
-  {
-    "marca": "Barco (Boxer)",
-    "modelo": "Zoom 3,89–5,43 (folha)",
-    "min": 3.89,
-    "max": 5.43
-  },
-  {
     "marca": "Christie",
     "modelo": "Ultra Short",
     "min": 0.5,
@@ -96,40 +66,82 @@
     "max": 3.4
   },
   {
-    "marca": "Digital Projection / ILS",
-    "modelo": "ILS 0,67 (folha)",
+    "marca": "Christie (Boxer)",
+    "modelo": "0,9:1 Fixed (P/N 144-111014-01)",
+    "min": 0.9,
+    "max": 0.9
+  },
+  {
+    "marca": "Christie (Boxer)",
+    "modelo": "1,31–1,63:1 HB Zoom (P/N 144-104106-01)",
+    "min": 1.31,
+    "max": 1.63
+  },
+  {
+    "marca": "Christie (Boxer)",
+    "modelo": "1,63–2,17:1 HB Zoom (P/N 144-105107-01)",
+    "min": 1.63,
+    "max": 2.17
+  },
+  {
+    "marca": "Christie (Boxer)",
+    "modelo": "1,99–2,73:1 HB Zoom (P/N 144-106108-01)",
+    "min": 1.99,
+    "max": 2.73
+  },
+  {
+    "marca": "Christie (Boxer)",
+    "modelo": "2,71–3,95:1 HB Zoom (P/N 144-107109-01)",
+    "min": 2.71,
+    "max": 3.95
+  },
+  {
+    "marca": "Christie (Boxer)",
+    "modelo": "3,89–5,43:1 HB Zoom (P/N 144-108100-01)",
+    "min": 3.89,
+    "max": 5.43
+  },
+  {
+    "marca": "Christie (ILS)",
+    "modelo": "ILS Fixed 0,67:1 (P/N 118-100110-01)",
     "min": 0.67,
     "max": 0.67
   },
   {
-    "marca": "Digital Projection / ILS",
-    "modelo": "ILS 1,1 (folha)",
+    "marca": "Christie (ILS)",
+    "modelo": "ILS Fixed 1,1:1 (P/N 118-100117-01)",
     "min": 1.1,
     "max": 1.1
   },
   {
-    "marca": "Digital Projection / ILS",
-    "modelo": "ILS 1,4–1,8 (folha)",
+    "marca": "Christie (ILS)",
+    "modelo": "ILS Zoom 1,4–1,8:1 (P/N 118-100112-01)",
     "min": 1.4,
     "max": 1.8
   },
   {
-    "marca": "Digital Projection / ILS",
-    "modelo": "ILS 1,8–2,6 (folha)",
+    "marca": "Christie (ILS)",
+    "modelo": "ILS Zoom 1,8–2,6:1 (P/N 118-100113-01)",
     "min": 1.8,
     "max": 2.6
   },
   {
-    "marca": "Digital Projection / ILS",
-    "modelo": "ILS 2,6–4,1 (folha)",
+    "marca": "Christie (ILS)",
+    "modelo": "ILS Zoom 2,6–4,1:1 (P/N 118-100114-01)",
     "min": 2.6,
     "max": 4.1
   },
   {
-    "marca": "Digital Projection / ILS",
-    "modelo": "ILS 4,1–6,9 (folha)",
+    "marca": "Christie (ILS)",
+    "modelo": "ILS Zoom 4,1–6,9:1 (P/N 118-100115-01)",
     "min": 4.1,
     "max": 6.9
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLX02",
+    "min": 0.34,
+    "max": 0.34
   },
   {
     "marca": "Epson",
@@ -157,21 +169,15 @@
   },
   {
     "marca": "Epson",
-    "modelo": "ELPLM08",
-    "min": 1.42,
-    "max": 2.28
-  },
-  {
-    "marca": "Epson",
-    "modelo": "ELPLX02",
-    "min": 0.34,
-    "max": 0.34
-  },
-  {
-    "marca": "Epson",
     "modelo": "ELPLW06",
     "min": 1.15,
     "max": 1.57
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLM08",
+    "min": 1.42,
+    "max": 2.28
   },
   {
     "marca": "Epson",
@@ -246,30 +252,6 @@
     "max": 7.2
   },
   {
-    "marca": "Outros (folha)",
-    "modelo": "FM 22 — 0,89",
-    "min": 0.89,
-    "max": 0.89
-  },
-  {
-    "marca": "Outros (folha)",
-    "modelo": "ZM 42 — 1,87–2,3",
-    "min": 1.87,
-    "max": 2.3
-  },
-  {
-    "marca": "Outros (folha)",
-    "modelo": "ZM 102 — 3,35–4,92",
-    "min": 3.35,
-    "max": 4.92
-  },
-  {
-    "marca": "Outros (folha)",
-    "modelo": "ZM 101 — 4,7–6,58",
-    "min": 4.7,
-    "max": 6.58
-  },
-  {
     "marca": "Panasonic",
     "modelo": "ET-D75LE95 (UST)",
     "min": 0.36,
@@ -277,9 +259,9 @@
   },
   {
     "marca": "Panasonic",
-    "modelo": "Curto fixo 0,60 (folha)",
+    "modelo": "ET-DLE060",
     "min": 0.6,
-    "max": 0.6
+    "max": 0.801
   },
   {
     "marca": "Panasonic",
@@ -289,13 +271,13 @@
   },
   {
     "marca": "Panasonic",
-    "modelo": "Zoom 1,71–2,41 (folha)",
+    "modelo": "ET-DLE170",
     "min": 1.71,
     "max": 2.41
   },
   {
     "marca": "Panasonic",
-    "modelo": "Zoom 2,27–3,62 (folha)",
+    "modelo": "ET-DLE250",
     "min": 2.27,
     "max": 3.62
   },
@@ -307,9 +289,9 @@
   },
   {
     "marca": "Panasonic",
-    "modelo": "Zoom 3,58–4,45 (folha)",
+    "modelo": "ET-DLE350",
     "min": 3.58,
-    "max": 4.45
+    "max": 5.45
   },
   {
     "marca": "Sony",
@@ -322,6 +304,12 @@
     "modelo": "VPLL-Z4107 curto",
     "min": 0.75,
     "max": 0.94
+  },
+  {
+    "marca": "Sony",
+    "modelo": "VPLL-FM22",
+    "min": 0.89,
+    "max": 0.89
   },
   {
     "marca": "Sony",
@@ -343,9 +331,9 @@
   },
   {
     "marca": "Sony",
-    "modelo": "Z 4011 (folha — confirmar, ficha oficial diz 1,30–1,95)",
-    "min": 1.4,
-    "max": 2.1
+    "modelo": "VPLL-ZM42",
+    "min": 1.87,
+    "max": 2.3
   },
   {
     "marca": "Sony",
@@ -361,9 +349,21 @@
   },
   {
     "marca": "Sony",
+    "modelo": "VPLL-ZM102",
+    "min": 3.35,
+    "max": 4.92
+  },
+  {
+    "marca": "Sony",
     "modelo": "Z 4025",
     "min": 3.36,
     "max": 6.23
+  },
+  {
+    "marca": "Sony",
+    "modelo": "VPLL-ZM101",
+    "min": 4.47,
+    "max": 6.58
   },
   {
     "marca": "Sony",
