@@ -1111,6 +1111,21 @@
               <option value="custom">Personalizado…</option>
             </select>
           </div>
+          <div class="field">
+            <label>Projetor único ou blend?</label>
+            <div class="seg" id="proj-blendmode-seg">
+              <button type="button" class="seg-btn active" data-blendmode="single">Projetor único</button>
+              <button type="button" class="seg-btn" data-blendmode="blend">Blend (vários projetores)</button>
+            </div>
+          </div>
+          <div class="field" id="proj-blend-projratio-field" style="display:none;">
+            <label for="proj-blend-projratio">Formato (ratio) do projetor</label>
+            <select id="proj-blend-projratio" class="plain">
+              <option value="1.77778" selected>16:9</option>
+              <option value="1.6">16:10</option>
+            </select>
+            <div class="hint">Até 9 m de altura usa 1 projetor na vertical; acima disso, 2 (mesma regra do separador Blending).</div>
+          </div>
           <div class="field" id="proj-ratio-field">
             <label for="proj-proj-ratio">Formato (relação de aspeto)</label>
             <select id="proj-proj-ratio" class="plain">
@@ -1141,7 +1156,7 @@
               <div class="inputgroup"><input id="proj-proj-h" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
             </div>
           </div>
-          <div class="field">
+          <div class="field" id="proj-throwmode-seg-field">
             <label>O que já sabes?</label>
             <div class="seg" id="proj-throwmode-seg">
               <button type="button" class="seg-btn active" data-throwmode="dist">A distância de projeção disponível</button>
@@ -1199,6 +1214,7 @@
         <div id="proj-report-projecao" style="display:none;">
           <div class="readout">
             <div class="item"><div class="k">Tamanho do ecrã</div><div class="v" id="proj-out-screensize">—</div></div>
+            <div class="item wide" id="proj-out-blend-wrap" style="display:none;"><div class="k">Nº de projetores (H x V) / overlap</div><div class="v" id="proj-out-blend">—</div></div>
             <div class="item"><div class="k" id="proj-out-ratio-label">Throw ratio necessário</div><div class="v" id="proj-out-ratio">—</div></div>
             <div class="item"><div class="k">Luminosidade útil</div><div class="v" id="proj-out-lumens">—</div></div>
             <div class="item"><div class="k">Lux no ecrã</div><div class="v" id="proj-out-lux">—</div></div>
@@ -1733,6 +1749,28 @@
     });
   });
 
+  var projBlendMode = "single";
+  var projBlendProjRatioField = document.getElementById("proj-blend-projratio-field");
+  var projThrowModeSegField = document.getElementById("proj-throwmode-seg-field");
+  document.querySelectorAll("#proj-blendmode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#proj-blendmode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      projBlendMode = btn.dataset.blendmode;
+      var isBlend = projBlendMode === "blend";
+      projBlendProjRatioField.style.display = isBlend ? "block" : "none";
+      projThrowModeSegField.style.display = isBlend ? "none" : "block";
+      if (isBlend) {
+        projThrowMode = "dist";
+        document.getElementById("proj-throwmode-dist-inputs").style.display = "block";
+        document.getElementById("proj-throwmode-ratio-inputs").style.display = "none";
+        document.getElementById("proj-out-ratio-label").textContent = "Throw ratio necessário";
+      }
+      document.getElementById("proj-out-blend-wrap").style.display = isBlend ? "block" : "none";
+      calcProjeto();
+    });
+  });
+
   var projSizeMode = "diag";
   var projRatioField = document.getElementById("proj-ratio-field");
   var projDiagField = document.getElementById("proj-diag-field");
@@ -1894,13 +1932,28 @@
         screenLabel = fmtInt(diagIn) + '" (' + rw + ":" + rh + ") — " + fmt(w, 2) + " x " + fmt(h, 2) + " m";
       }
       var area = w * h;
+      var isBlend = projBlendMode === "blend";
+
+      var nh = 1, nv = 1, widthPerProj = w, overlapM = 0, blendLine = "";
+      if (isBlend) {
+        var blendAspect = parseFloat(document.getElementById("proj-blend-projratio").value);
+        nv = h > 9 ? 2 : 1;
+        var hRow = h / nv;
+        widthPerProj = hRow * blendAspect;
+        nh = Math.max(1, Math.ceil(w / widthPerProj));
+        overlapM = nh > 1 ? (nh * widthPerProj - w) / (nh - 1) : 0;
+        document.getElementById("proj-out-blend").textContent = nh + " x " + nv + " (" + fmtInt(nh * nv) + ") — overlap " + fmt(overlapM * 100, 1) + "cm";
+        blendLine = "Blend: " + nh + " x " + nv + " projetores (" + fmtInt(nh * nv) + " no total) — overlap " + fmt(overlapM * 100, 1) + " cm\n";
+      }
 
       var lumens = proj.lumens;
       var lumens80 = lumens * 0.8;
-      var lux = lumens80 / area;
+      var nProj = isBlend ? nh * nv : 1;
+      var lumensTotal80 = lumens80 * nProj;
+      var lux = lumensTotal80 / area;
 
       var matches, ratioOutHtml, distLine, ratioLine;
-      if (projThrowMode === "ratio") {
+      if (!isBlend && projThrowMode === "ratio") {
         var tmin = val("proj-proj-tmin"), tmax = val("proj-proj-tmax");
         var dmin = tmin * w, dmax = tmax * w;
         ratioOutHtml = fmt(dmin, 2) + "–" + fmt(dmax, 2) + "<small>m</small>";
@@ -1912,19 +1965,19 @@
         ratioLine = "Throw ratio: " + fmt(tmin, 2) + " – " + fmt(tmax, 2) + "\n";
       } else {
         var dist = val("proj-proj-dist");
-        var ratioNeeded = dist / w;
+        var ratioNeeded = dist / widthPerProj;
         ratioOutHtml = fmt(ratioNeeded, 2) + "<small>:1</small>";
         matches = LENTES_DATA.filter(function (l) {
           var brandOk = l.marca === brand || l.marca.indexOf(brand + " (") === 0;
           return brandOk && ratioNeeded >= l.min && ratioNeeded <= l.max;
         }).sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
         distLine = "Distância disponível: " + fmt(dist, 2) + " m\n";
-        ratioLine = "Throw ratio necessário: " + fmt(ratioNeeded, 2) + ":1\n";
+        ratioLine = "Throw ratio necessário" + (isBlend ? " (por projetor)" : "") + ": " + fmt(ratioNeeded, 2) + ":1\n";
       }
 
       document.getElementById("proj-out-screensize").innerHTML = fmt(w, 2) + " x " + fmt(h, 2) + "<small>m</small>";
       document.getElementById("proj-out-ratio").innerHTML = ratioOutHtml;
-      document.getElementById("proj-out-lumens").innerHTML = fmtInt(lumens80) + "<small>lm</small>";
+      document.getElementById("proj-out-lumens").innerHTML = fmtInt(lumensTotal80) + "<small>lm</small>";
       document.getElementById("proj-out-lux").innerHTML = fmtInt(lux) + "<small>lux</small>";
 
       var lensListEl = document.getElementById("proj-lensmatch-list");
@@ -1939,13 +1992,14 @@
 
       document.getElementById("proj-sum").textContent =
         "PROJETO: " + nome + "\n" +
-        "Tipo: Projeção\n" +
-        "Projetor: " + proj.modelo + " (" + fmtInt(lumens) + " lm)\n" +
+        "Tipo: Projeção" + (isBlend ? " (blend)" : "") + "\n" +
+        "Projetor: " + proj.modelo + " (" + fmtInt(lumens) + " lm cada)\n" +
         "Ecrã: " + screenLabel + "\n" +
+        blendLine +
         distLine +
         ratioLine +
-        "Lentes compatíveis: " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") : "nenhuma na base") + "\n" +
-        "Luminosidade útil: " + fmtInt(lumens80) + " lm  —  " + fmtInt(lux) + " lux no ecrã";
+        "Lentes compatíveis" + (isBlend ? " (por projetor)" : "") + ": " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") : "nenhuma na base") + "\n" +
+        "Luminosidade útil: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(lux) + " lux no ecrã";
     }
   }
 
