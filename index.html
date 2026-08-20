@@ -2010,18 +2010,25 @@
         nh = Math.max(1, Math.ceil(w / widthPerProj));
         overlapM = nh > 1 ? (nh * widthPerProj - w) / (nh - 1) : 0;
 
-        var totalPxW = nh * blendResPx.rx, totalPxH = nv * blendResPx.ry;
+        // Overlapping pixels are shown by two adjacent projectors but only
+        // exist once on the final canvas — same accounting as the
+        // Blending tab: subtract the overlap (converted to px via this
+        // resolution's density) from the naive nh×rx sum.
+        var pxPerMeterH = blendResPx.rx / widthPerProj;
+        var overlapPx = nh > 1 ? Math.round(overlapM * pxPerMeterH) : 0;
+        var totalPxW = nh * blendResPx.rx - overlapPx * (nh - 1);
+        var totalPxH = nv * blendResPx.ry;
         var totalPxCount = totalPxW * totalPxH;
         document.getElementById("proj-out-nproj-wrap").style.display = "block";
         document.getElementById("proj-out-overlap-wrap").style.display = "block";
         document.getElementById("proj-out-totalpx-wrap").style.display = "block";
         document.getElementById("proj-out-nproj").textContent = nh + " x " + nv + " = " + fmtInt(nh * nv);
-        document.getElementById("proj-out-overlap").innerHTML = fmt(overlapM * 100, 1) + "<small>cm</small>";
+        document.getElementById("proj-out-overlap").innerHTML = fmt(overlapM * 100, 1) + "<small>cm</small> (" + fmtInt(overlapPx) + "<small>px</small>)";
         document.getElementById("proj-out-totalpx").innerHTML = fmtInt(totalPxW) + "×" + fmtInt(totalPxH) + " — " + fmtInt(totalPxCount) + "<small>px (" + fmt(totalPxCount / 1e6, 1) + " MP)</small>";
 
         blendLine = "Nº de projetores: " + nh + " x " + nv + " = " + fmtInt(nh * nv) + "\n" +
           "Resolução de cada projetor: " + blendResPx.rx + "×" + blendResPx.ry + "\n" +
-          "Overlap por junção: " + fmt(overlapM * 100, 1) + " cm\n";
+          "Overlap por junção: " + fmt(overlapM * 100, 1) + " cm (" + fmtInt(overlapPx) + " px)\n";
         totalPxLine = "Total de píxeis no ecrã: " + fmtInt(totalPxW) + "×" + fmtInt(totalPxH) + " = " + fmtInt(totalPxCount) + " px (" + fmt(totalPxCount / 1e6, 1) + " MP)\n";
       } else {
         document.getElementById("proj-out-nproj-wrap").style.display = "none";
