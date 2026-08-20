@@ -663,6 +663,7 @@
         <div class="readout">
           <div class="item"><div class="k">Largura</div><div class="v" id="p-out-w">—</div></div>
           <div class="item"><div class="k">Altura</div><div class="v" id="p-out-h">—</div></div>
+          <div class="item wide"><div class="k">Resolução do projetor</div><div class="v" id="p-out-projres">—</div></div>
         </div>
         <div id="p-throwmode-ratio-output">
           <h2 style="margin-top:18px;">Distância de projeção</h2>
@@ -1242,6 +1243,7 @@
         <div id="proj-report-projecao" style="display:none;">
           <div class="readout">
             <div class="item"><div class="k">Tamanho do ecrã</div><div class="v" id="proj-out-screensize">—</div></div>
+            <div class="item"><div class="k" id="proj-out-projres-label">Resolução do projetor</div><div class="v" id="proj-out-projres">—</div></div>
             <div class="item wide" id="proj-out-blend-wrap" style="display:none;"><div class="k">Nº de projetores (H x V) / overlap</div><div class="v" id="proj-out-blend">—</div></div>
             <div class="item"><div class="k" id="proj-out-ratio-label">Throw ratio necessário</div><div class="v" id="proj-out-ratio">—</div></div>
             <div class="item"><div class="k">Luminosidade útil</div><div class="v" id="proj-out-lumens">—</div></div>
@@ -1443,6 +1445,9 @@
 
     document.getElementById("p-out-w").innerHTML = fmt(w, 2) + "<small>m</small>";
     document.getElementById("p-out-h").innerHTML = fmt(h, 2) + "<small>m</small>";
+    var selOpt = projModelSel.options[projModelSel.selectedIndex];
+    var selProj = selOpt && selOpt.dataset.idx !== undefined ? PROJECTORS_DATA[selOpt.dataset.idx] : null;
+    document.getElementById("p-out-projres").textContent = selProj ? fmtRes(selProj.resolucao) : "—";
 
     var tmin = val("p-tmin"), tmax = val("p-tmax");
     var lumens = val("p-lumens");
@@ -1461,6 +1466,7 @@
         .map(function (l) { return l.marca + " " + l.modelo; });
       document.getElementById("p-sum").textContent =
         "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
+        "Resolução do projetor: " + fmtResWithNote(selProj) + "\n" +
         "Distância entre a lente e o ecrã: " + fmt(knownDist,2) + " m\n" +
         "Throw ratio necessário: " + fmt(ratioNeeded,2) + ":1\n" +
         "Lentes compatíveis: " + (matchNames.length ? matchNames.join(", ") : "nenhuma na base") + "\n" +
@@ -1471,6 +1477,7 @@
       document.getElementById("p-out-dmax").innerHTML = fmt(dmax, 2) + "<small>m</small>";
       document.getElementById("p-sum").textContent =
         "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
+        "Resolução do projetor: " + fmtResWithNote(selProj) + "\n" +
         "Throw ratio: " + fmt(tmin,2) + " – " + fmt(tmax,2) + "\n" +
         "Distância de projeção: " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n" +
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
@@ -2020,6 +2027,18 @@
       }
 
       document.getElementById("proj-out-screensize").innerHTML = fmt(w, 2) + " x " + fmt(h, 2) + "<small>m</small>";
+      var projResLabel = document.getElementById("proj-out-projres-label");
+      var projResEl = document.getElementById("proj-out-projres");
+      if (!proj.resolucao) {
+        projResLabel.textContent = "Resolução do projetor";
+        projResEl.textContent = "—";
+      } else if (isBlend) {
+        projResLabel.textContent = "Resolução combinada";
+        projResEl.textContent = fmtInt(nh * proj.resolucao.rx) + "×" + fmtInt(nv * proj.resolucao.ry);
+      } else {
+        projResLabel.textContent = "Resolução do projetor";
+        projResEl.textContent = fmtRes(proj.resolucao);
+      }
       document.getElementById("proj-out-ratio").innerHTML = ratioOutHtml;
       document.getElementById("proj-out-lumens").innerHTML = fmtInt(lumensTotal80) + "<small>lm</small>";
       document.getElementById("proj-out-lux").innerHTML = fmtInt(lux) + "<small>lux</small>";
@@ -2038,6 +2057,7 @@
         "PROJETO: " + nome + "\n" +
         "Tipo: Projeção" + (isBlend ? " (blend)" : "") + "\n" +
         "Projetor: " + proj.modelo + " (" + fmtInt(lumens) + " lm cada)\n" +
+        "Resolução: " + projResEl.textContent + (!isBlend && proj.resolucaoNota ? " (" + proj.resolucaoNota + ")" : "") + "\n" +
         "Ecrã: " + screenLabel + "\n" +
         blendLine +
         distLine +
@@ -2098,12 +2118,23 @@
     setTimeout(function () { btn.textContent = orig; }, 2000);
   }
 
-  function addOption(select, value, text, isDefault) {
+  function addOption(select, value, text, isDefault, dataIdx) {
     var opt = document.createElement("option");
     opt.value = value;
     opt.textContent = text;
     if (isDefault) opt.selected = true;
+    if (dataIdx !== undefined) opt.dataset.idx = dataIdx;
     select.insertBefore(opt, select.lastElementChild);
+  }
+
+  function fmtRes(res) {
+    return res ? res.rx + "×" + res.ry : "—";
+  }
+
+  function fmtResWithNote(proj) {
+    if (!proj || !proj.resolucao) return "—";
+    var base = fmtRes(proj.resolucao);
+    return proj.resolucaoNota ? base + " (" + proj.resolucaoNota + ")" : base;
   }
 
   Promise.all([
@@ -2119,8 +2150,8 @@
 
     var defaultProj = projectors.find(function (p) { return p.default; }) || projectors[0];
     [projModelSel, blendProjModelSel].forEach(function (sel) {
-      projectors.forEach(function (p) {
-        addOption(sel, p.lumens, p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj);
+      projectors.forEach(function (p, i) {
+        addOption(sel, p.lumens, p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj, i);
       });
     });
     if (defaultProj) {
