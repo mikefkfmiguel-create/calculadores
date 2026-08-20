@@ -2244,27 +2244,23 @@
       showBanner();
     }
 
-    var gotNativePrompt = false;
+    if (isAndroid && !isStandalone() && !isDismissed()) {
+      // Mostra logo à entrada, sem esperar pelo beforeinstallprompt — esse
+      // evento é só do Chrome/Edge e nem sempre dispara (Firefox não tem
+      // a API, e o Chrome também pode não oferecer consoante o dispositivo).
+      // Se o prompt nativo chegar entretanto, o listener abaixo troca para
+      // o botão de um toque.
+      textEl.innerHTML = "<strong>Instala esta app</strong> — no menu ⋮ do browser, procura \"Instalar aplicação\" ou \"Adicionar ao ecrã principal\".";
+      showBanner();
+    }
+
     window.addEventListener("beforeinstallprompt", function (e) {
       e.preventDefault();
       deferredPrompt = e;
-      gotNativePrompt = true;
       btn.style.display = "inline-block";
       textEl.innerHTML = "<strong>Instala esta app</strong> — acesso direto no ecrã principal, sem andares à procura do link.";
       showBanner();
     });
-
-    if (isAndroid && !isStandalone() && !isDismissed()) {
-      // Chrome's native prompt (above) may or may not fire depending on the
-      // browser (Firefox has no such API) and Chrome's own engagement
-      // heuristics — fall back to manual instructions if it doesn't show up
-      // quickly, so nobody sees nothing.
-      setTimeout(function () {
-        if (gotNativePrompt || isStandalone() || isDismissed()) return;
-        textEl.innerHTML = "<strong>Instala esta app</strong> — no menu ⋮ do browser, procura \"Instalar aplicação\" ou \"Adicionar ao ecrã principal\".";
-        showBanner();
-      }, 2500);
-    }
 
     btn.addEventListener("click", function () {
       if (!deferredPrompt) return;
