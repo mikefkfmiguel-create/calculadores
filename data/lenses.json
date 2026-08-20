@@ -259,6 +259,12 @@
   },
   {
     "marca": "Panasonic",
+    "modelo": "PT-CMZ50U (lente fixa integrada)",
+    "min": 0.235,
+    "max": 0.288
+  },
+  {
+    "marca": "Panasonic",
     "modelo": "ET-DLE060",
     "min": 0.6,
     "max": 0.801
