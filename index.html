@@ -1038,31 +1038,51 @@
           </div>
 
           <div class="divider">Processamento</div>
-          <div class="field">
-            <label for="proj-dsm-count">Ecrãs DSM (monitores de palco)</label>
-            <div class="inputgroup"><input id="proj-dsm-count" type="number" value="0" min="0" step="1"></div>
-          </div>
           <div class="row2">
             <div class="field">
-              <label for="proj-dsm-w">Resolução de cada DSM — largura</label>
+              <label for="proj-dsm-count">Ecrãs DSM (monitores de palco)</label>
+              <div class="inputgroup"><input id="proj-dsm-count" type="number" value="0" min="0" step="1"></div>
+            </div>
+            <div class="field">
+              <label for="proj-dsm-res">Resolução de cada DSM</label>
+              <select id="proj-dsm-res" class="plain">
+                <option value="1920x1080" selected>HD (1920×1080)</option>
+                <option value="3840x2160">UHD/4K (3840×2160)</option>
+                <option value="custom">Personalizado…</option>
+              </select>
+            </div>
+          </div>
+          <div class="row2" id="proj-dsm-custom-res" style="display:none;">
+            <div class="field">
+              <label for="proj-dsm-w">Largura</label>
               <div class="inputgroup"><input id="proj-dsm-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
             </div>
             <div class="field">
-              <label for="proj-dsm-h">Resolução de cada DSM — altura</label>
+              <label for="proj-dsm-h">Altura</label>
               <div class="inputgroup"><input id="proj-dsm-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
             </div>
           </div>
-          <div class="field">
-            <label for="proj-delay-count">Ecrãs delay (repetidores para salas/espaços maiores)</label>
-            <div class="inputgroup"><input id="proj-delay-count" type="number" value="0" min="0" step="1"></div>
-          </div>
           <div class="row2">
             <div class="field">
-              <label for="proj-delay-w">Resolução de cada delay — largura</label>
+              <label for="proj-delay-count">Ecrãs delay (repetidores para salas/espaços maiores)</label>
+              <div class="inputgroup"><input id="proj-delay-count" type="number" value="0" min="0" step="1"></div>
+            </div>
+            <div class="field">
+              <label for="proj-delay-res">Resolução de cada delay</label>
+              <select id="proj-delay-res" class="plain">
+                <option value="1920x1080" selected>HD (1920×1080)</option>
+                <option value="3840x2160">UHD/4K (3840×2160)</option>
+                <option value="custom">Personalizado…</option>
+              </select>
+            </div>
+          </div>
+          <div class="row2" id="proj-delay-custom-res" style="display:none;">
+            <div class="field">
+              <label for="proj-delay-w">Largura</label>
               <div class="inputgroup"><input id="proj-delay-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
             </div>
             <div class="field">
-              <label for="proj-delay-h">Resolução de cada delay — altura</label>
+              <label for="proj-delay-h">Altura</label>
               <div class="inputgroup"><input id="proj-delay-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
             </div>
           </div>
@@ -1674,6 +1694,26 @@
       calcProjeto();
     });
   });
+  function setupResPreset(selectId, customWrapId) {
+    var sel = document.getElementById(selectId);
+    var customWrap = document.getElementById(customWrapId);
+    sel.addEventListener("change", function () {
+      customWrap.style.display = sel.value === "custom" ? "grid" : "none";
+      calcProjeto();
+    });
+  }
+  setupResPreset("proj-dsm-res", "proj-dsm-custom-res");
+  setupResPreset("proj-delay-res", "proj-delay-custom-res");
+
+  function readResPreset(selectId, wId, hId) {
+    var sel = document.getElementById(selectId);
+    if (sel.value === "custom") {
+      return [val(wId), val(hId)];
+    }
+    var parts = sel.value.split("x");
+    return [parseInt(parts[0], 10), parseInt(parts[1], 10)];
+  }
+
   var projType = "led";
   var projLedFields = document.getElementById("proj-led-fields");
   var projProjecaoFields = document.getElementById("proj-projecao-fields");
@@ -1769,8 +1809,12 @@
       }
 
       var ledPixels = totalPx * totalPy;
-      var dsmCount = val("proj-dsm-count"), dsmW = val("proj-dsm-w"), dsmH = val("proj-dsm-h");
-      var delayCount = val("proj-delay-count"), delayW = val("proj-delay-w"), delayH = val("proj-delay-h");
+      var dsmCount = val("proj-dsm-count");
+      var dsmRes = readResPreset("proj-dsm-res", "proj-dsm-w", "proj-dsm-h");
+      var dsmW = dsmRes[0], dsmH = dsmRes[1];
+      var delayCount = val("proj-delay-count");
+      var delayRes = readResPreset("proj-delay-res", "proj-delay-w", "proj-delay-h");
+      var delayW = delayRes[0], delayH = delayRes[1];
       var dsmPixels = dsmCount * dsmW * dsmH;
       var delayPixels = delayCount * delayW * delayH;
       var totalPixels = ledPixels + dsmPixels + delayPixels;
