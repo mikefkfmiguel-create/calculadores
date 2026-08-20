@@ -533,13 +533,30 @@
             <option value="custom">Personalizado — tenho a largura e altura em metros</option>
           </select>
         </div>
-        <div class="field" id="p-diag-field">
-          <label for="p-diag">Diagonal do ecrã</label>
-          <div class="inputgroup">
-            <input id="p-diag" type="number" inputmode="decimal" value="120" min="1" step="1">
-            <span class="unit">polegadas</span>
+        <div id="p-diagormode-wrap">
+          <div class="field">
+            <label>Como queres indicar o tamanho?</label>
+            <div class="seg" id="p-sizemode-seg">
+              <button type="button" class="seg-btn active" data-sizemode="diag">Diagonal (polegadas)</button>
+              <button type="button" class="seg-btn" data-sizemode="height">Altura (metros)</button>
+            </div>
           </div>
-          <div class="hint">Junto com o formato acima, calcula a largura/altura do ecrã.</div>
+          <div class="field" id="p-diag-field">
+            <label for="p-diag">Diagonal do ecrã</label>
+            <div class="inputgroup">
+              <input id="p-diag" type="number" inputmode="decimal" value="120" min="1" step="1">
+              <span class="unit">polegadas</span>
+            </div>
+            <div class="hint">Junto com o formato acima, calcula a largura/altura do ecrã.</div>
+          </div>
+          <div class="field" id="p-height-field" style="display:none;">
+            <label for="p-height-fixed">Altura do ecrã</label>
+            <div class="inputgroup">
+              <input id="p-height-fixed" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01">
+              <span class="unit">m</span>
+            </div>
+            <div class="hint">Junto com o formato acima, calcula a diagonal/largura do ecrã.</div>
+          </div>
         </div>
         <div class="row2" id="p-custom-ratio" style="display:none;">
           <div class="field">
@@ -956,12 +973,26 @@
   // Custom ratio toggle
   var ratioSel = document.getElementById("p-ratio");
   var customRatio = document.getElementById("p-custom-ratio");
-  var diagField = document.getElementById("p-diag-field");
+  var diagOrModeWrap = document.getElementById("p-diagormode-wrap");
   ratioSel.addEventListener("change", function () {
     var isCustom = ratioSel.value === "custom";
     customRatio.style.display = isCustom ? "grid" : "none";
-    diagField.style.display = isCustom ? "none" : "block";
+    diagOrModeWrap.style.display = isCustom ? "none" : "block";
     calcProjecao();
+  });
+
+  var pSizeMode = "diag";
+  var diagField = document.getElementById("p-diag-field");
+  var heightField = document.getElementById("p-height-field");
+  document.querySelectorAll("#p-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#p-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      pSizeMode = btn.dataset.sizemode;
+      diagField.style.display = pSizeMode === "diag" ? "block" : "none";
+      heightField.style.display = pSizeMode === "height" ? "block" : "none";
+      calcProjecao();
+    });
   });
 
   var pThrowMode = "ratio";
@@ -1028,12 +1059,19 @@
     } else {
       var parts = ratioSel.value.split(":");
       var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
-      var diagIn = val("p-diag");
-      var diagM = diagIn * 0.0254;
       var r = rw / rh;
-      h = diagM / Math.sqrt(r * r + 1);
-      w = h * r;
-      label = fmt(diagIn,0) + '" (' + rw + ":" + rh + ")";
+      if (pSizeMode === "height") {
+        h = val("p-height-fixed");
+        w = h * r;
+        var diagInFromH = h * Math.sqrt(r * r + 1) / 0.0254;
+        label = fmtInt(diagInFromH) + '" (' + rw + ":" + rh + ")";
+      } else {
+        var diagIn = val("p-diag");
+        var diagM = diagIn * 0.0254;
+        h = diagM / Math.sqrt(r * r + 1);
+        w = h * r;
+        label = fmt(diagIn,0) + '" (' + rw + ":" + rh + ")";
+      }
     }
     var r = w / h;
 
