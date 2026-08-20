@@ -1390,6 +1390,7 @@
   });
   document.getElementById("p-lumens").addEventListener("input", function () {
     projModelSel.value = "custom";
+    updateSelectStockColor(projModelSel);
   });
 
   var blendProjModelSel = document.getElementById("b-projmodel");
@@ -1400,6 +1401,7 @@
   });
   document.getElementById("b-lumens").addEventListener("input", function () {
     blendProjModelSel.value = "custom";
+    updateSelectStockColor(blendProjModelSel);
   });
 
   var bBlendMode = "manual";
@@ -1522,6 +1524,7 @@
   ["l-mw", "l-mh", "l-rx", "l-ry", "l-weight", "l-amp"].forEach(function (id) {
     document.getElementById(id).addEventListener("input", function () {
       ledModelSel.value = "custom";
+      updateSelectStockColor(ledModelSel);
     });
   });
 
@@ -2158,13 +2161,28 @@
     setTimeout(function () { btn.textContent = orig; }, 2000);
   }
 
+  var STOCK_COLOR = "#5028C8";
   function addOption(select, value, text, isDefault, dataIdx) {
     var opt = document.createElement("option");
     opt.value = value;
     opt.textContent = text;
     if (isDefault) opt.selected = true;
     if (dataIdx !== undefined) opt.dataset.idx = dataIdx;
+    if (text.indexOf("(stock)") !== -1) {
+      opt.style.color = STOCK_COLOR;
+      opt.style.fontWeight = "600";
+    }
     select.insertBefore(opt, select.lastElementChild);
+  }
+
+  function updateSelectStockColor(select) {
+    var opt = select.options[select.selectedIndex];
+    var isStock = opt && opt.textContent.indexOf("(stock)") !== -1;
+    select.style.color = isStock ? STOCK_COLOR : "";
+    select.style.fontWeight = isStock ? "600" : "";
+  }
+  function wireStockColor(select) {
+    select.addEventListener("change", function () { updateSelectStockColor(select); });
   }
 
   function fmtRes(res) {
@@ -2229,6 +2247,11 @@
         opt.textContent = marca;
         brandSel.appendChild(opt);
       });
+
+    [projModelSel, blendProjModelSel, projProjModelSel, ledModelSel, projLedModelSel].forEach(function (sel) {
+      wireStockColor(sel);
+      updateSelectStockColor(sel);
+    });
 
     calcProjecao();
     calcLed();
