@@ -1,0 +1,20 @@
+{
+  "bandwidthNote": "Capacidade das portas GigE calculada com 930 Mbps utilizáveis por porta (política da casa, sem COEX). A NovaStar publica oficialmente 950 Mbps (fator 0,95) — usamos 930 Mbps por margem própria, não é erro.",
+  "switchers": [
+    { "marca": "Barco", "modelo": "E2", "maxMPSwitcher": 20, "maxMPPgmOnly": 40, "maxMPPgmOnly30p": 80, "inputs": 32, "outputs": 16, "latenciaFrames": 1, "nota": "Descontinuado (pré-2019). Ligação de vários chassis permite canvas maior, sem máximo fixo publicado." },
+    { "marca": "Barco", "modelo": "E2 Gen2", "maxMPSwitcher": 20, "maxMPPgmOnly": 40, "maxMPPgmOnly30p": 80, "maxMPSwitcherLinked": 160, "maxMPPgmOnlyLinked": 320, "maxMPPgmOnly30pLinked": 640, "inputs": 40, "outputs": 18, "latenciaFrames": 1, "nota": "Linked = até 8 chassis ligados por fibra." },
+    { "marca": "Barco", "modelo": "S3-4K", "maxMPSwitcher": 20, "maxMPPgmOnly": 40, "inputs": 12, "outputs": 10, "nota": "Variante BTO expansível: 10–160MP / 40–320MP / 80–640MP@30p. Latência ~15ms circula em fontes não-oficiais, não confirmada pela Barco." },
+    { "marca": "Analog Way", "modelo": "Aquilon RS4", "maxMPSwitcher": 120, "inputs": 24, "outputs": 16, "latenciaFrames": 1, "nota": "120MP a 10-bit 4:4:4 @60Hz no Program." },
+    { "marca": "PixelHUE", "modelo": "P10", "maxMPSwitcher": 8.3, "maxMPPgmOnly": 17.7, "nota": "Modo switcher: 1×4K60. Modo PGM only: 8K×2K60. MP calculados da resolução, não publicados diretamente." },
+    { "marca": "PixelHUE", "modelo": "P20", "maxMPSwitcher": 16.6, "maxMPPgmOnly": 35.4, "nota": "Modo switcher: 2×4K60. Modo PGM only: 8K×4K60. MP calculados da resolução, não publicados diretamente." },
+    { "marca": "PixelHUE", "modelo": "P80", "maxMPSwitcher": 35, "inputs": 16, "outputs": 12, "nota": "35MP @ 4K60p (publicado), até 20 entradas 4K." },
+    { "marca": "NovaStar", "modelo": "H5", "maxMPSwitcher": 39, "maxMPFibra": 62.4, "inputs": 40, "outputs": 48, "latenciaFrames": 1, "nota": "39MP via RJ45, 62,4MP via saída de fibra." }
+  ],
+  "ledProcessors": [
+    { "marca": "NovaStar", "modelo": "MCTRL300", "ports": 2 },
+    { "marca": "NovaStar", "modelo": "MCTRL600", "ports": 4 },
+    { "marca": "NovaStar", "modelo": "MCTRL660", "ports": 4 },
+    { "marca": "NovaStar", "modelo": "MCTRL660 PRO", "ports": 6, "nota": "Tem ainda 2× saída ótica 10G — capacidade exata por fibra não confirmada; tratada como porta GigE padrão por segurança (sem COEX)." },
+    { "marca": "NovaStar", "modelo": "MCTRL4K", "ports": 16, "maxPixelsHardCap": 8800000, "nota": "Tem ainda 4× saída de fibra — tratada como porta GigE padrão por segurança (sem COEX). Limite físico do aparelho: 8,8M píxeis (entrada DP/HDMI)." }
+  ]
+}
