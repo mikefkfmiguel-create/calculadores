@@ -193,6 +193,52 @@
     margin-top: 6px;
   }
 
+  .install-banner {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid var(--green-500);
+    background: var(--green-100);
+    color: var(--green-600);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13.5px;
+    margin-bottom: 22px;
+  }
+  .install-banner-text { flex: 1; }
+  .install-banner-text strong { color: inherit; }
+  .install-dot {
+    flex: none;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green-500);
+  }
+  .install-btn {
+    flex: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--green-500);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+  .install-btn:hover { background: var(--green-600); }
+  .install-dismiss {
+    flex: none;
+    font-family: inherit;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--green-600);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .install-dismiss:hover { opacity: 0.7; }
+
   /* Tabs */
   .tabs {
     display: flex;
@@ -525,6 +571,13 @@
   <div class="banner">
     <span class="dot"></span>
     <div><strong>Versão de trabalho.</strong> Blending, distância de projeção e distância de visualização já validados com a tua folha. Os pesos/amps por modelo de tile vêm de fichas técnicas públicas — confirma sempre o modelo exato antes de produção.</div>
+  </div>
+
+  <div class="install-banner" id="install-banner" style="display:none;">
+    <span class="install-dot"></span>
+    <div class="install-banner-text" id="install-banner-text"><strong>Instala esta app</strong> — acesso direto no ecrã principal, sem andares à procura do link.</div>
+    <button class="install-btn" id="install-banner-btn" style="display:none;">Instalar</button>
+    <button class="install-dismiss" id="install-banner-dismiss" aria-label="Fechar">×</button>
   </div>
 
   <div class="tabs" role="tablist">
@@ -2152,4 +2205,62 @@
       });
     });
   }
+
+  (function () {
+    var DISMISS_KEY = "calc-install-dismissed";
+    var banner = document.getElementById("install-banner");
+    var textEl = document.getElementById("install-banner-text");
+    var btn = document.getElementById("install-banner-btn");
+    var dismissBtn = document.getElementById("install-banner-dismiss");
+    var deferredPrompt = null;
+
+    function isStandalone() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+    function isDismissed() {
+      try { return localStorage.getItem(DISMISS_KEY) === "1"; } catch (e) { return false; }
+    }
+    function setDismissed() {
+      try { localStorage.setItem(DISMISS_KEY, "1"); } catch (e) {}
+    }
+    function hideBanner() {
+      banner.style.display = "none";
+    }
+    function showBanner() {
+      if (isStandalone() || isDismissed()) return;
+      banner.style.display = "flex";
+    }
+
+    dismissBtn.addEventListener("click", function () {
+      setDismissed();
+      hideBanner();
+    });
+
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS && !isStandalone() && !isDismissed()) {
+      textEl.innerHTML = "<strong>Instala esta app</strong> — toca em Partilhar <span style=\"font-size:15px;\">⬆️</span> e depois em \"Adicionar ao Ecrã Principal\".";
+      showBanner();
+    }
+
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      btn.style.display = "inline-block";
+      showBanner();
+    });
+
+    btn.addEventListener("click", function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.finally(function () {
+        deferredPrompt = null;
+        hideBanner();
+      });
+    });
+
+    window.addEventListener("appinstalled", function () {
+      setDismissed();
+      hideBanner();
+    });
+  })();
 </script>
