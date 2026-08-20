@@ -1024,19 +1024,34 @@
               <option value="custom">Personalizado…</option>
             </select>
           </div>
-          <div class="row2">
+          <div class="field" id="proj-ratio-field">
+            <label for="proj-proj-ratio">Formato (relação de aspeto)</label>
+            <select id="proj-proj-ratio" class="plain">
+              <option value="16:9" selected>16:9</option>
+              <option value="16:10">16:10</option>
+              <option value="4:3">4:3</option>
+              <option value="21:9">21:9</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Como queres indicar o tamanho?</label>
+            <div class="seg" id="proj-sizemode-seg">
+              <button type="button" class="seg-btn active" data-sizemode="diag">Diagonal (polegadas)</button>
+              <button type="button" class="seg-btn" data-sizemode="height">Medidas (metros)</button>
+            </div>
+          </div>
+          <div class="field" id="proj-diag-field">
+            <label for="proj-proj-diag">Diagonal do ecrã</label>
+            <div class="inputgroup"><input id="proj-proj-diag" type="number" inputmode="decimal" value="120" min="1" step="1"><span class="unit">"</span></div>
+          </div>
+          <div class="row2" id="proj-meters-field" style="display:none;">
             <div class="field">
-              <label for="proj-proj-ratio">Formato (relação de aspeto)</label>
-              <select id="proj-proj-ratio" class="plain">
-                <option value="16:9" selected>16:9</option>
-                <option value="16:10">16:10</option>
-                <option value="4:3">4:3</option>
-                <option value="21:9">21:9</option>
-              </select>
+              <label for="proj-proj-w">Largura do ecrã</label>
+              <div class="inputgroup"><input id="proj-proj-w" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01"><span class="unit">m</span></div>
             </div>
             <div class="field">
-              <label for="proj-proj-diag">Diagonal do ecrã</label>
-              <div class="inputgroup"><input id="proj-proj-diag" type="number" inputmode="decimal" value="120" min="1" step="1"><span class="unit">"</span></div>
+              <label for="proj-proj-h">Altura do ecrã</label>
+              <div class="inputgroup"><input id="proj-proj-h" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
             </div>
           </div>
           <div class="field">
@@ -1563,6 +1578,23 @@
     });
   });
 
+  var projSizeMode = "diag";
+  var projRatioField = document.getElementById("proj-ratio-field");
+  var projDiagField = document.getElementById("proj-diag-field");
+  var projMetersField = document.getElementById("proj-meters-field");
+  document.querySelectorAll("#proj-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#proj-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      projSizeMode = btn.dataset.sizemode;
+      var isMeters = projSizeMode === "height";
+      projRatioField.style.display = isMeters ? "none" : "block";
+      projDiagField.style.display = isMeters ? "none" : "block";
+      projMetersField.style.display = isMeters ? "grid" : "none";
+      calcProjeto();
+    });
+  });
+
   function calcProjeto() {
     var nome = document.getElementById("proj-nome").value.trim() || "Projeto sem nome";
 
@@ -1616,13 +1648,21 @@
       var proj = PROJECTORS_DATA[isNaN(projIdx) ? 0 : projIdx];
       var brand = proj.modelo.split(" ")[0];
 
-      var parts = document.getElementById("proj-proj-ratio").value.split(":");
-      var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
-      var r = rw / rh;
-      var diagIn = val("proj-proj-diag");
-      var diagM = diagIn * 0.0254;
-      var h = diagM / Math.sqrt(r * r + 1);
-      var w = h * r;
+      var w, h, screenLabel;
+      if (projSizeMode === "height") {
+        w = val("proj-proj-w");
+        h = val("proj-proj-h");
+        screenLabel = fmt(w, 2) + " x " + fmt(h, 2) + " m (" + describeRatio(w, h) + ")";
+      } else {
+        var parts = document.getElementById("proj-proj-ratio").value.split(":");
+        var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+        var r = rw / rh;
+        var diagIn = val("proj-proj-diag");
+        var diagM = diagIn * 0.0254;
+        h = diagM / Math.sqrt(r * r + 1);
+        w = h * r;
+        screenLabel = fmtInt(diagIn) + '" (' + rw + ":" + rh + ") — " + fmt(w, 2) + " x " + fmt(h, 2) + " m";
+      }
       var area = w * h;
 
       var dist = val("proj-proj-dist");
@@ -1656,7 +1696,7 @@
         "PROJETO: " + nome + "\n" +
         "Tipo: Projeção\n" +
         "Projetor: " + proj.modelo + " (" + fmtInt(lumens) + " lm)\n" +
-        "Ecrã: " + fmtInt(diagIn) + '" (' + rw + ":" + rh + ") — " + fmt(w, 2) + " x " + fmt(h, 2) + " m\n" +
+        "Ecrã: " + screenLabel + "\n" +
         "Distância disponível: " + fmt(dist, 2) + " m\n" +
         "Throw ratio necessário: " + fmt(ratioNeeded, 2) + ":1\n" +
         "Lentes compatíveis: " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") : "nenhuma na base") + "\n" +
