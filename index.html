@@ -694,16 +694,38 @@
           <div class="hint">Valores de fichas técnicas públicas — confirma sempre com o fabricante antes de produção. O modelo escolhido preenche tamanho, resolução, peso e amp abaixo (podes ajustar à mão).</div>
         </div>
 
-        <div class="divider">Nº de tiles na parede</div>
-        <div class="row2">
-          <div class="field">
-            <label for="l-mx">Tiles na horizontal</label>
-            <div class="inputgroup"><input id="l-mx" type="number" value="16" min="1" step="1"></div>
+        <div class="divider">Tamanho do ecrã</div>
+        <div class="field">
+          <label>Como queres indicar o tamanho?</label>
+          <div class="seg" id="l-sizemode-seg">
+            <button type="button" class="seg-btn active" data-sizemode="tiles">Nº de tiles</button>
+            <button type="button" class="seg-btn" data-sizemode="meters">Medida do ecrã (m)</button>
           </div>
-          <div class="field">
-            <label for="l-my">Tiles na vertical</label>
-            <div class="inputgroup"><input id="l-my" type="number" value="9" min="1" step="1"></div>
+        </div>
+        <div id="l-tiles-inputs">
+          <div class="row2">
+            <div class="field">
+              <label for="l-mx">Tiles na horizontal</label>
+              <div class="inputgroup"><input id="l-mx" type="number" value="16" min="1" step="1"></div>
+            </div>
+            <div class="field">
+              <label for="l-my">Tiles na vertical</label>
+              <div class="inputgroup"><input id="l-my" type="number" value="9" min="1" step="1"></div>
+            </div>
           </div>
+        </div>
+        <div id="l-meters-inputs" style="display:none;">
+          <div class="row2">
+            <div class="field">
+              <label for="l-target-w">Largura desejada</label>
+              <div class="inputgroup"><input id="l-target-w" type="number" inputmode="decimal" value="8.0" min="0.1" step="0.1"><span class="unit">m</span></div>
+            </div>
+            <div class="field">
+              <label for="l-target-h">Altura desejada</label>
+              <div class="inputgroup"><input id="l-target-h" type="number" inputmode="decimal" value="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
+            </div>
+          </div>
+          <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida — o tamanho real fica no resultado.</div>
         </div>
 
         <div class="divider">Tamanho do tile</div>
@@ -1184,10 +1206,39 @@
     });
   });
 
+  var lSizeMode = "tiles";
+  var lTilesInputs = document.getElementById("l-tiles-inputs");
+  var lMetersInputs = document.getElementById("l-meters-inputs");
+  var lMxInput = document.getElementById("l-mx");
+  var lMyInput = document.getElementById("l-my");
+  document.querySelectorAll("#l-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#l-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      lSizeMode = btn.dataset.sizemode;
+      var isMeters = lSizeMode === "meters";
+      lTilesInputs.style.display = isMeters ? "none" : "block";
+      lMetersInputs.style.display = isMeters ? "block" : "none";
+      lMxInput.readOnly = isMeters;
+      lMyInput.readOnly = isMeters;
+      calcLed();
+    });
+  });
+
   function calcLed() {
-    var mx = val("l-mx"), my = val("l-my");
     var mw = val("l-mw"), mh = val("l-mh");
     var rx = val("l-rx"), ry = val("l-ry");
+    var mx, my;
+    if (lSizeMode === "meters") {
+      var targetW = val("l-target-w"), targetH = val("l-target-h");
+      mx = Math.max(1, Math.ceil((targetW * 1000) / mw));
+      my = Math.max(1, Math.ceil((targetH * 1000) / mh));
+      lMxInput.value = mx;
+      lMyInput.value = my;
+    } else {
+      mx = val("l-mx");
+      my = val("l-my");
+    }
     var weightPerTile = val("l-weight"), ampPerTile = val("l-amp");
 
     var totalPx = mx * rx, totalPy = my * ry;
