@@ -939,6 +939,7 @@
 
   <!-- LENTES -->
   <section class="panel" data-mode="lentes">
+    <p class="note" style="margin-top:0; margin-bottom:18px;">Separador informativo — mostra o que existe no mercado em geral, não apenas o que a empresa tem. Para as lentes compatíveis com equipamento próprio, usa o separador Projeto.</p>
     <div class="grid">
       <div class="card">
         <h2>Necessidade</h2>
@@ -1058,6 +1059,7 @@
             <div class="item"><div class="k">Pixel pitch</div><div class="v" id="proj-out-pitch">—</div></div>
             <div class="item"><div class="k">Peso total</div><div class="v" id="proj-out-weight">—</div></div>
             <div class="item"><div class="k">Amp total (por fase)</div><div class="v" id="proj-out-amp">—</div></div>
+            <div class="item wide" id="proj-out-boxes-wrap" style="display:none;"><div class="k">Nº de caixas</div><div class="v" id="proj-out-boxes">—</div></div>
           </div>
         </div>
 
@@ -1077,7 +1079,10 @@
         <div class="summary">
           <div class="summary-head">
             <span class="k">Relatório completo</span>
-            <button class="copy" data-target="proj-sum">Copiar relatório</button>
+            <div style="display:flex; gap:8px;">
+              <button class="copy" data-target="proj-sum">Copiar relatório</button>
+              <button class="copy" id="proj-download">Descarregar (.txt)</button>
+            </div>
           </div>
           <pre class="sumbox" id="proj-sum"></pre>
         </div>
@@ -1583,11 +1588,23 @@
       document.getElementById("proj-out-weight").innerHTML = weightTotal == null ? "—" : fmt(weightTotal, 1) + "<small>kg</small>";
       document.getElementById("proj-out-amp").innerHTML = fmt(ampTotal, 2) + "<small>A</small> (" + fmt(ampPhase, 2) + "<small>A/fase</small>)";
 
+      var boxesWrap = document.getElementById("proj-out-boxes-wrap");
+      var boxesLine = "";
+      if (tile.tilesPerBox) {
+        var numBoxes = Math.ceil(numTiles / tile.tilesPerBox);
+        boxesWrap.style.display = "block";
+        document.getElementById("proj-out-boxes").textContent = fmtInt(numBoxes) + " (" + tile.tilesPerBox + " tiles/caixa)";
+        boxesLine = "Nº de caixas: " + fmtInt(numBoxes) + " (" + tile.tilesPerBox + " tiles/caixa)\n";
+      } else {
+        boxesWrap.style.display = "none";
+      }
+
       document.getElementById("proj-sum").textContent =
         "PROJETO: " + nome + "\n" +
         "Tipo: Ecrã LED\n" +
         "Modelo de tile: " + tile.modelo + "\n" +
         "Tiles: " + mx + " x " + my + " (" + fmtInt(numTiles) + " no total)\n" +
+        boxesLine +
         "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px\n" +
         "Tamanho real: " + fmt(totalWm, 2) + " x " + fmt(totalHm, 2) + " m\n" +
         "Pixel pitch: " + fmt(pitchAvg, 2) + " mm\n" +
@@ -1652,7 +1669,26 @@
     el.addEventListener("change", calcProjeto);
   });
 
-  document.querySelectorAll("button.copy").forEach(function (btn) {
+  document.getElementById("proj-download").addEventListener("click", function () {
+    var nome = document.getElementById("proj-nome").value.trim() || "projeto";
+    var stripped = Array.from(nome.normalize("NFD")).filter(function (ch) {
+      var code = ch.codePointAt(0);
+      return code < 768 || code > 879;
+    }).join("");
+    var slug = stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
+    var text = document.getElementById("proj-sum").textContent;
+    var blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = slug + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.querySelectorAll("button.copy[data-target]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var el = document.getElementById(btn.dataset.target);
       var text = el.innerText;
