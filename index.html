@@ -1135,13 +1135,14 @@
               <option value="21:9">21:9</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" id="proj-sizemode-seg-field">
             <label>Como queres indicar o tamanho?</label>
             <div class="seg" id="proj-sizemode-seg">
               <button type="button" class="seg-btn active" data-sizemode="diag">Diagonal (polegadas)</button>
               <button type="button" class="seg-btn" data-sizemode="height">Medidas (metros)</button>
             </div>
           </div>
+          <div class="hint" id="proj-blend-sizemode-hint" style="display:none;">Em blend, o tamanho é sempre em metros (largura x altura livres) — igual ao separador Blending. Um ecrã no mesmo formato do projetor cabe sempre num só projetor, seja qual for o tamanho.</div>
           <div class="field" id="proj-diag-field">
             <label for="proj-proj-diag">Diagonal do ecrã</label>
             <div class="inputgroup"><input id="proj-proj-diag" type="number" inputmode="decimal" value="120" min="1" step="1"><span class="unit">"</span></div>
@@ -1765,6 +1766,22 @@
         document.getElementById("proj-throwmode-dist-inputs").style.display = "block";
         document.getElementById("proj-throwmode-ratio-inputs").style.display = "none";
         document.getElementById("proj-out-ratio-label").textContent = "Throw ratio necessário";
+
+        // Blend só faz sentido com largura/altura livres — um ecrã no mesmo
+        // formato do projetor cabe sempre num só projetor, seja qual for o
+        // diagonal, por isso a diagonal não serve para disparar blend.
+        projSizeMode = "height";
+        document.querySelectorAll("#proj-sizemode-seg .seg-btn").forEach(function (b) {
+          b.classList.toggle("active", b.dataset.sizemode === "height");
+        });
+        projRatioField.style.display = "none";
+        projDiagField.style.display = "none";
+        projMetersField.style.display = "grid";
+        document.getElementById("proj-sizemode-seg-field").style.display = "none";
+        document.getElementById("proj-blend-sizemode-hint").style.display = "block";
+      } else {
+        document.getElementById("proj-sizemode-seg-field").style.display = "block";
+        document.getElementById("proj-blend-sizemode-hint").style.display = "none";
       }
       document.getElementById("proj-out-blend-wrap").style.display = isBlend ? "block" : "none";
       calcProjeto();
