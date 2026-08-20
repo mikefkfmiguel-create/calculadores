@@ -1,0 +1,368 @@
+[
+  {
+    "marca": "Barco",
+    "modelo": "TLD+ UST",
+    "min": 0.28,
+    "max": 0.42
+  },
+  {
+    "marca": "Barco",
+    "modelo": "FLD+ Long",
+    "min": 2.5,
+    "max": 4.6
+  },
+  {
+    "marca": "Barco",
+    "modelo": "FLD Extra-long",
+    "min": 3.8,
+    "max": 6.5
+  },
+  {
+    "marca": "Barco (Boxer)",
+    "modelo": "Fixo 0,90 (folha)",
+    "min": 0.9,
+    "max": 0.9
+  },
+  {
+    "marca": "Barco (Boxer)",
+    "modelo": "Zoom 1,31–1,63 (folha)",
+    "min": 1.31,
+    "max": 1.63
+  },
+  {
+    "marca": "Barco (Boxer)",
+    "modelo": "Zoom 1,63–2,17 (folha)",
+    "min": 1.63,
+    "max": 2.17
+  },
+  {
+    "marca": "Barco (Boxer)",
+    "modelo": "Zoom 2,17–3,89 (folha)",
+    "min": 2.17,
+    "max": 3.89
+  },
+  {
+    "marca": "Barco (Boxer)",
+    "modelo": "Zoom 3,89–5,43 (folha)",
+    "min": 3.89,
+    "max": 5.43
+  },
+  {
+    "marca": "Christie",
+    "modelo": "Ultra Short",
+    "min": 0.5,
+    "max": 0.6
+  },
+  {
+    "marca": "Christie",
+    "modelo": "Roadster 0,67 fixo curto",
+    "min": 0.67,
+    "max": 0.67
+  },
+  {
+    "marca": "Christie",
+    "modelo": "High Contrast",
+    "min": 1.13,
+    "max": 1.66
+  },
+  {
+    "marca": "Christie",
+    "modelo": "Roadster 1,16–1,49 curto ajustável",
+    "min": 1.16,
+    "max": 1.49
+  },
+  {
+    "marca": "Christie",
+    "modelo": "Short Standard",
+    "min": 1.2,
+    "max": 1.5
+  },
+  {
+    "marca": "Christie",
+    "modelo": "Zoom 1,2–1,6",
+    "min": 1.2,
+    "max": 1.6
+  },
+  {
+    "marca": "Christie",
+    "modelo": "Roadster 1,4–1,8 ajustável",
+    "min": 1.4,
+    "max": 1.8
+  },
+  {
+    "marca": "Christie",
+    "modelo": "Zoom 2,1–3,4",
+    "min": 2.1,
+    "max": 3.4
+  },
+  {
+    "marca": "Digital Projection / ILS",
+    "modelo": "ILS 0,67 (folha)",
+    "min": 0.67,
+    "max": 0.67
+  },
+  {
+    "marca": "Digital Projection / ILS",
+    "modelo": "ILS 1,1 (folha)",
+    "min": 1.1,
+    "max": 1.1
+  },
+  {
+    "marca": "Digital Projection / ILS",
+    "modelo": "ILS 1,4–1,8 (folha)",
+    "min": 1.4,
+    "max": 1.8
+  },
+  {
+    "marca": "Digital Projection / ILS",
+    "modelo": "ILS 1,8–2,6 (folha)",
+    "min": 1.8,
+    "max": 2.6
+  },
+  {
+    "marca": "Digital Projection / ILS",
+    "modelo": "ILS 2,6–4,1 (folha)",
+    "min": 2.6,
+    "max": 4.1
+  },
+  {
+    "marca": "Digital Projection / ILS",
+    "modelo": "ILS 4,1–6,9 (folha)",
+    "min": 4.1,
+    "max": 6.9
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLU03 (9–12k lm)",
+    "min": 0.48,
+    "max": 0.57
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLU02",
+    "min": 0.64,
+    "max": 0.8
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLU03 (≤8000lm)",
+    "min": 0.65,
+    "max": 0.78
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLW05",
+    "min": 1.04,
+    "max": 1.46
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLM08",
+    "min": 1.42,
+    "max": 2.28
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLM15 (9–20k lm)",
+    "min": 1.57,
+    "max": 2.56
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLW06",
+    "min": 1.62,
+    "max": 2.22
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLM15 (≤8500lm)",
+    "min": 2.16,
+    "max": 3.48
+  },
+  {
+    "marca": "Epson",
+    "modelo": "ELPLM10",
+    "min": 3.32,
+    "max": 5.06
+  },
+  {
+    "marca": "NEC",
+    "modelo": "NP16FL",
+    "min": 0.76,
+    "max": 0.76
+  },
+  {
+    "marca": "NEC",
+    "modelo": "NP30ZL",
+    "min": 0.79,
+    "max": 1.04
+  },
+  {
+    "marca": "NEC",
+    "modelo": "NP53ZL",
+    "min": 0.86,
+    "max": 1.25
+  },
+  {
+    "marca": "NEC",
+    "modelo": "NP34ZL",
+    "min": 0.95,
+    "max": 1.2
+  },
+  {
+    "marca": "NEC",
+    "modelo": "NP41ZL",
+    "min": 1.3,
+    "max": 3.08
+  },
+  {
+    "marca": "NEC",
+    "modelo": "NP13ZL",
+    "min": 1.46,
+    "max": 3.02
+  },
+  {
+    "marca": "NEC",
+    "modelo": "NP18ZL",
+    "min": 1.73,
+    "max": 2.27
+  },
+  {
+    "marca": "NEC",
+    "modelo": "NP43ZL",
+    "min": 2.99,
+    "max": 5.93
+  },
+  {
+    "marca": "NEC",
+    "modelo": "NP05ZL",
+    "min": 4.7,
+    "max": 7.2
+  },
+  {
+    "marca": "Outros (folha)",
+    "modelo": "FM 22 — 0,89",
+    "min": 0.89,
+    "max": 0.89
+  },
+  {
+    "marca": "Outros (folha)",
+    "modelo": "ZM 42 — 1,87–2,3",
+    "min": 1.87,
+    "max": 2.3
+  },
+  {
+    "marca": "Outros (folha)",
+    "modelo": "ZM 102 — 3,35–4,92",
+    "min": 3.35,
+    "max": 4.92
+  },
+  {
+    "marca": "Outros (folha)",
+    "modelo": "ZM 101 — 4,7–6,58",
+    "min": 4.7,
+    "max": 6.58
+  },
+  {
+    "marca": "Panasonic",
+    "modelo": "ET-D75LE95 (UST)",
+    "min": 0.36,
+    "max": 0.4
+  },
+  {
+    "marca": "Panasonic",
+    "modelo": "Curto fixo 0,60 (folha)",
+    "min": 0.6,
+    "max": 0.6
+  },
+  {
+    "marca": "Panasonic",
+    "modelo": "ET-D75LE50",
+    "min": 0.69,
+    "max": 0.77
+  },
+  {
+    "marca": "Panasonic",
+    "modelo": "Zoom 1,71–2,41 (folha)",
+    "min": 1.71,
+    "max": 2.41
+  },
+  {
+    "marca": "Panasonic",
+    "modelo": "Zoom 2,27–3,62 (folha)",
+    "min": 2.27,
+    "max": 3.62
+  },
+  {
+    "marca": "Panasonic",
+    "modelo": "ET-D75LE30",
+    "min": 2.4,
+    "max": 4.7
+  },
+  {
+    "marca": "Panasonic",
+    "modelo": "Zoom 3,58–4,45 (folha)",
+    "min": 3.58,
+    "max": 4.45
+  },
+  {
+    "marca": "Sony",
+    "modelo": "VPLL-3003 UST fixo (FHZ6/FH6)",
+    "min": 0.33,
+    "max": 0.33
+  },
+  {
+    "marca": "Sony",
+    "modelo": "VPLL-Z4107 curto",
+    "min": 0.75,
+    "max": 0.94
+  },
+  {
+    "marca": "Sony",
+    "modelo": "VPLL-Z3010",
+    "min": 1.01,
+    "max": 1.39
+  },
+  {
+    "marca": "Sony",
+    "modelo": "VPLL-Z4011 (FH500L/FHZ700L/FHZ90L/FHZ120L)",
+    "min": 1.3,
+    "max": 1.95
+  },
+  {
+    "marca": "Sony",
+    "modelo": "VPLL-Z4111 (FHZ120L/FHZ90L)",
+    "min": 1.3,
+    "max": 1.96
+  },
+  {
+    "marca": "Sony",
+    "modelo": "Z 4011 (folha — confirmar, ficha oficial diz 1,30–1,95)",
+    "min": 1.4,
+    "max": 2.1
+  },
+  {
+    "marca": "Sony",
+    "modelo": "VPLL-Z4019 (FHZ120L/FHZ90L)",
+    "min": 2.14,
+    "max": 3.07
+  },
+  {
+    "marca": "Sony",
+    "modelo": "VPLL-Z3024 (FHZ60/65)",
+    "min": 2.34,
+    "max": 3.19
+  },
+  {
+    "marca": "Sony",
+    "modelo": "Z 4025",
+    "min": 3.36,
+    "max": 6.23
+  },
+  {
+    "marca": "Sony",
+    "modelo": "Z 4045",
+    "min": 6.19,
+    "max": 10.72
+  }
+]

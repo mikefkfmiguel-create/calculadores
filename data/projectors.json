@@ -1,0 +1,18 @@
+[
+  { "modelo": "Panasonic PT-RQ22K", "lumens": 21000 },
+  { "modelo": "Panasonic PT-RQ13K", "lumens": 10000 },
+  { "modelo": "Epson EB-PQ2220B", "lumens": 20000, "default": true },
+  { "modelo": "Epson EB-PU2213B", "lumens": 13000 },
+  { "modelo": "Barco UDX-4K32", "lumens": 31000 },
+  { "modelo": "Barco UDX-4K40", "lumens": 37500 },
+  { "modelo": "Christie Griffyn 4K32-RGB", "lumens": 34000 },
+  { "modelo": "Christie Roadster HD20K-J (antigo, lâmpada)", "lumens": 20000 },
+  { "modelo": "Christie Roadster HD14K-J (antigo, lâmpada)", "lumens": 13200 },
+  { "modelo": "Panasonic PT-DZ12000 (antigo, lâmpada)", "lumens": 12000 },
+  { "modelo": "Panasonic PT-CMZ50U (ultra short throw, laser)", "lumens": 5200 },
+  { "modelo": "NEC PA1705UL", "lumens": 16000 },
+  { "modelo": "Sony VPL-FHZ120L", "lumens": 12000 },
+  { "modelo": "Sony VPL-FH500L (lâmpada)", "lumens": 7000 },
+  { "modelo": "Sony VPL-FHZ700L", "lumens": 7000 },
+  { "modelo": "Sony VPL-FHZ131L", "lumens": 13000 }
+]

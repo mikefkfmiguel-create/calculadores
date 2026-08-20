@@ -1,0 +1,19 @@
+[
+  { "modelo": "YESTECH MG6S P3.91", "mw": 500, "mh": 500, "rx": 128, "ry": 128, "weight": 6.0, "amp": 0.52, "label": "500×500mm, 128×128px, 6,0kg, ≈0,52A", "default": true },
+  { "modelo": "YESTECH MG6S P2.6", "mw": 500, "mh": 500, "rx": 192, "ry": 192, "weight": 5.8, "amp": 0.52, "label": "500×500mm, 192×192px, 5,8kg, ≈0,52A" },
+  { "modelo": "YESTECH MG7S P3.9", "mw": 500, "mh": 500, "rx": 128, "ry": 128, "weight": 6.5, "amp": 0.82, "label": "500×500mm, 128×128px, 6,5kg, ≈0,82A" },
+  { "modelo": "Absen A3 Pro P3.9", "mw": 500, "mh": 500, "rx": 128, "ry": 128, "weight": 9.2, "amp": 0.61, "label": "500×500mm, 128×128px, 9,2kg, 0,61A (@208V)" },
+  { "modelo": "Absen PL2.5 Pro", "mw": 500, "mh": 500, "rx": 200, "ry": 200, "weight": 8.6, "amp": 0.84, "label": "500×500mm, 200×200px, 8,6kg, ≈0,84A" },
+  { "modelo": "ROE Black Pearl BP2 P2.84", "mw": 500, "mh": 500, "rx": 176, "ry": 176, "weight": 9.35, "amp": 0.83, "label": "500×500mm, 176×176px, 9,35kg, ≈0,83A" },
+  { "modelo": "ROE Ruby RB2.3", "mw": 500, "mh": 500, "rx": 216, "ry": 216, "weight": 8.16, "amp": 0.78, "label": "500×500mm, 216×216px, 8,16kg, ≈0,78A" },
+  { "modelo": "ROE Sapphire SP1.5", "mw": 500, "mh": 500, "rx": 324, "ry": 324, "weight": 4.0, "amp": 0.43, "label": "500×500mm, 324×324px, 4,0kg, ≈0,43A" },
+  { "modelo": "ROE Diamond DM2.6", "mw": 500, "mh": 500, "rx": 192, "ry": 192, "weight": 5.5, "amp": 0.78, "label": "500×500mm, 192×192px, 5,5kg, ≈0,78A" },
+  { "modelo": "Unilumin Upad III P5.9 (outdoor)", "mw": 500, "mh": 500, "rx": 84, "ry": 84, "weight": 9.2, "amp": 0.23, "label": "500×500mm, 84×84px, 9,2kg, ≈0,23A" },
+  { "modelo": "Unilumin Upad III/IV P2.6 (indoor)", "mw": 500, "mh": 500, "rx": 192, "ry": 192, "weight": 6.3, "amp": 0.52, "label": "500×500mm, 192×192px, 6,3kg, ≈0,52A" },
+  { "modelo": "Unilumin Upad IV P1.9 (indoor)", "mw": 500, "mh": 500, "rx": 256, "ry": 256, "weight": 6.3, "amp": 0.57, "label": "500×500mm, 256×256px, 6,3kg, ≈0,57A" },
+  { "modelo": "Chauvet Vivid 4 P4.8", "mw": 500, "mh": 1000, "rx": 104, "ry": 208, "weight": 12.5, "amp": 1.2, "label": "500×1000mm, 104×208px, 12,5kg, 1,2A (@230V)" },
+  { "modelo": "INFiLED X-Series Flex P2.9", "mw": 500, "mh": 500, "rx": 172, "ry": 172, "weight": 8.9, "amp": 0.78, "label": "500×500mm, 172×172px, 8,9kg, ≈0,78A" },
+  { "modelo": "Traulux Transparente 3,9/7,8 (500×500)", "mw": 500, "mh": 500, "rx": 128, "ry": 64, "weight": null, "amp": 0.91, "label": "55% transp., peso não disponível" },
+  { "modelo": "Traulux Transparente 3,9/7,8 (1000×500)", "mw": 1000, "mh": 500, "rx": 256, "ry": 64, "weight": null, "amp": 1.82, "label": "55% transp., peso não disponível" },
+  { "modelo": "Genérico P3.9 500×500 (rental)", "mw": 500, "mh": 500, "rx": 128, "ry": 128, "weight": 7.5, "amp": 0.6, "label": "500×500mm, 128×128px, 7,5kg, ≈0,6A" }
+]
