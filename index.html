@@ -292,6 +292,8 @@
   }
   .inputgroup select { font-family: "IBM Plex Sans", sans-serif; font-size: 14px; }
   .inputgroup input:focus, .inputgroup select:focus { outline: none; }
+  .inputgroup input:read-only { color: var(--ink-soft); }
+  .inputgroup:has(input:read-only) { background: var(--line-soft); }
   .inputgroup .unit {
     flex: none;
     display: flex;
@@ -788,6 +790,21 @@
     <div class="grid">
       <div class="card">
         <h2>Projetores</h2>
+        <div class="field">
+          <label>Como queres definir os projetores?</label>
+          <div class="seg" id="b-mode-seg">
+            <button type="button" class="seg-btn active" data-blendmode="manual">Eu defino nº e overlap</button>
+            <button type="button" class="seg-btn" data-blendmode="auto">Calcular a partir do ecrã</button>
+          </div>
+        </div>
+        <div class="field" id="b-projratio-field" style="display:none;">
+          <label for="b-projratio">Formato (ratio) do projetor</label>
+          <select id="b-projratio" class="plain">
+            <option value="1.77778" selected>16:9</option>
+            <option value="1.6">16:10</option>
+          </select>
+          <div class="hint">Até 9 m de altura usa 1 projetor na vertical; acima disso, 2. A largura de cada projetor sai da altura de cada fiada × este formato.</div>
+        </div>
         <div class="row2">
           <div class="field">
             <label for="b-nh">Nº de projetores (horizontal)</label>
@@ -814,6 +831,7 @@
           <div class="field">
             <label for="b-oh">Overlap por junção — horizontal</label>
             <div class="inputgroup"><input id="b-oh" type="number" value="600" min="0" step="10"><span class="unit">px</span></div>
+            <div class="hint" id="b-oh-hint" style="display:none;">Calculado automaticamente. Edita para forçar um valor — o nº de projetores horizontal recalcula-se a partir daí.</div>
           </div>
           <div class="field">
             <label for="b-ov">Overlap por junção — vertical</label>
@@ -1048,6 +1066,34 @@
     blendProjModelSel.value = "custom";
   });
 
+  var bBlendMode = "manual";
+  var bOhManualOverride = false;
+  var bNhInput = document.getElementById("b-nh");
+  var bNvInput = document.getElementById("b-nv");
+  var bOhHint = document.getElementById("b-oh-hint");
+  var bProjRatioField = document.getElementById("b-projratio-field");
+  document.querySelectorAll("#b-mode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#b-mode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      bBlendMode = btn.dataset.blendmode;
+      var isAuto = bBlendMode === "auto";
+      bNhInput.readOnly = isAuto;
+      bNvInput.readOnly = isAuto;
+      bOhHint.style.display = isAuto ? "block" : "none";
+      bProjRatioField.style.display = isAuto ? "block" : "none";
+      if (isAuto) bOhManualOverride = false;
+      calcBlend();
+    });
+  });
+  document.getElementById("b-oh").addEventListener("input", function () {
+    if (bBlendMode === "auto") bOhManualOverride = true;
+  });
+  ["b-w", "b-h", "b-hpx", "b-vpx", "b-projratio"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () { bOhManualOverride = false; });
+    document.getElementById(id).addEventListener("change", function () { bOhManualOverride = false; });
+  });
+
   function calcProjecao() {
     var isCustom = ratioSel.value === "custom";
     var w, h, label;
@@ -1188,10 +1234,35 @@
   }
 
   function calcBlend() {
-    var nh = val("b-nh"), nv = val("b-nv");
-    var hpx = val("b-hpx"), vpx = val("b-vpx");
-    var oh = val("b-oh"), ov = val("b-ov");
     var wm = val("b-w"), hm = val("b-h");
+    var hpx = val("b-hpx"), vpx = val("b-vpx");
+    var nh, nv, oh;
+
+    if (bBlendMode === "auto") {
+      var aspect = parseFloat(document.getElementById("b-projratio").value);
+      nv = hm > 9 ? 2 : 1;
+      var hRow = hm / nv;
+      var widthPerProj = hRow * aspect;
+
+      if (!bOhManualOverride) {
+        nh = Math.max(1, Math.ceil(wm / widthPerProj));
+        var overlapM = nh > 1 ? (nh * widthPerProj - wm) / (nh - 1) : 0;
+        oh = Math.max(0, Math.round(overlapM * hpx / widthPerProj));
+        bNhInput.value = nh;
+        document.getElementById("b-oh").value = oh;
+      } else {
+        oh = val("b-oh");
+        var overlapM2 = oh * widthPerProj / hpx;
+        nh = Math.max(1, Math.ceil((wm - overlapM2) / (widthPerProj - overlapM2)));
+        bNhInput.value = nh;
+      }
+      bNvInput.value = nv;
+    } else {
+      nh = val("b-nh");
+      nv = val("b-nv");
+      oh = val("b-oh");
+    }
+    var ov = val("b-ov");
 
     var overlapTotalH = oh * (nh - 1);
     var overlapTotalV = ov * (nv - 1);
@@ -1214,10 +1285,20 @@
     document.getElementById("b-out-ratio").textContent = describeRatio(wm * 1000, hm * 1000);
     document.getElementById("b-out-pitch").innerHTML = fmt(pitchAvg, 2) + "<small>mm</small>";
 
-    var warnEl = document.getElementById("b-warn");
+    var warnMsgs = [];
     if (Math.abs(pitchMmH - pitchMmV) / pitchAvg > 0.05) {
+      warnMsgs.push("A proporção física (" + fmt(wm,2) + " x " + fmt(hm,2) + " m) não bate certo com a resolução resultante — a imagem pode ficar esticada. Confirma largura/altura ou o overlap vertical.");
+    }
+    if (nh > 1 && oh < 300) {
+      warnMsgs.push("Overlap horizontal de " + fmtInt(oh) + "px está abaixo dos 300px recomendados — não aconselhável, mas possível.");
+    }
+    if (nv > 1 && ov < 300) {
+      warnMsgs.push("Overlap vertical de " + fmtInt(ov) + "px está abaixo dos 300px recomendados — não aconselhável, mas possível.");
+    }
+    var warnEl = document.getElementById("b-warn");
+    if (warnMsgs.length) {
       warnEl.style.display = "block";
-      warnEl.textContent = "A proporção física (" + fmt(wm,2) + " x " + fmt(hm,2) + " m) não bate certo com a resolução resultante — a imagem pode ficar esticada. Confirma largura/altura ou o overlap vertical.";
+      warnEl.textContent = warnMsgs.join(" ");
     } else {
       warnEl.style.display = "none";
     }
@@ -1283,6 +1364,7 @@
   document.querySelectorAll('.panel[data-mode="blend"] input').forEach(function (el) {
     el.addEventListener("input", calcBlend);
   });
+  document.getElementById("b-projratio").addEventListener("change", calcBlend);
 
   document.querySelectorAll('.panel[data-mode="projecao"] input, .panel[data-mode="projecao"] select').forEach(function (el) {
     el.addEventListener("input", calcProjecao);
