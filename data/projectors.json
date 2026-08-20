@@ -11,8 +11,8 @@
   { "modelo": "Panasonic PT-DZ12000 (antigo, lâmpada) (stock)", "lumens": 12000 },
   { "modelo": "Panasonic PT-CMZ50U (ultra short throw, laser) (stock)", "lumens": 5200 },
   { "modelo": "NEC PA1705UL", "lumens": 16000 },
-  { "modelo": "Sony VPL-FHZ120L", "lumens": 12000 },
+  { "modelo": "Sony VPL-FHZ120L (stock)", "lumens": 12000 },
   { "modelo": "Sony VPL-FH500L (lâmpada)", "lumens": 7000 },
-  { "modelo": "Sony VPL-FHZ700L", "lumens": 7000 },
-  { "modelo": "Sony VPL-FHZ131L", "lumens": 13000 }
+  { "modelo": "Sony VPL-FHZ700L (stock)", "lumens": 7000 },
+  { "modelo": "Sony VPL-FHZ131L (stock)", "lumens": 13000 }
 ]
