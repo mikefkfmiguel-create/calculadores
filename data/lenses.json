@@ -307,6 +307,12 @@
   },
   {
     "marca": "Sony",
+    "modelo": "PHZ10 (lente fixa integrada)",
+    "min": 1.27,
+    "max": 1.88
+  },
+  {
+    "marca": "Sony",
     "modelo": "VPLL-Z4107 curto",
     "min": 0.75,
     "max": 0.94
