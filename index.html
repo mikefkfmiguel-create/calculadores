@@ -1004,15 +1004,37 @@
               <option value="custom">Personalizado…</option>
             </select>
           </div>
-          <div class="row2">
-            <div class="field">
-              <label for="proj-led-w">Largura desejada</label>
-              <div class="inputgroup"><input id="proj-led-w" type="number" inputmode="decimal" value="8.0" min="0.1" step="0.1"><span class="unit">m</span></div>
+          <div class="field">
+            <label>Como queres indicar o tamanho?</label>
+            <div class="seg" id="proj-led-sizemode-seg">
+              <button type="button" class="seg-btn active" data-sizemode="tiles">Nº de tiles</button>
+              <button type="button" class="seg-btn" data-sizemode="meters">Medida do ecrã (m)</button>
             </div>
-            <div class="field">
-              <label for="proj-led-h">Altura desejada</label>
-              <div class="inputgroup"><input id="proj-led-h" type="number" inputmode="decimal" value="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
+          </div>
+          <div id="proj-led-tiles-inputs" style="display:none;">
+            <div class="row2">
+              <div class="field">
+                <label for="proj-led-mx">Tiles na horizontal</label>
+                <div class="inputgroup"><input id="proj-led-mx" type="number" value="16" min="1" step="1"></div>
+              </div>
+              <div class="field">
+                <label for="proj-led-my">Tiles na vertical</label>
+                <div class="inputgroup"><input id="proj-led-my" type="number" value="9" min="1" step="1"></div>
+              </div>
             </div>
+          </div>
+          <div id="proj-led-meters-inputs">
+            <div class="row2">
+              <div class="field">
+                <label for="proj-led-w">Largura desejada</label>
+                <div class="inputgroup"><input id="proj-led-w" type="number" inputmode="decimal" value="8.0" min="0.1" step="0.1"><span class="unit">m</span></div>
+              </div>
+              <div class="field">
+                <label for="proj-led-h">Altura desejada</label>
+                <div class="inputgroup"><input id="proj-led-h" type="number" inputmode="decimal" value="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
+              </div>
+            </div>
+            <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida.</div>
           </div>
         </div>
 
@@ -1576,6 +1598,20 @@
 
   var projLedModelSel = document.getElementById("proj-led-model");
   var projProjModelSel = document.getElementById("proj-proj-model");
+  var projLedSizeMode = "meters";
+  var projLedTilesInputs = document.getElementById("proj-led-tiles-inputs");
+  var projLedMetersInputs = document.getElementById("proj-led-meters-inputs");
+  document.querySelectorAll("#proj-led-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#proj-led-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      projLedSizeMode = btn.dataset.sizemode;
+      var isTiles = projLedSizeMode === "tiles";
+      projLedTilesInputs.style.display = isTiles ? "block" : "none";
+      projLedMetersInputs.style.display = isTiles ? "none" : "block";
+      calcProjeto();
+    });
+  });
   var projType = "led";
   var projLedFields = document.getElementById("proj-led-fields");
   var projProjecaoFields = document.getElementById("proj-projecao-fields");
@@ -1635,9 +1671,15 @@
       if (!LED_TILES_DATA.length) return;
       var tileIdx = parseInt(projLedModelSel.value, 10);
       var tile = LED_TILES_DATA[isNaN(tileIdx) ? 0 : tileIdx];
-      var targetW = val("proj-led-w"), targetH = val("proj-led-h");
-      var mx = Math.max(1, Math.ceil((targetW * 1000) / tile.mw));
-      var my = Math.max(1, Math.ceil((targetH * 1000) / tile.mh));
+      var mx, my;
+      if (projLedSizeMode === "tiles") {
+        mx = val("proj-led-mx");
+        my = val("proj-led-my");
+      } else {
+        var targetW = val("proj-led-w"), targetH = val("proj-led-h");
+        mx = Math.max(1, Math.ceil((targetW * 1000) / tile.mw));
+        my = Math.max(1, Math.ceil((targetH * 1000) / tile.mh));
+      }
       var totalPx = mx * tile.rx, totalPy = my * tile.ry;
       var totalWm = (mx * tile.mw) / 1000, totalHm = (my * tile.mh) / 1000;
       var pitchAvg = ((tile.mw / tile.rx) + (tile.mh / tile.ry)) / 2;
