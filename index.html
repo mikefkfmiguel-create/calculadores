@@ -1147,12 +1147,24 @@
             </div>
           </div>
           <div class="field" id="proj-blend-projratio-field" style="display:none;">
-            <label for="proj-blend-projratio">Formato (ratio) do projetor</label>
-            <select id="proj-blend-projratio" class="plain">
-              <option value="1.77778" selected>16:9</option>
-              <option value="1.6">16:10</option>
+            <label for="proj-blend-res">Resolução de cada projetor</label>
+            <select id="proj-blend-res" class="plain">
+              <option value="1920x1080" selected>HD (1920×1080)</option>
+              <option value="3840x2160">UHD/4K (3840×2160)</option>
+              <option value="1920x1200">WUXGA (1920×1200)</option>
+              <option value="custom">Personalizado…</option>
             </select>
-            <div class="hint">Até 9 m de altura usa 1 projetor na vertical; acima disso, 2 (mesma regra do separador Blending).</div>
+            <div class="hint">Até 9 m de altura usa 1 projetor na vertical; acima disso, 2 (mesma regra do separador Blending). O formato desta resolução define a largura de cada projetor.</div>
+          </div>
+          <div class="row2" id="proj-blend-custom-res" style="display:none;">
+            <div class="field">
+              <label for="proj-blend-w">Largura</label>
+              <div class="inputgroup"><input id="proj-blend-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+            </div>
+            <div class="field">
+              <label for="proj-blend-h">Altura</label>
+              <div class="inputgroup"><input id="proj-blend-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+            </div>
           </div>
           <div class="field" id="proj-ratio-field">
             <label for="proj-proj-ratio">Formato (relação de aspeto)</label>
@@ -1244,7 +1256,9 @@
           <div class="readout">
             <div class="item"><div class="k">Tamanho do ecrã</div><div class="v" id="proj-out-screensize">—</div></div>
             <div class="item"><div class="k" id="proj-out-projres-label">Resolução do projetor</div><div class="v" id="proj-out-projres">—</div></div>
-            <div class="item wide" id="proj-out-blend-wrap" style="display:none;"><div class="k">Nº de projetores (H x V) / overlap</div><div class="v" id="proj-out-blend">—</div></div>
+            <div class="item" id="proj-out-nproj-wrap" style="display:none;"><div class="k">Nº de projetores (H x V)</div><div class="v" id="proj-out-nproj">—</div></div>
+            <div class="item" id="proj-out-overlap-wrap" style="display:none;"><div class="k">Overlap por junção</div><div class="v" id="proj-out-overlap">—</div></div>
+            <div class="item wide" id="proj-out-totalpx-wrap" style="display:none;"><div class="k">Total de píxeis no ecrã</div><div class="v" id="proj-out-totalpx">—</div></div>
             <div class="item"><div class="k" id="proj-out-ratio-label">Throw ratio necessário</div><div class="v" id="proj-out-ratio">—</div></div>
             <div class="item"><div class="k">Luminosidade útil</div><div class="v" id="proj-out-lumens">—</div></div>
             <div class="item"><div class="k">Lux no ecrã</div><div class="v" id="proj-out-lux">—</div></div>
@@ -1755,6 +1769,7 @@
   }
   setupResPreset("proj-dsm-res", "proj-dsm-custom-res");
   setupResPreset("proj-delay-res", "proj-delay-custom-res");
+  setupResPreset("proj-blend-res", "proj-blend-custom-res");
 
   function readResPreset(selectId, wId, hId) {
     var sel = document.getElementById(selectId);
@@ -1817,7 +1832,6 @@
         document.getElementById("proj-sizemode-seg-field").style.display = "block";
         document.getElementById("proj-blend-sizemode-hint").style.display = "none";
       }
-      document.getElementById("proj-out-blend-wrap").style.display = isBlend ? "block" : "none";
       calcProjeto();
     });
   });
@@ -1985,16 +1999,34 @@
       var area = w * h;
       var isBlend = projBlendMode === "blend";
 
-      var nh = 1, nv = 1, widthPerProj = w, overlapM = 0, blendLine = "";
+      var nh = 1, nv = 1, widthPerProj = w, overlapM = 0, blendLine = "", blendResPx = null, totalPxLine = "";
       if (isBlend) {
-        var blendAspect = parseFloat(document.getElementById("proj-blend-projratio").value);
+        var blendRes = readResPreset("proj-blend-res", "proj-blend-w", "proj-blend-h");
+        blendResPx = { rx: blendRes[0], ry: blendRes[1] };
+        var blendAspect = blendResPx.rx / blendResPx.ry;
         nv = h > 9 ? 2 : 1;
         var hRow = h / nv;
         widthPerProj = hRow * blendAspect;
         nh = Math.max(1, Math.ceil(w / widthPerProj));
         overlapM = nh > 1 ? (nh * widthPerProj - w) / (nh - 1) : 0;
-        document.getElementById("proj-out-blend").textContent = nh + " x " + nv + " (" + fmtInt(nh * nv) + ") — overlap " + fmt(overlapM * 100, 1) + "cm";
-        blendLine = "Blend: " + nh + " x " + nv + " projetores (" + fmtInt(nh * nv) + " no total) — overlap " + fmt(overlapM * 100, 1) + " cm\n";
+
+        var totalPxW = nh * blendResPx.rx, totalPxH = nv * blendResPx.ry;
+        var totalPxCount = totalPxW * totalPxH;
+        document.getElementById("proj-out-nproj-wrap").style.display = "block";
+        document.getElementById("proj-out-overlap-wrap").style.display = "block";
+        document.getElementById("proj-out-totalpx-wrap").style.display = "block";
+        document.getElementById("proj-out-nproj").textContent = nh + " x " + nv + " = " + fmtInt(nh * nv);
+        document.getElementById("proj-out-overlap").innerHTML = fmt(overlapM * 100, 1) + "<small>cm</small>";
+        document.getElementById("proj-out-totalpx").innerHTML = fmtInt(totalPxW) + "×" + fmtInt(totalPxH) + " — " + fmtInt(totalPxCount) + "<small>px (" + fmt(totalPxCount / 1e6, 1) + " MP)</small>";
+
+        blendLine = "Nº de projetores: " + nh + " x " + nv + " = " + fmtInt(nh * nv) + "\n" +
+          "Resolução de cada projetor: " + blendResPx.rx + "×" + blendResPx.ry + "\n" +
+          "Overlap por junção: " + fmt(overlapM * 100, 1) + " cm\n";
+        totalPxLine = "Total de píxeis no ecrã: " + fmtInt(totalPxW) + "×" + fmtInt(totalPxH) + " = " + fmtInt(totalPxCount) + " px (" + fmt(totalPxCount / 1e6, 1) + " MP)\n";
+      } else {
+        document.getElementById("proj-out-nproj-wrap").style.display = "none";
+        document.getElementById("proj-out-overlap-wrap").style.display = "none";
+        document.getElementById("proj-out-totalpx-wrap").style.display = "none";
       }
 
       var lumens = proj.lumens;
@@ -2029,12 +2061,12 @@
       document.getElementById("proj-out-screensize").innerHTML = fmt(w, 2) + " x " + fmt(h, 2) + "<small>m</small>";
       var projResLabel = document.getElementById("proj-out-projres-label");
       var projResEl = document.getElementById("proj-out-projres");
-      if (!proj.resolucao) {
+      if (isBlend) {
+        projResLabel.textContent = "Resolução por projetor (configurada)";
+        projResEl.textContent = fmtRes(blendResPx);
+      } else if (!proj.resolucao) {
         projResLabel.textContent = "Resolução do projetor";
         projResEl.textContent = "—";
-      } else if (isBlend) {
-        projResLabel.textContent = "Resolução combinada";
-        projResEl.textContent = fmtInt(nh * proj.resolucao.rx) + "×" + fmtInt(nv * proj.resolucao.ry);
       } else {
         projResLabel.textContent = "Resolução do projetor";
         projResEl.textContent = fmtRes(proj.resolucao);
@@ -2057,9 +2089,10 @@
         "PROJETO: " + nome + "\n" +
         "Tipo: Projeção" + (isBlend ? " (blend)" : "") + "\n" +
         "Projetor: " + proj.modelo + " (" + fmtInt(lumens) + " lm cada)\n" +
-        "Resolução: " + projResEl.textContent + (!isBlend && proj.resolucaoNota ? " (" + proj.resolucaoNota + ")" : "") + "\n" +
+        (isBlend ? "" : "Resolução: " + projResEl.textContent + (proj.resolucaoNota ? " (" + proj.resolucaoNota + ")" : "") + "\n") +
         "Ecrã: " + screenLabel + "\n" +
         blendLine +
+        totalPxLine +
         distLine +
         ratioLine +
         "Lentes compatíveis" + (isBlend ? " (por projetor)" : "") + ": " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") : "nenhuma na base") + "\n" +
