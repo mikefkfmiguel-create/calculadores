@@ -15,5 +15,20 @@
   { "modelo": "INFiLED X-Series Flex P2.9", "mw": 500, "mh": 500, "rx": 172, "ry": 172, "weight": 8.9, "amp": 0.78, "label": "500×500mm, 172×172px, 8,9kg, ≈0,78A" },
   { "modelo": "Traulux Transparente 3,9/7,8 (500×500)", "mw": 500, "mh": 500, "rx": 128, "ry": 64, "weight": null, "amp": 0.91, "label": "55% transp., peso não disponível" },
   { "modelo": "Traulux Transparente 3,9/7,8 (1000×500)", "mw": 1000, "mh": 500, "rx": 256, "ry": 64, "weight": null, "amp": 1.82, "label": "55% transp., peso não disponível" },
-  { "modelo": "Genérico P3.9 500×500 (rental)", "mw": 500, "mh": 500, "rx": 128, "ry": 128, "weight": 7.5, "amp": 0.6, "label": "500×500mm, 128×128px, 7,5kg, ≈0,6A" }
+  { "modelo": "Genérico P3.9 500×500 (rental)", "mw": 500, "mh": 500, "rx": 128, "ry": 128, "weight": 7.5, "amp": 0.6, "label": "500×500mm, 128×128px, 7,5kg, ≈0,6A" },
+
+  { "modelo": "Aluvision HI-LED 1.9 (stock)", "mw": 496, "mh": 496, "rx": 256, "ry": 256, "weight": 9.5, "amp": 0.52, "label": "496×496×55mm, 256×256px, 9,5kg, ≈0,52A (120W@230V), 1000 nits — encaixa em stands modulares Aluvision" },
+  { "modelo": "Unilumin URMIII 1.9 U-Shield (stock)", "mw": 500, "mh": 500, "rx": 256, "ry": 256, "weight": 7.2, "amp": 0.52, "label": "500×500mm, 256×256px, 7,2kg, ≈0,52A (120W@230V), 800 nits" },
+  { "modelo": "Absen NT 2.6 (stock)", "mw": 500, "mh": 500, "rx": 192, "ry": 192, "weight": 7.5, "amp": 0.75, "label": "500×500×80mm, 192×192px, 7,5kg, 0,75A, 1000 nits" },
+  { "modelo": "Gloshine 2.6 (stock)", "mw": 500, "mh": 500, "rx": 192, "ry": 192, "weight": 8.3, "amp": 0.8, "label": "500×500mm, 192×192px, 8,3kg, 0,8A, 1000–1300 nits" },
+  { "modelo": "Unilumin URMIII 2.6 (stock)", "mw": 500, "mh": 500, "rx": 192, "ry": 192, "weight": null, "amp": 0.5, "label": "500×500mm, 192×192px, peso não disponível, 0,5A, 1300 nits" },
+  { "modelo": "Uniview 3.4 (stock)", "mw": 500, "mh": 560, "rx": 144, "ry": 162, "weight": 10, "amp": 1.04, "label": "500×560mm, 144×162px, 10kg, 1,04A, 1200 nits" },
+  { "modelo": "Unilumin URMIII 3.9 500×500 (stock)", "mw": 500, "mh": 500, "rx": 128, "ry": 128, "weight": 8, "amp": 0.52, "label": "500×500×83mm, 128×128px, 8kg, ≈0,52A (120W@230V), 800 nits" },
+  { "modelo": "Unilumin URMIII 3.9 500×1000 (stock)", "mw": 500, "mh": 1000, "rx": 128, "ry": 256, "weight": 16, "amp": 1.04, "label": "500×1000mm, 128×256px, cabinet duplo — peso/amp estimados (dobro do módulo 50×50)" },
+  { "modelo": "Yestech 3.9 (stock)", "mw": 500, "mh": 500, "rx": 128, "ry": 128, "weight": 5.7, "amp": 0.6, "label": "500×500mm, 128×128px, 5,7kg, 0,6A, 800/1200 nits" },
+  { "modelo": "Gloshine AM4.81 4.8 (stock, outdoor)", "mw": 500, "mh": 500, "rx": 104, "ry": 104, "weight": null, "amp": 0.75, "label": "500×500mm, 104×104px, peso não disponível, 0,75A, 4000/5000 nits — outdoor, não curva" },
+  { "modelo": "Gloshine AS4.81 4.8 (stock, outdoor)", "mw": 500, "mh": 1000, "rx": 104, "ry": 208, "weight": null, "amp": 1.5, "label": "500×1000mm, 104×208px, peso não disponível, 1,5A, 4000/5000 nits — outdoor, não curva" },
+  { "modelo": "Yestech 4.8 (stock, outdoor)", "mw": 500, "mh": 500, "rx": 104, "ry": 104, "weight": 6.5, "amp": 0.8, "label": "500×500mm, 104×104px, 6,5kg, 0,8A, 4000/4500 nits — outdoor, também pista de LED" },
+  { "modelo": "Uniview Delta 5 500×1000 (stock, outdoor)", "mw": 500, "mh": 1000, "rx": 84, "ry": 168, "weight": 13.5, "amp": 1.8, "label": "500×1000mm, 84×168px, 13,5kg, 1,8A, 5000 nits — outdoor" },
+  { "modelo": "Uniview Delta 5 500×500 (stock, outdoor)", "mw": 500, "mh": 500, "rx": 84, "ry": 84, "weight": null, "amp": 0.9, "label": "500×500mm, 84×84px, peso não disponível, 0,9A — outdoor" }
 ]
