@@ -1,0 +1,1272 @@
+<title>Calculadores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #EEF1F5;
+    --paper-raised: #FFFFFF;
+    --ink: #10181F;
+    --ink-soft: #536270;
+    --ink-faint: #7C8894;
+    --line: #C7CFD6;
+    --line-soft: #DDE3E8;
+
+    --amber-600: #A0600A;
+    --amber-500: #C97F0F;
+    --amber-200: #F4D9A8;
+    --amber-100: #FBEDD6;
+
+    --teal-600: #0B7A6E;
+    --teal-500: #128C7E;
+    --teal-200: #BFE7E1;
+    --teal-100: #E1F5F1;
+
+    --violet-600: #5A4FB8;
+    --violet-500: #6C5DD3;
+    --violet-200: #DEDAF6;
+    --violet-100: #ECE9FA;
+
+    --blue-600: #1D5FA8;
+    --blue-500: #2E7BC6;
+    --blue-200: #CFE3F5;
+    --blue-100: #E6F1FA;
+
+    --danger-600: #A83226;
+    --danger-100: #FBE7E5;
+
+    --focus: #2454C7;
+    --shadow: 0 1px 2px rgba(16, 24, 31, 0.06), 0 8px 24px -12px rgba(16, 24, 31, 0.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E1418;
+      --paper-raised: #161E24;
+      --ink: #E7EDF2;
+      --ink-soft: #9FADB8;
+      --ink-faint: #6B7986;
+      --line: #2A343D;
+      --line-soft: #202932;
+
+      --amber-600: #E3A550;
+      --amber-500: #D99530;
+      --amber-200: #4A3618;
+      --amber-100: #322612;
+
+      --teal-600: #5FCFC3;
+      --teal-500: #45BBAE;
+      --teal-200: #15423C;
+      --teal-100: #102E2A;
+
+      --violet-600: #B3A6F2;
+      --violet-500: #9683E8;
+      --violet-200: #332B5C;
+      --violet-100: #241E42;
+
+      --blue-600: #7BB6EA;
+      --blue-500: #5AA0DE;
+      --blue-200: #17334A;
+      --blue-100: #102536;
+
+      --danger-600: #E38178;
+      --danger-100: #3A1613;
+
+      --focus: #6C9BFF;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0E1418;
+    --paper-raised: #161E24;
+    --ink: #E7EDF2;
+    --ink-soft: #9FADB8;
+    --ink-faint: #6B7986;
+    --line: #2A343D;
+    --line-soft: #202932;
+
+    --amber-600: #E3A550;
+    --amber-500: #D99530;
+    --amber-200: #4A3618;
+    --amber-100: #322612;
+
+    --teal-600: #5FCFC3;
+    --teal-500: #45BBAE;
+    --teal-200: #15423C;
+    --teal-100: #102E2A;
+
+    --danger-600: #E38178;
+    --danger-100: #3A1613;
+
+    --focus: #6C9BFF;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+  h1, h2, h3 { text-wrap: balance; }
+
+  /* Header */
+  .top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .brand .mark {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--ink-faint);
+    letter-spacing: 0.08em;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .sub {
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    margin: 4px 0 18px;
+    max-width: 60ch;
+  }
+
+  /* Draft banner */
+  .banner {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    border: 1px dashed var(--amber-500);
+    background: var(--amber-100);
+    color: var(--amber-600);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13.5px;
+    margin-bottom: 22px;
+  }
+  .banner strong { color: inherit; }
+  .banner .dot {
+    flex: none;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--amber-500);
+    margin-top: 6px;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 26px;
+  }
+  .tab {
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    padding: 10px 4px;
+    margin-bottom: -1px;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab .swatch {
+    width: 9px; height: 9px;
+    border-radius: 2px;
+  }
+  .tab[data-mode="projecao"] .swatch { background: var(--amber-500); }
+  .tab[data-mode="led"] .swatch { background: var(--teal-500); }
+  .tab[data-mode="blend"] .swatch { background: var(--violet-500); }
+  .tab[data-mode="lentes"] .swatch { background: var(--blue-500); }
+  .tab[aria-selected="true"] { color: var(--ink); }
+  .tab[data-mode="projecao"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
+  .tab[data-mode="led"][aria-selected="true"] { border-bottom-color: var(--teal-500); }
+  .tab[data-mode="blend"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
+  .tab[data-mode="lentes"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
+  .tab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+  @media (prefers-reduced-motion: no-preference) {
+    .panel.active { animation: rise 0.22s ease both; }
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* Layout: form + results */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  @media (min-width: 760px) {
+    .grid { grid-template-columns: 1.05fr 1fr; align-items: start; }
+  }
+
+  .card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 20px 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-faint);
+    margin: 0 0 16px;
+    font-weight: 600;
+  }
+  .card + .card { margin-top: 16px; }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+  }
+  .field .hint {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .inputgroup {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .inputgroup:focus-within { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .inputgroup input, .inputgroup select {
+    border: none;
+    background: none;
+    color: var(--ink);
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+    padding: 9px 10px;
+    width: 100%;
+    min-width: 0;
+  }
+  .inputgroup select { font-family: "IBM Plex Sans", sans-serif; font-size: 14px; }
+  .inputgroup input:focus, .inputgroup select:focus { outline: none; }
+  .inputgroup .unit {
+    flex: none;
+    display: flex;
+    align-items: center;
+    padding: 0 11px;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    background: var(--line-soft);
+    border-left: 1px solid var(--line);
+  }
+
+  select.plain {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 9px 10px;
+  }
+  select.plain:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink-faint);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 20px 0 14px;
+  }
+  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
+
+  /* Results */
+  .results { position: sticky; top: 16px; }
+  .stripe { height: 3px; border-radius: 3px 3px 0 0; margin: -20px -20px 18px; }
+  .panel[data-mode="projecao"] .stripe, [data-accent="projecao"] .stripe { background: var(--amber-500); }
+  .panel[data-mode="led"] .stripe, [data-accent="led"] .stripe { background: var(--teal-500); }
+  .panel[data-mode="blend"] .stripe, [data-accent="blend"] .stripe { background: var(--violet-500); }
+  .panel[data-mode="lentes"] .stripe, [data-accent="lentes"] .stripe { background: var(--blue-500); }
+
+  .readout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
+  .readout .item {
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 12px 13px;
+  }
+  .readout .item .k {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 5px;
+  }
+  .readout .item .v {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .readout .item .v small { font-size: 12px; font-weight: 500; color: var(--ink-faint); margin-left: 3px; }
+  .readout .item.wide { grid-column: 1 / -1; }
+  [data-accent="projecao"] .readout .item .v { color: var(--amber-600); }
+  [data-accent="led"] .readout .item .v { color: var(--teal-600); }
+  [data-accent="blend"] .readout .item .v { color: var(--violet-600); }
+  [data-accent="lentes"] .readout .item .v { color: var(--blue-600); }
+
+  .lenstable-wrap { overflow-x: auto; }
+  table.lenstable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.lenstable th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  table.lenstable td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line-soft);
+    white-space: nowrap;
+  }
+  table.lenstable td.ratio {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  table.lenstable tr.match td { background: var(--blue-100); }
+  table.lenstable tr.match td:first-child { border-left: 2px solid var(--blue-500); }
+  .badge-match {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue-600);
+    background: var(--blue-100);
+    border-radius: 5px;
+    padding: 2px 7px;
+  }
+
+  .note {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+  .warn {
+    font-size: 12.5px;
+    color: var(--danger-600);
+    background: var(--danger-100);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-top: 10px;
+  }
+
+  .summary {
+    margin-top: 16px;
+    border-top: 1px solid var(--line-soft);
+    padding-top: 14px;
+  }
+  .summary-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .summary-head .k { font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+  pre.sumbox {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 9px;
+    padding: 12px 13px;
+    margin: 0;
+    white-space: pre-wrap;
+    color: var(--ink-soft);
+  }
+  button.copy {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  button.copy:hover { color: var(--ink); border-color: var(--ink-faint); }
+  button.copy:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  footer {
+    margin-top: 40px;
+    color: var(--ink-faint);
+    font-size: 12px;
+    text-align: center;
+  }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <h1>Calculadores</h1>
+    </div>
+    <span class="mark">v0.2 · rascunho</span>
+  </div>
+  <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
+
+  <div class="banner">
+    <span class="dot"></span>
+    <div><strong>Versão de trabalho.</strong> Blending, distância de projeção e distância de visualização já validados com a tua folha. Os pesos/amps por modelo de tile vêm de fichas técnicas públicas — confirma sempre o modelo exato antes de produção.</div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" data-mode="projecao" role="tab" aria-selected="true"><span class="swatch"></span>Distância de Projeção</button>
+    <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
+    <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
+    <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
+  </div>
+
+  <!-- PROJEÇÃO -->
+  <section class="panel active" data-mode="projecao">
+    <div class="grid">
+      <div class="card">
+        <h2>Ecrã</h2>
+        <div class="field">
+          <label for="p-ratio">Formato (relação de aspeto)</label>
+          <select id="p-ratio" class="plain">
+            <option value="16:9" selected>16:9 — widescreen</option>
+            <option value="16:10">16:10</option>
+            <option value="4:3">4:3 — clássico</option>
+            <option value="21:9">21:9 — cinema</option>
+            <option value="custom">Personalizado — tenho a largura e altura em metros</option>
+          </select>
+        </div>
+        <div class="field" id="p-diag-field">
+          <label for="p-diag">Diagonal do ecrã</label>
+          <div class="inputgroup">
+            <input id="p-diag" type="number" inputmode="decimal" value="120" min="1" step="1">
+            <span class="unit">polegadas</span>
+          </div>
+          <div class="hint">Junto com o formato acima, calcula a largura/altura do ecrã.</div>
+        </div>
+        <div class="row2" id="p-custom-ratio" style="display:none;">
+          <div class="field">
+            <label for="p-rw">Largura do ecrã</label>
+            <div class="inputgroup"><input id="p-rw" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01"><span class="unit">m</span></div>
+          </div>
+          <div class="field">
+            <label for="p-rh">Altura do ecrã</label>
+            <div class="inputgroup"><input id="p-rh" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Projetor</div>
+        <div class="row2">
+          <div class="field">
+            <label for="p-tmin">Throw ratio mínimo</label>
+            <div class="inputgroup"><input id="p-tmin" type="number" inputmode="decimal" value="1.39" min="0.1" step="0.01"></div>
+            <div class="hint">Da ficha técnica do projetor</div>
+          </div>
+          <div class="field">
+            <label for="p-tmax">Throw ratio máximo</label>
+            <div class="inputgroup"><input id="p-tmax" type="number" inputmode="decimal" value="1.87" min="0.1" step="0.01"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-projmodel">Modelo de projetor</label>
+          <select id="p-projmodel" class="plain">
+            <option value="21000">Panasonic PT-RQ22K — 21 000 lm</option>
+            <option value="10000">Panasonic PT-RQ13K — 10 000 lm</option>
+            <option value="20000" selected>Epson EB-PQ2220B — 20 000 lm</option>
+            <option value="13000">Epson EB-PU2213B — 13 000 lm</option>
+            <option value="31000">Barco UDX-4K32 — 31 000 lm</option>
+            <option value="37500">Barco UDX-4K40 — 37 500 lm</option>
+            <option value="34000">Christie Griffyn 4K32-RGB — 34 000 lm</option>
+            <option value="20000">Christie Roadster HD20K-J (antigo, lâmpada) — 20 000 lm</option>
+            <option value="13200">Christie Roadster HD14K-J (antigo, lâmpada) — 13 200 lm</option>
+            <option value="12000">Panasonic PT-DZ12000 (antigo, lâmpada) — 12 000 lm</option>
+            <option value="5200">Panasonic PT-CMZ50U (ultra short throw, laser) — 5 200 lm</option>
+            <option value="16000">NEC PA1705UL — 16 000 lm</option>
+            <option value="12000">Sony VPL-FHZ120L — 12 000 lm</option>
+            <option value="7000">Sony VPL-FH500L (lâmpada) — 7 000 lm</option>
+            <option value="7000">Sony VPL-FHZ700L — 7 000 lm</option>
+            <option value="13000">Sony VPL-FHZ131L — 13 000 lm</option>
+            <option value="custom">Personalizado…</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="p-lumens">Luminosidade do projetor (100%)</label>
+          <div class="inputgroup"><input id="p-lumens" type="number" inputmode="decimal" value="20000" min="0" step="100"><span class="unit">lumens</span></div>
+          <div class="hint">ANSI lumens da ficha técnica.</div>
+        </div>
+      </div>
+
+      <div class="card results" data-accent="projecao">
+        <div class="stripe"></div>
+        <h2>Tamanho do ecrã</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Largura</div><div class="v" id="p-out-w">—</div></div>
+          <div class="item"><div class="k">Altura</div><div class="v" id="p-out-h">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Distância de projeção</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Mínima</div><div class="v" id="p-out-dmin">—</div></div>
+          <div class="item"><div class="k">Máxima</div><div class="v" id="p-out-dmax">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Luminosidade</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Útil (80%)</div><div class="v" id="p-out-lumens80">—</div></div>
+          <div class="item"><div class="k">Lux no ecrã</div><div class="v" id="p-out-lux">—</div></div>
+        </div>
+        <p class="note">Trabalha sempre a 80% da luminosidade nominal (margem para desgaste da lâmpada/laser) — lux = (lumens × 0,8) ÷ área do ecrã.</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <button class="copy" data-target="p-sum">Copiar resumo</button>
+          </div>
+          <pre class="sumbox" id="p-sum"></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider" style="margin-top:26px;">ou calcular ao contrário</div>
+    <div class="grid">
+      <div class="card">
+        <h2>Distância disponível na sala</h2>
+        <div class="field">
+          <label for="p-avail">Distância até ao ecrã</label>
+          <div class="inputgroup">
+            <input id="p-avail" type="number" inputmode="decimal" value="6" min="0.1" step="0.1">
+            <span class="unit">metros</span>
+          </div>
+          <div class="hint">Usa o mesmo throw ratio e formato definidos acima</div>
+        </div>
+      </div>
+      <div class="card results" data-accent="projecao">
+        <div class="stripe"></div>
+        <h2>Tamanho de ecrã recomendado</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Diagonal mín.</div><div class="v" id="p-out-diagmin">—</div></div>
+          <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="p-out-diagmax">—</div></div>
+          <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="p-out-wrange">—</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LED -->
+  <section class="panel" data-mode="led">
+    <div class="grid">
+      <div class="card">
+        <h2>Modelo de tile</h2>
+        <div class="field">
+          <label for="l-model">Modelo de referência</label>
+          <select id="l-model" class="plain">
+            <option value="500|500|128|128|6.0|0.52" selected>YESTECH MG6S P3.91 — 500×500mm, 128×128px, 6,0kg, ≈0,52A</option>
+            <option value="500|500|192|192|5.8|0.52">YESTECH MG6S P2.6 — 500×500mm, 192×192px, 5,8kg, ≈0,52A</option>
+            <option value="500|500|128|128|6.5|0.82">YESTECH MG7S P3.9 — 500×500mm, 128×128px, 6,5kg, ≈0,82A</option>
+            <option value="500|500|128|128|9.2|0.61">Absen A3 Pro P3.9 — 500×500mm, 128×128px, 9,2kg, 0,61A (@208V)</option>
+            <option value="500|500|200|200|8.6|0.84">Absen PL2.5 Pro — 500×500mm, 200×200px, 8,6kg, ≈0,84A</option>
+            <option value="500|500|176|176|9.35|0.83">ROE Black Pearl BP2 P2.84 — 500×500mm, 176×176px, 9,35kg, ≈0,83A</option>
+            <option value="500|500|216|216|8.16|0.78">ROE Ruby RB2.3 — 500×500mm, 216×216px, 8,16kg, ≈0,78A</option>
+            <option value="500|500|324|324|4.0|0.43">ROE Sapphire SP1.5 — 500×500mm, 324×324px, 4,0kg, ≈0,43A</option>
+            <option value="500|500|192|192|5.5|0.78">ROE Diamond DM2.6 — 500×500mm, 192×192px, 5,5kg, ≈0,78A</option>
+            <option value="500|500|84|84|9.2|0.23">Unilumin Upad III P5.9 (outdoor) — 500×500mm, 84×84px, 9,2kg, ≈0,23A</option>
+            <option value="500|500|192|192|6.3|0.52">Unilumin Upad III/IV P2.6 (indoor) — 500×500mm, 192×192px, 6,3kg, ≈0,52A</option>
+            <option value="500|500|256|256|6.3|0.57">Unilumin Upad IV P1.9 (indoor) — 500×500mm, 256×256px, 6,3kg, ≈0,57A</option>
+            <option value="500|1000|104|208|12.5|1.2">Chauvet Vivid 4 P4.8 — 500×1000mm, 104×208px, 12,5kg, 1,2A (@230V)</option>
+            <option value="500|500|172|172|8.9|0.78">INFiLED X-Series Flex P2.9 — 500×500mm, 172×172px, 8,9kg, ≈0,78A</option>
+            <option value="500|500|128|64||0.91">Traulux Transparente 3,9/7,8 (500×500) — 55% transp., peso não disponível</option>
+            <option value="1000|500|256|64||1.82">Traulux Transparente 3,9/7,8 (1000×500) — 55% transp., peso não disponível</option>
+            <option value="500|500|128|128|7.5|0.6">Genérico P3.9 500×500 (rental) — 500×500mm, 128×128px, 7,5kg, ≈0,6A</option>
+            <option value="custom">Personalizado…</option>
+          </select>
+          <div class="hint">Valores de fichas técnicas públicas — confirma sempre com o fabricante antes de produção. O modelo escolhido preenche tamanho, resolução, peso e amp abaixo (podes ajustar à mão).</div>
+        </div>
+
+        <div class="divider">Nº de tiles na parede</div>
+        <div class="row2">
+          <div class="field">
+            <label for="l-mx">Tiles na horizontal</label>
+            <div class="inputgroup"><input id="l-mx" type="number" value="16" min="1" step="1"></div>
+          </div>
+          <div class="field">
+            <label for="l-my">Tiles na vertical</label>
+            <div class="inputgroup"><input id="l-my" type="number" value="9" min="1" step="1"></div>
+          </div>
+        </div>
+
+        <div class="divider">Tamanho do tile</div>
+        <div class="row2">
+          <div class="field">
+            <label for="l-mw">Largura do módulo</label>
+            <div class="inputgroup"><input id="l-mw" type="number" inputmode="decimal" value="500" min="1" step="1"><span class="unit">mm</span></div>
+          </div>
+          <div class="field">
+            <label for="l-mh">Altura do módulo</label>
+            <div class="inputgroup"><input id="l-mh" type="number" inputmode="decimal" value="500" min="1" step="1"><span class="unit">mm</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Resolução do módulo</div>
+        <div class="row2">
+          <div class="field">
+            <label for="l-rx">Píxeis (horizontal)</label>
+            <div class="inputgroup"><input id="l-rx" type="number" value="128" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="l-ry">Píxeis (vertical)</label>
+            <div class="inputgroup"><input id="l-ry" type="number" value="128" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+        </div>
+        <div id="l-warn" class="warn" style="display:none;"></div>
+
+        <div class="divider">Peso &amp; energia por tile</div>
+        <div class="row2">
+          <div class="field">
+            <label for="l-weight">Peso por tile</label>
+            <div class="inputgroup"><input id="l-weight" type="number" inputmode="decimal" value="6.0" min="0" step="0.1"><span class="unit">kg</span></div>
+          </div>
+          <div class="field">
+            <label for="l-amp">Amp por tile</label>
+            <div class="inputgroup"><input id="l-amp" type="number" inputmode="decimal" value="0.52" min="0" step="0.01"><span class="unit">A</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card results" data-accent="led">
+        <div class="stripe"></div>
+        <h2>Resolução total</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Largura</div><div class="v" id="l-out-px">—</div></div>
+          <div class="item"><div class="k">Altura</div><div class="v" id="l-out-py">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Ecrã físico</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Tamanho</div><div class="v" id="l-out-size">—</div></div>
+          <div class="item"><div class="k">Área</div><div class="v" id="l-out-area">—</div></div>
+          <div class="item"><div class="k">Pixel pitch</div><div class="v" id="l-out-pitch">—</div></div>
+          <div class="item"><div class="k">Formato</div><div class="v" id="l-out-ratio">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Distância de visualização</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Mínima</div><div class="v" id="l-out-dmin">—</div></div>
+          <div class="item"><div class="k">Máxima</div><div class="v" id="l-out-dmax">—</div></div>
+        </div>
+        <p class="note">Distância = largura do ecrã × 3 (mín.) a × 7 (máx.)</p>
+
+        <h2 style="margin-top:18px;">Peso &amp; energia</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Nº de tiles</div><div class="v" id="l-out-tiles">—</div></div>
+          <div class="item"><div class="k">Peso total</div><div class="v" id="l-out-weight">—</div></div>
+          <div class="item"><div class="k">Amp total</div><div class="v" id="l-out-amp">—</div></div>
+          <div class="item"><div class="k">Amp por fase</div><div class="v" id="l-out-ampphase">—</div></div>
+        </div>
+        <p class="note">Trifásica: amp por fase = (amp por tile × nº de tiles) ÷ 3.</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <button class="copy" data-target="l-sum">Copiar resumo</button>
+          </div>
+          <pre class="sumbox" id="l-sum"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLENDING -->
+  <section class="panel" data-mode="blend">
+    <div class="grid">
+      <div class="card">
+        <h2>Projetores</h2>
+        <div class="row2">
+          <div class="field">
+            <label for="b-nh">Nº de projetores (horizontal)</label>
+            <div class="inputgroup"><input id="b-nh" type="number" value="2" min="1" step="1"></div>
+          </div>
+          <div class="field">
+            <label for="b-nv">Nº de projetores (vertical)</label>
+            <div class="inputgroup"><input id="b-nv" type="number" value="1" min="1" step="1"></div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="b-hpx">Resolução nativa — horizontal</label>
+            <div class="inputgroup"><input id="b-hpx" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="b-vpx">Resolução nativa — vertical</label>
+            <div class="inputgroup"><input id="b-vpx" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Sobreposição (overlap)</div>
+        <div class="row2">
+          <div class="field">
+            <label for="b-oh">Overlap por junção — horizontal</label>
+            <div class="inputgroup"><input id="b-oh" type="number" value="600" min="0" step="10"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="b-ov">Overlap por junção — vertical</label>
+            <div class="inputgroup"><input id="b-ov" type="number" value="0" min="0" step="10"><span class="unit">px</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Ecrã físico desejado</div>
+        <div class="row2">
+          <div class="field">
+            <label for="b-w">Largura</label>
+            <div class="inputgroup"><input id="b-w" type="number" inputmode="decimal" value="12.9" min="0.1" step="0.1"><span class="unit">m</span></div>
+          </div>
+          <div class="field">
+            <label for="b-h">Altura</label>
+            <div class="inputgroup"><input id="b-h" type="number" inputmode="decimal" value="4.3" min="0.1" step="0.1"><span class="unit">m</span></div>
+          </div>
+        </div>
+        <div id="b-warn" class="warn" style="display:none;"></div>
+
+        <div class="divider">Luminosidade</div>
+        <div class="field">
+          <label for="b-projmodel">Modelo de projetor</label>
+          <select id="b-projmodel" class="plain">
+            <option value="21000">Panasonic PT-RQ22K — 21 000 lm</option>
+            <option value="10000">Panasonic PT-RQ13K — 10 000 lm</option>
+            <option value="20000" selected>Epson EB-PQ2220B — 20 000 lm</option>
+            <option value="13000">Epson EB-PU2213B — 13 000 lm</option>
+            <option value="31000">Barco UDX-4K32 — 31 000 lm</option>
+            <option value="37500">Barco UDX-4K40 — 37 500 lm</option>
+            <option value="34000">Christie Griffyn 4K32-RGB — 34 000 lm</option>
+            <option value="20000">Christie Roadster HD20K-J (antigo, lâmpada) — 20 000 lm</option>
+            <option value="13200">Christie Roadster HD14K-J (antigo, lâmpada) — 13 200 lm</option>
+            <option value="12000">Panasonic PT-DZ12000 (antigo, lâmpada) — 12 000 lm</option>
+            <option value="5200">Panasonic PT-CMZ50U (ultra short throw, laser) — 5 200 lm</option>
+            <option value="16000">NEC PA1705UL — 16 000 lm</option>
+            <option value="12000">Sony VPL-FHZ120L — 12 000 lm</option>
+            <option value="7000">Sony VPL-FH500L (lâmpada) — 7 000 lm</option>
+            <option value="7000">Sony VPL-FHZ700L — 7 000 lm</option>
+            <option value="13000">Sony VPL-FHZ131L — 13 000 lm</option>
+            <option value="custom">Personalizado…</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="b-lumens">Luminosidade por projetor (100%)</label>
+          <div class="inputgroup"><input id="b-lumens" type="number" inputmode="decimal" value="20000" min="0" step="100"><span class="unit">lumens</span></div>
+          <div class="hint">O mesmo valor para todos os projetores do blend.</div>
+        </div>
+      </div>
+
+      <div class="card results" data-accent="blend">
+        <div class="stripe"></div>
+        <h2>Tela combinada (canvas)</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Resolução total</div><div class="v" id="b-out-res">—</div></div>
+          <div class="item"><div class="k">Overlap total</div><div class="v" id="b-out-overlap">—</div></div>
+          <div class="item"><div class="k">Overlap % do total</div><div class="v" id="b-out-pcttotal">—</div></div>
+          <div class="item"><div class="k">Overlap % por projetor</div><div class="v" id="b-out-pctproj">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Ecrã físico</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Área</div><div class="v" id="b-out-area">—</div></div>
+          <div class="item"><div class="k">Formato</div><div class="v" id="b-out-ratio">—</div></div>
+          <div class="item wide"><div class="k">Pixel size (densidade)</div><div class="v" id="b-out-pitch">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Luminosidade combinada</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Total de projetores</div><div class="v" id="b-out-nproj">—</div></div>
+          <div class="item"><div class="k">Útil (80%)</div><div class="v" id="b-out-lumens80">—</div></div>
+          <div class="item wide"><div class="k">Lux no ecrã (somatório)</div><div class="v" id="b-out-lux">—</div></div>
+        </div>
+        <p class="note">Trabalha sempre a 80% da luminosidade nominal (um projetor mais gasto obriga os outros a acompanhar) — lux = (lumens × 0,8 × nº total de projetores) ÷ área do ecrã. Assume blending uniforme entre projetores.</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <button class="copy" data-target="b-sum">Copiar resumo</button>
+          </div>
+          <pre class="sumbox" id="b-sum"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LENTES -->
+  <section class="panel" data-mode="lentes">
+    <div class="grid">
+      <div class="card">
+        <h2>Necessidade</h2>
+        <div class="field">
+          <label for="ln-dist">Distância até ao ecrã</label>
+          <div class="inputgroup"><input id="ln-dist" type="number" inputmode="decimal" value="10" min="0.1" step="0.1"><span class="unit">m</span></div>
+        </div>
+        <div class="field">
+          <label for="ln-w">Largura do ecrã</label>
+          <div class="inputgroup"><input id="ln-w" type="number" inputmode="decimal" value="4" min="0.1" step="0.1"><span class="unit">m</span></div>
+        </div>
+        <div class="field">
+          <label for="ln-brand">Marca do projetor</label>
+          <select id="ln-brand" class="plain">
+            <option value="" selected>Todas as marcas</option>
+            <option value="Panasonic">Panasonic</option>
+            <option value="Epson">Epson</option>
+            <option value="Christie">Christie</option>
+            <option value="Digital Projection / ILS">Digital Projection / ILS</option>
+            <option value="NEC">NEC</option>
+            <option value="Barco">Barco</option>
+            <option value="Barco (Boxer)">Barco (Boxer)</option>
+            <option value="Sony">Sony</option>
+            <option value="Outros (folha)">Outros (folha)</option>
+          </select>
+          <div class="hint">Escolhe a marca para veres só as lentes compatíveis com esse projetor.</div>
+        </div>
+      </div>
+      <div class="card results" data-accent="lentes">
+        <div class="stripe"></div>
+        <h2>Throw ratio necessário</h2>
+        <div class="readout">
+          <div class="item wide"><div class="k">Ratio</div><div class="v" id="ln-out-ratio">—</div></div>
+        </div>
+        <p class="note">As lentes destacadas a azul na tabela cobrem este ratio.</p>
+      </div>
+    </div>
+
+    <div class="divider" style="margin-top:26px;">Base de lentes do mercado</div>
+    <div class="card lenstable-wrap">
+      <table class="lenstable" id="lens-table">
+        <thead>
+          <tr><th>Marca</th><th>Modelo</th><th>Throw ratio</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="note">Lista compilada de fichas técnicas públicas de vários fabricantes — os valores podem variar consoante o corpo do projetor onde a lente é montada. Confirma sempre antes de cotar ou enviar para produção. Entradas marcadas "(folha)" vêm diretamente da tua folha original.</p>
+  </section>
+
+  <footer>Calculadores — ferramenta interna, valores para conferência antes de envio ao cliente.</footer>
+</div>
+
+<script>
+  function fmt(n, dec) {
+    if (!isFinite(n)) return "—";
+    return n.toLocaleString("pt-PT", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+  function fmtInt(n) {
+    if (!isFinite(n)) return "—";
+    return Math.round(n).toLocaleString("pt-PT");
+  }
+  function describeRatio(w, h) {
+    if (!w || !h) return "—";
+    var r = w / h;
+    var presets = [[16,9],[16,10],[4,3],[21,9],[1,1],[9,16]];
+    for (var i = 0; i < presets.length; i++) {
+      var pw = presets[i][0], ph = presets[i][1];
+      if (Math.abs(r - pw/ph) < 0.01) return pw + ":" + ph;
+    }
+    return fmt(r, 2) + ":1";
+  }
+  function val(id) { return parseFloat(document.getElementById(id).value); }
+
+  // Tabs
+  var tabs = document.querySelectorAll(".tab");
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      tabs.forEach(function (t) { t.setAttribute("aria-selected", "false"); });
+      tab.setAttribute("aria-selected", "true");
+      document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
+      document.querySelector('.panel[data-mode="' + tab.dataset.mode + '"]').classList.add("active");
+    });
+  });
+
+  // Custom ratio toggle
+  var ratioSel = document.getElementById("p-ratio");
+  var customRatio = document.getElementById("p-custom-ratio");
+  var diagField = document.getElementById("p-diag-field");
+  ratioSel.addEventListener("change", function () {
+    var isCustom = ratioSel.value === "custom";
+    customRatio.style.display = isCustom ? "grid" : "none";
+    diagField.style.display = isCustom ? "none" : "block";
+    calcProjecao();
+  });
+
+  var projModelSel = document.getElementById("p-projmodel");
+  projModelSel.addEventListener("change", function () {
+    if (projModelSel.value === "custom") return;
+    document.getElementById("p-lumens").value = projModelSel.value;
+    calcProjecao();
+  });
+  document.getElementById("p-lumens").addEventListener("input", function () {
+    projModelSel.value = "custom";
+  });
+
+  var blendProjModelSel = document.getElementById("b-projmodel");
+  blendProjModelSel.addEventListener("change", function () {
+    if (blendProjModelSel.value === "custom") return;
+    document.getElementById("b-lumens").value = blendProjModelSel.value;
+    calcBlend();
+  });
+  document.getElementById("b-lumens").addEventListener("input", function () {
+    blendProjModelSel.value = "custom";
+  });
+
+  function calcProjecao() {
+    var tmin = val("p-tmin"), tmax = val("p-tmax");
+    var isCustom = ratioSel.value === "custom";
+    var w, h, label;
+
+    if (isCustom) {
+      w = val("p-rw");
+      h = val("p-rh");
+      label = "Personalizado";
+    } else {
+      var parts = ratioSel.value.split(":");
+      var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+      var diagIn = val("p-diag");
+      var diagM = diagIn * 0.0254;
+      var r = rw / rh;
+      h = diagM / Math.sqrt(r * r + 1);
+      w = h * r;
+      label = fmt(diagIn,0) + '" (' + rw + ":" + rh + ")";
+    }
+    var r = w / h;
+
+    document.getElementById("p-out-w").innerHTML = fmt(w, 2) + "<small>m</small>";
+    document.getElementById("p-out-h").innerHTML = fmt(h, 2) + "<small>m</small>";
+
+    var dmin = tmin * w, dmax = tmax * w;
+    document.getElementById("p-out-dmin").innerHTML = fmt(dmin, 2) + "<small>m</small>";
+    document.getElementById("p-out-dmax").innerHTML = fmt(dmax, 2) + "<small>m</small>";
+
+    var lumens = val("p-lumens");
+    var lumens80 = lumens * 0.8;
+    var area = w * h;
+    var lux = lumens80 / area;
+    document.getElementById("p-out-lumens80").innerHTML = fmtInt(lumens80) + "<small>lm</small>";
+    document.getElementById("p-out-lux").innerHTML = fmtInt(lux) + "<small>lux</small>";
+
+    document.getElementById("p-sum").textContent =
+      "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
+      "Throw ratio: " + fmt(tmin,2) + " – " + fmt(tmax,2) + "\n" +
+      "Distância de projeção: " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n" +
+      "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
+
+    // Reverse calc shares ratio + throw
+    var avail = val("p-avail");
+    var wMin = avail / tmax, wMax = avail / tmin;
+    var diagMin = wMin * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+    var diagMax = wMax * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+    document.getElementById("p-out-diagmin").innerHTML = fmtInt(diagMin) + "<small>\"</small>";
+    document.getElementById("p-out-diagmax").innerHTML = fmtInt(diagMax) + "<small>\"</small>";
+    document.getElementById("p-out-wrange").innerHTML = fmt(wMin,2) + "–" + fmt(wMax,2) + "<small>m</small>";
+  }
+
+  var ledModelSel = document.getElementById("l-model");
+  ledModelSel.addEventListener("change", function () {
+    if (ledModelSel.value === "custom") return;
+    var parts = ledModelSel.value.split("|");
+    document.getElementById("l-mw").value = parts[0];
+    document.getElementById("l-mh").value = parts[1];
+    document.getElementById("l-rx").value = parts[2];
+    document.getElementById("l-ry").value = parts[3];
+    document.getElementById("l-weight").value = parts[4];
+    document.getElementById("l-amp").value = parts[5];
+    calcLed();
+  });
+  ["l-mw", "l-mh", "l-rx", "l-ry", "l-weight", "l-amp"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () {
+      ledModelSel.value = "custom";
+    });
+  });
+
+  function calcLed() {
+    var mx = val("l-mx"), my = val("l-my");
+    var mw = val("l-mw"), mh = val("l-mh");
+    var rx = val("l-rx"), ry = val("l-ry");
+    var weightPerTile = val("l-weight"), ampPerTile = val("l-amp");
+
+    var totalPx = mx * rx, totalPy = my * ry;
+    var totalWm = (mx * mw) / 1000, totalHm = (my * mh) / 1000;
+    var area = totalWm * totalHm;
+    var pitchX = mw / rx, pitchY = mh / ry;
+    var pitchAvg = (pitchX + pitchY) / 2;
+    var numTiles = mx * my;
+
+    document.getElementById("l-out-px").innerHTML = fmtInt(totalPx) + "<small>px</small>";
+    document.getElementById("l-out-py").innerHTML = fmtInt(totalPy) + "<small>px</small>";
+    document.getElementById("l-out-size").innerHTML = fmt(totalWm,2) + " x " + fmt(totalHm,2) + "<small>m</small>";
+    document.getElementById("l-out-area").innerHTML = fmt(area,2) + "<small>m²</small>";
+    document.getElementById("l-out-pitch").innerHTML = fmt(pitchAvg,2) + "<small>mm</small>";
+    document.getElementById("l-out-ratio").textContent = describeRatio(totalPx, totalPy);
+
+    var dmin = totalWm * 3, dmax = totalWm * 7;
+    document.getElementById("l-out-dmin").innerHTML = fmt(dmin,1) + "<small>m</small>";
+    document.getElementById("l-out-dmax").innerHTML = fmt(dmax,1) + "<small>m</small>";
+
+    var weightTotal = weightPerTile * numTiles;
+    var ampTotal = ampPerTile * numTiles;
+    var ampPhase = ampTotal / 3;
+    document.getElementById("l-out-tiles").textContent = fmtInt(numTiles);
+    document.getElementById("l-out-weight").innerHTML = fmt(weightTotal,1) + "<small>kg</small>";
+    document.getElementById("l-out-amp").innerHTML = fmt(ampTotal,2) + "<small>A</small>";
+    document.getElementById("l-out-ampphase").innerHTML = fmt(ampPhase,2) + "<small>A</small>";
+
+    var warnEl = document.getElementById("l-warn");
+    if (Math.abs(pitchX - pitchY) > 0.01) {
+      warnEl.style.display = "block";
+      warnEl.textContent = "Pitch horizontal (" + fmt(pitchX,2) + " mm) e vertical (" + fmt(pitchY,2) + " mm) não coincidem — confirma os valores do módulo.";
+    } else {
+      warnEl.style.display = "none";
+    }
+
+    document.getElementById("l-sum").textContent =
+      "Ecrã LED: " + mx + " x " + my + " tiles (" + mw + " x " + mh + " mm cada, " + fmtInt(numTiles) + " tiles)\n" +
+      "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px  —  formato " + describeRatio(totalPx, totalPy) + "\n" +
+      "Tamanho físico: " + fmt(totalWm,2) + " x " + fmt(totalHm,2) + " m  (" + fmt(area,2) + " m²)\n" +
+      "Pixel pitch: " + fmt(pitchAvg,2) + " mm\n" +
+      "Distância de visualização: " + fmt(dmin,1) + " – " + fmt(dmax,1) + " m (mín. – máx.)\n" +
+      "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps: " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)";
+  }
+
+  function calcBlend() {
+    var nh = val("b-nh"), nv = val("b-nv");
+    var hpx = val("b-hpx"), vpx = val("b-vpx");
+    var oh = val("b-oh"), ov = val("b-ov");
+    var wm = val("b-w"), hm = val("b-h");
+
+    var overlapTotalH = oh * (nh - 1);
+    var overlapTotalV = ov * (nv - 1);
+    var totalPxH = nh * hpx - overlapTotalH;
+    var totalPxV = nv * vpx - overlapTotalV;
+
+    var pitchMmH = (wm * 1000) / totalPxH;
+    var pitchMmV = (hm * 1000) / totalPxV;
+    var pitchAvg = (pitchMmH + pitchMmV) / 2;
+
+    var pctTotal = overlapTotalH / totalPxH;
+    var pctProj = oh / hpx;
+    var area = wm * hm;
+
+    document.getElementById("b-out-res").innerHTML = fmtInt(totalPxH) + " x " + fmtInt(totalPxV) + "<small>px</small>";
+    document.getElementById("b-out-overlap").innerHTML = fmtInt(overlapTotalH) + "<small>px</small>";
+    document.getElementById("b-out-pcttotal").textContent = fmt(pctTotal * 100, 1) + "%";
+    document.getElementById("b-out-pctproj").textContent = fmt(pctProj * 100, 1) + "%";
+    document.getElementById("b-out-area").innerHTML = fmt(area, 2) + "<small>m²</small>";
+    document.getElementById("b-out-ratio").textContent = describeRatio(wm * 1000, hm * 1000);
+    document.getElementById("b-out-pitch").innerHTML = fmt(pitchAvg, 2) + "<small>mm</small>";
+
+    var warnEl = document.getElementById("b-warn");
+    if (Math.abs(pitchMmH - pitchMmV) / pitchAvg > 0.05) {
+      warnEl.style.display = "block";
+      warnEl.textContent = "A proporção física (" + fmt(wm,2) + " x " + fmt(hm,2) + " m) não bate certo com a resolução resultante — a imagem pode ficar esticada. Confirma largura/altura ou o overlap vertical.";
+    } else {
+      warnEl.style.display = "none";
+    }
+
+    var lumensEach = val("b-lumens");
+    var lumensEach80 = lumensEach * 0.8;
+    var nProj = nh * nv;
+    var lumensTotal80 = lumensEach80 * nProj;
+    var luxTotal = lumensTotal80 / area;
+    document.getElementById("b-out-nproj").textContent = fmtInt(nProj);
+    document.getElementById("b-out-lumens80").innerHTML = fmtInt(lumensEach80) + "<small>lm/proj.</small>";
+    document.getElementById("b-out-lux").innerHTML = fmtInt(luxTotal) + "<small>lux</small>";
+
+    document.getElementById("b-sum").textContent =
+      "Blending: " + nh + " x " + nv + " projetores (" + hpx + "x" + vpx + " px cada)\n" +
+      "Overlap: " + oh + " px horizontal, " + ov + " px vertical\n" +
+      "Resolução combinada: " + fmtInt(totalPxH) + " x " + fmtInt(totalPxV) + " px  —  overlap " + fmt(pctTotal*100,1) + "% do total (" + fmt(pctProj*100,1) + "% por projetor)\n" +
+      "Ecrã físico: " + fmt(wm,2) + " x " + fmt(hm,2) + " m  (" + fmt(area,2) + " m²)  —  formato " + describeRatio(wm*1000, hm*1000) + "\n" +
+      "Pixel size: " + fmt(pitchAvg,2) + " mm\n" +
+      "Luminosidade: " + nProj + " projetores x " + fmtInt(lumensEach) + " lm (100%) = " + fmtInt(lumensEach*nProj) + " lm  —  a 80%: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(luxTotal) + " lux no ecrã";
+  }
+
+  var LENTES = [
+    { marca: "Panasonic", modelo: "ET-D75LE95 (UST)", min: 0.36, max: 0.40 },
+    { marca: "Panasonic", modelo: "ET-D75LE50", min: 0.69, max: 0.77 },
+    { marca: "Panasonic", modelo: "Curto fixo 0,60 (folha)", min: 0.60, max: 0.60 },
+    { marca: "Panasonic", modelo: "ET-D75LE30", min: 2.40, max: 4.70 },
+    { marca: "Panasonic", modelo: "Zoom 1,71–2,41 (folha)", min: 1.71, max: 2.41 },
+    { marca: "Panasonic", modelo: "Zoom 2,27–3,62 (folha)", min: 2.27, max: 3.62 },
+    { marca: "Panasonic", modelo: "Zoom 3,58–4,45 (folha)", min: 3.58, max: 4.45 },
+    { marca: "Epson", modelo: "ELPLU02", min: 0.64, max: 0.80 },
+    { marca: "Epson", modelo: "ELPLU03 (≤8000lm)", min: 0.65, max: 0.78 },
+    { marca: "Epson", modelo: "ELPLU03 (9–12k lm)", min: 0.48, max: 0.57 },
+    { marca: "Epson", modelo: "ELPLW05", min: 1.04, max: 1.46 },
+    { marca: "Epson", modelo: "ELPLW06", min: 1.62, max: 2.22 },
+    { marca: "Epson", modelo: "ELPLM08", min: 1.42, max: 2.28 },
+    { marca: "Epson", modelo: "ELPLM15 (9–20k lm)", min: 1.57, max: 2.56 },
+    { marca: "Epson", modelo: "ELPLM15 (≤8500lm)", min: 2.16, max: 3.48 },
+    { marca: "Epson", modelo: "ELPLM10", min: 3.32, max: 5.06 },
+    { marca: "Christie", modelo: "Ultra Short", min: 0.50, max: 0.60 },
+    { marca: "Christie", modelo: "Short Standard", min: 1.20, max: 1.50 },
+    { marca: "Christie", modelo: "Zoom 1,2–1,6", min: 1.20, max: 1.60 },
+    { marca: "Christie", modelo: "High Contrast", min: 1.13, max: 1.66 },
+    { marca: "Christie", modelo: "Zoom 2,1–3,4", min: 2.10, max: 3.40 },
+    { marca: "Christie", modelo: "Roadster 0,67 fixo curto", min: 0.67, max: 0.67 },
+    { marca: "Christie", modelo: "Roadster 1,16–1,49 curto ajustável", min: 1.16, max: 1.49 },
+    { marca: "Christie", modelo: "Roadster 1,4–1,8 ajustável", min: 1.40, max: 1.80 },
+    { marca: "Digital Projection / ILS", modelo: "ILS 0,67 (folha)", min: 0.67, max: 0.67 },
+    { marca: "Digital Projection / ILS", modelo: "ILS 1,1 (folha)", min: 1.10, max: 1.10 },
+    { marca: "Digital Projection / ILS", modelo: "ILS 1,4–1,8 (folha)", min: 1.40, max: 1.80 },
+    { marca: "Digital Projection / ILS", modelo: "ILS 1,8–2,6 (folha)", min: 1.80, max: 2.60 },
+    { marca: "Digital Projection / ILS", modelo: "ILS 2,6–4,1 (folha)", min: 2.60, max: 4.10 },
+    { marca: "Digital Projection / ILS", modelo: "ILS 4,1–6,9 (folha)", min: 4.10, max: 6.90 },
+    { marca: "NEC", modelo: "NP16FL", min: 0.76, max: 0.76 },
+    { marca: "NEC", modelo: "NP30ZL", min: 0.79, max: 1.04 },
+    { marca: "NEC", modelo: "NP34ZL", min: 0.95, max: 1.20 },
+    { marca: "NEC", modelo: "NP53ZL", min: 0.86, max: 1.25 },
+    { marca: "NEC", modelo: "NP13ZL", min: 1.46, max: 3.02 },
+    { marca: "NEC", modelo: "NP18ZL", min: 1.73, max: 2.27 },
+    { marca: "NEC", modelo: "NP41ZL", min: 1.30, max: 3.08 },
+    { marca: "NEC", modelo: "NP43ZL", min: 2.99, max: 5.93 },
+    { marca: "NEC", modelo: "NP05ZL", min: 4.70, max: 7.20 },
+    { marca: "Barco", modelo: "TLD+ UST", min: 0.28, max: 0.42 },
+    { marca: "Barco", modelo: "FLD+ Long", min: 2.50, max: 4.60 },
+    { marca: "Barco", modelo: "FLD Extra-long", min: 3.80, max: 6.50 },
+    { marca: "Barco (Boxer)", modelo: "Fixo 0,90 (folha)", min: 0.90, max: 0.90 },
+    { marca: "Barco (Boxer)", modelo: "Zoom 1,31–1,63 (folha)", min: 1.31, max: 1.63 },
+    { marca: "Barco (Boxer)", modelo: "Zoom 1,63–2,17 (folha)", min: 1.63, max: 2.17 },
+    { marca: "Barco (Boxer)", modelo: "Zoom 2,17–3,89 (folha)", min: 2.17, max: 3.89 },
+    { marca: "Barco (Boxer)", modelo: "Zoom 3,89–5,43 (folha)", min: 3.89, max: 5.43 },
+    { marca: "Sony", modelo: "Z 4011 (folha — confirmar, ficha oficial diz 1,30–1,95)", min: 1.40, max: 2.10 },
+    { marca: "Sony", modelo: "Z 4025", min: 3.36, max: 6.23 },
+    { marca: "Sony", modelo: "Z 4045", min: 6.19, max: 10.72 },
+    { marca: "Sony", modelo: "VPLL-Z4011 (FH500L/FHZ700L/FHZ90L/FHZ120L)", min: 1.30, max: 1.95 },
+    { marca: "Sony", modelo: "VPLL-Z4111 (FHZ120L/FHZ90L)", min: 1.30, max: 1.96 },
+    { marca: "Sony", modelo: "VPLL-Z4019 (FHZ120L/FHZ90L)", min: 2.14, max: 3.07 },
+    { marca: "Sony", modelo: "VPLL-Z4107 curto", min: 0.75, max: 0.94 },
+    { marca: "Sony", modelo: "VPLL-3003 UST fixo (FHZ6/FH6)", min: 0.33, max: 0.33 },
+    { marca: "Sony", modelo: "VPLL-Z3024 (FHZ60/65)", min: 2.34, max: 3.19 },
+    { marca: "Sony", modelo: "VPLL-Z3010", min: 1.01, max: 1.39 },
+    { marca: "Outros (folha)", modelo: "FM 22 — 0,89", min: 0.89, max: 0.89 },
+    { marca: "Outros (folha)", modelo: "ZM 42 — 1,87–2,3", min: 1.87, max: 2.30 },
+    { marca: "Outros (folha)", modelo: "ZM 102 — 3,35–4,92", min: 3.35, max: 4.92 },
+    { marca: "Outros (folha)", modelo: "ZM 101 — 4,7–6,58", min: 4.70, max: 6.58 }
+  ];
+  LENTES.sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
+
+  var lensTbody = document.querySelector("#lens-table tbody");
+  LENTES.forEach(function (l) {
+    var tr = document.createElement("tr");
+    tr.dataset.min = l.min;
+    tr.dataset.max = l.max;
+    tr.dataset.marca = l.marca;
+    var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
+    tr.innerHTML = "<td>" + l.marca + "</td><td>" + l.modelo + "</td><td class=\"ratio\">" + ratioText + "</td><td class=\"match-cell\"></td>";
+    lensTbody.appendChild(tr);
+  });
+
+  function calcLentes() {
+    var dist = val("ln-dist"), w = val("ln-w");
+    var ratio = dist / w;
+    var brand = document.getElementById("ln-brand").value;
+    document.getElementById("ln-out-ratio").innerHTML = fmt(ratio, 2) + "<small>:1</small>";
+
+    document.querySelectorAll("#lens-table tbody tr").forEach(function (tr) {
+      var min = parseFloat(tr.dataset.min), max = parseFloat(tr.dataset.max);
+      var cell = tr.querySelector(".match-cell");
+      var brandOk = !brand || tr.dataset.marca === brand;
+      tr.style.display = brandOk ? "" : "none";
+      if (brandOk && ratio >= min && ratio <= max) {
+        tr.classList.add("match");
+        cell.innerHTML = '<span class="badge-match">✓ compatível</span>';
+      } else {
+        tr.classList.remove("match");
+        cell.innerHTML = "";
+      }
+    });
+  }
+
+  document.querySelectorAll('.panel[data-mode="lentes"] input, .panel[data-mode="lentes"] select').forEach(function (el) {
+    el.addEventListener("input", calcLentes);
+    el.addEventListener("change", calcLentes);
+  });
+
+  document.querySelectorAll('.panel[data-mode="blend"] input').forEach(function (el) {
+    el.addEventListener("input", calcBlend);
+  });
+
+  document.querySelectorAll('.panel[data-mode="projecao"] input, .panel[data-mode="projecao"] select').forEach(function (el) {
+    el.addEventListener("input", calcProjecao);
+  });
+  document.querySelectorAll('.panel[data-mode="led"] input').forEach(function (el) {
+    el.addEventListener("input", calcLed);
+  });
+
+  document.querySelectorAll("button.copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var el = document.getElementById(btn.dataset.target);
+      var text = el.innerText;
+      var done = function () {
+        var orig = btn.textContent;
+        btn.textContent = "Copiado ✓";
+        setTimeout(function () { btn.textContent = orig; }, 1500);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done).catch(function () { fallbackSelect(el, btn); });
+      } else {
+        fallbackSelect(el, btn);
+      }
+    });
+  });
+  function fallbackSelect(el, btn) {
+    var range = document.createRange();
+    range.selectNodeContents(el);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    var orig = btn.textContent;
+    btn.textContent = "Seleccionado — Ctrl+C";
+    setTimeout(function () { btn.textContent = orig; }, 2000);
+  }
+
+  calcProjecao();
+  calcLed();
+  calcBlend();
+  calcLentes();
+</script>
