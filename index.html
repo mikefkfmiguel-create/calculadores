@@ -1055,9 +1055,26 @@
             </div>
           </div>
           <div class="field">
-            <label for="proj-proj-dist">Distância disponível (lente ao ecrã)</label>
+            <label>O que já sabes?</label>
+            <div class="seg" id="proj-throwmode-seg">
+              <button type="button" class="seg-btn active" data-throwmode="dist">A distância de projeção disponível</button>
+              <button type="button" class="seg-btn" data-throwmode="ratio">O throw ratio da lente</button>
+            </div>
+          </div>
+          <div class="field" id="proj-throwmode-dist-inputs">
+            <label for="proj-proj-dist">Distância de projeção disponível (lente ao ecrã)</label>
             <div class="inputgroup"><input id="proj-proj-dist" type="number" inputmode="decimal" value="4.0" min="0.1" step="0.01"><span class="unit">m</span></div>
             <div class="hint">Medida a partir da lente do projetor.</div>
+          </div>
+          <div class="row2" id="proj-throwmode-ratio-inputs" style="display:none;">
+            <div class="field">
+              <label for="proj-proj-tmin">Throw ratio mínimo</label>
+              <div class="inputgroup"><input id="proj-proj-tmin" type="number" inputmode="decimal" value="1.39" min="0.1" step="0.01"></div>
+            </div>
+            <div class="field">
+              <label for="proj-proj-tmax">Throw ratio máximo</label>
+              <div class="inputgroup"><input id="proj-proj-tmax" type="number" inputmode="decimal" value="1.87" min="0.1" step="0.01"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1081,7 +1098,7 @@
         <div id="proj-report-projecao" style="display:none;">
           <div class="readout">
             <div class="item"><div class="k">Tamanho do ecrã</div><div class="v" id="proj-out-screensize">—</div></div>
-            <div class="item"><div class="k">Throw ratio necessário</div><div class="v" id="proj-out-ratio">—</div></div>
+            <div class="item"><div class="k" id="proj-out-ratio-label">Throw ratio necessário</div><div class="v" id="proj-out-ratio">—</div></div>
             <div class="item"><div class="k">Luminosidade útil</div><div class="v" id="proj-out-lumens">—</div></div>
             <div class="item"><div class="k">Lux no ecrã</div><div class="v" id="proj-out-lux">—</div></div>
           </div>
@@ -1595,6 +1612,22 @@
     });
   });
 
+  var projThrowMode = "dist";
+  var projThrowModeDistInputs = document.getElementById("proj-throwmode-dist-inputs");
+  var projThrowModeRatioInputs = document.getElementById("proj-throwmode-ratio-inputs");
+  document.querySelectorAll("#proj-throwmode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#proj-throwmode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      projThrowMode = btn.dataset.throwmode;
+      var isRatio = projThrowMode === "ratio";
+      projThrowModeDistInputs.style.display = isRatio ? "none" : "block";
+      projThrowModeRatioInputs.style.display = isRatio ? "grid" : "none";
+      document.getElementById("proj-out-ratio-label").textContent = isRatio ? "Distância de projeção necessária" : "Throw ratio necessário";
+      calcProjeto();
+    });
+  });
+
   function calcProjeto() {
     var nome = document.getElementById("proj-nome").value.trim() || "Projeto sem nome";
 
@@ -1665,20 +1698,35 @@
       }
       var area = w * h;
 
-      var dist = val("proj-proj-dist");
-      var ratioNeeded = dist / w;
-
       var lumens = proj.lumens;
       var lumens80 = lumens * 0.8;
       var lux = lumens80 / area;
 
-      var matches = LENTES_DATA.filter(function (l) {
-        var brandOk = l.marca === brand || l.marca.indexOf(brand + " (") === 0;
-        return brandOk && ratioNeeded >= l.min && ratioNeeded <= l.max;
-      }).sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
+      var matches, ratioOutHtml, distLine, ratioLine;
+      if (projThrowMode === "ratio") {
+        var tmin = val("proj-proj-tmin"), tmax = val("proj-proj-tmax");
+        var dmin = tmin * w, dmax = tmax * w;
+        ratioOutHtml = fmt(dmin, 2) + "–" + fmt(dmax, 2) + "<small>m</small>";
+        matches = LENTES_DATA.filter(function (l) {
+          var brandOk = l.marca === brand || l.marca.indexOf(brand + " (") === 0;
+          return brandOk && tmax >= l.min && tmin <= l.max;
+        }).sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
+        distLine = "Distância de projeção necessária: " + fmt(dmin, 2) + " – " + fmt(dmax, 2) + " m\n";
+        ratioLine = "Throw ratio: " + fmt(tmin, 2) + " – " + fmt(tmax, 2) + "\n";
+      } else {
+        var dist = val("proj-proj-dist");
+        var ratioNeeded = dist / w;
+        ratioOutHtml = fmt(ratioNeeded, 2) + "<small>:1</small>";
+        matches = LENTES_DATA.filter(function (l) {
+          var brandOk = l.marca === brand || l.marca.indexOf(brand + " (") === 0;
+          return brandOk && ratioNeeded >= l.min && ratioNeeded <= l.max;
+        }).sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
+        distLine = "Distância disponível: " + fmt(dist, 2) + " m\n";
+        ratioLine = "Throw ratio necessário: " + fmt(ratioNeeded, 2) + ":1\n";
+      }
 
       document.getElementById("proj-out-screensize").innerHTML = fmt(w, 2) + " x " + fmt(h, 2) + "<small>m</small>";
-      document.getElementById("proj-out-ratio").innerHTML = fmt(ratioNeeded, 2) + "<small>:1</small>";
+      document.getElementById("proj-out-ratio").innerHTML = ratioOutHtml;
       document.getElementById("proj-out-lumens").innerHTML = fmtInt(lumens80) + "<small>lm</small>";
       document.getElementById("proj-out-lux").innerHTML = fmtInt(lux) + "<small>lux</small>";
 
@@ -1697,8 +1745,8 @@
         "Tipo: Projeção\n" +
         "Projetor: " + proj.modelo + " (" + fmtInt(lumens) + " lm)\n" +
         "Ecrã: " + screenLabel + "\n" +
-        "Distância disponível: " + fmt(dist, 2) + " m\n" +
-        "Throw ratio necessário: " + fmt(ratioNeeded, 2) + ":1\n" +
+        distLine +
+        ratioLine +
         "Lentes compatíveis: " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") : "nenhuma na base") + "\n" +
         "Luminosidade útil: " + fmtInt(lumens80) + " lm  —  " + fmtInt(lux) + " lux no ecrã";
     }
