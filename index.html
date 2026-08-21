@@ -1,3 +1,4 @@
+<html data-theme="dark">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calculadores</title>
@@ -52,6 +53,11 @@
     --rose-200: #F5CEDC;
     --rose-100: #FAE6ED;
 
+    --cyan-600: #0C7A94;
+    --cyan-500: #1592AE;
+    --cyan-200: #C4E6EE;
+    --cyan-100: #E0F3F7;
+
     --danger-600: #A83226;
     --danger-100: #FBE7E5;
 
@@ -99,6 +105,11 @@
       --rose-200: #4A1E2C;
       --rose-100: #33141D;
 
+      --cyan-600: #6BD2E8;
+      --cyan-500: #4ABDD6;
+      --cyan-200: #123943;
+      --cyan-100: #0C282E;
+
       --danger-600: #E38178;
       --danger-100: #3A1613;
 
@@ -124,6 +135,31 @@
     --teal-500: #45BBAE;
     --teal-200: #15423C;
     --teal-100: #102E2A;
+
+    --violet-600: #B3A6F2;
+    --violet-500: #9683E8;
+    --violet-200: #332B5C;
+    --violet-100: #241E42;
+
+    --blue-600: #7BB6EA;
+    --blue-500: #5AA0DE;
+    --blue-200: #17334A;
+    --blue-100: #102536;
+
+    --green-600: #6FD08B;
+    --green-500: #4FBE73;
+    --green-200: #1B4A2C;
+    --green-100: #12331F;
+
+    --rose-600: #EC93AF;
+    --rose-500: #E17398;
+    --rose-200: #4A1E2C;
+    --rose-100: #33141D;
+
+    --cyan-600: #6BD2E8;
+    --cyan-500: #4ABDD6;
+    --cyan-200: #123943;
+    --cyan-100: #0C282E;
 
     --danger-600: #E38178;
     --danger-100: #3A1613;
@@ -255,6 +291,7 @@
     border-radius: 2px;
   }
   .tab[data-mode="projecao"] .swatch { background: var(--amber-500); }
+  .tab[data-mode="visualizacao"] .swatch { background: var(--cyan-500); }
   .tab[data-mode="led"] .swatch { background: var(--teal-500); }
   .tab[data-mode="blend"] .swatch { background: var(--violet-500); }
   .tab[data-mode="lentes"] .swatch { background: var(--blue-500); }
@@ -262,6 +299,7 @@
   .tab[data-mode="sinal"] .swatch { background: var(--rose-500); }
   .tab[aria-selected="true"] { color: var(--ink); }
   .tab[data-mode="projecao"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
+  .tab[data-mode="visualizacao"][aria-selected="true"] { border-bottom-color: var(--cyan-500); }
   .tab[data-mode="led"][aria-selected="true"] { border-bottom-color: var(--teal-500); }
   .tab[data-mode="blend"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
   .tab[data-mode="lentes"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
@@ -421,6 +459,7 @@
   .results { position: sticky; top: 16px; }
   .stripe { height: 3px; border-radius: 3px 3px 0 0; margin: -20px -20px 18px; }
   .panel[data-mode="projecao"] .stripe, [data-accent="projecao"] .stripe { background: var(--amber-500); }
+  .panel[data-mode="visualizacao"] .stripe, [data-accent="visualizacao"] .stripe { background: var(--cyan-500); }
   .panel[data-mode="led"] .stripe, [data-accent="led"] .stripe { background: var(--teal-500); }
   .panel[data-mode="blend"] .stripe, [data-accent="blend"] .stripe { background: var(--violet-500); }
   .panel[data-mode="lentes"] .stripe, [data-accent="lentes"] .stripe { background: var(--blue-500); }
@@ -507,6 +546,26 @@
     padding: 8px 10px;
     margin-top: 10px;
   }
+  .crosslink {
+    font-size: 13px;
+    color: var(--ink-soft);
+    background: var(--cyan-100);
+    border: 1px solid var(--cyan-200);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 26px;
+    line-height: 1.5;
+  }
+  .crosslink button {
+    font: inherit;
+    font-weight: 600;
+    color: var(--cyan-600);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+  }
 
   .summary {
     margin-top: 16px;
@@ -531,6 +590,29 @@
     margin: 0;
     white-space: pre-wrap;
     color: var(--ink-soft);
+  }
+  .summary-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .addproject {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .addproject input[type="checkbox"] {
+    width: 15px; height: 15px;
+    accent-color: var(--green-500);
+    cursor: pointer;
+  }
+  .projitem { margin-bottom: 14px; }
+  .projitem:last-child { margin-bottom: 0; }
+  .projitem h3 {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 6px;
   }
   button.copy {
     font-family: "IBM Plex Sans", sans-serif;
@@ -559,7 +641,7 @@
     <div class="brand">
       <h1>Calculadores</h1>
     </div>
-    <span class="mark">v1.9</span>
+    <span class="mark">v1.10</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -572,6 +654,7 @@
 
   <div class="tabs" role="tablist">
     <button class="tab" data-mode="projecao" role="tab" aria-selected="true"><span class="swatch"></span>Distância de Projeção</button>
+    <button class="tab" data-mode="visualizacao" role="tab" aria-selected="false"><span class="swatch"></span>Distância de Visualização</button>
     <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
     <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
     <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
@@ -709,34 +792,133 @@
         <div class="summary">
           <div class="summary-head">
             <span class="k">Resumo para ficha técnica</span>
-            <button class="copy" data-target="p-sum">Copiar resumo</button>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="p-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="p-sum">Copiar resumo</button>
+            </div>
           </div>
           <pre class="sumbox" id="p-sum"></pre>
         </div>
       </div>
     </div>
 
-    <div class="divider" style="margin-top:26px;">ou calcular ao contrário</div>
+    <div class="crosslink">
+      Queres saber que tamanho de ecrã é ideal para uma distância de visualização específica (em vez do throw ratio do projetor)? Usa a aba <button type="button" data-jumptab="visualizacao">Distância de Visualização</button>.
+    </div>
+  </section>
+
+  <!-- DISTÂNCIA DE VISUALIZAÇÃO -->
+  <section class="panel" data-mode="visualizacao">
     <div class="grid">
       <div class="card">
-        <h2>Distância disponível na sala</h2>
+        <h2>Ecrã</h2>
         <div class="field">
-          <label for="p-avail">Distância até ao ecrã</label>
-          <div class="inputgroup">
-            <input id="p-avail" type="number" inputmode="decimal" value="6" min="0.1" step="0.1">
-            <span class="unit">metros</span>
+          <label for="v-ratio">Formato (relação de aspeto)</label>
+          <select id="v-ratio" class="plain">
+            <option value="16:9" selected>16:9 — widescreen</option>
+            <option value="16:10">16:10</option>
+            <option value="4:3">4:3 — clássico</option>
+            <option value="21:9">21:9 — cinema</option>
+            <option value="custom">Personalizado — tenho a largura e altura em metros</option>
+          </select>
+        </div>
+        <div id="v-diagormode-wrap">
+          <div class="field">
+            <label>Como queres indicar o tamanho?</label>
+            <div class="seg" id="v-sizemode-seg">
+              <button type="button" class="seg-btn active" data-sizemode="diag">Diagonal (polegadas)</button>
+              <button type="button" class="seg-btn" data-sizemode="height">Altura (metros)</button>
+            </div>
           </div>
-          <div class="hint">Usa o mesmo throw ratio e formato definidos acima</div>
+          <div class="field" id="v-diag-field">
+            <label for="v-diag">Diagonal do ecrã</label>
+            <div class="inputgroup">
+              <input id="v-diag" type="number" inputmode="decimal" value="120" min="1" step="1">
+              <span class="unit">polegadas</span>
+            </div>
+          </div>
+          <div class="field" id="v-height-field" style="display:none;">
+            <label for="v-height-fixed">Altura do ecrã</label>
+            <div class="inputgroup">
+              <input id="v-height-fixed" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01">
+              <span class="unit">m</span>
+            </div>
+          </div>
+        </div>
+        <div class="row2" id="v-custom-ratio" style="display:none;">
+          <div class="field">
+            <label for="v-rw">Largura do ecrã</label>
+            <div class="inputgroup"><input id="v-rw" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01"><span class="unit">m</span></div>
+          </div>
+          <div class="field">
+            <label for="v-rh">Altura do ecrã</label>
+            <div class="inputgroup"><input id="v-rh" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Standard</div>
+        <div class="field">
+          <label for="v-standard">Regra de distância de visualização</label>
+          <select id="v-standard" class="plain">
+            <option value="width-thx" selected>Largura × 1,5–6 (THX / SMPTE)</option>
+            <option value="width-sweet">Largura × 1,5–2,5 (sweet spot genérico)</option>
+            <option value="avixa">AVIXA / DISCAS — regra 4-6-8 (base: altura)</option>
+          </select>
+        </div>
+        <div class="field" id="v-avixa-content-field" style="display:none;">
+          <label for="v-avixa-content">Tipo de conteúdo (AVIXA)</label>
+          <select id="v-avixa-content" class="plain">
+            <option value="detailed">Dados detalhados / decisão analítica (altura × 4)</option>
+            <option value="basic" selected>Instrução / decisão básica (altura × 6)</option>
+            <option value="passive">Vídeo / visão passiva (altura × 8)</option>
+          </select>
         </div>
       </div>
-      <div class="card results" data-accent="projecao">
+
+      <div class="card results" data-accent="visualizacao">
         <div class="stripe"></div>
-        <h2>Tamanho de ecrã recomendado</h2>
+        <h2>Distância de visualização ideal</h2>
         <div class="readout">
-          <div class="item"><div class="k">Diagonal mín.</div><div class="v" id="p-out-diagmin">—</div></div>
-          <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="p-out-diagmax">—</div></div>
-          <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="p-out-wrange">—</div></div>
+          <div class="item"><div class="k">Mínima</div><div class="v" id="v-out-dmin">—</div></div>
+          <div class="item"><div class="k">Máxima</div><div class="v" id="v-out-dmax">—</div></div>
         </div>
+        <p class="note" id="v-rule-note">—</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="v-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="v-sum">Copiar resumo</button>
+            </div>
+          </div>
+          <pre class="sumbox" id="v-sum"></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider" style="margin-top:26px;">ou calcular a partir da distância disponível</div>
+    <div class="grid">
+      <div class="card">
+        <h2>Distância da plateia</h2>
+        <div class="field">
+          <label for="v-avail">Distância entre a plateia e o ecrã</label>
+          <div class="inputgroup">
+            <input id="v-avail" type="number" inputmode="decimal" value="6" min="0.1" step="0.1">
+            <span class="unit">metros</span>
+          </div>
+          <div class="hint">Usa o standard escolhido acima e o mesmo formato de ecrã.</div>
+        </div>
+      </div>
+      <div class="card results" data-accent="visualizacao">
+        <div class="stripe"></div>
+        <h2>Tamanho de ecrã ideal</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Diagonal mín.</div><div class="v" id="v-out-diagmin">—</div></div>
+          <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="v-out-diagmax">—</div></div>
+          <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="v-out-wrange">—</div></div>
+        </div>
+        <div id="v-viewwarn" class="warn" style="display:none;"></div>
       </div>
     </div>
   </section>
@@ -845,7 +1027,8 @@
           <div class="item"><div class="k">Mínima</div><div class="v" id="l-out-dmin">—</div></div>
           <div class="item"><div class="k">Máxima</div><div class="v" id="l-out-dmax">—</div></div>
         </div>
-        <p class="note">Distância = largura do ecrã × 3 (mín.) a × 7 (máx.)</p>
+        <p class="note" id="l-viewrule-note">—</p>
+        <p class="note">Standard usado: define-se na aba <button type="button" data-jumptab="visualizacao" style="font:inherit; font-weight:600; color:var(--cyan-600); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">Distância de Visualização</button>.</p>
 
         <h2 style="margin-top:18px;">Peso &amp; energia</h2>
         <div class="readout">
@@ -859,10 +1042,51 @@
         <div class="summary">
           <div class="summary-head">
             <span class="k">Resumo para ficha técnica</span>
-            <button class="copy" data-target="l-sum">Copiar resumo</button>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="l-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="l-sum">Copiar resumo</button>
+            </div>
           </div>
           <pre class="sumbox" id="l-sum"></pre>
         </div>
+      </div>
+    </div>
+
+    <div class="divider" style="margin-top:26px;">sugestão de grelha para formato standard</div>
+    <div class="grid">
+      <div class="card">
+        <h2>Formato alvo</h2>
+        <div class="field">
+          <label for="l-suggest-ratio">Formato (relação de aspeto)</label>
+          <select id="l-suggest-ratio" class="plain">
+            <option value="16:9" selected>16:9 — widescreen</option>
+            <option value="16:10">16:10</option>
+            <option value="4:3">4:3 — clássico</option>
+            <option value="21:9">21:9 — cinema</option>
+            <option value="1:1">1:1 — quadrado</option>
+            <option value="custom">Personalizado</option>
+          </select>
+        </div>
+        <div class="row2" id="l-suggest-custom-ratio" style="display:none;">
+          <div class="field">
+            <label for="l-suggest-rw">Rácio — largura</label>
+            <div class="inputgroup"><input id="l-suggest-rw" type="number" inputmode="decimal" value="16" min="0.1" step="0.1"></div>
+          </div>
+          <div class="field">
+            <label for="l-suggest-rh">Rácio — altura</label>
+            <div class="inputgroup"><input id="l-suggest-rh" type="number" inputmode="decimal" value="9" min="0.1" step="0.1"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="l-suggest-diag">Diagonal aproximada</label>
+          <div class="inputgroup"><input id="l-suggest-diag" type="number" inputmode="decimal" value="180" min="1" step="1"><span class="unit">polegadas</span></div>
+          <div class="hint">Usa o tamanho de módulo (largura/altura definidas acima em "Tamanho do tile") para sugerir a grelha de tiles mais próxima deste formato.</div>
+        </div>
+      </div>
+      <div class="card results" data-accent="led">
+        <div class="stripe"></div>
+        <h2>Grelhas sugeridas</h2>
+        <div class="lensmatch-list" id="l-suggest-list">—</div>
       </div>
     </div>
   </section>
@@ -974,7 +1198,10 @@
         <div class="summary">
           <div class="summary-head">
             <span class="k">Resumo para ficha técnica</span>
-            <button class="copy" data-target="b-sum">Copiar resumo</button>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="b-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="b-sum">Copiar resumo</button>
+            </div>
           </div>
           <pre class="sumbox" id="b-sum"></pre>
         </div>
@@ -1027,6 +1254,20 @@
 
   <!-- PROJETO -->
   <section class="panel" data-mode="projeto">
+    <div class="card results" data-accent="projeto" style="margin-bottom:16px;">
+      <div class="stripe"></div>
+      <h2>Itens do projeto</h2>
+      <div class="hint">Marca "Adicionar ao projeto" no resumo de uma calculadora (Distância de Projeção, Distância de Visualização, Ecrã LED ou Blending) para juntar aqui uma checklist do que a produção vai usar.</div>
+      <div id="proj-items-list" style="margin-top:12px;"></div>
+      <div class="summary" id="proj-items-summary-wrap" style="display:none;">
+        <div class="summary-head">
+          <span class="k">Checklist do projeto</span>
+          <button class="copy" data-target="proj-items-sum">Copiar checklist</button>
+        </div>
+        <pre class="sumbox" id="proj-items-sum"></pre>
+      </div>
+    </div>
+
     <div class="grid">
       <div class="card">
         <h2>Tipo de projeto</h2>
@@ -1381,6 +1622,97 @@
     return fmt(r, 2) + ":1";
   }
   function val(id) { return parseFloat(document.getElementById(id).value); }
+
+  // Standards de distância de visualização, partilhados entre a aba
+  // "Distância de Visualização" e a leitura de referência na aba de Ecrã LED.
+  var VIEW_STANDARDS = {
+    "width-thx": { label: "Largura × 1,5–6 (THX / SMPTE)", basis: "width", min: 1.5, max: 6 },
+    "width-sweet": { label: "Largura × 1,5–2,5 (sweet spot genérico)", basis: "width", min: 1.5, max: 2.5 },
+    "avixa": { label: "AVIXA / DISCAS — regra 4-6-8 (base: altura)", basis: "height", min: 2 }
+  };
+  var AVIXA_CONTENT = {
+    detailed: { label: "Dados detalhados / decisão analítica (altura × 4)", mult: 4 },
+    basic: { label: "Instrução / decisão básica (altura × 6)", mult: 6 },
+    passive: { label: "Vídeo / visão passiva (altura × 8)", mult: 8 }
+  };
+  var vStandardKey = "width-thx";
+  var vAvixaContentKey = "basic";
+
+  function viewingDistanceRange(w, h) {
+    var std = VIEW_STANDARDS[vStandardKey];
+    if (std.basis === "width") {
+      return { min: w * std.min, max: w * std.max };
+    }
+    var mult = AVIXA_CONTENT[vAvixaContentKey].mult;
+    return { min: h * std.min, max: h * mult };
+  }
+
+  function idealScreenForDistance(distance, r) {
+    var std = VIEW_STANDARDS[vStandardKey];
+    if (std.basis === "width") {
+      return { wMin: distance / std.max, wMax: distance / std.min };
+    }
+    var mult = AVIXA_CONTENT[vAvixaContentKey].mult;
+    var hMin = distance / mult, hMax = distance / std.min;
+    return { wMin: hMin * r, wMax: hMax * r };
+  }
+
+  function viewRuleDescription() {
+    var std = VIEW_STANDARDS[vStandardKey];
+    if (std.basis === "width") return std.label;
+    return std.label + " — " + AVIXA_CONTENT[vAvixaContentKey].label;
+  }
+
+  // Checklist "Itens do projeto" — reúne o resumo já calculado em cada aba
+  // (não duplica lógica: lê o texto que cada aba já produz para "Copiar resumo").
+  var PROJECT_SOURCES = [
+    { key: "projecao", label: "Distância de Projeção", sumId: "p-sum", checkboxId: "p-addproject" },
+    { key: "visualizacao", label: "Distância de Visualização", sumId: "v-sum", checkboxId: "v-addproject" },
+    { key: "led", label: "Ecrã LED & Pixel Pitch", sumId: "l-sum", checkboxId: "l-addproject" },
+    { key: "blend", label: "Blending Multi-Projetor", sumId: "b-sum", checkboxId: "b-addproject" }
+  ];
+
+  function renderProjectItems() {
+    var listEl = document.getElementById("proj-items-list");
+    var summaryWrap = document.getElementById("proj-items-summary-wrap");
+    if (!listEl || !summaryWrap) return;
+
+    var included = PROJECT_SOURCES.filter(function (s) {
+      var cb = document.getElementById(s.checkboxId);
+      return cb && cb.checked;
+    });
+
+    listEl.innerHTML = "";
+    if (!included.length) {
+      listEl.innerHTML = '<div class="lm-empty">Nenhum item adicionado ainda.</div>';
+      summaryWrap.style.display = "none";
+      return;
+    }
+
+    var summaryParts = [];
+    included.forEach(function (s) {
+      var text = document.getElementById(s.sumId).textContent;
+      var item = document.createElement("div");
+      item.className = "projitem";
+      var h3 = document.createElement("h3");
+      h3.textContent = s.label;
+      var pre = document.createElement("pre");
+      pre.className = "sumbox";
+      pre.textContent = text;
+      item.appendChild(h3);
+      item.appendChild(pre);
+      listEl.appendChild(item);
+      summaryParts.push("== " + s.label + " ==\n" + text);
+    });
+    summaryWrap.style.display = "block";
+    document.getElementById("proj-items-sum").textContent = summaryParts.join("\n\n");
+  }
+
+  PROJECT_SOURCES.forEach(function (s) {
+    var cb = document.getElementById(s.checkboxId);
+    if (cb) cb.addEventListener("change", renderProjectItems);
+  });
+
   var LENTES_DATA = [];
   var PROJECTORS_DATA = [];
   var LED_TILES_DATA = [];
@@ -1396,6 +1728,12 @@
       tab.setAttribute("aria-selected", "true");
       document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
       document.querySelector('.panel[data-mode="' + tab.dataset.mode + '"]').classList.add("active");
+    });
+  });
+  document.querySelectorAll("[data-jumptab]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelector('.tab[data-mode="' + btn.dataset.jumptab + '"]').click();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   });
 
@@ -1574,14 +1912,106 @@
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
     }
 
-    // Reverse calc shares ratio + throw
-    var avail = val("p-avail");
-    var wMin = avail / tmax, wMax = avail / tmin;
-    var diagMin = wMin * Math.sqrt(1 + 1/(r*r)) / 0.0254;
-    var diagMax = wMax * Math.sqrt(1 + 1/(r*r)) / 0.0254;
-    document.getElementById("p-out-diagmin").innerHTML = fmtInt(diagMin) + "<small>\"</small>";
-    document.getElementById("p-out-diagmax").innerHTML = fmtInt(diagMax) + "<small>\"</small>";
-    document.getElementById("p-out-wrange").innerHTML = fmt(wMin,2) + "–" + fmt(wMax,2) + "<small>m</small>";
+    renderProjectItems();
+  }
+
+  // Distância de Visualização
+  var vRatioSel = document.getElementById("v-ratio");
+  var vCustomRatio = document.getElementById("v-custom-ratio");
+  var vDiagOrModeWrap = document.getElementById("v-diagormode-wrap");
+  vRatioSel.addEventListener("change", function () {
+    var isCustom = vRatioSel.value === "custom";
+    vCustomRatio.style.display = isCustom ? "grid" : "none";
+    vDiagOrModeWrap.style.display = isCustom ? "none" : "block";
+    calcVisualizacao();
+  });
+
+  var vSizeMode = "diag";
+  var vDiagField = document.getElementById("v-diag-field");
+  var vHeightField = document.getElementById("v-height-field");
+  document.querySelectorAll("#v-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#v-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      vSizeMode = btn.dataset.sizemode;
+      vDiagField.style.display = vSizeMode === "diag" ? "block" : "none";
+      vHeightField.style.display = vSizeMode === "height" ? "block" : "none";
+      calcVisualizacao();
+    });
+  });
+
+  var vStandardSel = document.getElementById("v-standard");
+  var vAvixaField = document.getElementById("v-avixa-content-field");
+  var vAvixaSel = document.getElementById("v-avixa-content");
+  vStandardSel.addEventListener("change", function () {
+    vStandardKey = vStandardSel.value;
+    vAvixaField.style.display = vStandardKey === "avixa" ? "block" : "none";
+    calcVisualizacao();
+    calcLed();
+  });
+  vAvixaSel.addEventListener("change", function () {
+    vAvixaContentKey = vAvixaSel.value;
+    calcVisualizacao();
+    calcLed();
+  });
+
+  function calcVisualizacao() {
+    var isCustom = vRatioSel.value === "custom";
+    var w, h, label;
+
+    if (isCustom) {
+      w = val("v-rw");
+      h = val("v-rh");
+      label = "Personalizado";
+    } else {
+      var parts = vRatioSel.value.split(":");
+      var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+      var r = rw / rh;
+      if (vSizeMode === "height") {
+        h = val("v-height-fixed");
+        w = h * r;
+        var diagInFromH = h * Math.sqrt(r * r + 1) / 0.0254;
+        label = fmtInt(diagInFromH) + '" (' + rw + ":" + rh + ")";
+      } else {
+        var diagIn = val("v-diag");
+        var diagM = diagIn * 0.0254;
+        h = diagM / Math.sqrt(r * r + 1);
+        w = h * r;
+        label = fmt(diagIn,0) + '" (' + rw + ":" + rh + ")";
+      }
+    }
+    var r = w / h;
+
+    var range = viewingDistanceRange(w, h);
+    document.getElementById("v-out-dmin").innerHTML = fmt(range.min, 2) + "<small>m</small>";
+    document.getElementById("v-out-dmax").innerHTML = fmt(range.max, 2) + "<small>m</small>";
+    document.getElementById("v-rule-note").textContent = "Regra: " + viewRuleDescription();
+
+    document.getElementById("v-sum").textContent =
+      "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
+      "Standard: " + viewRuleDescription() + "\n" +
+      "Distância de visualização ideal: " + fmt(range.min,2) + " – " + fmt(range.max,2) + " m";
+
+    var avail = val("v-avail");
+    var ideal = idealScreenForDistance(avail, r);
+    var diagMin = ideal.wMin * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+    var diagMax = ideal.wMax * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+    document.getElementById("v-out-diagmin").innerHTML = fmtInt(diagMin) + "<small>\"</small>";
+    document.getElementById("v-out-diagmax").innerHTML = fmtInt(diagMax) + "<small>\"</small>";
+    document.getElementById("v-out-wrange").innerHTML = fmt(ideal.wMin,2) + "–" + fmt(ideal.wMax,2) + "<small>m</small>";
+
+    var viewWarn = document.getElementById("v-viewwarn");
+    if (avail > range.max) {
+      viewWarn.style.display = "block";
+      viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é pequeno para " + fmt(avail,2) + " m de distância — ideal até " + fmt(range.max,2) + " m. Ajusta a largura para pelo menos " + fmt(ideal.wMax,2) + " m.";
+    } else if (avail < range.min) {
+      viewWarn.style.display = "block";
+      viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é grande para " + fmt(avail,2) + " m de distância — ideal a partir de " + fmt(range.min,2) + " m. Ajusta a largura para no máximo " + fmt(ideal.wMin,2) + " m.";
+    } else {
+      viewWarn.style.display = "none";
+    }
+
+    renderProjectItems();
   }
 
   var ledModelSel = document.getElementById("l-model");
@@ -1652,9 +2082,11 @@
     document.getElementById("l-out-pitch").innerHTML = fmt(pitchAvg,2) + "<small>mm</small>";
     document.getElementById("l-out-ratio").textContent = describeRatio(totalPx, totalPy);
 
-    var dmin = totalWm * 3, dmax = totalWm * 7;
+    var viewRange = viewingDistanceRange(totalWm, totalHm);
+    var dmin = viewRange.min, dmax = viewRange.max;
     document.getElementById("l-out-dmin").innerHTML = fmt(dmin,1) + "<small>m</small>";
     document.getElementById("l-out-dmax").innerHTML = fmt(dmax,1) + "<small>m</small>";
+    document.getElementById("l-viewrule-note").textContent = "Regra: " + viewRuleDescription();
 
     var weightTotal = weightPerTile * numTiles;
     var ampTotal = ampPerTile * numTiles;
@@ -1679,6 +2111,87 @@
       "Pixel pitch: " + fmt(pitchAvg,2) + " mm\n" +
       "Distância de visualização: " + fmt(dmin,1) + " – " + fmt(dmax,1) + " m (mín. – máx.)\n" +
       "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps: " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)";
+
+    calcLedSuggest();
+    renderProjectItems();
+  }
+
+  var lSuggestRatioSel = document.getElementById("l-suggest-ratio");
+  var lSuggestCustomRatio = document.getElementById("l-suggest-custom-ratio");
+  lSuggestRatioSel.addEventListener("change", function () {
+    lSuggestCustomRatio.style.display = lSuggestRatioSel.value === "custom" ? "grid" : "none";
+    calcLed();
+  });
+
+  document.getElementById("l-suggest-list").addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-usegrid]");
+    if (!btn) return;
+    document.querySelectorAll("#l-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+    document.querySelector('#l-sizemode-seg .seg-btn[data-sizemode="tiles"]').classList.add("active");
+    lSizeMode = "tiles";
+    lTilesInputs.style.display = "block";
+    lMetersInputs.style.display = "none";
+    lMxInput.readOnly = false;
+    lMyInput.readOnly = false;
+    lMxInput.value = btn.dataset.mx;
+    lMyInput.value = btn.dataset.my;
+    calcLed();
+    lMxInput.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  function calcLedSuggest() {
+    var isCustom = lSuggestRatioSel.value === "custom";
+    var rw, rh;
+    if (isCustom) {
+      rw = val("l-suggest-rw");
+      rh = val("l-suggest-rh");
+    } else {
+      var parts = lSuggestRatioSel.value.split(":");
+      rw = parseFloat(parts[0]);
+      rh = parseFloat(parts[1]);
+    }
+    var r = rw / rh;
+    var diagIn = val("l-suggest-diag");
+    var mw = val("l-mw"), mh = val("l-mh");
+    var listEl = document.getElementById("l-suggest-list");
+
+    if (!(r > 0) || !(diagIn > 0) || !(mw > 0) || !(mh > 0)) {
+      listEl.innerHTML = '<div class="lm-empty">Preenche o formato, a diagonal e o tamanho do módulo.</div>';
+      return;
+    }
+
+    var diagM = diagIn * 0.0254;
+    var hIdeal = diagM / Math.sqrt(r * r + 1);
+    var wIdeal = hIdeal * r;
+    var mxIdeal = (wIdeal * 1000) / mw;
+    var mxFloor = Math.max(1, Math.floor(mxIdeal));
+
+    var candidates = [];
+    var seen = {};
+    for (var dx = -1; dx <= 2; dx++) {
+      var mx = mxFloor + dx;
+      if (mx < 1) continue;
+      var myExact = (mx * mw) / (mh * r);
+      var my = Math.max(1, Math.round(myExact));
+      var key = mx + "x" + my;
+      if (seen[key]) continue;
+      seen[key] = true;
+      var actualR = (mx * mw) / (my * mh);
+      candidates.push({ mx: mx, my: my, w: (mx * mw) / 1000, h: (my * mh) / 1000, delta: (actualR / r - 1) * 100 });
+    }
+    candidates.sort(function (a, b) { return Math.abs(a.delta) - Math.abs(b.delta); });
+    candidates = candidates.slice(0, 4);
+
+    if (!candidates.length) {
+      listEl.innerHTML = '<div class="lm-empty">Sem sugestões — confirma o tamanho do módulo e a diagonal.</div>';
+      return;
+    }
+    listEl.innerHTML = candidates.map(function (c, i) {
+      var deltaLabel = (c.delta >= 0 ? "+" : "") + fmt(c.delta, 1) + "%";
+      var bestBadge = i === 0 ? ' <span class="badge-match">melhor</span>' : "";
+      return '<div class="lm-item"><span><strong>' + c.mx + ' × ' + c.my + '</strong> tiles — ' + fmt(c.w,2) + ' x ' + fmt(c.h,2) + ' m — ' + describeRatio(c.w, c.h) + ' (' + deltaLabel + ')' + bestBadge + '</span>' +
+        '<button class="copy" data-usegrid data-mx="' + c.mx + '" data-my="' + c.my + '">Usar</button></div>';
+    }).join("");
   }
 
   function calcBlend() {
@@ -1767,6 +2280,8 @@
       "Ecrã físico: " + fmt(wm,2) + " x " + fmt(hm,2) + " m  (" + fmt(area,2) + " m²)  —  formato " + describeRatio(wm*1000, hm*1000) + "\n" +
       "Pixel size: " + fmt(pitchAvg,2) + " mm\n" +
       "Luminosidade: " + nProj + " projetores x " + fmtInt(lumensEach) + " lm (100%) = " + fmtInt(lumensEach*nProj) + " lm  —  a 80%: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(luxTotal) + " lux no ecrã";
+
+    renderProjectItems();
   }
 
   function renderLenses(list) {
@@ -1816,6 +2331,9 @@
 
   document.querySelectorAll('.panel[data-mode="projecao"] input, .panel[data-mode="projecao"] select').forEach(function (el) {
     el.addEventListener("input", calcProjecao);
+  });
+  document.querySelectorAll('.panel[data-mode="visualizacao"] input, .panel[data-mode="visualizacao"] select').forEach(function (el) {
+    el.addEventListener("input", calcVisualizacao);
   });
   document.querySelectorAll('.panel[data-mode="led"] input').forEach(function (el) {
     el.addEventListener("input", calcLed);
@@ -2571,6 +3089,7 @@
     });
 
     calcProjecao();
+    calcVisualizacao();
     calcLed();
     calcBlend();
     calcLentes();
@@ -2579,6 +3098,7 @@
   }).catch(function (err) {
     console.error("Falha a carregar dados de data/*.json:", err);
     calcProjecao();
+    calcVisualizacao();
     calcLed();
     calcBlend();
     calcLentes();
