@@ -559,7 +559,7 @@
     <div class="brand">
       <h1>Calculadores</h1>
     </div>
-    <span class="mark">v1.7</span>
+    <span class="mark">v1.8</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1291,9 +1291,12 @@
         <div class="summary">
           <div class="summary-head">
             <span class="k">Relatório completo</span>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <button class="copy" data-target="proj-sum">Copiar relatório</button>
               <button class="copy" id="proj-download">Descarregar (.txt)</button>
+              <button class="copy" id="proj-save">Guardar projeto</button>
+              <button class="copy" id="proj-open">Abrir projeto…</button>
+              <input type="file" id="proj-open-file" accept="application/json,.json" style="display:none;">
             </div>
           </div>
           <pre class="sumbox" id="proj-sum"></pre>
@@ -2260,6 +2263,128 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  });
+
+  function segActive(containerId) {
+    var el = document.querySelector("#" + containerId + " .seg-btn.active");
+    return el ? el.dataset : {};
+  }
+  function segClick(containerId, attr, value) {
+    if (value == null) return;
+    var btn = document.querySelector('#' + containerId + ' .seg-btn[data-' + attr + '="' + value + '"]');
+    if (btn) btn.click();
+  }
+  function fieldVal(id) {
+    var el = document.getElementById(id);
+    return el ? el.value : "";
+  }
+  function setFieldVal(id, value) {
+    var el = document.getElementById(id);
+    if (el != null && value !== undefined) el.value = value;
+  }
+  function modelIdxToName(dataArr, idxValue) {
+    var idx = parseInt(idxValue, 10);
+    return (!isNaN(idx) && dataArr[idx]) ? dataArr[idx].modelo : "custom";
+  }
+  function modelNameToIdx(dataArr, name) {
+    if (name === "custom" || name == null) return "custom";
+    var idx = dataArr.findIndex(function (item) { return item.modelo === name; });
+    return idx >= 0 ? String(idx) : "custom";
+  }
+
+  document.getElementById("proj-save").addEventListener("click", function () {
+    var nome = document.getElementById("proj-nome").value.trim() || "projeto";
+    var stripped = Array.from(nome.normalize("NFD")).filter(function (ch) {
+      var code = ch.codePointAt(0);
+      return code < 768 || code > 879;
+    }).join("");
+    var slug = stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
+
+    var state = {
+      _app: "calculadores-projeto",
+      _v: 1,
+      nome: fieldVal("proj-nome"),
+      projtype: segActive("proj-type-seg").projtype,
+      ledModelName: modelIdxToName(LED_TILES_DATA, document.getElementById("proj-led-model").value),
+      ledSizeMode: segActive("proj-led-sizemode-seg").sizemode,
+      ledMx: fieldVal("proj-led-mx"), ledMy: fieldVal("proj-led-my"),
+      ledW: fieldVal("proj-led-w"), ledH: fieldVal("proj-led-h"),
+      projModelName: modelIdxToName(PROJECTORS_DATA, document.getElementById("proj-proj-model").value),
+      blendMode: segActive("proj-blendmode-seg").blendmode,
+      blendRes: fieldVal("proj-blend-res"), blendW: fieldVal("proj-blend-w"), blendH: fieldVal("proj-blend-h"),
+      projRatio: fieldVal("proj-proj-ratio"),
+      sizeMode: segActive("proj-sizemode-seg").sizemode,
+      projDiag: fieldVal("proj-proj-diag"), projW: fieldVal("proj-proj-w"), projH: fieldVal("proj-proj-h"),
+      throwMode: segActive("proj-throwmode-seg").throwmode,
+      projDist: fieldVal("proj-proj-dist"), projTmin: fieldVal("proj-proj-tmin"), projTmax: fieldVal("proj-proj-tmax"),
+      dsmCount: fieldVal("proj-dsm-count"), dsmRes: fieldVal("proj-dsm-res"), dsmW: fieldVal("proj-dsm-w"), dsmH: fieldVal("proj-dsm-h"),
+      delayCount: fieldVal("proj-delay-count"), delayRes: fieldVal("proj-delay-res"), delayW: fieldVal("proj-delay-w"), delayH: fieldVal("proj-delay-h"),
+      refresh: fieldVal("proj-refresh"), colordepth: fieldVal("proj-colordepth"),
+      selectedSwitchers: Array.from(selectedSwitcherKeys),
+      selectedLedProcs: Array.from(selectedLedProcKeys)
+    };
+    var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = slug + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("proj-open").addEventListener("click", function () {
+    document.getElementById("proj-open-file").click();
+  });
+  document.getElementById("proj-open-file").addEventListener("change", function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var state;
+      try { state = JSON.parse(reader.result); } catch (err) { alert("Ficheiro inválido."); return; }
+      if (!state || state._app !== "calculadores-projeto") { alert("Este ficheiro não é um projeto guardado desta app."); return; }
+
+      setFieldVal("proj-nome", state.nome);
+      segClick("proj-type-seg", "projtype", state.projtype);
+
+      document.getElementById("proj-led-model").value = modelNameToIdx(LED_TILES_DATA, state.ledModelName);
+      document.getElementById("proj-led-model").dispatchEvent(new Event("change"));
+      segClick("proj-led-sizemode-seg", "sizemode", state.ledSizeMode);
+      setFieldVal("proj-led-mx", state.ledMx); setFieldVal("proj-led-my", state.ledMy);
+      setFieldVal("proj-led-w", state.ledW); setFieldVal("proj-led-h", state.ledH);
+
+      document.getElementById("proj-proj-model").value = modelNameToIdx(PROJECTORS_DATA, state.projModelName);
+      document.getElementById("proj-proj-model").dispatchEvent(new Event("change"));
+      segClick("proj-blendmode-seg", "blendmode", state.blendMode);
+      setFieldVal("proj-blend-res", state.blendRes);
+      document.getElementById("proj-blend-res").dispatchEvent(new Event("change"));
+      setFieldVal("proj-blend-w", state.blendW); setFieldVal("proj-blend-h", state.blendH);
+      setFieldVal("proj-proj-ratio", state.projRatio);
+      segClick("proj-sizemode-seg", "sizemode", state.sizeMode);
+      setFieldVal("proj-proj-diag", state.projDiag); setFieldVal("proj-proj-w", state.projW); setFieldVal("proj-proj-h", state.projH);
+      segClick("proj-throwmode-seg", "throwmode", state.throwMode);
+      setFieldVal("proj-proj-dist", state.projDist); setFieldVal("proj-proj-tmin", state.projTmin); setFieldVal("proj-proj-tmax", state.projTmax);
+
+      setFieldVal("proj-dsm-count", state.dsmCount);
+      setFieldVal("proj-dsm-res", state.dsmRes);
+      document.getElementById("proj-dsm-res").dispatchEvent(new Event("change"));
+      setFieldVal("proj-dsm-w", state.dsmW); setFieldVal("proj-dsm-h", state.dsmH);
+      setFieldVal("proj-delay-count", state.delayCount);
+      setFieldVal("proj-delay-res", state.delayRes);
+      document.getElementById("proj-delay-res").dispatchEvent(new Event("change"));
+      setFieldVal("proj-delay-w", state.delayW); setFieldVal("proj-delay-h", state.delayH);
+      setFieldVal("proj-refresh", state.refresh);
+      setFieldVal("proj-colordepth", state.colordepth);
+
+      selectedSwitcherKeys = new Set(state.selectedSwitchers || []);
+      selectedLedProcKeys = new Set(state.selectedLedProcs || []);
+
+      calcProjeto();
+      e.target.value = "";
+    };
+    reader.readAsText(file);
   });
 
   document.querySelectorAll("button.copy[data-target]").forEach(function (btn) {
