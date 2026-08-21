@@ -52,6 +52,11 @@
     --rose-200: #F5CEDC;
     --rose-100: #FAE6ED;
 
+    --cyan-600: #0C7A94;
+    --cyan-500: #1592AE;
+    --cyan-200: #C4E6EE;
+    --cyan-100: #E0F3F7;
+
     --danger-600: #A83226;
     --danger-100: #FBE7E5;
 
@@ -99,6 +104,11 @@
       --rose-200: #4A1E2C;
       --rose-100: #33141D;
 
+      --cyan-600: #6BD2E8;
+      --cyan-500: #4ABDD6;
+      --cyan-200: #123943;
+      --cyan-100: #0C282E;
+
       --danger-600: #E38178;
       --danger-100: #3A1613;
 
@@ -124,6 +134,11 @@
     --teal-500: #45BBAE;
     --teal-200: #15423C;
     --teal-100: #102E2A;
+
+    --cyan-600: #6BD2E8;
+    --cyan-500: #4ABDD6;
+    --cyan-200: #123943;
+    --cyan-100: #0C282E;
 
     --danger-600: #E38178;
     --danger-100: #3A1613;
@@ -255,6 +270,7 @@
     border-radius: 2px;
   }
   .tab[data-mode="projecao"] .swatch { background: var(--amber-500); }
+  .tab[data-mode="visualizacao"] .swatch { background: var(--cyan-500); }
   .tab[data-mode="led"] .swatch { background: var(--teal-500); }
   .tab[data-mode="blend"] .swatch { background: var(--violet-500); }
   .tab[data-mode="lentes"] .swatch { background: var(--blue-500); }
@@ -262,6 +278,7 @@
   .tab[data-mode="sinal"] .swatch { background: var(--rose-500); }
   .tab[aria-selected="true"] { color: var(--ink); }
   .tab[data-mode="projecao"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
+  .tab[data-mode="visualizacao"][aria-selected="true"] { border-bottom-color: var(--cyan-500); }
   .tab[data-mode="led"][aria-selected="true"] { border-bottom-color: var(--teal-500); }
   .tab[data-mode="blend"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
   .tab[data-mode="lentes"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
@@ -421,6 +438,7 @@
   .results { position: sticky; top: 16px; }
   .stripe { height: 3px; border-radius: 3px 3px 0 0; margin: -20px -20px 18px; }
   .panel[data-mode="projecao"] .stripe, [data-accent="projecao"] .stripe { background: var(--amber-500); }
+  .panel[data-mode="visualizacao"] .stripe, [data-accent="visualizacao"] .stripe { background: var(--cyan-500); }
   .panel[data-mode="led"] .stripe, [data-accent="led"] .stripe { background: var(--teal-500); }
   .panel[data-mode="blend"] .stripe, [data-accent="blend"] .stripe { background: var(--violet-500); }
   .panel[data-mode="lentes"] .stripe, [data-accent="lentes"] .stripe { background: var(--blue-500); }
@@ -507,6 +525,26 @@
     padding: 8px 10px;
     margin-top: 10px;
   }
+  .crosslink {
+    font-size: 13px;
+    color: var(--ink-soft);
+    background: var(--cyan-100);
+    border: 1px solid var(--cyan-200);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 26px;
+    line-height: 1.5;
+  }
+  .crosslink button {
+    font: inherit;
+    font-weight: 600;
+    color: var(--cyan-600);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+  }
 
   .summary {
     margin-top: 16px;
@@ -572,6 +610,7 @@
 
   <div class="tabs" role="tablist">
     <button class="tab" data-mode="projecao" role="tab" aria-selected="true"><span class="swatch"></span>Distância de Projeção</button>
+    <button class="tab" data-mode="visualizacao" role="tab" aria-selected="false"><span class="swatch"></span>Distância de Visualização</button>
     <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
     <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
     <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
@@ -716,31 +755,120 @@
       </div>
     </div>
 
-    <div id="p-reverse-calc">
-      <div class="divider" style="margin-top:26px;">ou calcular pela distância de visualização</div>
-      <div class="grid">
-        <div class="card">
-          <h2>Distância da plateia</h2>
+    <div class="crosslink">
+      Queres saber que tamanho de ecrã é ideal para uma distância de visualização específica (em vez do throw ratio do projetor)? Usa a aba <button type="button" data-jumptab="visualizacao">Distância de Visualização</button>.
+    </div>
+  </section>
+
+  <!-- DISTÂNCIA DE VISUALIZAÇÃO -->
+  <section class="panel" data-mode="visualizacao">
+    <div class="grid">
+      <div class="card">
+        <h2>Ecrã</h2>
+        <div class="field">
+          <label for="v-ratio">Formato (relação de aspeto)</label>
+          <select id="v-ratio" class="plain">
+            <option value="16:9" selected>16:9 — widescreen</option>
+            <option value="16:10">16:10</option>
+            <option value="4:3">4:3 — clássico</option>
+            <option value="21:9">21:9 — cinema</option>
+            <option value="custom">Personalizado — tenho a largura e altura em metros</option>
+          </select>
+        </div>
+        <div id="v-diagormode-wrap">
           <div class="field">
-            <label for="p-avail">Distância entre a plateia e o ecrã</label>
-            <div class="inputgroup">
-              <input id="p-avail" type="number" inputmode="decimal" value="6" min="0.1" step="0.1">
-              <span class="unit">metros</span>
+            <label>Como queres indicar o tamanho?</label>
+            <div class="seg" id="v-sizemode-seg">
+              <button type="button" class="seg-btn active" data-sizemode="diag">Diagonal (polegadas)</button>
+              <button type="button" class="seg-btn" data-sizemode="height">Altura (metros)</button>
             </div>
-            <div class="hint">Não depende do throw ratio — usa o mesmo formato de ecrã definido acima.</div>
+          </div>
+          <div class="field" id="v-diag-field">
+            <label for="v-diag">Diagonal do ecrã</label>
+            <div class="inputgroup">
+              <input id="v-diag" type="number" inputmode="decimal" value="120" min="1" step="1">
+              <span class="unit">polegadas</span>
+            </div>
+          </div>
+          <div class="field" id="v-height-field" style="display:none;">
+            <label for="v-height-fixed">Altura do ecrã</label>
+            <div class="inputgroup">
+              <input id="v-height-fixed" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01">
+              <span class="unit">m</span>
+            </div>
           </div>
         </div>
-        <div class="card results" data-accent="projecao">
-          <div class="stripe"></div>
-          <h2>Tamanho de ecrã ideal</h2>
-          <div class="readout">
-            <div class="item"><div class="k">Diagonal mín.</div><div class="v" id="p-out-diagmin">—</div></div>
-            <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="p-out-diagmax">—</div></div>
-            <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="p-out-wrange">—</div></div>
+        <div class="row2" id="v-custom-ratio" style="display:none;">
+          <div class="field">
+            <label for="v-rw">Largura do ecrã</label>
+            <div class="inputgroup"><input id="v-rw" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01"><span class="unit">m</span></div>
           </div>
-          <p class="note">Regra: distância = largura do ecrã × 1,5 (mín.) a × 6 (máx.)</p>
-          <div id="p-viewwarn" class="warn" style="display:none;"></div>
+          <div class="field">
+            <label for="v-rh">Altura do ecrã</label>
+            <div class="inputgroup"><input id="v-rh" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
+          </div>
         </div>
+
+        <div class="divider">Standard</div>
+        <div class="field">
+          <label for="v-standard">Regra de distância de visualização</label>
+          <select id="v-standard" class="plain">
+            <option value="width-thx" selected>Largura × 1,5–6 (THX / SMPTE)</option>
+            <option value="width-sweet">Largura × 1,5–2,5 (sweet spot genérico)</option>
+            <option value="avixa">AVIXA / DISCAS — regra 4-6-8 (base: altura)</option>
+          </select>
+        </div>
+        <div class="field" id="v-avixa-content-field" style="display:none;">
+          <label for="v-avixa-content">Tipo de conteúdo (AVIXA)</label>
+          <select id="v-avixa-content" class="plain">
+            <option value="detailed">Dados detalhados / decisão analítica (altura × 4)</option>
+            <option value="basic" selected>Instrução / decisão básica (altura × 6)</option>
+            <option value="passive">Vídeo / visão passiva (altura × 8)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card results" data-accent="visualizacao">
+        <div class="stripe"></div>
+        <h2>Distância de visualização ideal</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Mínima</div><div class="v" id="v-out-dmin">—</div></div>
+          <div class="item"><div class="k">Máxima</div><div class="v" id="v-out-dmax">—</div></div>
+        </div>
+        <p class="note" id="v-rule-note">—</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <button class="copy" data-target="v-sum">Copiar resumo</button>
+          </div>
+          <pre class="sumbox" id="v-sum"></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider" style="margin-top:26px;">ou calcular a partir da distância disponível</div>
+    <div class="grid">
+      <div class="card">
+        <h2>Distância da plateia</h2>
+        <div class="field">
+          <label for="v-avail">Distância entre a plateia e o ecrã</label>
+          <div class="inputgroup">
+            <input id="v-avail" type="number" inputmode="decimal" value="6" min="0.1" step="0.1">
+            <span class="unit">metros</span>
+          </div>
+          <div class="hint">Usa o standard escolhido acima e o mesmo formato de ecrã.</div>
+        </div>
+      </div>
+      <div class="card results" data-accent="visualizacao">
+        <div class="stripe"></div>
+        <h2>Tamanho de ecrã ideal</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Diagonal mín.</div><div class="v" id="v-out-diagmin">—</div></div>
+          <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="v-out-diagmax">—</div></div>
+          <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="v-out-wrange">—</div></div>
+        </div>
+        <div id="v-viewwarn" class="warn" style="display:none;"></div>
       </div>
     </div>
   </section>
@@ -849,7 +977,8 @@
           <div class="item"><div class="k">Mínima</div><div class="v" id="l-out-dmin">—</div></div>
           <div class="item"><div class="k">Máxima</div><div class="v" id="l-out-dmax">—</div></div>
         </div>
-        <p class="note">Distância = largura do ecrã × 1,5 (mín.) a × 6 (máx.)</p>
+        <p class="note" id="l-viewrule-note">—</p>
+        <p class="note">Standard usado: define-se na aba <button type="button" data-jumptab="visualizacao" style="font:inherit; font-weight:600; color:var(--cyan-600); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">Distância de Visualização</button>.</p>
 
         <h2 style="margin-top:18px;">Peso &amp; energia</h2>
         <div class="readout">
@@ -1385,6 +1514,47 @@
     return fmt(r, 2) + ":1";
   }
   function val(id) { return parseFloat(document.getElementById(id).value); }
+
+  // Standards de distância de visualização, partilhados entre a aba
+  // "Distância de Visualização" e a leitura de referência na aba de Ecrã LED.
+  var VIEW_STANDARDS = {
+    "width-thx": { label: "Largura × 1,5–6 (THX / SMPTE)", basis: "width", min: 1.5, max: 6 },
+    "width-sweet": { label: "Largura × 1,5–2,5 (sweet spot genérico)", basis: "width", min: 1.5, max: 2.5 },
+    "avixa": { label: "AVIXA / DISCAS — regra 4-6-8 (base: altura)", basis: "height", min: 2 }
+  };
+  var AVIXA_CONTENT = {
+    detailed: { label: "Dados detalhados / decisão analítica (altura × 4)", mult: 4 },
+    basic: { label: "Instrução / decisão básica (altura × 6)", mult: 6 },
+    passive: { label: "Vídeo / visão passiva (altura × 8)", mult: 8 }
+  };
+  var vStandardKey = "width-thx";
+  var vAvixaContentKey = "basic";
+
+  function viewingDistanceRange(w, h) {
+    var std = VIEW_STANDARDS[vStandardKey];
+    if (std.basis === "width") {
+      return { min: w * std.min, max: w * std.max };
+    }
+    var mult = AVIXA_CONTENT[vAvixaContentKey].mult;
+    return { min: h * std.min, max: h * mult };
+  }
+
+  function idealScreenForDistance(distance, r) {
+    var std = VIEW_STANDARDS[vStandardKey];
+    if (std.basis === "width") {
+      return { wMin: distance / std.max, wMax: distance / std.min };
+    }
+    var mult = AVIXA_CONTENT[vAvixaContentKey].mult;
+    var hMin = distance / mult, hMax = distance / std.min;
+    return { wMin: hMin * r, wMax: hMax * r };
+  }
+
+  function viewRuleDescription() {
+    var std = VIEW_STANDARDS[vStandardKey];
+    if (std.basis === "width") return std.label;
+    return std.label + " — " + AVIXA_CONTENT[vAvixaContentKey].label;
+  }
+
   var LENTES_DATA = [];
   var PROJECTORS_DATA = [];
   var LED_TILES_DATA = [];
@@ -1400,6 +1570,12 @@
       tab.setAttribute("aria-selected", "true");
       document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
       document.querySelector('.panel[data-mode="' + tab.dataset.mode + '"]').classList.add("active");
+    });
+  });
+  document.querySelectorAll("[data-jumptab]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelector('.tab[data-mode="' + btn.dataset.jumptab + '"]').click();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   });
 
@@ -1577,26 +1753,100 @@
         "Distância de projeção: " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n" +
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
     }
+  }
 
-    // Distância de visualização ideal: distância = largura × 1,5 (mín., THX/sweet spot) a × 6 (máx., limite de sala tipo cinema/SMPTE)
-    // — regra fixa, independente do throw ratio do projetor.
-    var VIEW_MULT_MIN = 1.5, VIEW_MULT_MAX = 6;
-    var avail = val("p-avail");
-    var wMin = avail / VIEW_MULT_MAX, wMax = avail / VIEW_MULT_MIN;
-    var diagMin = wMin * Math.sqrt(1 + 1/(r*r)) / 0.0254;
-    var diagMax = wMax * Math.sqrt(1 + 1/(r*r)) / 0.0254;
-    document.getElementById("p-out-diagmin").innerHTML = fmtInt(diagMin) + "<small>\"</small>";
-    document.getElementById("p-out-diagmax").innerHTML = fmtInt(diagMax) + "<small>\"</small>";
-    document.getElementById("p-out-wrange").innerHTML = fmt(wMin,2) + "–" + fmt(wMax,2) + "<small>m</small>";
+  // Distância de Visualização
+  var vRatioSel = document.getElementById("v-ratio");
+  var vCustomRatio = document.getElementById("v-custom-ratio");
+  var vDiagOrModeWrap = document.getElementById("v-diagormode-wrap");
+  vRatioSel.addEventListener("change", function () {
+    var isCustom = vRatioSel.value === "custom";
+    vCustomRatio.style.display = isCustom ? "grid" : "none";
+    vDiagOrModeWrap.style.display = isCustom ? "none" : "block";
+    calcVisualizacao();
+  });
 
-    var viewWarn = document.getElementById("p-viewwarn");
-    var idealDistMin = w * VIEW_MULT_MIN, idealDistMax = w * VIEW_MULT_MAX;
-    if (avail > idealDistMax) {
+  var vSizeMode = "diag";
+  var vDiagField = document.getElementById("v-diag-field");
+  var vHeightField = document.getElementById("v-height-field");
+  document.querySelectorAll("#v-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#v-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      vSizeMode = btn.dataset.sizemode;
+      vDiagField.style.display = vSizeMode === "diag" ? "block" : "none";
+      vHeightField.style.display = vSizeMode === "height" ? "block" : "none";
+      calcVisualizacao();
+    });
+  });
+
+  var vStandardSel = document.getElementById("v-standard");
+  var vAvixaField = document.getElementById("v-avixa-content-field");
+  var vAvixaSel = document.getElementById("v-avixa-content");
+  vStandardSel.addEventListener("change", function () {
+    vStandardKey = vStandardSel.value;
+    vAvixaField.style.display = vStandardKey === "avixa" ? "block" : "none";
+    calcVisualizacao();
+    calcLed();
+  });
+  vAvixaSel.addEventListener("change", function () {
+    vAvixaContentKey = vAvixaSel.value;
+    calcVisualizacao();
+    calcLed();
+  });
+
+  function calcVisualizacao() {
+    var isCustom = vRatioSel.value === "custom";
+    var w, h, label;
+
+    if (isCustom) {
+      w = val("v-rw");
+      h = val("v-rh");
+      label = "Personalizado";
+    } else {
+      var parts = vRatioSel.value.split(":");
+      var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+      var r = rw / rh;
+      if (vSizeMode === "height") {
+        h = val("v-height-fixed");
+        w = h * r;
+        var diagInFromH = h * Math.sqrt(r * r + 1) / 0.0254;
+        label = fmtInt(diagInFromH) + '" (' + rw + ":" + rh + ")";
+      } else {
+        var diagIn = val("v-diag");
+        var diagM = diagIn * 0.0254;
+        h = diagM / Math.sqrt(r * r + 1);
+        w = h * r;
+        label = fmt(diagIn,0) + '" (' + rw + ":" + rh + ")";
+      }
+    }
+    var r = w / h;
+
+    var range = viewingDistanceRange(w, h);
+    document.getElementById("v-out-dmin").innerHTML = fmt(range.min, 2) + "<small>m</small>";
+    document.getElementById("v-out-dmax").innerHTML = fmt(range.max, 2) + "<small>m</small>";
+    document.getElementById("v-rule-note").textContent = "Regra: " + viewRuleDescription();
+
+    document.getElementById("v-sum").textContent =
+      "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
+      "Standard: " + viewRuleDescription() + "\n" +
+      "Distância de visualização ideal: " + fmt(range.min,2) + " – " + fmt(range.max,2) + " m";
+
+    var avail = val("v-avail");
+    var ideal = idealScreenForDistance(avail, r);
+    var diagMin = ideal.wMin * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+    var diagMax = ideal.wMax * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+    document.getElementById("v-out-diagmin").innerHTML = fmtInt(diagMin) + "<small>\"</small>";
+    document.getElementById("v-out-diagmax").innerHTML = fmtInt(diagMax) + "<small>\"</small>";
+    document.getElementById("v-out-wrange").innerHTML = fmt(ideal.wMin,2) + "–" + fmt(ideal.wMax,2) + "<small>m</small>";
+
+    var viewWarn = document.getElementById("v-viewwarn");
+    if (avail > range.max) {
       viewWarn.style.display = "block";
-      viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é pequeno para " + fmt(avail,2) + " m de distância — ideal até " + fmt(idealDistMax,2) + " m. Ajusta a largura para pelo menos " + fmt(avail / VIEW_MULT_MIN,2) + " m.";
-    } else if (avail < idealDistMin) {
+      viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é pequeno para " + fmt(avail,2) + " m de distância — ideal até " + fmt(range.max,2) + " m. Ajusta a largura para pelo menos " + fmt(ideal.wMax,2) + " m.";
+    } else if (avail < range.min) {
       viewWarn.style.display = "block";
-      viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é grande para " + fmt(avail,2) + " m de distância — ideal a partir de " + fmt(idealDistMin,2) + " m. Ajusta a largura para no máximo " + fmt(avail / VIEW_MULT_MAX,2) + " m.";
+      viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é grande para " + fmt(avail,2) + " m de distância — ideal a partir de " + fmt(range.min,2) + " m. Ajusta a largura para no máximo " + fmt(ideal.wMin,2) + " m.";
     } else {
       viewWarn.style.display = "none";
     }
@@ -1670,9 +1920,11 @@
     document.getElementById("l-out-pitch").innerHTML = fmt(pitchAvg,2) + "<small>mm</small>";
     document.getElementById("l-out-ratio").textContent = describeRatio(totalPx, totalPy);
 
-    var dmin = totalWm * 1.5, dmax = totalWm * 6;
+    var viewRange = viewingDistanceRange(totalWm, totalHm);
+    var dmin = viewRange.min, dmax = viewRange.max;
     document.getElementById("l-out-dmin").innerHTML = fmt(dmin,1) + "<small>m</small>";
     document.getElementById("l-out-dmax").innerHTML = fmt(dmax,1) + "<small>m</small>";
+    document.getElementById("l-viewrule-note").textContent = "Regra: " + viewRuleDescription();
 
     var weightTotal = weightPerTile * numTiles;
     var ampTotal = ampPerTile * numTiles;
@@ -1834,6 +2086,9 @@
 
   document.querySelectorAll('.panel[data-mode="projecao"] input, .panel[data-mode="projecao"] select').forEach(function (el) {
     el.addEventListener("input", calcProjecao);
+  });
+  document.querySelectorAll('.panel[data-mode="visualizacao"] input, .panel[data-mode="visualizacao"] select').forEach(function (el) {
+    el.addEventListener("input", calcVisualizacao);
   });
   document.querySelectorAll('.panel[data-mode="led"] input').forEach(function (el) {
     el.addEventListener("input", calcLed);
@@ -2589,6 +2844,7 @@
     });
 
     calcProjecao();
+    calcVisualizacao();
     calcLed();
     calcBlend();
     calcLentes();
@@ -2597,6 +2853,7 @@
   }).catch(function (err) {
     console.error("Falha a carregar dados de data/*.json:", err);
     calcProjecao();
+    calcVisualizacao();
     calcLed();
     calcBlend();
     calcLentes();
