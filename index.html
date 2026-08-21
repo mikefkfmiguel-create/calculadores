@@ -2190,6 +2190,16 @@
     select.insertBefore(opt, select.lastElementChild);
   }
 
+  function stockFirstIndices(arr) {
+    var order = arr.map(function (item, i) { return i; });
+    order.sort(function (a, b) {
+      var as = arr[a].modelo.indexOf("(stock)") !== -1 ? 0 : 1;
+      var bs = arr[b].modelo.indexOf("(stock)") !== -1 ? 0 : 1;
+      return as !== bs ? as - bs : a - b;
+    });
+    return order;
+  }
+
   function updateSelectStockColor(select) {
     var opt = select.options[select.selectedIndex];
     var isStock = opt && opt.textContent.indexOf("(stock)") !== -1;
@@ -2222,8 +2232,10 @@
     PROCESSORS_DATA = processors;
 
     var defaultProj = projectors.find(function (p) { return p.default; }) || projectors[0];
+    var projOrder = stockFirstIndices(projectors);
     [projModelSel, blendProjModelSel].forEach(function (sel) {
-      projectors.forEach(function (p, i) {
+      projOrder.forEach(function (i) {
+        var p = projectors[i];
         addOption(sel, p.lumens, p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj, i);
       });
     });
@@ -2231,13 +2243,16 @@
       document.getElementById("p-lumens").value = defaultProj.lumens;
       document.getElementById("b-lumens").value = defaultProj.lumens;
     }
-    projectors.forEach(function (p, i) {
+    projOrder.forEach(function (i) {
+      var p = projectors[i];
       addOption(projProjModelSel, String(i), p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj);
     });
 
     var defaultTile = ledTiles.find(function (t) { return t.default; }) || ledTiles[0];
+    var tileOrder = stockFirstIndices(ledTiles);
     [ledModelSel, projLedModelSel].forEach(function (sel) {
-      ledTiles.forEach(function (t, i) {
+      tileOrder.forEach(function (i) {
+        var t = ledTiles[i];
         addOption(sel, String(i), t.modelo + " — " + t.label, t === defaultTile);
       });
     });
