@@ -570,6 +570,29 @@
     white-space: pre-wrap;
     color: var(--ink-soft);
   }
+  .summary-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .addproject {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .addproject input[type="checkbox"] {
+    width: 15px; height: 15px;
+    accent-color: var(--green-500);
+    cursor: pointer;
+  }
+  .projitem { margin-bottom: 14px; }
+  .projitem:last-child { margin-bottom: 0; }
+  .projitem h3 {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 6px;
+  }
   button.copy {
     font-family: "IBM Plex Sans", sans-serif;
     font-size: 12.5px;
@@ -748,7 +771,10 @@
         <div class="summary">
           <div class="summary-head">
             <span class="k">Resumo para ficha técnica</span>
-            <button class="copy" data-target="p-sum">Copiar resumo</button>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="p-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="p-sum">Copiar resumo</button>
+            </div>
           </div>
           <pre class="sumbox" id="p-sum"></pre>
         </div>
@@ -840,7 +866,10 @@
         <div class="summary">
           <div class="summary-head">
             <span class="k">Resumo para ficha técnica</span>
-            <button class="copy" data-target="v-sum">Copiar resumo</button>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="v-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="v-sum">Copiar resumo</button>
+            </div>
           </div>
           <pre class="sumbox" id="v-sum"></pre>
         </div>
@@ -992,7 +1021,10 @@
         <div class="summary">
           <div class="summary-head">
             <span class="k">Resumo para ficha técnica</span>
-            <button class="copy" data-target="l-sum">Copiar resumo</button>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="l-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="l-sum">Copiar resumo</button>
+            </div>
           </div>
           <pre class="sumbox" id="l-sum"></pre>
         </div>
@@ -1145,7 +1177,10 @@
         <div class="summary">
           <div class="summary-head">
             <span class="k">Resumo para ficha técnica</span>
-            <button class="copy" data-target="b-sum">Copiar resumo</button>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="b-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="b-sum">Copiar resumo</button>
+            </div>
           </div>
           <pre class="sumbox" id="b-sum"></pre>
         </div>
@@ -1198,6 +1233,20 @@
 
   <!-- PROJETO -->
   <section class="panel" data-mode="projeto">
+    <div class="card results" data-accent="projeto" style="margin-bottom:16px;">
+      <div class="stripe"></div>
+      <h2>Itens do projeto</h2>
+      <div class="hint">Marca "Adicionar ao projeto" no resumo de uma calculadora (Distância de Projeção, Distância de Visualização, Ecrã LED ou Blending) para juntar aqui uma checklist do que a produção vai usar.</div>
+      <div id="proj-items-list" style="margin-top:12px;"></div>
+      <div class="summary" id="proj-items-summary-wrap" style="display:none;">
+        <div class="summary-head">
+          <span class="k">Checklist do projeto</span>
+          <button class="copy" data-target="proj-items-sum">Copiar checklist</button>
+        </div>
+        <pre class="sumbox" id="proj-items-sum"></pre>
+      </div>
+    </div>
+
     <div class="grid">
       <div class="card">
         <h2>Tipo de projeto</h2>
@@ -1593,6 +1642,56 @@
     return std.label + " — " + AVIXA_CONTENT[vAvixaContentKey].label;
   }
 
+  // Checklist "Itens do projeto" — reúne o resumo já calculado em cada aba
+  // (não duplica lógica: lê o texto que cada aba já produz para "Copiar resumo").
+  var PROJECT_SOURCES = [
+    { key: "projecao", label: "Distância de Projeção", sumId: "p-sum", checkboxId: "p-addproject" },
+    { key: "visualizacao", label: "Distância de Visualização", sumId: "v-sum", checkboxId: "v-addproject" },
+    { key: "led", label: "Ecrã LED & Pixel Pitch", sumId: "l-sum", checkboxId: "l-addproject" },
+    { key: "blend", label: "Blending Multi-Projetor", sumId: "b-sum", checkboxId: "b-addproject" }
+  ];
+
+  function renderProjectItems() {
+    var listEl = document.getElementById("proj-items-list");
+    var summaryWrap = document.getElementById("proj-items-summary-wrap");
+    if (!listEl || !summaryWrap) return;
+
+    var included = PROJECT_SOURCES.filter(function (s) {
+      var cb = document.getElementById(s.checkboxId);
+      return cb && cb.checked;
+    });
+
+    listEl.innerHTML = "";
+    if (!included.length) {
+      listEl.innerHTML = '<div class="lm-empty">Nenhum item adicionado ainda.</div>';
+      summaryWrap.style.display = "none";
+      return;
+    }
+
+    var summaryParts = [];
+    included.forEach(function (s) {
+      var text = document.getElementById(s.sumId).textContent;
+      var item = document.createElement("div");
+      item.className = "projitem";
+      var h3 = document.createElement("h3");
+      h3.textContent = s.label;
+      var pre = document.createElement("pre");
+      pre.className = "sumbox";
+      pre.textContent = text;
+      item.appendChild(h3);
+      item.appendChild(pre);
+      listEl.appendChild(item);
+      summaryParts.push("== " + s.label + " ==\n" + text);
+    });
+    summaryWrap.style.display = "block";
+    document.getElementById("proj-items-sum").textContent = summaryParts.join("\n\n");
+  }
+
+  PROJECT_SOURCES.forEach(function (s) {
+    var cb = document.getElementById(s.checkboxId);
+    if (cb) cb.addEventListener("change", renderProjectItems);
+  });
+
   var LENTES_DATA = [];
   var PROJECTORS_DATA = [];
   var LED_TILES_DATA = [];
@@ -1791,6 +1890,8 @@
         "Distância de projeção: " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n" +
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
     }
+
+    renderProjectItems();
   }
 
   // Distância de Visualização
@@ -1888,6 +1989,8 @@
     } else {
       viewWarn.style.display = "none";
     }
+
+    renderProjectItems();
   }
 
   var ledModelSel = document.getElementById("l-model");
@@ -1989,6 +2092,7 @@
       "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps: " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)";
 
     calcLedSuggest();
+    renderProjectItems();
   }
 
   var lSuggestRatioSel = document.getElementById("l-suggest-ratio");
@@ -2155,6 +2259,8 @@
       "Ecrã físico: " + fmt(wm,2) + " x " + fmt(hm,2) + " m  (" + fmt(area,2) + " m²)  —  formato " + describeRatio(wm*1000, hm*1000) + "\n" +
       "Pixel size: " + fmt(pitchAvg,2) + " mm\n" +
       "Luminosidade: " + nProj + " projetores x " + fmtInt(lumensEach) + " lm (100%) = " + fmtInt(lumensEach*nProj) + " lm  —  a 80%: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(luxTotal) + " lux no ecrã";
+
+    renderProjectItems();
   }
 
   function renderLenses(list) {
