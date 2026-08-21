@@ -1064,71 +1064,6 @@
             </div>
             <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida.</div>
           </div>
-
-          <div class="divider">Processamento</div>
-          <div class="row2">
-            <div class="field">
-              <label for="proj-dsm-count">Ecrãs DSM (monitores de palco)</label>
-              <div class="inputgroup"><input id="proj-dsm-count" type="number" value="0" min="0" step="1"></div>
-            </div>
-            <div class="field">
-              <label for="proj-dsm-res">Resolução de cada DSM</label>
-              <select id="proj-dsm-res" class="plain">
-                <option value="1920x1080" selected>HD (1920×1080)</option>
-                <option value="3840x2160">UHD/4K (3840×2160)</option>
-                <option value="custom">Personalizado…</option>
-              </select>
-            </div>
-          </div>
-          <div class="row2" id="proj-dsm-custom-res" style="display:none;">
-            <div class="field">
-              <label for="proj-dsm-w">Largura</label>
-              <div class="inputgroup"><input id="proj-dsm-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
-            </div>
-            <div class="field">
-              <label for="proj-dsm-h">Altura</label>
-              <div class="inputgroup"><input id="proj-dsm-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
-            </div>
-          </div>
-          <div class="row2">
-            <div class="field">
-              <label for="proj-delay-count">Ecrãs delay (repetidores para salas/espaços maiores)</label>
-              <div class="inputgroup"><input id="proj-delay-count" type="number" value="0" min="0" step="1"></div>
-            </div>
-            <div class="field">
-              <label for="proj-delay-res">Resolução de cada delay</label>
-              <select id="proj-delay-res" class="plain">
-                <option value="1920x1080" selected>HD (1920×1080)</option>
-                <option value="3840x2160">UHD/4K (3840×2160)</option>
-                <option value="custom">Personalizado…</option>
-              </select>
-            </div>
-          </div>
-          <div class="row2" id="proj-delay-custom-res" style="display:none;">
-            <div class="field">
-              <label for="proj-delay-w">Largura</label>
-              <div class="inputgroup"><input id="proj-delay-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
-            </div>
-            <div class="field">
-              <label for="proj-delay-h">Altura</label>
-              <div class="inputgroup"><input id="proj-delay-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
-            </div>
-          </div>
-          <div class="row2">
-            <div class="field">
-              <label for="proj-refresh">Refresh rate</label>
-              <div class="inputgroup"><input id="proj-refresh" type="number" value="60" min="1" step="1"><span class="unit">Hz</span></div>
-            </div>
-            <div class="field">
-              <label for="proj-colordepth">Profundidade de cor</label>
-              <select id="proj-colordepth" class="plain">
-                <option value="8" selected>8-bit</option>
-                <option value="10">10-bit</option>
-                <option value="12">12-bit</option>
-              </select>
-            </div>
-          </div>
-          <div class="hint">DSM e delay somam ao total de píxeis para escolher o switcher de show. Só o ecrã LED entra na conta dos processadores de LED.</div>
         </div>
 
         <div id="proj-projecao-fields" style="display:none;">
@@ -1220,6 +1155,71 @@
             </div>
           </div>
         </div>
+
+        <div class="divider">Processamento</div>
+        <div class="row2">
+          <div class="field">
+            <label for="proj-dsm-count">Ecrãs DSM (monitores de palco)</label>
+            <div class="inputgroup"><input id="proj-dsm-count" type="number" value="0" min="0" step="1"></div>
+          </div>
+          <div class="field">
+            <label for="proj-dsm-res">Resolução de cada DSM</label>
+            <select id="proj-dsm-res" class="plain">
+              <option value="1920x1080" selected>HD (1920×1080)</option>
+              <option value="3840x2160">UHD/4K (3840×2160)</option>
+              <option value="custom">Personalizado…</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2" id="proj-dsm-custom-res" style="display:none;">
+          <div class="field">
+            <label for="proj-dsm-w">Largura</label>
+            <div class="inputgroup"><input id="proj-dsm-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="proj-dsm-h">Altura</label>
+            <div class="inputgroup"><input id="proj-dsm-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="proj-delay-count">Ecrãs delay (repetidores para salas/espaços maiores)</label>
+            <div class="inputgroup"><input id="proj-delay-count" type="number" value="0" min="0" step="1"></div>
+          </div>
+          <div class="field">
+            <label for="proj-delay-res">Resolução de cada delay</label>
+            <select id="proj-delay-res" class="plain">
+              <option value="1920x1080" selected>HD (1920×1080)</option>
+              <option value="3840x2160">UHD/4K (3840×2160)</option>
+              <option value="custom">Personalizado…</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2" id="proj-delay-custom-res" style="display:none;">
+          <div class="field">
+            <label for="proj-delay-w">Largura</label>
+            <div class="inputgroup"><input id="proj-delay-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="proj-delay-h">Altura</label>
+            <div class="inputgroup"><input id="proj-delay-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="proj-refresh">Refresh rate</label>
+            <div class="inputgroup"><input id="proj-refresh" type="number" value="60" min="1" step="1"><span class="unit">Hz</span></div>
+          </div>
+          <div class="field">
+            <label for="proj-colordepth">Profundidade de cor</label>
+            <select id="proj-colordepth" class="plain">
+              <option value="8" selected>8-bit</option>
+              <option value="10">10-bit</option>
+              <option value="12">12-bit</option>
+            </select>
+          </div>
+        </div>
+        <div class="hint">DSM e delay somam ao total de píxeis para escolher o switcher de show. Só o ecrã LED entra na conta dos processadores de LED.</div>
       </div>
 
       <div class="card results" data-accent="projeto">
@@ -1235,20 +1235,6 @@
             <div class="item"><div class="k">Peso total</div><div class="v" id="proj-out-weight">—</div></div>
             <div class="item"><div class="k">Amp total (por fase)</div><div class="v" id="proj-out-amp">—</div></div>
             <div class="item wide" id="proj-out-boxes-wrap" style="display:none;"><div class="k">Nº de caixas</div><div class="v" id="proj-out-boxes">—</div></div>
-          </div>
-
-          <h2 style="margin-top:18px;">Processamento</h2>
-          <div class="readout">
-            <div class="item"><div class="k">Ecrã LED</div><div class="v" id="proj-out-pxled">—</div></div>
-            <div class="item wide"><div class="k">Pixel usage total (LED + DSM + delay)</div><div class="v" id="proj-out-pxtotal">—</div></div>
-          </div>
-          <div class="field" style="margin-top:12px;">
-            <label>Opções de switcher de show (cobrem o total)</label>
-            <div class="lensmatch-list" id="proj-switcher-list">—</div>
-          </div>
-          <div class="field" style="margin-top:12px;">
-            <label>Opções de processo de LED (só o ecrã LED, a este refresh/cor)</label>
-            <div class="lensmatch-list" id="proj-ledproc-list">—</div>
           </div>
         </div>
 
@@ -1267,6 +1253,20 @@
             <label>Lentes compatíveis do fabricante do projetor</label>
             <div class="lensmatch-list" id="proj-lensmatch-list">—</div>
           </div>
+        </div>
+
+        <h2 style="margin-top:18px;">Processamento</h2>
+        <div class="readout">
+          <div class="item" id="proj-out-pxled-wrap"><div class="k" id="proj-out-pxled-label">Ecrã LED</div><div class="v" id="proj-out-pxled">—</div></div>
+          <div class="item wide"><div class="k">Pixel usage total (ecrã + DSM + delay)</div><div class="v" id="proj-out-pxtotal">—</div></div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Opções de switcher de show (cobrem o total)</label>
+          <div class="lensmatch-list" id="proj-switcher-list">—</div>
+        </div>
+        <div class="field" style="margin-top:12px;" id="proj-ledproc-wrap">
+          <label>Opções de processo de LED (só o ecrã LED, a este refresh/cor)</label>
+          <div class="lensmatch-list" id="proj-ledproc-list">—</div>
         </div>
 
         <div class="summary">
@@ -1874,6 +1874,7 @@
 
   function calcProjeto() {
     var nome = document.getElementById("proj-nome").value.trim() || "Projeto sem nome";
+    var canvasPixels = 0, canvasLabel = "Ecrã", mainSumText = "";
 
     if (projType === "led") {
       if (!LED_TILES_DATA.length) return;
@@ -1914,55 +1915,10 @@
         boxesWrap.style.display = "none";
       }
 
-      var ledPixels = totalPx * totalPy;
-      var dsmCount = val("proj-dsm-count");
-      var dsmRes = readResPreset("proj-dsm-res", "proj-dsm-w", "proj-dsm-h");
-      var dsmW = dsmRes[0], dsmH = dsmRes[1];
-      var delayCount = val("proj-delay-count");
-      var delayRes = readResPreset("proj-delay-res", "proj-delay-w", "proj-delay-h");
-      var delayW = delayRes[0], delayH = delayRes[1];
-      var dsmPixels = dsmCount * dsmW * dsmH;
-      var delayPixels = delayCount * delayW * delayH;
-      var totalPixels = ledPixels + dsmPixels + delayPixels;
-      var refresh = val("proj-refresh");
-      var colorDepth = document.getElementById("proj-colordepth").value;
-      var bpp = BITS_PER_PIXEL[colorDepth];
+      canvasPixels = totalPx * totalPy;
+      canvasLabel = "Ecrã LED";
 
-      document.getElementById("proj-out-pxled").innerHTML = fmtInt(ledPixels) + "<small>px</small>";
-      document.getElementById("proj-out-pxtotal").innerHTML = fmtInt(totalPixels) + "<small>px</small> (" + fmt(totalPixels / 1e6, 2) + "<small>MP</small>)";
-
-      var totalMP = totalPixels / 1e6;
-      var switcherOk = (PROCESSORS_DATA.switchers || []).map(function (s) {
-        var capSwitcher = s.maxMPSwitcher || 0;
-        var capPgm = s.maxMPPgmOnly || capSwitcher;
-        var fits = totalMP <= capPgm;
-        var mode = totalMP <= capSwitcher ? "modo switcher" : "só em PGM-only";
-        return { s: s, fits: fits, mode: mode, cap: capPgm };
-      }).filter(function (x) { return x.fits; }).sort(function (a, b) { return a.cap - b.cap; });
-
-      var switcherListEl = document.getElementById("proj-switcher-list");
-      if (!switcherOk.length) {
-        switcherListEl.innerHTML = '<div class="lm-empty">Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP).</div>';
-      } else {
-        switcherListEl.innerHTML = switcherOk.map(function (x) {
-          return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span></span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ')</span></div>';
-        }).join("");
-      }
-
-      var portCapacity = Math.floor(USABLE_BPS / (bpp * refresh));
-      var ledProcOk = (PROCESSORS_DATA.ledProcessors || []).map(function (p) {
-        var unitCapacity = portCapacity * p.ports;
-        if (p.maxPixelsHardCap) unitCapacity = Math.min(unitCapacity, p.maxPixelsHardCap);
-        var numUnits = Math.ceil(ledPixels / unitCapacity);
-        return { p: p, unitCapacity: unitCapacity, numUnits: numUnits };
-      }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports; });
-
-      var ledProcListEl = document.getElementById("proj-ledproc-list");
-      ledProcListEl.innerHTML = ledProcOk.map(function (x) {
-        return '<div class="lm-item"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span></span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.unitCapacity) + ' px/unidade)</span></div>';
-      }).join("");
-
-      document.getElementById("proj-sum").textContent =
+      mainSumText =
         "PROJETO: " + nome + "\n" +
         "Tipo: Ecrã LED\n" +
         "Modelo de tile: " + tile.modelo + "\n" +
@@ -1972,12 +1928,7 @@
         "Tamanho real: " + fmt(totalWm, 2) + " x " + fmt(totalHm, 2) + " m\n" +
         "Pixel pitch: " + fmt(pitchAvg, 2) + " mm\n" +
         "Peso total: " + (weightTotal == null ? "não disponível" : fmt(weightTotal, 1) + " kg") + "\n" +
-        "Amp total: " + fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)\n" +
-        "\n" +
-        "Processamento (" + refresh + "Hz, " + colorDepth + "-bit):\n" +
-        "Pixel usage total (LED + DSM + delay): " + fmtInt(totalPixels) + " px (" + fmt(totalMP, 2) + " MP)\n" +
-        "Switchers de show compatíveis: " + (switcherOk.length ? switcherOk.map(function (x) { return x.s.marca + " " + x.s.modelo + " (" + x.mode + ")"; }).join(", ") : "nenhum") + "\n" +
-        "Processo de LED: " + ledProcOk.map(function (x) { return fmtInt(x.numUnits) + "× " + x.p.marca + " " + x.p.modelo; }).join(", ");
+        "Amp total: " + fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)";
     } else {
       if (!PROJECTORS_DATA.length) return;
       var projIdx = parseInt(projProjModelSel.value, 10);
@@ -2095,7 +2046,10 @@
         }).join("");
       }
 
-      document.getElementById("proj-sum").textContent =
+      canvasLabel = isBlend ? "Ecrã (blend)" : "Ecrã (projeção)";
+      canvasPixels = isBlend ? totalPxCount : (proj.resolucao ? proj.resolucao.rx * proj.resolucao.ry : 0);
+
+      mainSumText =
         "PROJETO: " + nome + "\n" +
         "Tipo: Projeção" + (isBlend ? " (blend)" : "") + "\n" +
         "Projetor: " + proj.modelo + " (" + fmtInt(lumens) + " lm cada)\n" +
@@ -2108,6 +2062,67 @@
         "Lentes compatíveis" + (isBlend ? " (por projetor)" : "") + ": " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") : "nenhuma na base") + "\n" +
         "Luminosidade útil: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(lux) + " lux no ecrã";
     }
+
+    document.getElementById("proj-out-pxled-label").textContent = canvasLabel;
+    document.getElementById("proj-out-pxled").innerHTML = canvasPixels ? fmtInt(canvasPixels) + "<small>px</small>" : "—";
+
+    var dsmCount = val("proj-dsm-count");
+    var dsmRes = readResPreset("proj-dsm-res", "proj-dsm-w", "proj-dsm-h");
+    var dsmPixels = dsmCount * dsmRes[0] * dsmRes[1];
+    var delayCount = val("proj-delay-count");
+    var delayRes = readResPreset("proj-delay-res", "proj-delay-w", "proj-delay-h");
+    var delayPixels = delayCount * delayRes[0] * delayRes[1];
+    var totalPixels = canvasPixels + dsmPixels + delayPixels;
+    var refresh = val("proj-refresh");
+    var colorDepth = document.getElementById("proj-colordepth").value;
+    var bpp = BITS_PER_PIXEL[colorDepth];
+    var totalMP = totalPixels / 1e6;
+
+    document.getElementById("proj-out-pxtotal").innerHTML = fmtInt(totalPixels) + "<small>px</small> (" + fmt(totalMP, 2) + "<small>MP</small>)";
+
+    var switcherOk = (PROCESSORS_DATA.switchers || []).map(function (s) {
+      var capSwitcher = s.maxMPSwitcher || 0;
+      var capPgm = s.maxMPPgmOnly || capSwitcher;
+      var fits = totalMP <= capPgm;
+      var mode = totalMP <= capSwitcher ? "modo switcher" : "só em PGM-only";
+      return { s: s, fits: fits, mode: mode, cap: capPgm };
+    }).filter(function (x) { return x.fits; }).sort(function (a, b) { return a.cap - b.cap; });
+
+    var switcherListEl = document.getElementById("proj-switcher-list");
+    if (!switcherOk.length) {
+      switcherListEl.innerHTML = '<div class="lm-empty">Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP).</div>';
+    } else {
+      switcherListEl.innerHTML = switcherOk.map(function (x) {
+        return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span></span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ')</span></div>';
+      }).join("");
+    }
+
+    var ledProcWrap = document.getElementById("proj-ledproc-wrap");
+    var procSumText = "";
+    if (projType === "led") {
+      ledProcWrap.style.display = "block";
+      var portCapacity = Math.floor(USABLE_BPS / (bpp * refresh));
+      var ledProcOk = (PROCESSORS_DATA.ledProcessors || []).map(function (p) {
+        var unitCapacity = portCapacity * p.ports;
+        if (p.maxPixelsHardCap) unitCapacity = Math.min(unitCapacity, p.maxPixelsHardCap);
+        var numUnits = Math.ceil(canvasPixels / unitCapacity);
+        return { p: p, unitCapacity: unitCapacity, numUnits: numUnits };
+      }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports; });
+
+      var ledProcListEl = document.getElementById("proj-ledproc-list");
+      ledProcListEl.innerHTML = ledProcOk.map(function (x) {
+        return '<div class="lm-item"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span></span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.unitCapacity) + ' px/unidade)</span></div>';
+      }).join("");
+      procSumText = "\nProcesso de LED: " + ledProcOk.map(function (x) { return fmtInt(x.numUnits) + "× " + x.p.marca + " " + x.p.modelo; }).join(", ");
+    } else {
+      ledProcWrap.style.display = "none";
+    }
+
+    document.getElementById("proj-sum").textContent = mainSumText +
+      "\n\nProcessamento (" + refresh + "Hz, " + colorDepth + "-bit):\n" +
+      "Pixel usage total (" + canvasLabel.toLowerCase() + " + DSM + delay): " + fmtInt(totalPixels) + " px (" + fmt(totalMP, 2) + " MP)\n" +
+      "Switchers de show compatíveis: " + (switcherOk.length ? switcherOk.map(function (x) { return x.s.marca + " " + x.s.modelo + " (" + x.mode + ")"; }).join(", ") : "nenhum") +
+      procSumText;
   }
 
   document.querySelectorAll('.panel[data-mode="projeto"] input, .panel[data-mode="projeto"] select').forEach(function (el) {
