@@ -738,7 +738,7 @@
             <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="p-out-diagmax">—</div></div>
             <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="p-out-wrange">—</div></div>
           </div>
-          <p class="note">Regra: distância = largura do ecrã × 3 (mín.) a × 7 (máx.)</p>
+          <p class="note">Regra: distância = largura do ecrã × 1,5 (mín.) a × 6 (máx.)</p>
           <div id="p-viewwarn" class="warn" style="display:none;"></div>
         </div>
       </div>
@@ -849,7 +849,7 @@
           <div class="item"><div class="k">Mínima</div><div class="v" id="l-out-dmin">—</div></div>
           <div class="item"><div class="k">Máxima</div><div class="v" id="l-out-dmax">—</div></div>
         </div>
-        <p class="note">Distância = largura do ecrã × 3 (mín.) a × 7 (máx.)</p>
+        <p class="note">Distância = largura do ecrã × 1,5 (mín.) a × 6 (máx.)</p>
 
         <h2 style="margin-top:18px;">Peso &amp; energia</h2>
         <div class="readout">
@@ -1578,9 +1578,9 @@
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
     }
 
-    // Distância de visualização ideal: distância = largura × 3 (mín.) a × 7 (máx.)
+    // Distância de visualização ideal: distância = largura × 1,5 (mín., THX/sweet spot) a × 6 (máx., limite de sala tipo cinema/SMPTE)
     // — regra fixa, independente do throw ratio do projetor.
-    var VIEW_MULT_MIN = 3, VIEW_MULT_MAX = 7;
+    var VIEW_MULT_MIN = 1.5, VIEW_MULT_MAX = 6;
     var avail = val("p-avail");
     var wMin = avail / VIEW_MULT_MAX, wMax = avail / VIEW_MULT_MIN;
     var diagMin = wMin * Math.sqrt(1 + 1/(r*r)) / 0.0254;
@@ -1670,7 +1670,7 @@
     document.getElementById("l-out-pitch").innerHTML = fmt(pitchAvg,2) + "<small>mm</small>";
     document.getElementById("l-out-ratio").textContent = describeRatio(totalPx, totalPy);
 
-    var dmin = totalWm * 3, dmax = totalWm * 7;
+    var dmin = totalWm * 1.5, dmax = totalWm * 6;
     document.getElementById("l-out-dmin").innerHTML = fmt(dmin,1) + "<small>m</small>";
     document.getElementById("l-out-dmax").innerHTML = fmt(dmax,1) + "<small>m</small>";
 
