@@ -1077,11 +1077,17 @@
             <div class="inputgroup"><input id="l-suggest-rh" type="number" inputmode="decimal" value="9" min="0.1" step="0.1"></div>
           </div>
         </div>
-        <div class="field">
-          <label for="l-suggest-diag">Diagonal aproximada</label>
-          <div class="inputgroup"><input id="l-suggest-diag" type="number" inputmode="decimal" value="180" min="1" step="1"><span class="unit">polegadas</span></div>
-          <div class="hint">Usa o tamanho de módulo (largura/altura definidas acima em "Tamanho do tile") para sugerir a grelha de tiles mais próxima deste formato.</div>
+        <div class="row2">
+          <div class="field">
+            <label for="l-suggest-diag">Diagonal aproximada</label>
+            <div class="inputgroup"><input id="l-suggest-diag" type="number" inputmode="decimal" value="180" min="1" step="1"><span class="unit">polegadas</span></div>
+          </div>
+          <div class="field">
+            <label for="l-suggest-diag-m">Diagonal aproximada</label>
+            <div class="inputgroup"><input id="l-suggest-diag-m" type="number" inputmode="decimal" value="4.57" min="0.01" step="0.01"><span class="unit">metros</span></div>
+          </div>
         </div>
+        <div class="hint">Usa o tamanho de módulo (largura/altura definidas acima em "Tamanho do tile") para sugerir a grelha de tiles mais próxima deste formato. Os dois campos ajustam-se automaticamente um ao outro.</div>
       </div>
       <div class="card results" data-accent="led">
         <div class="stripe"></div>
@@ -2121,6 +2127,17 @@
   lSuggestRatioSel.addEventListener("change", function () {
     lSuggestCustomRatio.style.display = lSuggestRatioSel.value === "custom" ? "grid" : "none";
     calcLed();
+  });
+
+  var lSuggestDiagIn = document.getElementById("l-suggest-diag");
+  var lSuggestDiagM = document.getElementById("l-suggest-diag-m");
+  lSuggestDiagIn.addEventListener("input", function () {
+    var inches = parseFloat(lSuggestDiagIn.value);
+    if (isFinite(inches) && inches > 0) lSuggestDiagM.value = (inches * 0.0254).toFixed(2);
+  });
+  lSuggestDiagM.addEventListener("input", function () {
+    var meters = parseFloat(lSuggestDiagM.value);
+    if (isFinite(meters) && meters > 0) lSuggestDiagIn.value = (meters / 0.0254).toFixed(0);
   });
 
   document.getElementById("l-suggest-list").addEventListener("click", function (e) {
