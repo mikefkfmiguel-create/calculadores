@@ -413,6 +413,9 @@
   .lensmatch-list .lm-item:last-child { border-bottom: none; }
   .lensmatch-list .lm-model { color: var(--ink-soft); }
   .lensmatch-list .lm-empty { color: var(--ink-faint); font-style: italic; }
+  .lensmatch-list .lm-checkitem { align-items: center; cursor: pointer; }
+  .lensmatch-list .lm-checkitem input[type="checkbox"] { flex-shrink: 0; margin: 0 10px 0 0; width: 16px; height: 16px; accent-color: var(--green-500); cursor: pointer; }
+  .lensmatch-list .lm-row { display: flex; justify-content: space-between; gap: 10px; flex: 1; }
 
   /* Results */
   .results { position: sticky; top: 16px; }
@@ -556,7 +559,7 @@
     <div class="brand">
       <h1>Calculadores</h1>
     </div>
-    <span class="mark">v1.5</span>
+    <span class="mark">v1.6</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1276,10 +1279,12 @@
         </div>
         <div class="field" style="margin-top:12px;">
           <label>Opções de switcher de show (cobrem o total)</label>
+          <div class="hint">Marca a(s) opção(ões) escolhida(s) para o relatório sair limpo — sem marcar nenhuma, entram todas as compatíveis.</div>
           <div class="lensmatch-list" id="proj-switcher-list">—</div>
         </div>
         <div class="field" style="margin-top:12px;" id="proj-ledproc-wrap">
           <label>Opções de processo de LED (só o ecrã LED, a este refresh/cor)</label>
+          <div class="hint">Marca a(s) opção(ões) escolhida(s) para o relatório sair limpo — sem marcar nenhuma, entram todas as compatíveis.</div>
           <div class="lensmatch-list" id="proj-ledproc-list">—</div>
         </div>
 
@@ -1813,6 +1818,10 @@
     el.addEventListener("input", calcLed);
   });
 
+  var selectedSwitcherKeys = new Set();
+  var selectedLedProcKeys = new Set();
+  function itemKey(marca, modelo) { return marca + "|" + modelo; }
+
   var projLedModelSel = document.getElementById("proj-led-model");
   var projProjModelSel = document.getElementById("proj-proj-model");
   var projLedSizeMode = "meters";
@@ -2152,19 +2161,27 @@
       var capSwitcher = (linked ? s.maxMPSwitcherLinked : s.maxMPSwitcher) || 0;
       var capPgm = (linked ? s.maxMPPgmOnlyLinked : s.maxMPPgmOnly) || capSwitcher;
       var fits = totalMP <= capPgm;
-      var mode = totalMP <= capSwitcher ? "modo switcher" : "só em PGM-only";
+      var mode = totalMP <= capSwitcher ? "PGM + Preview" : "só PGM (sem Preview)";
       if (linked) mode += ", " + s.unitsOwned + " unidades ligadas";
       return { s: s, fits: fits, mode: mode, cap: capPgm };
     }).filter(function (x) { return x.fits; }).sort(function (a, b) { return a.cap - b.cap; });
+
+    switcherOk.forEach(function (x) { x.key = itemKey(x.s.marca, x.s.modelo); x.pct = fmt((totalMP / x.cap) * 100, 0); });
 
     var switcherListEl = document.getElementById("proj-switcher-list");
     if (!switcherOk.length) {
       switcherListEl.innerHTML = '<div class="lm-empty">Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP).</div>';
     } else {
       switcherListEl.innerHTML = switcherOk.map(function (x) {
-        var pct = fmt((totalMP / x.cap) * 100, 0);
-        return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span></span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + pct + '%</span></div>';
+        var checked = selectedSwitcherKeys.has(x.key) ? " checked" : "";
+        return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span></span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%</span></span></label>';
       }).join("");
+      switcherListEl.querySelectorAll(".lm-check").forEach(function (cb) {
+        cb.addEventListener("change", function () {
+          if (cb.checked) selectedSwitcherKeys.add(cb.dataset.key); else selectedSwitcherKeys.delete(cb.dataset.key);
+          calcProjeto();
+        });
+      });
     }
 
     var ledProcWrap = document.getElementById("proj-ledproc-wrap");
@@ -2179,20 +2196,34 @@
         return { p: p, unitCapacity: unitCapacity, numUnits: numUnits };
       }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports; });
 
+      ledProcOk.forEach(function (x) { x.key = itemKey(x.p.marca, x.p.modelo); x.pct = fmt((canvasPixels / (x.numUnits * x.unitCapacity)) * 100, 0); });
+
       var ledProcListEl = document.getElementById("proj-ledproc-list");
       ledProcListEl.innerHTML = ledProcOk.map(function (x) {
-        var pct = fmt((canvasPixels / (x.numUnits * x.unitCapacity)) * 100, 0);
-        return '<div class="lm-item"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span></span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.unitCapacity) + ' px/unidade) — ' + pct + '%</span></div>';
+        var checked = selectedLedProcKeys.has(x.key) ? " checked" : "";
+        return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span></span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.unitCapacity) + ' px/unidade) — ' + x.pct + '%</span></span></label>';
       }).join("");
-      procSumText = "\nProcesso de LED: " + ledProcOk.map(function (x) { return fmtInt(x.numUnits) + "× " + x.p.marca + " " + x.p.modelo; }).join(", ");
+      ledProcListEl.querySelectorAll(".lm-check").forEach(function (cb) {
+        cb.addEventListener("change", function () {
+          if (cb.checked) selectedLedProcKeys.add(cb.dataset.key); else selectedLedProcKeys.delete(cb.dataset.key);
+          calcProjeto();
+        });
+      });
+
+      var ledProcChosen = ledProcOk.filter(function (x) { return selectedLedProcKeys.has(x.key); });
+      var ledProcForReport = ledProcChosen.length ? ledProcChosen : ledProcOk;
+      procSumText = "\nProcesso de LED: " + ledProcForReport.map(function (x) { return fmtInt(x.numUnits) + "× " + x.p.marca + " " + x.p.modelo + " (" + x.pct + "%)"; }).join(", ");
     } else {
       ledProcWrap.style.display = "none";
     }
 
+    var switcherChosen = switcherOk.filter(function (x) { return selectedSwitcherKeys.has(x.key); });
+    var switcherForReport = switcherChosen.length ? switcherChosen : switcherOk;
+
     document.getElementById("proj-sum").textContent = mainSumText +
       "\n\nProcessamento (" + refresh + "Hz, " + colorDepth + "-bit):\n" +
       "Pixel usage total (" + canvasLabel.toLowerCase() + " + DSM + delay): " + fmtInt(totalPixels) + " px (" + fmt(totalMP, 2) + " MP)\n" +
-      "Switchers de show compatíveis: " + (switcherOk.length ? switcherOk.map(function (x) { return x.s.marca + " " + x.s.modelo + " (" + x.mode + ")"; }).join(", ") : "nenhum") +
+      "Switchers de show compatíveis: " + (switcherForReport.length ? switcherForReport.map(function (x) { return x.s.marca + " " + x.s.modelo + " (" + x.mode + ") — " + x.pct + "%"; }).join(", ") : "nenhum") +
       procSumText;
   }
 
