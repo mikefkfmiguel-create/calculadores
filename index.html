@@ -716,26 +716,28 @@
       </div>
     </div>
 
-    <div class="divider" style="margin-top:26px;">ou calcular ao contrário</div>
-    <div class="grid">
-      <div class="card">
-        <h2>Distância disponível na sala</h2>
-        <div class="field">
-          <label for="p-avail">Distância até ao ecrã</label>
-          <div class="inputgroup">
-            <input id="p-avail" type="number" inputmode="decimal" value="6" min="0.1" step="0.1">
-            <span class="unit">metros</span>
+    <div id="p-reverse-calc">
+      <div class="divider" style="margin-top:26px;">ou calcular ao contrário</div>
+      <div class="grid">
+        <div class="card">
+          <h2>Distância disponível na sala</h2>
+          <div class="field">
+            <label for="p-avail">Distância até ao ecrã</label>
+            <div class="inputgroup">
+              <input id="p-avail" type="number" inputmode="decimal" value="6" min="0.1" step="0.1">
+              <span class="unit">metros</span>
+            </div>
+            <div class="hint">Usa o mesmo throw ratio e formato definidos acima</div>
           </div>
-          <div class="hint">Usa o mesmo throw ratio e formato definidos acima</div>
         </div>
-      </div>
-      <div class="card results" data-accent="projecao">
-        <div class="stripe"></div>
-        <h2>Tamanho de ecrã recomendado</h2>
-        <div class="readout">
-          <div class="item"><div class="k">Diagonal mín.</div><div class="v" id="p-out-diagmin">—</div></div>
-          <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="p-out-diagmax">—</div></div>
-          <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="p-out-wrange">—</div></div>
+        <div class="card results" data-accent="projecao">
+          <div class="stripe"></div>
+          <h2>Tamanho de ecrã recomendado</h2>
+          <div class="readout">
+            <div class="item"><div class="k">Diagonal mín.</div><div class="v" id="p-out-diagmin">—</div></div>
+            <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="p-out-diagmax">—</div></div>
+            <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="p-out-wrange">—</div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1429,6 +1431,7 @@
   var pThrowModeDistInputs = document.getElementById("p-throwmode-dist-inputs");
   var pThrowModeRatioOutput = document.getElementById("p-throwmode-ratio-output");
   var pThrowModeDistOutput = document.getElementById("p-throwmode-dist-output");
+  var pReverseCalc = document.getElementById("p-reverse-calc");
   document.querySelectorAll("#p-throwmode-seg .seg-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
       document.querySelectorAll("#p-throwmode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
@@ -1439,6 +1442,7 @@
       pThrowModeDistInputs.style.display = isDist ? "block" : "none";
       pThrowModeRatioOutput.style.display = isDist ? "none" : "block";
       pThrowModeDistOutput.style.display = isDist ? "block" : "none";
+      pReverseCalc.style.display = isDist ? "none" : "block";
       calcProjecao();
     });
   });
