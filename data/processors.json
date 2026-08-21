@@ -8,13 +8,26 @@
     { "marca": "PixelHUE", "modelo": "P10", "maxMPSwitcher": 8.3, "maxMPPgmOnly": 17.7, "nota": "Modo switcher: 1×4K60. Modo PGM only: 8K×2K60. MP calculados da resolução, não publicados diretamente." },
     { "marca": "PixelHUE", "modelo": "P20", "maxMPSwitcher": 16.6, "maxMPPgmOnly": 35.4, "nota": "Modo switcher: 2×4K60. Modo PGM only: 8K×4K60. MP calculados da resolução, não publicados diretamente." },
     { "marca": "PixelHUE", "modelo": "P80", "maxMPSwitcher": 35, "inputs": 16, "outputs": 12, "nota": "35MP @ 4K60p (publicado), até 20 entradas 4K." },
-    { "marca": "NovaStar", "modelo": "H5", "maxMPSwitcher": 39, "maxMPFibra": 62.4, "inputs": 40, "outputs": 48, "latenciaFrames": 1, "nota": "39MP via RJ45, 62,4MP via saída de fibra." }
+    { "marca": "NovaStar", "modelo": "H5", "maxMPSwitcher": 39, "maxMPFibra": 62.4, "inputs": 40, "outputs": 48, "latenciaFrames": 1, "nota": "39MP via RJ45, 62,4MP via saída de fibra." },
+    { "marca": "Barco (Folsom)", "modelo": "DCS-200", "maxMPSwitcher": 1.92, "nota": "Dual Channel Seamless Switcher (linha Folsom, hoje Barco). Só modo switcher (sem tier PGM-only elevado). Resolução máx. UXGA 1600×1200. Contagem de entradas não publicada." },
+    { "marca": "Analog Way", "modelo": "OPS 200 (Opus LE)", "maxMPSwitcher": 2.3, "inputs": 11, "outputs": 2, "nota": "Resolução máx. ~2K (1920×1200). Até 3 camadas ao vivo + frame + 2 logos." },
+    { "marca": "Analog Way", "modelo": "PULSE II", "maxMPSwitcher": 2.3, "inputs": 8, "outputs": 2, "nota": "Resolução máx. ~2K (1920×1200). Só modo switcher (sem tier PGM-only elevado)." },
+    { "marca": "Analog Way", "modelo": "Pulse 4K", "maxMPSwitcher": 8.3, "inputs": 10, "outputs": 2, "latenciaFrames": 1, "nota": "4K60 (3840×2160) tanto em modo Matrix (2 PGM independentes) como em modo Switcher (1 PGM + 1 AUX) — sem tier PGM-only elevado. + 1 saída multiviewer dedicada. ~16ms de latência." },
+    { "marca": "Analog Way", "modelo": "Ascender (LiveCore)", "maxMPSwitcher": 8.3, "inputs": 12, "outputs": 4, "nota": "SKU exato não confirmado na folha de inventário — valores da Ascender 32-4K (4K@30 4:4:4 ou 4K@60 4:2:0). Se for a geração anterior (só 2K), a capacidade real é menor." },
+    { "marca": "Barco (Folsom)", "modelo": "Encore 3 ME", "maxMPSwitcher": 2.21, "latenciaFrames": 1.5, "nota": "Resolução máx. 2048×1080. Até 3 placas Mix/Effect, 2 canais de scaler por ME — nº de entradas/saídas depende da configuração de placas instaladas." },
+    { "marca": "Barco", "modelo": "PDS-902 3G", "maxMPSwitcher": 2.3, "inputs": 9, "outputs": 2, "nota": "Resolução máx. WUXGA 1920×1200. Tem ainda 1 saída 3G-SDI Program-only adicional." },
+    { "marca": "Magnimage", "modelo": "LED-550DS", "maxMPSwitcher": 2.65, "inputs": 8, "outputs": 2, "nota": "Melhor caso 2304×1152; outras opções de saída: 2560×816 ou 1536×1536." },
+    { "marca": "Magnimage", "modelo": "LED-750HDS", "maxMPSwitcher": 4.6, "inputs": 7, "outputs": 4, "nota": "4,6M píxeis é o limite de carga publicado do aparelho (não MP de composição ao vivo). 4 saídas DVI (2 grupos), largura de processo até 7680px." },
+    { "marca": "Magnimage", "modelo": "LED-780H (na folha: \"783HP\")", "maxMPSwitcher": 8.3, "outputs": 8, "nota": "SKU exato \"783HP\" não confirmado — usados os valores do LED-780H (mesma série 780H), 4K×2K, 8 saídas DVI. Tratar com alguma reserva." },
+    { "marca": "Magnimage", "modelo": "W4000-2DH", "maxMPSwitcher": 17.7, "inputs": 4, "outputs": 2, "nota": "12 portas físicas em 4 grupos seletáveis (1 de 3 activo por grupo) = 4 entradas simultâneas. Saída 8K×2K@60Hz (8192×2160), 2 saídas HDMI." },
+    { "marca": "PixelHUE", "modelo": "P20-DS", "maxMPSwitcher": 16.6, "maxMPPgmOnly": 35.4, "inputs": 12, "outputs": 8, "nota": "Variante Dante do P20 — mesma classe de resolução (switcher 2×4K60, PGM-only 8K×4K60). MP calculados da resolução, não publicados diretamente." }
   ],
   "ledProcessors": [
     { "marca": "NovaStar", "modelo": "MCTRL300", "ports": 2 },
     { "marca": "NovaStar", "modelo": "MCTRL600", "ports": 4 },
     { "marca": "NovaStar", "modelo": "MCTRL660", "ports": 4 },
     { "marca": "NovaStar", "modelo": "MCTRL660 PRO", "ports": 6, "nota": "Tem ainda 2× saída ótica 10G — capacidade exata por fibra não confirmada; tratada como porta GigE padrão por segurança (sem COEX)." },
-    { "marca": "NovaStar", "modelo": "MCTRL4K", "ports": 16, "maxPixelsHardCap": 8800000, "nota": "Tem ainda 4× saída de fibra — tratada como porta GigE padrão por segurança (sem COEX). Limite físico do aparelho: 8,8M píxeis (entrada DP/HDMI)." }
+    { "marca": "NovaStar", "modelo": "MCTRL4K", "ports": 16, "maxPixelsHardCap": 8800000, "nota": "Tem ainda 4× saída de fibra — tratada como porta GigE padrão por segurança (sem COEX). Limite físico do aparelho: 8,8M píxeis (entrada DP/HDMI)." },
+    { "marca": "NovaStar", "modelo": "MCTRL500 (na folha: \"SD500\")", "ports": 4, "maxPixelsHardCap": 1300000, "nota": "\"MCTRL SD500\" não existe como modelo NovaStar confirmado — assumido MCTRL500 (nome mais próximo). 4 saídas RJ45 OU 4 saídas de fibra (seleção, não simultâneo). Limite ~1,3M píxeis @ 1920×1200 ou 2048×1152@60Hz." }
   ]
 }

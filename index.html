@@ -1894,15 +1894,15 @@
       var pitchAvg = ((tile.mw / tile.rx) + (tile.mh / tile.ry)) / 2;
       var numTiles = mx * my;
       var weightTotal = tile.weight == null ? null : tile.weight * numTiles;
-      var ampTotal = tile.amp * numTiles;
-      var ampPhase = ampTotal / 3;
+      var ampTotal = tile.amp == null ? null : tile.amp * numTiles;
+      var ampPhase = ampTotal == null ? null : ampTotal / 3;
 
       document.getElementById("proj-out-tiles").textContent = mx + " x " + my + " (" + fmtInt(numTiles) + ")";
       document.getElementById("proj-out-res").innerHTML = fmtInt(totalPx) + " x " + fmtInt(totalPy) + "<small>px</small>";
       document.getElementById("proj-out-size").innerHTML = fmt(totalWm, 2) + " x " + fmt(totalHm, 2) + "<small>m</small>";
       document.getElementById("proj-out-pitch").innerHTML = fmt(pitchAvg, 2) + "<small>mm</small>";
       document.getElementById("proj-out-weight").innerHTML = weightTotal == null ? "—" : fmt(weightTotal, 1) + "<small>kg</small>";
-      document.getElementById("proj-out-amp").innerHTML = fmt(ampTotal, 2) + "<small>A</small> (" + fmt(ampPhase, 2) + "<small>A/fase</small>)";
+      document.getElementById("proj-out-amp").innerHTML = ampTotal == null ? "—" : fmt(ampTotal, 2) + "<small>A</small> (" + fmt(ampPhase, 2) + "<small>A/fase</small>)";
 
       var boxesWrap = document.getElementById("proj-out-boxes-wrap");
       var boxesLine = "";
@@ -1928,7 +1928,7 @@
         "Tamanho real: " + fmt(totalWm, 2) + " x " + fmt(totalHm, 2) + " m\n" +
         "Pixel pitch: " + fmt(pitchAvg, 2) + " mm\n" +
         "Peso total: " + (weightTotal == null ? "não disponível" : fmt(weightTotal, 1) + " kg") + "\n" +
-        "Amp total: " + fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)";
+        "Amp total: " + (ampTotal == null ? "não disponível" : fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)");
     } else {
       if (!PROJECTORS_DATA.length) return;
       var projIdx = parseInt(projProjModelSel.value, 10);
