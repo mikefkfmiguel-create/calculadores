@@ -998,6 +998,44 @@
         </div>
       </div>
     </div>
+
+    <div class="divider" style="margin-top:26px;">sugestão de grelha para formato standard</div>
+    <div class="grid">
+      <div class="card">
+        <h2>Formato alvo</h2>
+        <div class="field">
+          <label for="l-suggest-ratio">Formato (relação de aspeto)</label>
+          <select id="l-suggest-ratio" class="plain">
+            <option value="16:9" selected>16:9 — widescreen</option>
+            <option value="16:10">16:10</option>
+            <option value="4:3">4:3 — clássico</option>
+            <option value="21:9">21:9 — cinema</option>
+            <option value="1:1">1:1 — quadrado</option>
+            <option value="custom">Personalizado</option>
+          </select>
+        </div>
+        <div class="row2" id="l-suggest-custom-ratio" style="display:none;">
+          <div class="field">
+            <label for="l-suggest-rw">Rácio — largura</label>
+            <div class="inputgroup"><input id="l-suggest-rw" type="number" inputmode="decimal" value="16" min="0.1" step="0.1"></div>
+          </div>
+          <div class="field">
+            <label for="l-suggest-rh">Rácio — altura</label>
+            <div class="inputgroup"><input id="l-suggest-rh" type="number" inputmode="decimal" value="9" min="0.1" step="0.1"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="l-suggest-diag">Diagonal aproximada</label>
+          <div class="inputgroup"><input id="l-suggest-diag" type="number" inputmode="decimal" value="180" min="1" step="1"><span class="unit">polegadas</span></div>
+          <div class="hint">Usa o tamanho de módulo (largura/altura definidas acima em "Tamanho do tile") para sugerir a grelha de tiles mais próxima deste formato.</div>
+        </div>
+      </div>
+      <div class="card results" data-accent="led">
+        <div class="stripe"></div>
+        <h2>Grelhas sugeridas</h2>
+        <div class="lensmatch-list" id="l-suggest-list">—</div>
+      </div>
+    </div>
   </section>
 
   <!-- BLENDING -->
@@ -1949,6 +1987,86 @@
       "Pixel pitch: " + fmt(pitchAvg,2) + " mm\n" +
       "Distância de visualização: " + fmt(dmin,1) + " – " + fmt(dmax,1) + " m (mín. – máx.)\n" +
       "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps: " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)";
+
+    calcLedSuggest();
+  }
+
+  var lSuggestRatioSel = document.getElementById("l-suggest-ratio");
+  var lSuggestCustomRatio = document.getElementById("l-suggest-custom-ratio");
+  lSuggestRatioSel.addEventListener("change", function () {
+    lSuggestCustomRatio.style.display = lSuggestRatioSel.value === "custom" ? "grid" : "none";
+    calcLed();
+  });
+
+  document.getElementById("l-suggest-list").addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-usegrid]");
+    if (!btn) return;
+    document.querySelectorAll("#l-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+    document.querySelector('#l-sizemode-seg .seg-btn[data-sizemode="tiles"]').classList.add("active");
+    lSizeMode = "tiles";
+    lTilesInputs.style.display = "block";
+    lMetersInputs.style.display = "none";
+    lMxInput.readOnly = false;
+    lMyInput.readOnly = false;
+    lMxInput.value = btn.dataset.mx;
+    lMyInput.value = btn.dataset.my;
+    calcLed();
+    lMxInput.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  function calcLedSuggest() {
+    var isCustom = lSuggestRatioSel.value === "custom";
+    var rw, rh;
+    if (isCustom) {
+      rw = val("l-suggest-rw");
+      rh = val("l-suggest-rh");
+    } else {
+      var parts = lSuggestRatioSel.value.split(":");
+      rw = parseFloat(parts[0]);
+      rh = parseFloat(parts[1]);
+    }
+    var r = rw / rh;
+    var diagIn = val("l-suggest-diag");
+    var mw = val("l-mw"), mh = val("l-mh");
+    var listEl = document.getElementById("l-suggest-list");
+
+    if (!(r > 0) || !(diagIn > 0) || !(mw > 0) || !(mh > 0)) {
+      listEl.innerHTML = '<div class="lm-empty">Preenche o formato, a diagonal e o tamanho do módulo.</div>';
+      return;
+    }
+
+    var diagM = diagIn * 0.0254;
+    var hIdeal = diagM / Math.sqrt(r * r + 1);
+    var wIdeal = hIdeal * r;
+    var mxIdeal = (wIdeal * 1000) / mw;
+    var mxFloor = Math.max(1, Math.floor(mxIdeal));
+
+    var candidates = [];
+    var seen = {};
+    for (var dx = -1; dx <= 2; dx++) {
+      var mx = mxFloor + dx;
+      if (mx < 1) continue;
+      var myExact = (mx * mw) / (mh * r);
+      var my = Math.max(1, Math.round(myExact));
+      var key = mx + "x" + my;
+      if (seen[key]) continue;
+      seen[key] = true;
+      var actualR = (mx * mw) / (my * mh);
+      candidates.push({ mx: mx, my: my, w: (mx * mw) / 1000, h: (my * mh) / 1000, delta: (actualR / r - 1) * 100 });
+    }
+    candidates.sort(function (a, b) { return Math.abs(a.delta) - Math.abs(b.delta); });
+    candidates = candidates.slice(0, 4);
+
+    if (!candidates.length) {
+      listEl.innerHTML = '<div class="lm-empty">Sem sugestões — confirma o tamanho do módulo e a diagonal.</div>';
+      return;
+    }
+    listEl.innerHTML = candidates.map(function (c, i) {
+      var deltaLabel = (c.delta >= 0 ? "+" : "") + fmt(c.delta, 1) + "%";
+      var bestBadge = i === 0 ? ' <span class="badge-match">melhor</span>' : "";
+      return '<div class="lm-item"><span><strong>' + c.mx + ' × ' + c.my + '</strong> tiles — ' + fmt(c.w,2) + ' x ' + fmt(c.h,2) + ' m — ' + describeRatio(c.w, c.h) + ' (' + deltaLabel + ')' + bestBadge + '</span>' +
+        '<button class="copy" data-usegrid data-mx="' + c.mx + '" data-my="' + c.my + '">Usar</button></div>';
+    }).join("");
   }
 
   function calcBlend() {
