@@ -727,15 +727,15 @@
               <input id="p-avail" type="number" inputmode="decimal" value="6" min="0.1" step="0.1">
               <span class="unit">metros</span>
             </div>
-            <div class="hint">Usa o mesmo throw ratio e formato definidos acima</div>
+            <div class="hint">Usa o throw ratio definido acima (mínimo/máximo, ou o necessário calculado a partir da distância conhecida) e o mesmo formato de ecrã</div>
           </div>
         </div>
         <div class="card results" data-accent="projecao">
           <div class="stripe"></div>
           <h2>Tamanho de ecrã recomendado</h2>
           <div class="readout">
-            <div class="item"><div class="k">Diagonal mín.</div><div class="v" id="p-out-diagmin">—</div></div>
-            <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="p-out-diagmax">—</div></div>
+            <div class="item" id="p-diagmin-item"><div class="k" id="p-diagmin-label">Diagonal mín.</div><div class="v" id="p-out-diagmin">—</div></div>
+            <div class="item" id="p-diagmax-item"><div class="k">Diagonal máx.</div><div class="v" id="p-out-diagmax">—</div></div>
             <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="p-out-wrange">—</div></div>
           </div>
         </div>
@@ -1431,7 +1431,6 @@
   var pThrowModeDistInputs = document.getElementById("p-throwmode-dist-inputs");
   var pThrowModeRatioOutput = document.getElementById("p-throwmode-ratio-output");
   var pThrowModeDistOutput = document.getElementById("p-throwmode-dist-output");
-  var pReverseCalc = document.getElementById("p-reverse-calc");
   document.querySelectorAll("#p-throwmode-seg .seg-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
       document.querySelectorAll("#p-throwmode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
@@ -1442,7 +1441,6 @@
       pThrowModeDistInputs.style.display = isDist ? "block" : "none";
       pThrowModeRatioOutput.style.display = isDist ? "none" : "block";
       pThrowModeDistOutput.style.display = isDist ? "block" : "none";
-      pReverseCalc.style.display = isDist ? "none" : "block";
       calcProjecao();
     });
   });
@@ -1552,9 +1550,12 @@
     document.getElementById("p-out-lumens80").innerHTML = fmtInt(lumens80) + "<small>lm</small>";
     document.getElementById("p-out-lux").innerHTML = fmtInt(lux) + "<small>lux</small>";
 
+    var reverseRatioMin, reverseRatioMax;
+
     if (pThrowMode === "dist") {
       var knownDist = val("p-knowndist");
       var ratioNeeded = knownDist / w;
+      reverseRatioMin = reverseRatioMax = ratioNeeded;
       document.getElementById("p-out-rationeeded").innerHTML = fmt(ratioNeeded, 2) + "<small>:1</small>";
       renderLensMatches(ratioNeeded);
       var matchNames = LENTES_DATA.filter(function (l) { return ratioNeeded >= l.min && ratioNeeded <= l.max; })
@@ -1568,6 +1569,8 @@
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
     } else {
       var dmin = tmin * w, dmax = tmax * w;
+      reverseRatioMin = tmin;
+      reverseRatioMax = tmax;
       document.getElementById("p-out-dmin").innerHTML = fmt(dmin, 2) + "<small>m</small>";
       document.getElementById("p-out-dmax").innerHTML = fmt(dmax, 2) + "<small>m</small>";
       document.getElementById("p-sum").textContent =
@@ -1578,14 +1581,20 @@
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
     }
 
-    // Reverse calc shares ratio + throw
+    // Reverse calc: usa o throw ratio mín/máx no modo "throw ratio",
+    // ou o throw ratio necessário (único) no modo "distância disponível"
     var avail = val("p-avail");
-    var wMin = avail / tmax, wMax = avail / tmin;
+    var wMin = avail / reverseRatioMax, wMax = avail / reverseRatioMin;
     var diagMin = wMin * Math.sqrt(1 + 1/(r*r)) / 0.0254;
     var diagMax = wMax * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+    var singleRatio = reverseRatioMin === reverseRatioMax;
+    document.getElementById("p-diagmin-label").textContent = singleRatio ? "Diagonal recomendada" : "Diagonal mín.";
+    document.getElementById("p-diagmax-item").style.display = singleRatio ? "none" : "";
     document.getElementById("p-out-diagmin").innerHTML = fmtInt(diagMin) + "<small>\"</small>";
     document.getElementById("p-out-diagmax").innerHTML = fmtInt(diagMax) + "<small>\"</small>";
-    document.getElementById("p-out-wrange").innerHTML = fmt(wMin,2) + "–" + fmt(wMax,2) + "<small>m</small>";
+    document.getElementById("p-out-wrange").innerHTML = singleRatio
+      ? (fmt(wMin,2) + "<small>m</small>")
+      : (fmt(wMin,2) + "–" + fmt(wMax,2) + "<small>m</small>");
   }
 
   var ledModelSel = document.getElementById("l-model");
