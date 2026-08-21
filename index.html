@@ -717,27 +717,29 @@
     </div>
 
     <div id="p-reverse-calc">
-      <div class="divider" style="margin-top:26px;">ou calcular ao contrário</div>
+      <div class="divider" style="margin-top:26px;">ou calcular pela distância de visualização</div>
       <div class="grid">
         <div class="card">
-          <h2>Distância disponível na sala</h2>
+          <h2>Distância da plateia</h2>
           <div class="field">
-            <label for="p-avail">Distância até ao ecrã</label>
+            <label for="p-avail">Distância entre a plateia e o ecrã</label>
             <div class="inputgroup">
               <input id="p-avail" type="number" inputmode="decimal" value="6" min="0.1" step="0.1">
               <span class="unit">metros</span>
             </div>
-            <div class="hint">Usa o throw ratio definido acima (mínimo/máximo, ou o necessário calculado a partir da distância conhecida) e o mesmo formato de ecrã</div>
+            <div class="hint">Não depende do throw ratio — usa o mesmo formato de ecrã definido acima.</div>
           </div>
         </div>
         <div class="card results" data-accent="projecao">
           <div class="stripe"></div>
-          <h2>Tamanho de ecrã recomendado</h2>
+          <h2>Tamanho de ecrã ideal</h2>
           <div class="readout">
-            <div class="item" id="p-diagmin-item"><div class="k" id="p-diagmin-label">Diagonal mín.</div><div class="v" id="p-out-diagmin">—</div></div>
-            <div class="item" id="p-diagmax-item"><div class="k">Diagonal máx.</div><div class="v" id="p-out-diagmax">—</div></div>
+            <div class="item"><div class="k">Diagonal mín.</div><div class="v" id="p-out-diagmin">—</div></div>
+            <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="p-out-diagmax">—</div></div>
             <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="p-out-wrange">—</div></div>
           </div>
+          <p class="note">Regra: distância = largura do ecrã × 3 (mín.) a × 7 (máx.)</p>
+          <div id="p-viewwarn" class="warn" style="display:none;"></div>
         </div>
       </div>
     </div>
@@ -1550,12 +1552,9 @@
     document.getElementById("p-out-lumens80").innerHTML = fmtInt(lumens80) + "<small>lm</small>";
     document.getElementById("p-out-lux").innerHTML = fmtInt(lux) + "<small>lux</small>";
 
-    var reverseRatioMin, reverseRatioMax;
-
     if (pThrowMode === "dist") {
       var knownDist = val("p-knowndist");
       var ratioNeeded = knownDist / w;
-      reverseRatioMin = reverseRatioMax = ratioNeeded;
       document.getElementById("p-out-rationeeded").innerHTML = fmt(ratioNeeded, 2) + "<small>:1</small>";
       renderLensMatches(ratioNeeded);
       var matchNames = LENTES_DATA.filter(function (l) { return ratioNeeded >= l.min && ratioNeeded <= l.max; })
@@ -1569,8 +1568,6 @@
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
     } else {
       var dmin = tmin * w, dmax = tmax * w;
-      reverseRatioMin = tmin;
-      reverseRatioMax = tmax;
       document.getElementById("p-out-dmin").innerHTML = fmt(dmin, 2) + "<small>m</small>";
       document.getElementById("p-out-dmax").innerHTML = fmt(dmax, 2) + "<small>m</small>";
       document.getElementById("p-sum").textContent =
@@ -1581,20 +1578,28 @@
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
     }
 
-    // Reverse calc: usa o throw ratio mín/máx no modo "throw ratio",
-    // ou o throw ratio necessário (único) no modo "distância disponível"
+    // Distância de visualização ideal: distância = largura × 3 (mín.) a × 7 (máx.)
+    // — regra fixa, independente do throw ratio do projetor.
+    var VIEW_MULT_MIN = 3, VIEW_MULT_MAX = 7;
     var avail = val("p-avail");
-    var wMin = avail / reverseRatioMax, wMax = avail / reverseRatioMin;
+    var wMin = avail / VIEW_MULT_MAX, wMax = avail / VIEW_MULT_MIN;
     var diagMin = wMin * Math.sqrt(1 + 1/(r*r)) / 0.0254;
     var diagMax = wMax * Math.sqrt(1 + 1/(r*r)) / 0.0254;
-    var singleRatio = reverseRatioMin === reverseRatioMax;
-    document.getElementById("p-diagmin-label").textContent = singleRatio ? "Diagonal recomendada" : "Diagonal mín.";
-    document.getElementById("p-diagmax-item").style.display = singleRatio ? "none" : "";
     document.getElementById("p-out-diagmin").innerHTML = fmtInt(diagMin) + "<small>\"</small>";
     document.getElementById("p-out-diagmax").innerHTML = fmtInt(diagMax) + "<small>\"</small>";
-    document.getElementById("p-out-wrange").innerHTML = singleRatio
-      ? (fmt(wMin,2) + "<small>m</small>")
-      : (fmt(wMin,2) + "–" + fmt(wMax,2) + "<small>m</small>");
+    document.getElementById("p-out-wrange").innerHTML = fmt(wMin,2) + "–" + fmt(wMax,2) + "<small>m</small>";
+
+    var viewWarn = document.getElementById("p-viewwarn");
+    var idealDistMin = w * VIEW_MULT_MIN, idealDistMax = w * VIEW_MULT_MAX;
+    if (avail > idealDistMax) {
+      viewWarn.style.display = "block";
+      viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é pequeno para " + fmt(avail,2) + " m de distância — ideal até " + fmt(idealDistMax,2) + " m. Ajusta a largura para pelo menos " + fmt(avail / VIEW_MULT_MIN,2) + " m.";
+    } else if (avail < idealDistMin) {
+      viewWarn.style.display = "block";
+      viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é grande para " + fmt(avail,2) + " m de distância — ideal a partir de " + fmt(idealDistMin,2) + " m. Ajusta a largura para no máximo " + fmt(avail / VIEW_MULT_MAX,2) + " m.";
+    } else {
+      viewWarn.style.display = "none";
+    }
   }
 
   var ledModelSel = document.getElementById("l-model");
