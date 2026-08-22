@@ -652,7 +652,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.24</span>
+    <span class="mark">v1.25</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1564,6 +1564,10 @@
             <div class="item"><div class="k">Amp total (por fase)</div><div class="v" id="proj-out-amp">—</div></div>
             <div class="item wide"><div class="k">Área total (uso interno)</div><div class="v" id="proj-out-area">—</div></div>
             <div class="item wide" id="proj-out-boxes-wrap" style="display:none;"><div class="k">Nº de caixas</div><div class="v" id="proj-out-boxes">—</div></div>
+          </div>
+          <div class="field" id="proj-zones-breakdown-wrap" style="display:none; margin-top:12px;">
+            <label>Zonas incluídas — que ecrã é o quê</label>
+            <div class="lensmatch-list" id="proj-zones-breakdown">—</div>
           </div>
         </div>
 
@@ -2871,10 +2875,16 @@
         if (!lzLastTotals || !lzLastTotals.zones.length) {
           zonesHint.style.display = "block";
           zonesHint.textContent = "Ainda não há zonas na aba Ecrã LED — adiciona pelo menos uma em \"ecrã complexo — múltiplas zonas\".";
+          document.getElementById("proj-zones-breakdown-wrap").style.display = "none";
           return;
         }
         zonesHint.style.display = "block";
         zonesHint.textContent = lzLastTotals.zones.length + " zona(s) somadas: " + lzLastTotals.zones.map(function (z) { return z.name; }).join(", ") + ".";
+
+        document.getElementById("proj-zones-breakdown-wrap").style.display = "block";
+        document.getElementById("proj-zones-breakdown").innerHTML = lzLastTotals.zones.map(function (z) {
+          return '<div class="lm-item"><span><strong>' + z.name + '</strong> — ' + z.model + ', ' + z.mx + '×' + z.my + ' tiles (' + fmtInt(z.numTiles) + ') — ' + fmt(z.w,2) + ' x ' + fmt(z.h,2) + ' m (' + fmt(z.area,2) + ' m²)</span></div>';
+        }).join("");
 
         var numTiles = lzLastTotals.totalTiles;
         var totalWeight = lzLastTotals.totalWeight, totalAmp = lzLastTotals.totalAmp;
@@ -2905,6 +2915,7 @@
           "Área total (uso interno): " + fmt(lzLastTotals.totalArea, 2) + " m²";
       } else {
       zonesHint.style.display = "none";
+      document.getElementById("proj-zones-breakdown-wrap").style.display = "none";
       if (!LED_TILES_DATA.length) return;
       updateSourceHint(projLedModelSel, LED_TILES_DATA, "proj-led-model-source", true);
       var tileIdx = parseInt(projLedModelSel.value, 10);
