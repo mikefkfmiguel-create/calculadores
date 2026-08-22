@@ -672,7 +672,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.39</span>
+    <span class="mark">v1.40</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3365,6 +3365,33 @@
     el.addEventListener("change", calcSinal);
   });
 
+  function downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function saveOrShareFile(filename, content, mimeType) {
+    var blob = new Blob([content], { type: mimeType });
+    var file = null;
+    try { file = new File([blob], filename, { type: mimeType }); } catch (e) {}
+    // Em PWA instalada no telemóvel, o download por <a download> pode falhar
+    // silenciosamente — a partilha nativa é mais fiável quando disponível.
+    if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file] }).catch(function (err) {
+        if (err && err.name === "AbortError") return;
+        downloadBlob(blob, filename);
+      });
+      return;
+    }
+    downloadBlob(blob, filename);
+  }
+
   document.getElementById("proj-download").addEventListener("click", function () {
     var nome = document.getElementById("proj-nome").value.trim() || "projeto";
     var stripped = Array.from(nome.normalize("NFD")).filter(function (ch) {
@@ -3373,15 +3400,7 @@
     }).join("");
     var slug = stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
     var text = document.getElementById("proj-sum").textContent;
-    var blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = slug + ".txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    saveOrShareFile(slug + ".txt", text, "text/plain;charset=utf-8");
   });
 
   function segActive(containerId) {
@@ -3443,15 +3462,7 @@
       selectedSwitchers: Array.from(selectedSwitcherKeys),
       selectedLedProcs: Array.from(selectedLedProcKeys)
     };
-    var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json;charset=utf-8" });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = slug + ".json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    saveOrShareFile(slug + ".json", JSON.stringify(state, null, 2), "application/json;charset=utf-8");
   });
 
   document.getElementById("proj-open").addEventListener("click", function () {
