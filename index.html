@@ -670,7 +670,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.32</span>
+    <span class="mark">v1.33</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -761,6 +761,13 @@
         </div>
 
         <div id="p-throwmode-ratio-inputs">
+          <div class="field">
+            <label for="p-lensmodel">Lente</label>
+            <select id="p-lensmodel" class="plain">
+              <option value="custom">Personalizado…</option>
+            </select>
+            <div class="hint">Escolhe a lente pelo nome para ela ficar identificada no relatório — ou deixa "Personalizado…" e indica só o throw ratio.</div>
+          </div>
           <div class="row2">
             <div class="field">
               <label for="p-tmin">Throw ratio mínimo</label>
@@ -1517,14 +1524,23 @@
             <div class="inputgroup"><input id="proj-proj-dist" type="number" inputmode="decimal" value="4.0" min="0.1" step="0.01"><span class="unit">m</span></div>
             <div class="hint">Medida a partir da lente do projetor.</div>
           </div>
-          <div class="row2" id="proj-throwmode-ratio-inputs" style="display:none;">
+          <div id="proj-throwmode-ratio-inputs" style="display:none;">
             <div class="field">
-              <label for="proj-proj-tmin">Throw ratio mínimo</label>
-              <div class="inputgroup"><input id="proj-proj-tmin" type="number" inputmode="decimal" value="1.39" min="0.1" step="0.01"></div>
+              <label for="proj-proj-lensmodel">Lente</label>
+              <select id="proj-proj-lensmodel" class="plain">
+                <option value="custom">Personalizado…</option>
+              </select>
+              <div class="hint">Escolhe a lente pelo nome para ela ficar identificada no relatório — ou deixa "Personalizado…" e indica só o throw ratio.</div>
             </div>
-            <div class="field">
-              <label for="proj-proj-tmax">Throw ratio máximo</label>
-              <div class="inputgroup"><input id="proj-proj-tmax" type="number" inputmode="decimal" value="1.87" min="0.1" step="0.01"></div>
+            <div class="row2">
+              <div class="field">
+                <label for="proj-proj-tmin">Throw ratio mínimo</label>
+                <div class="inputgroup"><input id="proj-proj-tmin" type="number" inputmode="decimal" value="1.39" min="0.1" step="0.01"></div>
+              </div>
+              <div class="field">
+                <label for="proj-proj-tmax">Throw ratio máximo</label>
+                <div class="inputgroup"><input id="proj-proj-tmax" type="number" inputmode="decimal" value="1.87" min="0.1" step="0.01"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1949,8 +1965,36 @@
     return matches;
   }
 
+  function populateLensModelSelect(sel, brand) {
+    while (sel.options.length > 1) sel.remove(0);
+    LENTES_DATA.forEach(function (l, idx) {
+      var brandOk = !brand || l.marca === brand || l.marca.indexOf(brand + " (") === 0;
+      if (!brandOk) return;
+      var ratioText = l.min === l.max ? fmt(l.min, 2) + " fixo" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
+      addOption(sel, String(idx), l.marca + " " + l.modelo + " (" + ratioText + ")", false, idx);
+    });
+  }
+
   var projModelSel = document.getElementById("p-projmodel");
   var pResMode = "enhanced";
+  var pLensModelSel = document.getElementById("p-lensmodel");
+  var pTminInput = document.getElementById("p-tmin");
+  var pTmaxInput = document.getElementById("p-tmax");
+  function pSelectedProjBrand() {
+    var selOpt = projModelSel.options[projModelSel.selectedIndex];
+    var selP = selOpt && selOpt.dataset.idx !== undefined ? PROJECTORS_DATA[selOpt.dataset.idx] : null;
+    return selP ? selP.modelo.split(" ")[0] : null;
+  }
+  pLensModelSel.addEventListener("change", function () {
+    if (pLensModelSel.value === "custom") { calcProjecao(); return; }
+    var l = LENTES_DATA[parseInt(pLensModelSel.value, 10)];
+    pTminInput.value = l.min;
+    pTmaxInput.value = l.max;
+    calcProjecao();
+  });
+  [pTminInput, pTmaxInput].forEach(function (el) {
+    el.addEventListener("input", function () { pLensModelSel.value = "custom"; });
+  });
   var pResModeField = document.getElementById("p-resmode-field");
   document.querySelectorAll("#p-resmode-seg .seg-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
@@ -1966,6 +2010,8 @@
     pResModeField.style.display = selP && selP.resolucaoNativa ? "block" : "none";
     pResMode = "enhanced";
     document.querySelectorAll("#p-resmode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.resmode === "enhanced"); });
+    populateLensModelSelect(pLensModelSel, pSelectedProjBrand());
+    pLensModelSel.value = "custom";
     if (projModelSel.value === "custom") { calcProjecao(); return; }
     document.getElementById("p-lumens").value = projModelSel.value;
     calcProjecao();
@@ -2080,9 +2126,11 @@
       var dmin = tmin * w, dmax = tmax * w;
       document.getElementById("p-out-dmin").innerHTML = fmt(dmin, 2) + "<small>m</small>";
       document.getElementById("p-out-dmax").innerHTML = fmt(dmax, 2) + "<small>m</small>";
+      var pLens = pLensModelSel.value !== "custom" ? LENTES_DATA[parseInt(pLensModelSel.value, 10)] : null;
       document.getElementById("p-sum").textContent =
         "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
         "Resolução do projetor: " + fmtResWithNote(selProj, pResMode) + "\n" +
+        (pLens ? "Lente: " + pLens.marca + " " + pLens.modelo + "\n" : "") +
         "Throw ratio: " + fmt(tmin,2) + " – " + fmt(tmax,2) + "\n" +
         "Distância de projeção: " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n" +
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
@@ -2808,6 +2856,24 @@
 
   var projLedModelSel = document.getElementById("proj-led-model");
   var projProjModelSel = document.getElementById("proj-proj-model");
+  var projProjLensModelSel = document.getElementById("proj-proj-lensmodel");
+  var projProjTminInput = document.getElementById("proj-proj-tmin");
+  var projProjTmaxInput = document.getElementById("proj-proj-tmax");
+  function projProjSelectedBrand() {
+    var projIdx = parseInt(projProjModelSel.value, 10);
+    var selP = PROJECTORS_DATA[isNaN(projIdx) ? -1 : projIdx];
+    return selP ? selP.modelo.split(" ")[0] : null;
+  }
+  projProjLensModelSel.addEventListener("change", function () {
+    if (projProjLensModelSel.value === "custom") { calcProjeto(); return; }
+    var l = LENTES_DATA[parseInt(projProjLensModelSel.value, 10)];
+    projProjTminInput.value = l.min;
+    projProjTmaxInput.value = l.max;
+    calcProjeto();
+  });
+  [projProjTminInput, projProjTmaxInput].forEach(function (el) {
+    el.addEventListener("input", function () { projProjLensModelSel.value = "custom"; });
+  });
   var projProjResMode = "enhanced";
   document.querySelectorAll("#proj-proj-resmode-seg .seg-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
@@ -2820,6 +2886,8 @@
   projProjModelSel.addEventListener("change", function () {
     projProjResMode = "enhanced";
     document.querySelectorAll("#proj-proj-resmode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.resmode === "enhanced"); });
+    populateLensModelSelect(projProjLensModelSel, projProjSelectedBrand());
+    projProjLensModelSel.value = "custom";
   });
   var projLedSizeMode = "meters";
   var projLedTilesInputs = document.getElementById("proj-led-tiles-inputs");
@@ -2939,7 +3007,7 @@
       projThrowMode = btn.dataset.throwmode;
       var isRatio = projThrowMode === "ratio";
       projThrowModeDistInputs.style.display = isRatio ? "none" : "block";
-      projThrowModeRatioInputs.style.display = isRatio ? "grid" : "none";
+      projThrowModeRatioInputs.style.display = isRatio ? "block" : "none";
       document.getElementById("proj-out-ratio-label").textContent = isRatio ? "Distância de projeção necessária" : "Throw ratio necessário";
       calcProjeto();
     });
@@ -3133,7 +3201,7 @@
       var lumensTotal80 = lumens80 * nProj;
       var lux = lumensTotal80 / area;
 
-      var matches, ratioOutHtml, distLine, ratioLine, fitTarget;
+      var matches, ratioOutHtml, distLine, ratioLine, fitTarget, lensLine = "";
       if (!isBlend && projThrowMode === "ratio") {
         var tmin = val("proj-proj-tmin"), tmax = val("proj-proj-tmax");
         var dmin = tmin * w, dmax = tmax * w;
@@ -3145,6 +3213,10 @@
         });
         distLine = "Distância de projeção necessária: " + fmt(dmin, 2) + " – " + fmt(dmax, 2) + " m\n";
         ratioLine = "Throw ratio: " + fmt(tmin, 2) + " – " + fmt(tmax, 2) + "\n";
+        if (projProjLensModelSel.value !== "custom") {
+          var projProjLens = LENTES_DATA[parseInt(projProjLensModelSel.value, 10)];
+          if (projProjLens) lensLine = "Lente: " + projProjLens.marca + " " + projProjLens.modelo + "\n";
+        }
       } else {
         var dist = val("proj-proj-dist");
         var ratioNeeded = dist / widthPerProj;
@@ -3204,6 +3276,7 @@
         "Ecrã: " + screenLabel + "\n" +
         blendLine +
         totalPxLine +
+        lensLine +
         distLine +
         ratioLine +
         "Lentes compatíveis" + (isBlend ? " (por projetor)" : "") + ": " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") + (matches.length > 1 ? " — melhor: " + matches[0].marca + " " + matches[0].modelo : "") : "nenhuma na base") + "\n" +
@@ -3648,6 +3721,8 @@
     lenses.sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
     LENTES_DATA = lenses;
     renderLenses(lenses);
+    populateLensModelSelect(pLensModelSel, pSelectedProjBrand());
+    populateLensModelSelect(projProjLensModelSel, projProjSelectedBrand());
     var brandSel = document.getElementById("ln-brand");
     Array.from(new Set(lenses.map(function (l) { return l.marca; })))
       .sort(function (a, b) { return a.localeCompare(b); })
