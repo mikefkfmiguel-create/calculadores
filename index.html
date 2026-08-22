@@ -666,7 +666,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.27</span>
+    <span class="mark">v1.28</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1365,6 +1365,17 @@
           <label for="proj-nome">Nome do projeto</label>
           <div class="inputgroup"><input id="proj-nome" type="text" placeholder="ex: Evento X — Sala Principal"></div>
         </div>
+        <div class="row2">
+          <div class="field">
+            <label for="proj-data-inicio">Data de início</label>
+            <div class="inputgroup"><input id="proj-data-inicio" type="date"></div>
+          </div>
+          <div class="field">
+            <label for="proj-data-fim">Data de fim</label>
+            <div class="inputgroup"><input id="proj-data-fim" type="date"></div>
+          </div>
+        </div>
+        <div class="hint">Opcional — fica registada no relatório. Útil já agora para referência; mais tarde vai servir para cruzar disponibilidade de equipamento entre projetos.</div>
 
         <div id="proj-led-fields">
           <div class="divider">Ecrã LED</div>
@@ -2924,6 +2935,12 @@
 
   function calcProjeto() {
     var nome = document.getElementById("proj-nome").value.trim() || "Projeto sem nome";
+    var dataInicio = document.getElementById("proj-data-inicio").value;
+    var dataFim = document.getElementById("proj-data-fim").value;
+    var datesLine = "";
+    if (dataInicio || dataFim) {
+      datesLine = "Datas: " + (dataInicio ? fmtDatePT(dataInicio) : "?") + " – " + (dataFim ? fmtDatePT(dataFim) : "?") + "\n";
+    }
     var canvasPixels = 0, canvasLabel = "Ecrã", mainSumText = "";
 
     if (projType === "led") {
@@ -2964,6 +2981,7 @@
 
         mainSumText =
           "PROJETO: " + nome + "\n" +
+          datesLine +
           "Tipo: Ecrã LED (múltiplas zonas)\n" +
           lzLastTotals.zones.map(function (z) {
             return "  " + z.name + ": " + z.model + " — " + z.mx + "x" + z.my + " tiles, " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²)";
@@ -3022,6 +3040,7 @@
 
       mainSumText =
         "PROJETO: " + nome + "\n" +
+        datesLine +
         "Tipo: Ecrã LED\n" +
         "Modelo de tile: " + tile.modelo + "\n" +
         "Tiles: " + mx + " x " + my + " (" + fmtInt(numTiles) + " no total)\n" +
@@ -3158,6 +3177,7 @@
 
       mainSumText =
         "PROJETO: " + nome + "\n" +
+        datesLine +
         "Tipo: Projeção" + (isBlend ? " (blend)" : "") + "\n" +
         "Projetor: " + proj.modelo + " (" + fmtInt(lumens) + " lm cada)\n" +
         (isBlend ? "" : "Resolução: " + projResEl.textContent + (proj.resolucaoNota ? " (" + proj.resolucaoNota + ")" : "") + "\n") +
@@ -3332,6 +3352,8 @@
       _app: "calculadores-projeto",
       _v: 1,
       nome: fieldVal("proj-nome"),
+      dataInicio: fieldVal("proj-data-inicio"),
+      dataFim: fieldVal("proj-data-fim"),
       projtype: segActive("proj-type-seg").projtype,
       ledModelName: modelIdxToName(LED_TILES_DATA, document.getElementById("proj-led-model").value),
       ledSizeMode: segActive("proj-led-sizemode-seg").sizemode,
@@ -3375,6 +3397,8 @@
       if (!state || state._app !== "calculadores-projeto") { alert("Este ficheiro não é um projeto guardado desta app."); return; }
 
       setFieldVal("proj-nome", state.nome);
+      setFieldVal("proj-data-inicio", state.dataInicio);
+      setFieldVal("proj-data-fim", state.dataFim);
       segClick("proj-type-seg", "projtype", state.projtype);
 
       document.getElementById("proj-led-model").value = modelNameToIdx(LED_TILES_DATA, state.ledModelName);
@@ -3477,6 +3501,13 @@
   }
   function wireStockColor(select) {
     select.addEventListener("change", function () { updateSelectStockColor(select); });
+  }
+
+  function fmtDatePT(iso) {
+    if (!iso) return "";
+    var parts = iso.split("-");
+    if (parts.length !== 3) return iso;
+    return parts[2] + "/" + parts[1] + "/" + parts[0];
   }
 
   function fmtRes(res) {
