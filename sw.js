@@ -1,4 +1,4 @@
-const CACHE = "calculadores-v62";
+const CACHE = "calculadores-v63";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -16,7 +16,18 @@ const DATA_FILES = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(APP_SHELL.concat(DATA_FILES)))
+    caches.open(CACHE).then((cache) =>
+      Promise.all(
+        APP_SHELL.concat(DATA_FILES).map((url) =>
+          cache.add(new Request(url, { cache: "reload" })).catch((err) => {
+            // Uma falha isolada (ex: soluço de rede num único ficheiro) não pode
+            // travar a instalação toda — senão a app fica presa na versão antiga
+            // para sempre, sem erro visível.
+            console.error("Falha a pré-cache:", url, err);
+          })
+        )
+      )
+    )
   );
   self.skipWaiting();
 });
