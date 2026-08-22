@@ -666,7 +666,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.26</span>
+    <span class="mark">v1.27</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -784,6 +784,14 @@
             <option value="custom">Personalizado…</option>
           </select>
           <div class="srclink-wrap" id="p-projmodel-source"></div>
+        </div>
+        <div class="field" id="p-resmode-field" style="display:none;">
+          <label>Resolução a usar nos cálculos</label>
+          <div class="seg" id="p-resmode-seg">
+            <button type="button" class="seg-btn active" data-resmode="enhanced">Declarada (pixel-shift)</button>
+            <button type="button" class="seg-btn" data-resmode="native">Nativa (painel/chip)</button>
+          </div>
+          <div class="hint">Este modelo atinge a resolução declarada por pixel-shift — o painel/chip nativo é mais baixo. Escolhe qual usar.</div>
         </div>
         <div class="field">
           <label for="p-lumens">Luminosidade do projetor (100%)</label>
@@ -1416,6 +1424,14 @@
             </select>
             <div class="srclink-wrap" id="proj-proj-model-source"></div>
           </div>
+          <div class="field" id="proj-proj-resmode-field" style="display:none;">
+            <label>Resolução a usar nos cálculos</label>
+            <div class="seg" id="proj-proj-resmode-seg">
+              <button type="button" class="seg-btn active" data-resmode="enhanced">Declarada (pixel-shift)</button>
+              <button type="button" class="seg-btn" data-resmode="native">Nativa (painel/chip)</button>
+            </div>
+            <div class="hint">Este modelo atinge a resolução declarada por pixel-shift — o painel/chip nativo é mais baixo. Escolhe qual usar.</div>
+          </div>
           <div class="field">
             <label>Projetor único ou blend?</label>
             <div class="seg" id="proj-blendmode-seg">
@@ -1911,8 +1927,23 @@
   }
 
   var projModelSel = document.getElementById("p-projmodel");
+  var pResMode = "enhanced";
+  var pResModeField = document.getElementById("p-resmode-field");
+  document.querySelectorAll("#p-resmode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#p-resmode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      pResMode = btn.dataset.resmode;
+      calcProjecao();
+    });
+  });
   projModelSel.addEventListener("change", function () {
-    if (projModelSel.value === "custom") return;
+    var selOpt = projModelSel.options[projModelSel.selectedIndex];
+    var selP = selOpt && selOpt.dataset.idx !== undefined ? PROJECTORS_DATA[selOpt.dataset.idx] : null;
+    pResModeField.style.display = selP && selP.resolucaoNativa ? "block" : "none";
+    pResMode = "enhanced";
+    document.querySelectorAll("#p-resmode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.resmode === "enhanced"); });
+    if (projModelSel.value === "custom") { calcProjecao(); return; }
     document.getElementById("p-lumens").value = projModelSel.value;
     calcProjecao();
   });
@@ -1996,7 +2027,8 @@
     document.getElementById("p-out-h").innerHTML = fmt(h, 2) + "<small>m</small>";
     var selOpt = projModelSel.options[projModelSel.selectedIndex];
     var selProj = selOpt && selOpt.dataset.idx !== undefined ? PROJECTORS_DATA[selOpt.dataset.idx] : null;
-    document.getElementById("p-out-projres").textContent = selProj ? fmtRes(selProj.resolucao) : "—";
+    pResModeField.style.display = selProj && selProj.resolucaoNativa ? "block" : "none";
+    document.getElementById("p-out-projres").textContent = selProj ? fmtRes(effectiveProjRes(selProj, pResMode)) : "—";
     updateSourceHint(projModelSel, PROJECTORS_DATA, "p-projmodel-source");
 
     var tmin = val("p-tmin"), tmax = val("p-tmax");
@@ -2016,7 +2048,7 @@
         .map(function (l) { return l.marca + " " + l.modelo; });
       document.getElementById("p-sum").textContent =
         "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
-        "Resolução do projetor: " + fmtResWithNote(selProj) + "\n" +
+        "Resolução do projetor: " + fmtResWithNote(selProj, pResMode) + "\n" +
         "Distância entre a lente e o ecrã: " + fmt(knownDist,2) + " m\n" +
         "Throw ratio necessário: " + fmt(ratioNeeded,2) + ":1\n" +
         "Lentes compatíveis: " + (matchNames.length ? matchNames.join(", ") : "nenhuma na base") + "\n" +
@@ -2027,7 +2059,7 @@
       document.getElementById("p-out-dmax").innerHTML = fmt(dmax, 2) + "<small>m</small>";
       document.getElementById("p-sum").textContent =
         "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
-        "Resolução do projetor: " + fmtResWithNote(selProj) + "\n" +
+        "Resolução do projetor: " + fmtResWithNote(selProj, pResMode) + "\n" +
         "Throw ratio: " + fmt(tmin,2) + " – " + fmt(tmax,2) + "\n" +
         "Distância de projeção: " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n" +
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
@@ -2753,6 +2785,19 @@
 
   var projLedModelSel = document.getElementById("proj-led-model");
   var projProjModelSel = document.getElementById("proj-proj-model");
+  var projProjResMode = "enhanced";
+  document.querySelectorAll("#proj-proj-resmode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#proj-proj-resmode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      projProjResMode = btn.dataset.resmode;
+      calcProjeto();
+    });
+  });
+  projProjModelSel.addEventListener("change", function () {
+    projProjResMode = "enhanced";
+    document.querySelectorAll("#proj-proj-resmode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.resmode === "enhanced"); });
+  });
   var projLedSizeMode = "meters";
   var projLedTilesInputs = document.getElementById("proj-led-tiles-inputs");
   var projLedMetersInputs = document.getElementById("proj-led-meters-inputs");
@@ -2994,6 +3039,8 @@
       var projIdx = parseInt(projProjModelSel.value, 10);
       var proj = PROJECTORS_DATA[isNaN(projIdx) ? 0 : projIdx];
       var brand = proj.modelo.split(" ")[0];
+      var isBlend = projBlendMode === "blend";
+      document.getElementById("proj-proj-resmode-field").style.display = (proj.resolucaoNativa && !isBlend) ? "block" : "none";
 
       var w, h, screenLabel;
       if (projSizeMode === "height") {
@@ -3011,7 +3058,6 @@
         screenLabel = fmtInt(diagIn) + '" (' + rw + ":" + rh + ") — " + fmt(w, 2) + " x " + fmt(h, 2) + " m";
       }
       var area = w * h;
-      var isBlend = projBlendMode === "blend";
 
       var nh = 1, nv = 1, widthPerProj = w, overlapM = 0, blendLine = "", blendResPx = null, totalPxLine = "";
       if (isBlend) {
@@ -3079,18 +3125,19 @@
         ratioLine = "Throw ratio necessário" + (isBlend ? " (por projetor)" : "") + ": " + fmt(ratioNeeded, 2) + ":1\n";
       }
 
+      var projRes = effectiveProjRes(proj, projProjResMode);
       document.getElementById("proj-out-screensize").innerHTML = fmt(w, 2) + " x " + fmt(h, 2) + "<small>m</small>";
       var projResLabel = document.getElementById("proj-out-projres-label");
       var projResEl = document.getElementById("proj-out-projres");
       if (isBlend) {
         projResLabel.textContent = "Resolução por projetor (configurada)";
         projResEl.textContent = fmtRes(blendResPx);
-      } else if (!proj.resolucao) {
+      } else if (!projRes) {
         projResLabel.textContent = "Resolução do projetor";
         projResEl.textContent = "—";
       } else {
         projResLabel.textContent = "Resolução do projetor";
-        projResEl.textContent = fmtRes(proj.resolucao);
+        projResEl.textContent = fmtRes(projRes) + (proj.resolucaoNativa ? (projProjResMode === "native" ? " (nativo)" : " (declarado — pixel-shift)") : "");
       }
       document.getElementById("proj-out-ratio").innerHTML = ratioOutHtml;
       document.getElementById("proj-out-lumens").innerHTML = fmtInt(lumensTotal80) + "<small>lm</small>";
@@ -3107,7 +3154,7 @@
       }
 
       canvasLabel = isBlend ? "Ecrã (blend)" : "Ecrã (projeção)";
-      canvasPixels = isBlend ? totalPxCount : (proj.resolucao ? proj.resolucao.rx * proj.resolucao.ry : 0);
+      canvasPixels = isBlend ? totalPxCount : (projRes ? projRes.rx * projRes.ry : 0);
 
       mainSumText =
         "PROJETO: " + nome + "\n" +
@@ -3436,9 +3483,17 @@
     return res ? res.rx + "×" + res.ry : "—";
   }
 
-  function fmtResWithNote(proj) {
+  function effectiveProjRes(proj, mode) {
+    if (!proj) return null;
+    if (mode === "native" && proj.resolucaoNativa) return proj.resolucaoNativa;
+    return proj.resolucao;
+  }
+
+  function fmtResWithNote(proj, mode) {
     if (!proj || !proj.resolucao) return "—";
-    var base = fmtRes(proj.resolucao);
+    var res = effectiveProjRes(proj, mode);
+    var base = fmtRes(res);
+    if (proj.resolucaoNativa) base += mode === "native" ? " (nativo)" : " (declarado — pixel-shift)";
     return proj.resolucaoNota ? base + " (" + proj.resolucaoNota + ")" : base;
   }
 
