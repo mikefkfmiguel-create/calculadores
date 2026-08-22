@@ -566,6 +566,16 @@
     cursor: pointer;
     text-decoration: underline;
   }
+  a.srclink {
+    display: inline-block;
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--ink-faint);
+  }
+  a.srclink:hover { color: var(--ink); border-bottom-color: var(--ink-soft); }
+  .field .srclink-wrap { margin-top: 6px; }
+  .lm-item .srclink { margin-left: 8px; }
 
   .summary {
     margin-top: 16px;
@@ -654,9 +664,9 @@
 
   <div class="tabs" role="tablist">
     <button class="tab" data-mode="projecao" role="tab" aria-selected="true"><span class="swatch"></span>Distância de Projeção</button>
+    <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
     <button class="tab" data-mode="visualizacao" role="tab" aria-selected="false"><span class="swatch"></span>Distância de Visualização</button>
     <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
-    <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
     <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
     <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
     <button class="tab" data-mode="sinal" role="tab" aria-selected="false"><span class="swatch"></span>Sinal &amp; Data Rate</button>
@@ -749,6 +759,7 @@
           <select id="p-projmodel" class="plain">
             <option value="custom">Personalizado…</option>
           </select>
+          <div class="srclink-wrap" id="p-projmodel-source"></div>
         </div>
         <div class="field">
           <label for="p-lumens">Luminosidade do projetor (100%)</label>
@@ -933,6 +944,7 @@
           <select id="l-model" class="plain">
             <option value="custom">Personalizado…</option>
           </select>
+          <div class="srclink-wrap" id="l-model-source"></div>
           <div class="hint">Valores de fichas técnicas públicas — confirma sempre com o fabricante antes de produção. O modelo escolhido preenche tamanho, resolução, peso e amp abaixo (podes ajustar à mão).</div>
         </div>
 
@@ -1170,6 +1182,7 @@
           <select id="b-projmodel" class="plain">
             <option value="custom">Personalizado…</option>
           </select>
+          <div class="srclink-wrap" id="b-projmodel-source"></div>
         </div>
         <div class="field">
           <label for="b-lumens">Luminosidade por projetor (100%)</label>
@@ -1251,7 +1264,7 @@
     <div class="card lenstable-wrap">
       <table class="lenstable" id="lens-table">
         <thead>
-          <tr><th>Marca</th><th>Modelo</th><th>Throw ratio</th><th></th></tr>
+          <tr><th>Marca</th><th>Modelo</th><th>Throw ratio</th><th></th><th>Fonte</th></tr>
         </thead>
         <tbody></tbody>
       </table>
@@ -1295,6 +1308,7 @@
             <select id="proj-led-model" class="plain">
               <option value="custom">Personalizado…</option>
             </select>
+            <div class="srclink-wrap" id="proj-led-model-source"></div>
           </div>
           <div class="field">
             <label>Como queres indicar o tamanho?</label>
@@ -1337,6 +1351,7 @@
             <select id="proj-proj-model" class="plain">
               <option value="custom">Personalizado…</option>
             </select>
+            <div class="srclink-wrap" id="proj-proj-model-source"></div>
           </div>
           <div class="field">
             <label>Projetor único ou blend?</label>
@@ -1628,6 +1643,21 @@
     return fmt(r, 2) + ":1";
   }
   function val(id) { return parseFloat(document.getElementById(id).value); }
+  function srcLinkHtml(fonte, label) {
+    if (!fonte) return "";
+    return '<a class="srclink" href="' + fonte + '" target="_blank" rel="noopener">' + (label || "Ficha técnica do fabricante") + ' ↗</a>';
+  }
+  function selectedDataIdx(sel) {
+    var opt = sel.options[sel.selectedIndex];
+    return opt && opt.dataset.idx !== undefined ? parseInt(opt.dataset.idx, 10) : NaN;
+  }
+  function updateSourceHint(sel, dataArray, hintElId, useValueAsIdx) {
+    var el = document.getElementById(hintElId);
+    if (!el) return;
+    var idx = useValueAsIdx ? parseInt(sel.value, 10) : selectedDataIdx(sel);
+    var item = !isNaN(idx) && dataArray[idx] ? dataArray[idx] : null;
+    el.innerHTML = item ? srcLinkHtml(item.fonte) : "";
+  }
 
   // Standards de distância de visualização, partilhados entre a aba
   // "Distância de Visualização" e a leitura de referência na aba de Ecrã LED.
@@ -1797,7 +1827,7 @@
     }
     el.innerHTML = matches.map(function (l) {
       var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
-      return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span></span><span>' + ratioText + '</span></div>';
+      return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + '</span><span>' + ratioText + '</span></div>';
     }).join("");
   }
 
@@ -1883,6 +1913,7 @@
     var selOpt = projModelSel.options[projModelSel.selectedIndex];
     var selProj = selOpt && selOpt.dataset.idx !== undefined ? PROJECTORS_DATA[selOpt.dataset.idx] : null;
     document.getElementById("p-out-projres").textContent = selProj ? fmtRes(selProj.resolucao) : "—";
+    updateSourceHint(projModelSel, PROJECTORS_DATA, "p-projmodel-source");
 
     var tmin = val("p-tmin"), tmax = val("p-tmax");
     var lumens = val("p-lumens");
@@ -2059,6 +2090,7 @@
   });
 
   function calcLed() {
+    updateSourceHint(ledModelSel, LED_TILES_DATA, "l-model-source", true);
     var mw = val("l-mw"), mh = val("l-mh");
     var rx = val("l-rx"), ry = val("l-ry");
     var mx, my;
@@ -2212,6 +2244,7 @@
   }
 
   function calcBlend() {
+    updateSourceHint(blendProjModelSel, PROJECTORS_DATA, "b-projmodel-source");
     var wm = val("b-w"), hm = val("b-h");
     var hpx = val("b-hpx"), vpx = val("b-vpx");
     var nh, nv, oh;
@@ -2310,7 +2343,7 @@
       tr.dataset.max = l.max;
       tr.dataset.marca = l.marca;
       var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
-      tr.innerHTML = "<td>" + l.marca + "</td><td>" + l.modelo + "</td><td class=\"ratio\">" + ratioText + "</td><td class=\"match-cell\"></td>";
+      tr.innerHTML = "<td>" + l.marca + "</td><td>" + l.modelo + "</td><td class=\"ratio\">" + ratioText + "</td><td class=\"match-cell\"></td><td>" + srcLinkHtml(l.fonte, "Ver") + "</td>";
       lensTbody.appendChild(tr);
     });
   }
@@ -2492,6 +2525,7 @@
 
     if (projType === "led") {
       if (!LED_TILES_DATA.length) return;
+      updateSourceHint(projLedModelSel, LED_TILES_DATA, "proj-led-model-source", true);
       var tileIdx = parseInt(projLedModelSel.value, 10);
       var tile = LED_TILES_DATA[isNaN(tileIdx) ? 0 : tileIdx];
       var mx, my;
@@ -2545,6 +2579,7 @@
         "Amp total: " + (ampTotal == null ? "não disponível" : fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)");
     } else {
       if (!PROJECTORS_DATA.length) return;
+      updateSourceHint(projProjModelSel, PROJECTORS_DATA, "proj-proj-model-source", true);
       var projIdx = parseInt(projProjModelSel.value, 10);
       var proj = PROJECTORS_DATA[isNaN(projIdx) ? 0 : projIdx];
       var brand = proj.modelo.split(" ")[0];

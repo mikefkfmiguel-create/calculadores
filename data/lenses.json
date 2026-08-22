@@ -3,426 +3,497 @@
     "marca": "Barco",
     "modelo": "TLD+ UST",
     "min": 0.28,
-    "max": 0.42
+    "max": 0.42,
+    "fonte": "https://www.barco.com/en/support/ultra-short-throw-en59"
   },
   {
     "marca": "Barco",
     "modelo": "FLD+ Long",
     "min": 2.5,
-    "max": 4.6
+    "max": 4.6,
+    "fonte": "https://www.barco.com/en/product/long-throw-zoom-high-resolution-en44"
   },
   {
     "marca": "Barco",
     "modelo": "FLD Extra-long",
     "min": 3.8,
-    "max": 6.5
+    "max": 6.5,
+    "fonte": "https://www.barco.com/en/product/extra-long-throw-zoom-lens-en16"
   },
   {
     "marca": "Christie",
     "modelo": "Ultra Short",
     "min": 0.5,
-    "max": 0.6
+    "max": 0.6,
+    "fonte": "https://www.christiedigital.com/products/end-of-support/lenses/0.5---0.61-ultra-short-lens"
   },
   {
     "marca": "Christie",
     "modelo": "Roadster 0,67 fixo curto",
     "min": 0.67,
-    "max": 0.67
+    "max": 0.67,
+    "fonte": "https://www.christiedigital.com/products/all-accessories/lenses/ils-lens-0.731-sx0.671-hd"
   },
   {
     "marca": "Christie",
     "modelo": "High Contrast",
     "min": 1.13,
-    "max": 1.66
+    "max": 1.66,
+    "fonte": "https://www.christiedigital.com/products/all-accessories/lenses/113-13661-high-contrast-lens/"
   },
   {
     "marca": "Christie",
     "modelo": "Roadster 1,16–1,49 curto ajustável",
     "min": 1.16,
-    "max": 1.49
+    "max": 1.49,
+    "fonte": "https://www.christiedigital.com/products/all-accessories/lenses/ils-lens-1.25-1.61-sx1.16-1.491-hd"
   },
   {
     "marca": "Christie",
     "modelo": "Short Standard",
     "min": 1.2,
-    "max": 1.5
+    "max": 1.5,
+    "fonte": "https://www.christiedigital.com/products/end-of-support/lenses/1.2---1.51-short-standard-lens"
   },
   {
     "marca": "Christie",
     "modelo": "Zoom 1,2–1,6",
     "min": 1.2,
-    "max": 1.6
+    "max": 1.6,
+    "fonte": "https://www.christiedigital.com/en-gb/products/end-of-support/lenses/1.2-1.61-zoom-lens"
   },
   {
     "marca": "Christie",
     "modelo": "Roadster 1,4–1,8 ajustável",
     "min": 1.4,
-    "max": 1.8
+    "max": 1.8,
+    "fonte": "https://www.christiedigital.com/products/all-accessories/lenses/ils-lens-1.5-2.01-sx1.4-1.81-hd"
   },
   {
     "marca": "Christie",
     "modelo": "Zoom 2,1–3,4",
     "min": 2.1,
-    "max": 3.4
+    "max": 3.4,
+    "fonte": "https://www.christiedigital.com/en-gb/products/end-of-support/lenses/2.1-3.41-zoom-lens"
   },
   {
     "marca": "Christie (Boxer)",
     "modelo": "0,9:1 Fixed (P/N 144-111014-01)",
     "min": 0.9,
-    "max": 0.9
+    "max": 0.9,
+    "fonte": "https://www.christiedigital.com/en-us/products/accessories/0-91-Fixed-144-111014-XX"
   },
   {
     "marca": "Christie (Boxer)",
     "modelo": "1,31–1,63:1 HB Zoom (P/N 144-104106-01)",
     "min": 1.31,
-    "max": 1.63
+    "max": 1.63,
+    "fonte": "https://www.christiedigital.com/en-us/products/accessories/1-31-1-631-HB-Zoom-144-104106-XX"
   },
   {
     "marca": "Christie (Boxer)",
     "modelo": "1,63–2,17:1 HB Zoom (P/N 144-105107-01)",
     "min": 1.63,
-    "max": 2.17
+    "max": 2.17,
+    "fonte": "https://www.christiedigital.com/en-gb/products/all-accessories/lenses/1.63-2.171-hb-zoom-lens/"
   },
   {
     "marca": "Christie (Boxer)",
     "modelo": "1,99–2,73:1 HB Zoom (P/N 144-106108-01)",
     "min": 1.99,
-    "max": 2.73
+    "max": 2.73,
+    "fonte": "https://christiedigital.com/emea/products/accessories/1-99-2-711-HB-Zoom-144-106108-XX"
   },
   {
     "marca": "Christie (Boxer)",
     "modelo": "2,71–3,95:1 HB Zoom (P/N 144-107109-01)",
     "min": 2.71,
-    "max": 3.95
+    "max": 3.95,
+    "fonte": "https://www.christiedigital.com/products/all-accessories/lenses/2.71-3.891-lens"
   },
   {
     "marca": "Christie (Boxer)",
     "modelo": "3,89–5,43:1 HB Zoom (P/N 144-108100-01)",
     "min": 3.89,
-    "max": 5.43
+    "max": 5.43,
+    "fonte": "https://www.christiedigital.com/products/all-accessories/lenses/3.89-5.431-hb-zoom-lens"
   },
   {
     "marca": "Christie (ILS)",
     "modelo": "ILS Fixed 0,67:1 (P/N 118-100110-01)",
     "min": 0.67,
-    "max": 0.67
+    "max": 0.67,
+    "fonte": "https://www.christiedigital.com/en-us/products/accessories/0731SX-0671HD-ILS-Lens-118-100110"
   },
   {
     "marca": "Christie (ILS)",
     "modelo": "ILS Fixed 1,1:1 (P/N 118-100117-01)",
     "min": 1.1,
-    "max": 1.1
+    "max": 1.1,
+    "fonte": "https://christiedigital.com/en-us/products/accessories/121SX-111HD-ILS-Lens-118-100117"
   },
   {
     "marca": "Christie (ILS)",
     "modelo": "ILS Zoom 1,4–1,8:1 (P/N 118-100112-01)",
     "min": 1.4,
-    "max": 1.8
+    "max": 1.8,
+    "fonte": "https://www.christiedigital.com/emea/products/accessories/15201SX-14181HD-ILS-Lens-118-100112"
   },
   {
     "marca": "Christie (ILS)",
     "modelo": "ILS Zoom 1,8–2,6:1 (P/N 118-100113-01)",
     "min": 1.8,
-    "max": 2.6
+    "max": 2.6,
+    "fonte": "https://www.christiedigital.com/emea/products/accessories/20281sx-18261hd-ils-lens-118-100113"
   },
   {
     "marca": "Christie (ILS)",
     "modelo": "ILS Zoom 2,6–4,1:1 (P/N 118-100114-01)",
     "min": 2.6,
-    "max": 4.1
+    "max": 4.1,
+    "fonte": "https://christiedigital.com/en-us/products/accessories/28451SX-26411HD-ILS-Lens-118-100114"
   },
   {
     "marca": "Christie (ILS)",
     "modelo": "ILS Zoom 4,1–6,9:1 (P/N 118-100115-01)",
     "min": 4.1,
-    "max": 6.9
+    "max": 6.9,
+    "fonte": "https://www.christiedigital.com/emea/products/accessories/45731SX-41691HD-ILS-Lens-118-100115"
   },
   {
     "marca": "Epson",
     "modelo": "ELPLX02",
     "min": 0.34,
-    "max": 0.34
+    "max": 0.34,
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/ELPLX02-Ultra-Short-throw-Lens/p/V12H004X02"
   },
   {
     "marca": "Epson",
     "modelo": "ELPLU03 (9–12k lm)",
     "min": 0.48,
-    "max": 0.57
+    "max": 0.57,
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Short-Throw-%231-Zoom-Lens-(ELPLU03)/p/V12H004U03"
   },
   {
     "marca": "Epson",
     "modelo": "ELPLU02",
     "min": 0.64,
-    "max": 0.8
+    "max": 0.8,
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Short-Throw-Lens-(ELPLU02)/p/V12H004U02"
   },
   {
     "marca": "Epson",
     "modelo": "ELPLU03 (≤8000lm)",
     "min": 0.65,
-    "max": 0.78
+    "max": 0.78,
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Short-Throw-%231-Zoom-Lens-(ELPLU03)/p/V12H004U03"
   },
   {
     "marca": "Epson",
     "modelo": "ELPLW05",
     "min": 1.04,
-    "max": 1.46
+    "max": 1.46,
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Wide-Throw-%231-Zoom-Lens-(ELPLW05)/p/V12H004W05"
   },
   {
     "marca": "Epson",
     "modelo": "ELPLW06",
     "min": 1.15,
-    "max": 1.57
+    "max": 1.57,
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Wide-Throw-%232-Zoom-Lens-(ELPLW06)/p/V12H004W06"
   },
   {
     "marca": "Epson",
     "modelo": "ELPLM08",
     "min": 1.42,
-    "max": 2.28
+    "max": 2.28,
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%231-(ELPLM08)/p/V12H004M08"
   },
   {
     "marca": "Epson",
     "modelo": "ELPLM15",
     "min": 1.52,
-    "max": 2.47
+    "max": 2.47,
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%232-%28ELPLM15%29/p/V12H004M0F"
   },
   {
     "marca": "Epson",
     "modelo": "ELPLM10",
     "min": 3.32,
-    "max": 5.06
+    "max": 5.06,
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%233-%28ELPLM10%29/p/V12H004M0A"
   },
   {
     "marca": "Epson",
     "modelo": "ELPLM11",
     "min": 3.42,
-    "max": 5.23
+    "max": 5.23,
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%234-%28ELPLM11%29/p/V12H004M0B"
   },
   {
     "marca": "NEC",
     "modelo": "NP16FL",
     "min": 0.76,
-    "max": 0.76
+    "max": 0.76,
+    "fonte": "https://www.sharpnecdisplays.eu/p/eeme/en/products/accessories/details/t/Options/Lenses/rp/NP16FL.xhtml"
   },
   {
     "marca": "NEC",
     "modelo": "NP30ZL",
     "min": 0.79,
-    "max": 1.04
+    "max": 1.04,
+    "fonte": "https://www.sharpnecdisplays.eu/p/eeme/en/products/accessories/details/t/options/lenses/rp/np30zl.xhtml"
   },
   {
     "marca": "NEC",
     "modelo": "NP53ZL",
     "min": 0.86,
-    "max": 1.25
+    "max": 1.25,
+    "fonte": "https://www.sharpnecdisplays.eu/p/eeme/en/products/accessories/details/products/t/options/lenses/rp/np53zl.xhtml"
   },
   {
     "marca": "NEC",
     "modelo": "NP34ZL",
     "min": 0.95,
-    "max": 1.2
+    "max": 1.2,
+    "fonte": "https://www.sharpnecdisplays.eu/p/eeme/en/products/accessories/details/t/Options/Lenses/rp/NP34ZL.xhtml"
   },
   {
     "marca": "NEC",
     "modelo": "NP41ZL",
     "min": 1.3,
-    "max": 3.08
+    "max": 3.08,
+    "fonte": "https://www.sharpnecdisplays.eu/p/eeme/en/products/accessories/details/t/options/lenses/rp/np41zl.xhtml"
   },
   {
     "marca": "NEC",
     "modelo": "NP13ZL",
     "min": 1.46,
-    "max": 3.02
+    "max": 3.02,
+    "fonte": "https://www.sharpnecdisplays.eu/p/eeme/en/products/accessories/details/t/options/lenses/rp/np13zl.xhtml"
   },
   {
     "marca": "NEC",
     "modelo": "NP18ZL",
     "min": 1.73,
-    "max": 2.27
+    "max": 2.27,
+    "fonte": "https://www.sharpnecdisplays.eu/p/eeme/en/products/accessories/details/t/Options/Lenses/rp/NP18ZL.xhtml"
   },
   {
     "marca": "NEC",
     "modelo": "NP43ZL",
     "min": 2.99,
-    "max": 5.93
+    "max": 5.93,
+    "fonte": "https://www.sharpnecdisplays.eu/p/eeme/en/products/accessories/details/t/Options/Lenses/rp/NP43ZL.xhtml"
   },
   {
     "marca": "NEC",
     "modelo": "NP05ZL",
     "min": 4.7,
-    "max": 7.2
+    "max": 7.2,
+    "fonte": null
   },
   {
     "marca": "Panasonic",
     "modelo": "ET-D75LE95 (UST)",
     "min": 0.36,
-    "max": 0.4
+    "max": 0.4,
+    "fonte": "https://eu.connect.panasonic.com/gb/en/projectors/et-d75le95"
   },
   {
     "marca": "Panasonic",
     "modelo": "PT-CMZ50U (lente fixa integrada)",
     "min": 0.235,
-    "max": 0.288
+    "max": 0.288,
+    "fonte": "https://na.panasonic.com/us/pt-cmz50"
   },
   {
     "marca": "Panasonic",
     "modelo": "ET-DLE060",
     "min": 0.6,
-    "max": 0.801
+    "max": 0.801,
+    "fonte": "https://connect.na.panasonic.com/av/projectors/accessories/et-dle060-1-chip-dlp-projector-zoom-lens"
   },
   {
     "marca": "Panasonic",
     "modelo": "ET-D75LE50",
     "min": 0.69,
-    "max": 0.77
+    "max": 0.77,
+    "fonte": "https://na.panasonic.com/us/audio-video-solutions/projectors/projector-accessories/et-d75le50-3-chip-dlptm-projector-zoom-lens"
   },
   {
     "marca": "Panasonic",
     "modelo": "ET-DLE170",
     "min": 1.71,
-    "max": 2.41
+    "max": 2.41,
+    "fonte": "https://connect.na.panasonic.com/ppnda/projectors/lens/et-dle170-1-chip-dlp-projector-zoom-lens"
   },
   {
     "marca": "Panasonic",
     "modelo": "ET-DLE250",
     "min": 2.27,
-    "max": 3.62
+    "max": 3.62,
+    "fonte": "https://connect.na.panasonic.com/ppnda/projectors/lens/et-dle250-1-chip-dlp-projector-fixed-zoom-lens"
   },
   {
     "marca": "Panasonic",
     "modelo": "ET-D75LE30",
     "min": 2.4,
-    "max": 4.7
+    "max": 4.7,
+    "fonte": "https://na.panasonic.com/us/audio-video-solutions/projectors/projector-accessories/et-d75le30-3-chip-dlptm-projector-zoom-lens"
   },
   {
     "marca": "Panasonic",
     "modelo": "ET-DLE350",
     "min": 3.58,
-    "max": 5.45
+    "max": 5.45,
+    "fonte": "https://connect.na.panasonic.com/av/projectors/accessories/et-dle350-1-chip-dlp-projector-zoom-lens"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-3003 UST fixo (FHZ6/FH6)",
     "min": 0.33,
-    "max": 0.33
+    "max": 0.33,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-3003"
   },
   {
     "marca": "Sony",
     "modelo": "PHZ10 (lente fixa integrada)",
     "min": 1.27,
-    "max": 1.88
+    "max": 1.88,
+    "fonte": "https://pro.sony/ue_US/products/laser-projectors/vpl-phz10"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-Z4107 curto",
     "min": 0.75,
-    "max": 0.94
+    "max": 0.94,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-z4107"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-FM22",
     "min": 0.89,
-    "max": 0.89
+    "max": 0.89,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-fm22"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-Z3010",
     "min": 1.01,
-    "max": 1.39
+    "max": 1.39,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-z3010"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-Z4011 (FH500L/FHZ700L/FHZ90L/FHZ120L)",
     "min": 1.3,
-    "max": 1.95
+    "max": 1.95,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-z4011"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-Z4111 (FHZ120L/FHZ90L)",
     "min": 1.3,
-    "max": 1.96
+    "max": 1.96,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-z4111"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-ZM42",
     "min": 1.87,
-    "max": 2.3
+    "max": 2.3,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-zm42"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-Z4019 (FHZ120L/FHZ90L)",
     "min": 2.14,
-    "max": 3.07
+    "max": 3.07,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-z4019"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-Z3024 (FHZ60/65)",
     "min": 2.34,
-    "max": 3.19
+    "max": 3.19,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-z3024"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-ZM102",
     "min": 3.35,
-    "max": 4.92
+    "max": 4.92,
+    "fonte": "https://pro.sony/en_GB/products/projector-lenses/vpll-zm102"
   },
   {
     "marca": "Sony",
     "modelo": "Z 4025",
     "min": 3.36,
-    "max": 6.23
+    "max": 6.23,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-z4025"
   },
   {
     "marca": "Sony",
     "modelo": "VPLL-ZM101",
     "min": 4.47,
-    "max": 6.58
+    "max": 6.58,
+    "fonte": "https://pro.sony/en_GB/products/projector-lenses/vpll-zm101"
   },
   {
     "marca": "Sony",
     "modelo": "Z 4045",
     "min": 6.19,
-    "max": 10.72
+    "max": 10.72,
+    "fonte": "https://pro.sony/ue_US/products/projector-lenses/vpll-z4045"
   },
   {
     "marca": "Barco",
     "modelo": "QCLD-R10 (CLM R10+, lente fixa)",
     "min": 0.85,
-    "max": 0.85
+    "max": 0.85,
+    "fonte": "https://www.barco.com/en/product/qcld-0851"
   },
   {
     "marca": "Barco",
     "modelo": "RLM-W8 RLD Lens fixo",
     "min": 0.77,
-    "max": 0.77
+    "max": 0.77,
+    "fonte": "https://www.barco.com/en/support/rld-w-lens-077--1"
   },
   {
     "marca": "Barco",
     "modelo": "RLM-W8 RLD fixo",
     "min": 1.16,
-    "max": 1.16
+    "max": 1.16,
+    "fonte": "https://www.barco.com/en/support/rld-w-lens-116--1"
   },
   {
     "marca": "Barco",
     "modelo": "RLM-W8 RLD zoom",
     "min": 1.74,
-    "max": 2.17
+    "max": 2.17,
+    "fonte": "https://www.barco.com/en/support/rld-w-lens-174---217--1"
   },
   {
     "marca": "Barco",
     "modelo": "RLM-W8 RLD zoom (2)",
     "min": 2.19,
-    "max": 2.9
+    "max": 2.9,
+    "fonte": "https://www.barco.com/en/support/rld-w-lens-217---290--1"
   },
   {
     "marca": "Barco",
     "modelo": "RLM-W8 RLD zoom (3)",
     "min": 2.9,
-    "max": 4.34
+    "max": 4.34,
+    "fonte": "https://www.barco.com/en/support/rld-w-lens-29---434--1"
   },
   {
     "marca": "Barco",
     "modelo": "RLM-W8 RLD zoom longo",
     "min": 4.34,
-    "max": 6.76
+    "max": 6.76,
+    "fonte": "https://www.barco.com/en/support/rld-w-lens-434---676--1"
   }
 ]
