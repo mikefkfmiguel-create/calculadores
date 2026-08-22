@@ -672,7 +672,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.40</span>
+    <span class="mark">v1.41</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1361,7 +1361,7 @@
     <div class="card results" data-accent="projeto" style="margin-bottom:16px;">
       <div class="stripe"></div>
       <h2>Itens do projeto</h2>
-      <div class="hint">Marca "Adicionar ao projeto" no resumo de uma calculadora (Distância de Projeção, Distância de Visualização, Ecrã LED ou Blending) para juntar aqui uma checklist do que a produção vai usar.</div>
+      <div class="hint">Marca "Adicionar ao projeto" no resumo de Distância de Projeção, Ecrã LED ou Blending para preencher automaticamente os campos correspondentes abaixo — não precisas de copiar nada à mão, e o relatório do projeto não repete o que essa calculadora já mostra. Só a Distância de Visualização (sem campos próprios aqui) fica registada nesta checklist.</div>
       <div id="proj-items-list" style="margin-top:12px;"></div>
       <div class="summary" id="proj-items-summary-wrap" style="display:none;">
         <div class="summary-head">
@@ -1827,13 +1827,14 @@
     return std.label + " — " + AVIXA_CONTENT[vAvixaContentKey].label;
   }
 
-  // Checklist "Itens do projeto" — reúne o resumo já calculado em cada aba
-  // (não duplica lógica: lê o texto que cada aba já produz para "Copiar resumo").
+  // Checklist "Itens do projeto" — hoje só a Distância de Visualização não
+  // tem campos próprios na aba Projeto (o standard usado é global, não por
+  // projeto), por isso fica aqui como referência rápida. Projeção, LED e
+  // Blending preenchem os campos da aba Projeto diretamente (ver
+  // syncProjecaoToProject/syncLedToProject/syncBlendToProject abaixo),
+  // para o relatório do projeto não repetir o que a calculadora já mostra.
   var PROJECT_SOURCES = [
-    { key: "projecao", label: "Distância de Projeção", sumId: "p-sum", checkboxId: "p-addproject" },
-    { key: "visualizacao", label: "Distância de Visualização", sumId: "v-sum", checkboxId: "v-addproject" },
-    { key: "led", label: "Ecrã LED & Pixel Pitch", sumId: "l-sum", checkboxId: "l-addproject" },
-    { key: "blend", label: "Blending Multi-Projetor", sumId: "b-sum", checkboxId: "b-addproject" }
+    { key: "visualizacao", label: "Distância de Visualização", sumId: "v-sum", checkboxId: "v-addproject" }
   ];
 
   function renderProjectItems() {
@@ -1875,6 +1876,119 @@
   PROJECT_SOURCES.forEach(function (s) {
     var cb = document.getElementById(s.checkboxId);
     if (cb) cb.addEventListener("change", renderProjectItems);
+  });
+
+  // "Adicionar ao projeto" em Projeção, LED e Blending: envia os valores
+  // dessa calculadora para os campos correspondentes na aba Projeto (em vez
+  // de duplicar o resumo). Um projeto só tem um tipo (LED ou Projeção) e,
+  // dentro de Projeção, só um modo (único ou blend) — por isso marcar uma
+  // destas três desmarca as outras duas automaticamente.
+  var PROJTYPE_ADDPROJECT_IDS = ["p-addproject", "l-addproject", "b-addproject"];
+  function setExclusiveAddProject(activeId) {
+    PROJTYPE_ADDPROJECT_IDS.forEach(function (id) {
+      if (id === activeId) return;
+      var cb = document.getElementById(id);
+      if (cb) cb.checked = false;
+    });
+  }
+
+  function computeScreenWH(ratioVal, sizeMode, diagVal, widthFixedVal, heightFixedVal) {
+    var parts = ratioVal.split(":");
+    var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+    var r = rw / rh;
+    if (sizeMode === "height") {
+      return { w: heightFixedVal * r, h: heightFixedVal };
+    }
+    if (sizeMode === "width") {
+      return { w: widthFixedVal, h: widthFixedVal / r };
+    }
+    var diagM = diagVal * 0.0254;
+    var h = diagM / Math.sqrt(r * r + 1);
+    return { w: h * r, h: h };
+  }
+
+  function syncModelSelectByIdx(sourceSel, destSel) {
+    var opt = sourceSel.options[sourceSel.selectedIndex];
+    var idx = opt && opt.dataset.idx !== undefined ? opt.dataset.idx : sourceSel.value;
+    var hasOpt = !!destSel.querySelector('option[value="' + idx + '"]');
+    destSel.value = hasOpt ? idx : "custom";
+    destSel.dispatchEvent(new Event("change"));
+  }
+
+  function syncProjecaoToProject() {
+    segClick("proj-type-seg", "projtype", "projecao");
+    segClick("proj-blendmode-seg", "blendmode", "single");
+    syncModelSelectByIdx(projModelSel, projProjModelSel);
+    if (pResMode === "native") segClick("proj-proj-resmode-seg", "resmode", "native");
+
+    var ratioVal = ratioSel.value;
+    if (ratioVal === "custom") {
+      segClick("proj-sizemode-seg", "sizemode", "height");
+      setFieldVal("proj-proj-w", fieldVal("p-rw"));
+      setFieldVal("proj-proj-h", fieldVal("p-rh"));
+    } else {
+      setFieldVal("proj-proj-ratio", ratioVal);
+      if (pSizeMode === "diag") {
+        segClick("proj-sizemode-seg", "sizemode", "diag");
+        setFieldVal("proj-proj-diag", fieldVal("p-diag"));
+      } else {
+        var wh = computeScreenWH(ratioVal, pSizeMode, null, val("p-width-fixed"), val("p-height-fixed"));
+        segClick("proj-sizemode-seg", "sizemode", "height");
+        setFieldVal("proj-proj-w", wh.w.toFixed(2));
+        setFieldVal("proj-proj-h", wh.h.toFixed(2));
+      }
+    }
+
+    setFieldVal("proj-proj-dist", fieldVal("p-knowndist"));
+
+    var lensVal = pLensModelSel.value;
+    var hasLens = !!projProjLensModelSel.querySelector('option[value="' + lensVal + '"]');
+    projProjLensModelSel.value = hasLens ? lensVal : "custom";
+    projProjLensModelSel.dispatchEvent(new Event("change"));
+    if (!hasLens) {
+      setFieldVal("proj-proj-tmin", fieldVal("p-tmin"));
+      setFieldVal("proj-proj-tmax", fieldVal("p-tmax"));
+    }
+
+    calcProjeto();
+  }
+
+  function syncLedToProject() {
+    segClick("proj-type-seg", "projtype", "led");
+    document.getElementById("proj-led-usezones").checked = false;
+    syncModelSelectByIdx(ledModelSel, document.getElementById("proj-led-model"));
+    segClick("proj-led-sizemode-seg", "sizemode", lSizeMode);
+    if (lSizeMode === "meters") {
+      setFieldVal("proj-led-w", fieldVal("l-target-w"));
+      setFieldVal("proj-led-h", fieldVal("l-target-h"));
+    } else {
+      setFieldVal("proj-led-mx", fieldVal("l-mx"));
+      setFieldVal("proj-led-my", fieldVal("l-my"));
+    }
+    calcProjeto();
+  }
+
+  function syncBlendToProject() {
+    segClick("proj-type-seg", "projtype", "projecao");
+    segClick("proj-blendmode-seg", "blendmode", "blend");
+    syncModelSelectByIdx(blendProjModelSel, projProjModelSel);
+    setFieldVal("proj-blend-res", "custom");
+    document.getElementById("proj-blend-res").dispatchEvent(new Event("change"));
+    setFieldVal("proj-blend-w", fieldVal("b-hpx"));
+    setFieldVal("proj-blend-h", fieldVal("b-vpx"));
+    setFieldVal("proj-proj-w", fieldVal("b-w"));
+    setFieldVal("proj-proj-h", fieldVal("b-h"));
+    calcProjeto();
+  }
+
+  document.getElementById("p-addproject").addEventListener("change", function () {
+    if (this.checked) { setExclusiveAddProject("p-addproject"); syncProjecaoToProject(); }
+  });
+  document.getElementById("l-addproject").addEventListener("change", function () {
+    if (this.checked) { setExclusiveAddProject("l-addproject"); syncLedToProject(); }
+  });
+  document.getElementById("b-addproject").addEventListener("change", function () {
+    if (this.checked) { setExclusiveAddProject("b-addproject"); syncBlendToProject(); }
   });
 
   var LENTES_DATA = [];
@@ -2123,6 +2237,7 @@
       "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
 
     renderProjectItems();
+    if (document.getElementById("p-addproject").checked) syncProjecaoToProject();
   }
 
   // Distância de Visualização
@@ -2332,6 +2447,7 @@
 
     calcLedSuggest();
     renderProjectItems();
+    if (document.getElementById("l-addproject").checked) syncLedToProject();
   }
 
   var lSuggestRatioSel = document.getElementById("l-suggest-ratio");
@@ -2779,6 +2895,7 @@
       "Luminosidade: " + nProj + " projetores x " + fmtInt(lumensEach) + " lm (100%) = " + fmtInt(lumensEach*nProj) + " lm  —  a 80%: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(luxTotal) + " lux no ecrã";
 
     renderProjectItems();
+    if (document.getElementById("b-addproject").checked) syncBlendToProject();
   }
 
   function renderLenses(list) {
