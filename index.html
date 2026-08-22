@@ -670,7 +670,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.35</span>
+    <span class="mark">v1.36</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -753,28 +753,6 @@
 
         <div class="divider">Projetor</div>
 
-        <div id="p-throwmode-ratio-inputs">
-          <div class="row2">
-            <div class="field">
-              <label for="p-tmin">Throw ratio mínimo</label>
-              <div class="inputgroup"><input id="p-tmin" type="number" inputmode="decimal" value="1.39" min="0.1" step="0.01"></div>
-              <div class="hint">Da ficha técnica do projetor</div>
-            </div>
-            <div class="field">
-              <label for="p-tmax">Throw ratio máximo</label>
-              <div class="inputgroup"><input id="p-tmax" type="number" inputmode="decimal" value="1.87" min="0.1" step="0.01"></div>
-            </div>
-          </div>
-        </div>
-
-        <div id="p-throwmode-dist-inputs">
-          <div class="field">
-            <label for="p-knowndist">Distância entre a lente e o ecrã</label>
-            <div class="inputgroup"><input id="p-knowndist" type="number" inputmode="decimal" value="4.00" min="0.1" step="0.01"><span class="unit">m</span></div>
-            <div class="hint">Medida a partir da lente do projetor — não do centro ou da traseira do corpo do projetor.</div>
-          </div>
-        </div>
-
         <div class="field">
           <label for="p-projmodel">Modelo de projetor</label>
           <select id="p-projmodel" class="plain">
@@ -794,6 +772,29 @@
           <label for="p-lumens">Luminosidade do projetor (100%)</label>
           <div class="inputgroup"><input id="p-lumens" type="number" inputmode="decimal" value="20000" min="0" step="100"><span class="unit">lumens</span></div>
           <div class="hint">ANSI lumens da ficha técnica.</div>
+        </div>
+
+        <div id="p-throwmode-dist-inputs">
+          <div class="field">
+            <label for="p-knowndist">Distância entre a lente e o ecrã</label>
+            <div class="inputgroup"><input id="p-knowndist" type="number" inputmode="decimal" value="4.00" min="0.1" step="0.01"><span class="unit">m</span></div>
+            <div class="hint">Medida a partir da lente do projetor — não do centro ou da traseira do corpo do projetor.</div>
+          </div>
+        </div>
+
+        <div class="divider">Já sabes a lente? (opcional)</div>
+        <div id="p-throwmode-ratio-inputs">
+          <div class="row2">
+            <div class="field">
+              <label for="p-tmin">Throw ratio mínimo</label>
+              <div class="inputgroup"><input id="p-tmin" type="number" inputmode="decimal" value="1.39" min="0.1" step="0.01"></div>
+              <div class="hint">Da ficha técnica da lente</div>
+            </div>
+            <div class="field">
+              <label for="p-tmax">Throw ratio máximo</label>
+              <div class="inputgroup"><input id="p-tmax" type="number" inputmode="decimal" value="1.87" min="0.1" step="0.01"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1516,11 +1517,13 @@
             <div class="inputgroup"><input id="proj-proj-dist" type="number" inputmode="decimal" value="4.0" min="0.1" step="0.01"><span class="unit">m</span></div>
             <div class="hint">Medida a partir da lente do projetor.</div>
           </div>
+          <div class="divider" id="proj-throwmode-ratio-divider">Já sabes a lente? (opcional)</div>
           <div id="proj-throwmode-ratio-inputs">
             <div class="row2">
               <div class="field">
                 <label for="proj-proj-tmin">Throw ratio mínimo</label>
                 <div class="inputgroup"><input id="proj-proj-tmin" type="number" inputmode="decimal" value="1.39" min="0.1" step="0.01"></div>
+                <div class="hint">Da ficha técnica da lente</div>
               </div>
               <div class="field">
                 <label for="proj-proj-tmax">Throw ratio máximo</label>
@@ -2888,6 +2891,7 @@
       var isBlend = projBlendMode === "blend";
       projBlendProjRatioField.style.display = isBlend ? "block" : "none";
       document.getElementById("proj-throwmode-ratio-inputs").style.display = isBlend ? "none" : "block";
+      document.getElementById("proj-throwmode-ratio-divider").style.display = isBlend ? "none" : "flex";
       document.getElementById("proj-out-lensdist-wrap").style.display = isBlend ? "none" : "block";
       if (isBlend) {
         // Blend só faz sentido com largura/altura livres — um ecrã no mesmo
