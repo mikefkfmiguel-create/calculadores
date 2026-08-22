@@ -651,7 +651,7 @@
     <div class="brand">
       <h1>Calculadores</h1>
     </div>
-    <span class="mark">v1.13</span>
+    <span class="mark">v1.14</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -692,6 +692,7 @@
             <label>Como queres indicar o tamanho?</label>
             <div class="seg" id="p-sizemode-seg">
               <button type="button" class="seg-btn active" data-sizemode="diag">Diagonal (polegadas)</button>
+              <button type="button" class="seg-btn" data-sizemode="width">Largura (metros)</button>
               <button type="button" class="seg-btn" data-sizemode="height">Altura (metros)</button>
             </div>
           </div>
@@ -702,6 +703,14 @@
               <span class="unit">polegadas</span>
             </div>
             <div class="hint">Junto com o formato acima, calcula a largura/altura do ecrã.</div>
+          </div>
+          <div class="field" id="p-width-field" style="display:none;">
+            <label for="p-width-fixed">Largura do ecrã</label>
+            <div class="inputgroup">
+              <input id="p-width-fixed" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01">
+              <span class="unit">m</span>
+            </div>
+            <div class="hint">Junto com o formato acima, calcula a diagonal/altura do ecrã.</div>
           </div>
           <div class="field" id="p-height-field" style="display:none;">
             <label for="p-height-fixed">Altura do ecrã</label>
@@ -838,6 +847,7 @@
             <label>Como queres indicar o tamanho?</label>
             <div class="seg" id="v-sizemode-seg">
               <button type="button" class="seg-btn active" data-sizemode="diag">Diagonal (polegadas)</button>
+              <button type="button" class="seg-btn" data-sizemode="width">Largura (metros)</button>
               <button type="button" class="seg-btn" data-sizemode="height">Altura (metros)</button>
             </div>
           </div>
@@ -846,6 +856,13 @@
             <div class="inputgroup">
               <input id="v-diag" type="number" inputmode="decimal" value="120" min="1" step="1">
               <span class="unit">polegadas</span>
+            </div>
+          </div>
+          <div class="field" id="v-width-field" style="display:none;">
+            <label for="v-width-fixed">Largura do ecrã</label>
+            <div class="inputgroup">
+              <input id="v-width-fixed" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01">
+              <span class="unit">m</span>
             </div>
           </div>
           <div class="field" id="v-height-field" style="display:none;">
@@ -1794,6 +1811,7 @@
 
   var pSizeMode = "diag";
   var diagField = document.getElementById("p-diag-field");
+  var widthField = document.getElementById("p-width-field");
   var heightField = document.getElementById("p-height-field");
   document.querySelectorAll("#p-sizemode-seg .seg-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
@@ -1801,6 +1819,7 @@
       btn.classList.add("active");
       pSizeMode = btn.dataset.sizemode;
       diagField.style.display = pSizeMode === "diag" ? "block" : "none";
+      widthField.style.display = pSizeMode === "width" ? "block" : "none";
       heightField.style.display = pSizeMode === "height" ? "block" : "none";
       calcProjecao();
     });
@@ -1906,6 +1925,11 @@
         w = h * r;
         var diagInFromH = h * Math.sqrt(r * r + 1) / 0.0254;
         label = fmtInt(diagInFromH) + '" (' + rw + ":" + rh + ")";
+      } else if (pSizeMode === "width") {
+        w = val("p-width-fixed");
+        h = w / r;
+        var diagInFromW = w * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+        label = fmtInt(diagInFromW) + '" (' + rw + ":" + rh + ")";
       } else {
         var diagIn = val("p-diag");
         var diagM = diagIn * 0.0254;
@@ -1973,6 +1997,7 @@
 
   var vSizeMode = "diag";
   var vDiagField = document.getElementById("v-diag-field");
+  var vWidthField = document.getElementById("v-width-field");
   var vHeightField = document.getElementById("v-height-field");
   document.querySelectorAll("#v-sizemode-seg .seg-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
@@ -1980,6 +2005,7 @@
       btn.classList.add("active");
       vSizeMode = btn.dataset.sizemode;
       vDiagField.style.display = vSizeMode === "diag" ? "block" : "none";
+      vWidthField.style.display = vSizeMode === "width" ? "block" : "none";
       vHeightField.style.display = vSizeMode === "height" ? "block" : "none";
       calcVisualizacao();
     });
@@ -2017,6 +2043,11 @@
         w = h * r;
         var diagInFromH = h * Math.sqrt(r * r + 1) / 0.0254;
         label = fmtInt(diagInFromH) + '" (' + rw + ":" + rh + ")";
+      } else if (vSizeMode === "width") {
+        w = val("v-width-fixed");
+        h = w / r;
+        var diagInFromW = w * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+        label = fmtInt(diagInFromW) + '" (' + rw + ":" + rh + ")";
       } else {
         var diagIn = val("v-diag");
         var diagM = diagIn * 0.0254;
