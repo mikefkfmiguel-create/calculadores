@@ -719,7 +719,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.46</span>
+    <span class="mark">v1.47</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -746,7 +746,7 @@
     <details class="howto">
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
-        <p>Escolhe o projetor (ou personaliza os lumens) e o tamanho do ecrã. A app calcula os dois sentidos ao mesmo tempo: se souberes a <strong>distância</strong> disponível, mostra as lentes que a cobrem; se souberes a <strong>lente</strong>, mostra a distância mínima e máxima onde funciona.</p>
+        <p>Escolhe o projetor (ou personaliza os lumens — se souberes o light output mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã. A app calcula os dois sentidos ao mesmo tempo: se souberes a <strong>distância</strong> disponível, mostra as lentes que a cobrem; se souberes a <strong>lente</strong>, mostra a distância mínima e máxima onde funciona.</p>
         <p>Quando estiveres satisfeito com o resultado, marca <strong>"Adicionar ao projeto"</strong> no resumo — os valores passam sozinhos para a aba Projeto.</p>
       </div>
     </details>
@@ -1048,7 +1048,7 @@
     <details class="howto">
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
-        <p>Escolhe o modelo de tile (ou personaliza) e o tamanho do ecrã, em nº de tiles ou em metros. Para ecrãs com várias secções diferentes (ex: central + laterais), usa <strong>"+ Adicionar zona"</strong> mais abaixo — e <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais de uma vez.</p>
+        <p>Escolhe o modelo de tile (ou personaliza, incluindo o brilho em nits — se souberes o valor mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã, em nº de tiles ou em metros. Para ecrãs com várias secções diferentes (ex: central + laterais), usa <strong>"+ Adicionar zona"</strong> mais abaixo — e <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais de uma vez.</p>
         <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar este ecrã para a aba Projeto — ou, se usaste zonas, ativa lá <strong>"Usar total das zonas"</strong> para somar tudo.</p>
       </div>
     </details>
@@ -1134,6 +1134,13 @@
             <div class="inputgroup"><input id="l-amp" type="number" inputmode="decimal" value="0.52" min="0" step="0.01"><span class="unit">A</span></div>
           </div>
         </div>
+
+        <div class="divider">Brilho</div>
+        <div class="field">
+          <label for="l-nits">Brilho do tile</label>
+          <div class="inputgroup"><input id="l-nits" type="number" inputmode="decimal" value="" min="0" step="50"><span class="unit">nits</span></div>
+          <div class="hint">Edita à mão se souberes o valor mas não o modelo — a lista de modelos acima filtra-se para os que correspondem.</div>
+        </div>
       </div>
 
       <div class="card results" data-accent="led">
@@ -1149,6 +1156,7 @@
           <div class="item"><div class="k">Área</div><div class="v" id="l-out-area">—</div></div>
           <div class="item"><div class="k">Pixel pitch</div><div class="v" id="l-out-pitch">—</div></div>
           <div class="item"><div class="k">Formato</div><div class="v" id="l-out-ratio">—</div></div>
+          <div class="item wide"><div class="k">Brilho</div><div class="v" id="l-out-nits">—</div></div>
         </div>
         <h2 style="margin-top:18px;">Distância de visualização</h2>
         <div class="readout">
@@ -1255,7 +1263,7 @@
     <details class="howto">
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
-        <p>Serve para juntar vários projetores num ecrã maior do que um único projetor consegue cobrir. Escolhe <strong>"Calcular a partir do ecrã"</strong> para a app decidir o nº de projetores e o overlap sozinha a partir do tamanho desejado, ou <strong>"Eu defino nº e overlap"</strong> para controlares tu mesmo.</p>
+        <p>Serve para juntar vários projetores num ecrã maior do que um único projetor consegue cobrir. Escolhe <strong>"Calcular a partir do ecrã"</strong> para a app decidir o nº de projetores e o overlap sozinha a partir do tamanho desejado, ou <strong>"Eu defino nº e overlap"</strong> para controlares tu mesmo. Tal como em Distância de Projeção, personalizar os lumens filtra a lista de projetores para os que correspondem.</p>
         <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar esta configuração para a aba Projeto.</p>
       </div>
     </details>
@@ -2512,9 +2520,38 @@
     renderProjectItems();
   }
 
+  // Restringe a lista de modelos de tile aos que cobrem o brilho (nits)
+  // indicado — útil quando se sabe o valor mas não o modelo. Compara por
+  // intervalo (nitsMin–nitsMax) porque os fabricantes publicam gamas, não
+  // um valor fixo. Sem correspondência (ou campo vazio), mostra todos.
+  function populateLedModelSelect(sel, filterNits, keepIdx) {
+    while (sel.options.length > 1) sel.remove(0);
+    if (!LED_TILES_DATA.length) return;
+    var order = stockFirstIndices(LED_TILES_DATA);
+    var list = order;
+    if (filterNits != null && !isNaN(filterNits)) {
+      var filtered = order.filter(function (i) {
+        var t = LED_TILES_DATA[i];
+        return t.nitsMin != null && t.nitsMax != null && filterNits >= t.nitsMin && filterNits <= t.nitsMax;
+      });
+      if (filtered.length) list = filtered;
+    }
+    list.forEach(function (i) {
+      var t = LED_TILES_DATA[i];
+      addOption(sel, String(i), t.modelo + " — " + t.label, false, i);
+    });
+    var matchOpt = keepIdx != null
+      ? Array.prototype.filter.call(sel.options, function (o) { return o.value === String(keepIdx); })[0]
+      : null;
+    sel.value = matchOpt ? matchOpt.value : "custom";
+    updateSelectStockColor(sel);
+  }
+
   var ledModelSel = document.getElementById("l-model");
   ledModelSel.addEventListener("change", function () {
-    if (ledModelSel.value === "custom") return;
+    var curValue = ledModelSel.value;
+    populateLedModelSelect(ledModelSel, null, curValue === "custom" ? null : curValue);
+    if (ledModelSel.value === "custom") { calcLed(); return; }
     var t = LED_TILES_DATA[parseInt(ledModelSel.value, 10)];
     document.getElementById("l-mw").value = t.mw;
     document.getElementById("l-mh").value = t.mh;
@@ -2522,6 +2559,7 @@
     document.getElementById("l-ry").value = t.ry;
     document.getElementById("l-weight").value = t.weight == null ? "" : t.weight;
     document.getElementById("l-amp").value = t.amp;
+    document.getElementById("l-nits").value = t.nitsMax == null ? "" : t.nitsMax;
     calcLed();
   });
   ["l-mw", "l-mh", "l-rx", "l-ry", "l-weight", "l-amp"].forEach(function (id) {
@@ -2529,6 +2567,9 @@
       ledModelSel.value = "custom";
       updateSelectStockColor(ledModelSel);
     });
+  });
+  document.getElementById("l-nits").addEventListener("input", function () {
+    populateLedModelSelect(ledModelSel, val("l-nits"));
   });
 
   var lSizeMode = "tiles";
@@ -2566,6 +2607,7 @@
       my = val("l-my");
     }
     var weightPerTile = val("l-weight"), ampPerTile = val("l-amp");
+    var nits = val("l-nits");
 
     var totalPx = mx * rx, totalPy = my * ry;
     var totalWm = (mx * mw) / 1000, totalHm = (my * mh) / 1000;
@@ -2580,6 +2622,7 @@
     document.getElementById("l-out-area").innerHTML = fmt(area,2) + "<small>m²</small>";
     document.getElementById("l-out-pitch").innerHTML = fmt(pitchAvg,2) + "<small>mm</small>";
     document.getElementById("l-out-ratio").textContent = describeRatio(totalPx, totalPy);
+    document.getElementById("l-out-nits").innerHTML = isNaN(nits) ? "—" : fmtInt(nits) + "<small>nits</small>";
 
     var viewRange = viewingDistanceRange(totalWm, totalHm);
     var dmin = viewRange.min, dmax = viewRange.max;
@@ -2608,6 +2651,7 @@
       "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px  —  formato " + describeRatio(totalPx, totalPy) + "\n" +
       "Tamanho físico: " + fmt(totalWm,2) + " x " + fmt(totalHm,2) + " m  (" + fmt(area,2) + " m²)\n" +
       "Pixel pitch: " + fmt(pitchAvg,2) + " mm\n" +
+      (isNaN(nits) ? "" : "Brilho: " + fmtInt(nits) + " nits\n") +
       "Distância de visualização: " + fmt(dmin,1) + " – " + fmt(dmax,1) + " m (mín. – máx.)\n" +
       "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps: " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)";
 
@@ -3986,6 +4030,7 @@
       document.getElementById("l-ry").value = defaultTile.ry;
       document.getElementById("l-weight").value = defaultTile.weight == null ? "" : defaultTile.weight;
       document.getElementById("l-amp").value = defaultTile.amp;
+      document.getElementById("l-nits").value = defaultTile.nitsMax == null ? "" : defaultTile.nitsMax;
     }
 
     lenses.sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
