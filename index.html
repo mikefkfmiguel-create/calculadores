@@ -670,7 +670,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.30</span>
+    <span class="mark">v1.31</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1927,18 +1927,26 @@
     });
   });
 
-  function renderLensMatches(ratio) {
+  function renderLensMatches(ratio, brand) {
     var el = document.getElementById("p-lensmatch-list");
-    var matches = LENTES_DATA.filter(function (l) { return ratio >= l.min && ratio <= l.max; })
-      .sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
+    var matches = LENTES_DATA.filter(function (l) {
+      var brandOk = !brand || l.marca === brand || l.marca.indexOf(brand + " (") === 0;
+      return brandOk && ratio >= l.min && ratio <= l.max;
+    }).sort(function (a, b) {
+      var da = Math.abs(ratio - (a.min + a.max) / 2);
+      var db = Math.abs(ratio - (b.min + b.max) / 2);
+      return da - db;
+    });
     if (!matches.length) {
-      el.innerHTML = '<div class="lm-empty">Nenhuma lente na base cobre este throw ratio.</div>';
-      return;
+      el.innerHTML = '<div class="lm-empty">Nenhuma lente' + (brand ? " " + brand : "") + ' na base cobre este throw ratio.</div>';
+      return matches;
     }
-    el.innerHTML = matches.map(function (l) {
+    el.innerHTML = matches.map(function (l, i) {
       var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
-      return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + '</span><span>' + ratioText + '</span></div>';
+      var bestBadge = i === 0 ? ' <span class="badge-match">melhor</span>' : "";
+      return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + bestBadge + '</span><span>' + ratioText + '</span></div>';
     }).join("");
+    return matches;
   }
 
   var projModelSel = document.getElementById("p-projmodel");
@@ -2058,15 +2066,15 @@
       var knownDist = val("p-knowndist");
       var ratioNeeded = knownDist / w;
       document.getElementById("p-out-rationeeded").innerHTML = fmt(ratioNeeded, 2) + "<small>:1</small>";
-      renderLensMatches(ratioNeeded);
-      var matchNames = LENTES_DATA.filter(function (l) { return ratioNeeded >= l.min && ratioNeeded <= l.max; })
-        .map(function (l) { return l.marca + " " + l.modelo; });
+      var lensBrand = selProj ? selProj.modelo.split(" ")[0] : null;
+      var lensMatches = renderLensMatches(ratioNeeded, lensBrand);
+      var matchNames = lensMatches.map(function (l) { return l.marca + " " + l.modelo; });
       document.getElementById("p-sum").textContent =
         "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
         "Resolução do projetor: " + fmtResWithNote(selProj, pResMode) + "\n" +
         "Distância entre a lente e o ecrã: " + fmt(knownDist,2) + " m\n" +
         "Throw ratio necessário: " + fmt(ratioNeeded,2) + ":1\n" +
-        "Lentes compatíveis: " + (matchNames.length ? matchNames.join(", ") : "nenhuma na base") + "\n" +
+        "Lentes compatíveis" + (lensBrand ? " (" + lensBrand + ")" : "") + ": " + (matchNames.length ? matchNames.join(", ") + (matchNames.length > 1 ? " — melhor: " + matchNames[0] : "") : "nenhuma na base") + "\n" +
         "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
     } else {
       var dmin = tmin * w, dmax = tmax * w;
@@ -3125,28 +3133,35 @@
       var lumensTotal80 = lumens80 * nProj;
       var lux = lumensTotal80 / area;
 
-      var matches, ratioOutHtml, distLine, ratioLine;
+      var matches, ratioOutHtml, distLine, ratioLine, fitTarget;
       if (!isBlend && projThrowMode === "ratio") {
         var tmin = val("proj-proj-tmin"), tmax = val("proj-proj-tmax");
         var dmin = tmin * w, dmax = tmax * w;
         ratioOutHtml = fmt(dmin, 2) + "–" + fmt(dmax, 2) + "<small>m</small>";
+        fitTarget = (tmin + tmax) / 2;
         matches = LENTES_DATA.filter(function (l) {
           var brandOk = l.marca === brand || l.marca.indexOf(brand + " (") === 0;
           return brandOk && tmax >= l.min && tmin <= l.max;
-        }).sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
+        });
         distLine = "Distância de projeção necessária: " + fmt(dmin, 2) + " – " + fmt(dmax, 2) + " m\n";
         ratioLine = "Throw ratio: " + fmt(tmin, 2) + " – " + fmt(tmax, 2) + "\n";
       } else {
         var dist = val("proj-proj-dist");
         var ratioNeeded = dist / widthPerProj;
         ratioOutHtml = fmt(ratioNeeded, 2) + "<small>:1</small>";
+        fitTarget = ratioNeeded;
         matches = LENTES_DATA.filter(function (l) {
           var brandOk = l.marca === brand || l.marca.indexOf(brand + " (") === 0;
           return brandOk && ratioNeeded >= l.min && ratioNeeded <= l.max;
-        }).sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
+        });
         distLine = "Distância disponível: " + fmt(dist, 2) + " m\n";
         ratioLine = "Throw ratio necessário" + (isBlend ? " (por projetor)" : "") + ": " + fmt(ratioNeeded, 2) + ":1\n";
       }
+      matches.sort(function (a, b) {
+        var da = Math.abs(fitTarget - (a.min + a.max) / 2);
+        var db = Math.abs(fitTarget - (b.min + b.max) / 2);
+        return da - db;
+      });
 
       var projRes = effectiveProjRes(proj, projProjResMode);
       document.getElementById("proj-out-screensize").innerHTML = fmt(w, 2) + " x " + fmt(h, 2) + "<small>m</small>";
@@ -3170,9 +3185,10 @@
       if (!matches.length) {
         lensListEl.innerHTML = '<div class="lm-empty">Nenhuma lente ' + brand + ' na base cobre este throw ratio.</div>';
       } else {
-        lensListEl.innerHTML = matches.map(function (l) {
+        lensListEl.innerHTML = matches.map(function (l, i) {
           var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
-          return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + '</span><span>' + ratioText + '</span></div>';
+          var bestBadge = i === 0 ? ' <span class="badge-match">melhor</span>' : "";
+          return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + bestBadge + '</span><span>' + ratioText + '</span></div>';
         }).join("");
       }
 
@@ -3190,7 +3206,7 @@
         totalPxLine +
         distLine +
         ratioLine +
-        "Lentes compatíveis" + (isBlend ? " (por projetor)" : "") + ": " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") : "nenhuma na base") + "\n" +
+        "Lentes compatíveis" + (isBlend ? " (por projetor)" : "") + ": " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") + (matches.length > 1 ? " — melhor: " + matches[0].marca + " " + matches[0].modelo : "") : "nenhuma na base") + "\n" +
         "Luminosidade útil: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(lux) + " lux no ecrã";
     }
 
