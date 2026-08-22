@@ -370,6 +370,10 @@
     margin-top: 4px;
   }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .inputgroup input[type="date"] { min-width: 0; }
+  @media (max-width: 480px) {
+    .dates-row { grid-template-columns: 1fr; }
+  }
 
   .inputgroup {
     display: flex;
@@ -666,7 +670,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.28</span>
+    <span class="mark">v1.29</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1365,7 +1369,7 @@
           <label for="proj-nome">Nome do projeto</label>
           <div class="inputgroup"><input id="proj-nome" type="text" placeholder="ex: Evento X — Sala Principal"></div>
         </div>
-        <div class="row2">
+        <div class="row2 dates-row">
           <div class="field">
             <label for="proj-data-inicio">Data de início</label>
             <div class="inputgroup"><input id="proj-data-inicio" type="date"></div>
