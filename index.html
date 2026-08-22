@@ -169,7 +169,7 @@
   }
 
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  html, body { margin: 0; padding: 0; overflow-x: hidden; }
   body {
     background: var(--paper);
     color: var(--ink);
@@ -286,6 +286,20 @@
     align-items: center;
     gap: 8px;
   }
+  @media (max-width: 759px) {
+    .tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .tab {
+      flex: none;
+      white-space: nowrap;
+      padding: 10px 8px;
+    }
+  }
   .tab .swatch {
     width: 9px; height: 9px;
     border-radius: 2px;
@@ -372,12 +386,12 @@
     color: var(--ink);
     font-family: "IBM Plex Mono", monospace;
     font-variant-numeric: tabular-nums;
-    font-size: 15px;
+    font-size: 16px;
     padding: 9px 10px;
     width: 100%;
     min-width: 0;
   }
-  .inputgroup select { font-family: "IBM Plex Sans", sans-serif; font-size: 14px; }
+  .inputgroup select { font-family: "IBM Plex Sans", sans-serif; font-size: 16px; }
   .inputgroup input:focus, .inputgroup select:focus { outline: none; }
   .inputgroup input:read-only { color: var(--ink-soft); }
   .inputgroup:has(input:read-only) { background: var(--line-soft); }
@@ -399,7 +413,7 @@
     background: var(--paper);
     color: var(--ink);
     font-family: inherit;
-    font-size: 14px;
+    font-size: 16px;
     padding: 9px 10px;
   }
   select.plain:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
@@ -652,7 +666,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.25</span>
+    <span class="mark">v1.26</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1826,6 +1840,7 @@
       tab.setAttribute("aria-selected", "true");
       document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
       document.querySelector('.panel[data-mode="' + tab.dataset.mode + '"]').classList.add("active");
+      tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
     });
   });
   document.querySelectorAll("[data-jumptab]").forEach(function (btn) {
