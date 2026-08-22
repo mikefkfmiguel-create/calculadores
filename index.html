@@ -719,7 +719,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.50</span>
+    <span class="mark">v1.51</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2256,7 +2256,7 @@
   // Restringe a lista de projetores aos que têm exatamente os lumens
   // indicados — útil quando se sabe o light output mas não o modelo.
   // Sem correspondência (ou campo vazio), volta a mostrar todos.
-  var LUMENS_BAND_PCT = 0.25;
+  var LUMENS_BAND_PCT = 0.10;
   function populateProjectorSelect(sel, filterLumens, keepIdx) {
     while (sel.options.length > 1) sel.remove(0);
     if (!PROJECTORS_DATA.length) return;
