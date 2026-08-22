@@ -672,7 +672,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.41</span>
+    <span class="mark">v1.42</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1955,7 +1955,6 @@
 
   function syncLedToProject() {
     segClick("proj-type-seg", "projtype", "led");
-    document.getElementById("proj-led-usezones").checked = false;
     syncModelSelectByIdx(ledModelSel, document.getElementById("proj-led-model"));
     segClick("proj-led-sizemode-seg", "sizemode", lSizeMode);
     if (lSizeMode === "meters") {
@@ -1985,7 +1984,14 @@
     if (this.checked) { setExclusiveAddProject("p-addproject"); syncProjecaoToProject(); }
   });
   document.getElementById("l-addproject").addEventListener("change", function () {
-    if (this.checked) { setExclusiveAddProject("l-addproject"); syncLedToProject(); }
+    if (this.checked) {
+      setExclusiveAddProject("l-addproject");
+      // Só desliga "usar total das zonas" ao marcar (troca deliberada para o
+      // modelo/grelha únicos); edições seguintes ao modelo único não devem
+      // voltar a apagar a escolha de zonas se o utilizador a reativar depois.
+      document.getElementById("proj-led-usezones").checked = false;
+      syncLedToProject();
+    }
   });
   document.getElementById("b-addproject").addEventListener("change", function () {
     if (this.checked) { setExclusiveAddProject("b-addproject"); syncBlendToProject(); }
