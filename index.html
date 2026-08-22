@@ -264,6 +264,51 @@
   }
   .install-dismiss:hover { opacity: 0.7; }
 
+  /* Como usar (por aba) */
+  .howto {
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    margin-bottom: 22px;
+    background: var(--paper-raised);
+  }
+  .howto summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .howto summary::-webkit-details-marker { display: none; }
+  .howto summary::before {
+    content: "?";
+    flex: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--line-soft);
+    color: var(--ink-soft);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .howto summary::after {
+    content: "▾";
+    margin-left: auto;
+    color: var(--ink-faint);
+    font-size: 11px;
+  }
+  .howto[open] summary::after { content: "▴"; }
+  .howto[open] summary { border-bottom: 1px solid var(--line-soft); }
+  .howto-body { padding: 12px 16px 14px; }
+  .howto-body p { margin: 0 0 8px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; }
+  .howto-body p:last-child { margin-bottom: 0; }
+  .howto-body strong { color: var(--ink); }
+
   /* Tabs */
   .tabs {
     display: flex;
@@ -674,7 +719,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.44</span>
+    <span class="mark">v1.45</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -698,6 +743,13 @@
 
   <!-- PROJEÇÃO -->
   <section class="panel active" data-mode="projecao">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Escolhe o projetor (ou personaliza os lumens) e o tamanho do ecrã. A app calcula os dois sentidos ao mesmo tempo: se souberes a <strong>distância</strong> disponível, mostra as lentes que a cobrem; se souberes a <strong>lente</strong>, mostra a distância mínima e máxima onde funciona.</p>
+        <p>Quando estiveres satisfeito com o resultado, marca <strong>"Adicionar ao projeto"</strong> no resumo — os valores passam sozinhos para a aba Projeto.</p>
+      </div>
+    </details>
     <div class="grid">
       <div class="card">
         <h2>Ecrã</h2>
@@ -862,6 +914,13 @@
 
   <!-- DISTÂNCIA DE VISUALIZAÇÃO -->
   <section class="panel" data-mode="visualizacao">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Indica o tamanho do ecrã (secção de cima) para saberes a que distância a plateia deve ficar. Mais abaixo, indica a distância disponível para saberes que tamanho de ecrã usar — usa o mesmo formato e standard escolhidos em cima.</p>
+        <p>O standard escolhido aqui é também usado pela aba Ecrã LED para calcular a distância de visualização.</p>
+      </div>
+    </details>
     <div class="grid">
       <div class="card">
         <h2>Ecrã</h2>
@@ -986,6 +1045,13 @@
 
   <!-- LED -->
   <section class="panel" data-mode="led">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Escolhe o modelo de tile (ou personaliza) e o tamanho do ecrã, em nº de tiles ou em metros. Para ecrãs com várias secções diferentes (ex: central + laterais), usa <strong>"+ Adicionar zona"</strong> mais abaixo — e <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais de uma vez.</p>
+        <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar este ecrã para a aba Projeto — ou, se usaste zonas, ativa lá <strong>"Usar total das zonas"</strong> para somar tudo.</p>
+      </div>
+    </details>
     <div class="grid">
       <div class="card">
         <h2>Modelo de tile</h2>
@@ -1186,6 +1252,13 @@
 
   <!-- BLENDING -->
   <section class="panel" data-mode="blend">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Serve para juntar vários projetores num ecrã maior do que um único projetor consegue cobrir. Escolhe <strong>"Calcular a partir do ecrã"</strong> para a app decidir o nº de projetores e o overlap sozinha a partir do tamanho desejado, ou <strong>"Eu defino nº e overlap"</strong> para controlares tu mesmo.</p>
+        <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar esta configuração para a aba Projeto.</p>
+      </div>
+    </details>
     <div class="grid">
       <div class="card">
         <h2>Projetores</h2>
@@ -1305,7 +1378,13 @@
 
   <!-- LENTES -->
   <section class="panel" data-mode="lentes">
-    <p class="note" style="margin-top:0; margin-bottom:18px;">Separador informativo — mostra o que existe no mercado em geral, não apenas o que a empresa tem. Para as lentes compatíveis com equipamento próprio, usa o separador Projeto.</p>
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Indica a distância até ao ecrã e a largura desejada para veres o throw ratio necessário — as lentes destacadas na tabela em baixo cobrem esse ratio. Se já souberes a lente, escolhe-a para veres a que distância ela cobre essa largura.</p>
+        <p>Separador informativo — mostra o que existe no mercado em geral, não apenas o que a empresa tem. Para as lentes compatíveis com equipamento próprio, usa o separador <strong>Distância de Projeção</strong> ou <strong>Projeto</strong>.</p>
+      </div>
+    </details>
     <div class="grid">
       <div class="card">
         <h2>Necessidade</h2>
@@ -1361,6 +1440,13 @@
 
   <!-- PROJETO -->
   <section class="panel" data-mode="projeto">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Junta tudo numa ficha técnica única para um evento. Podes preencher os campos aqui à mão, ou marcar <strong>"Adicionar ao projeto"</strong> nas calculadoras de Distância de Projeção, Ecrã LED ou Blending para os campos correspondentes virem preenchidos sozinhos — marcar uma dessas três desliga automaticamente as outras, porque um projeto só tem um tipo de ecrã de cada vez.</p>
+        <p>No fim, usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir depois com <strong>"Abrir projeto…"</strong>.</p>
+      </div>
+    </details>
     <div class="card results" data-accent="projeto" style="margin-bottom:16px;">
       <div class="stripe"></div>
       <h2>Itens do projeto</h2>
@@ -1692,6 +1778,12 @@
 
   <!-- SINAL / DATA RATE -->
   <section class="panel" data-mode="sinal">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Indica a resolução, frame rate e profundidade de cor do sinal de vídeo para saberes o data rate e a ligação mínima (HDMI/DisplayPort/SDI) necessária, e que switchers ou processadores aguentam esse sinal na entrada.</p>
+      </div>
+    </details>
     <div class="grid">
       <div class="card">
         <h2>Sinal de vídeo</h2>
