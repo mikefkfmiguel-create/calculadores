@@ -652,7 +652,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.22</span>
+    <span class="mark">v1.23</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2336,18 +2336,25 @@
     updateSelectStockColor(sel);
   }
 
-  function lzAddZone(name) {
+  function lzAddZone(name, opts) {
     var id = "z" + (lzNextId++);
     var card = document.createElement("div");
     card.className = "card";
     card.dataset.zoneId = id;
     card.innerHTML =
-      '<div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-bottom:14px;">' +
-        '<div class="field" style="flex:1; margin-bottom:0;">' +
+      '<div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-bottom:14px; flex-wrap:wrap;">' +
+        '<div class="field" style="flex:1; min-width:160px; margin-bottom:0;">' +
           '<label>Nome da zona</label>' +
           '<div class="inputgroup"><input type="text" class="lz-name" value="' + (name || ("Zona " + (lzNextId - 1))) + '"></div>' +
         '</div>' +
-        '<button type="button" class="copy lz-remove">Remover</button>' +
+        '<div class="field" style="width:84px; margin-bottom:0;">' +
+          '<label>Cópias</label>' +
+          '<div class="inputgroup"><input type="number" class="lz-dup-count" value="1" min="1" step="1"></div>' +
+        '</div>' +
+        '<div style="display:flex; gap:8px;">' +
+          '<button type="button" class="copy lz-duplicate" title="Cria zonas iguais a esta">Duplicar</button>' +
+          '<button type="button" class="copy lz-remove">Remover</button>' +
+        '</div>' +
       '</div>' +
       '<div class="field">' +
         '<label>Modelo de tile</label>' +
@@ -2383,8 +2390,35 @@
       '<p class="hint lz-readout">—</p>';
     lzList.appendChild(card);
     lzPopulateModelSelect(card.querySelector(".lz-model"));
+    if (opts && opts.modelValue != null) {
+      var modelSel = card.querySelector(".lz-model");
+      var hasOption = Array.prototype.some.call(modelSel.options, function (o) { return o.value === opts.modelValue; });
+      modelSel.value = hasOption ? opts.modelValue : "custom";
+      updateSelectStockColor(modelSel);
+    }
     lzApplyModel(card);
+    if (opts) {
+      if (opts.mw != null) card.querySelector(".lz-mw").value = opts.mw;
+      if (opts.mh != null) card.querySelector(".lz-mh").value = opts.mh;
+      if (opts.rx != null) card.querySelector(".lz-rx").value = opts.rx;
+      if (opts.ry != null) card.querySelector(".lz-ry").value = opts.ry;
+      if (opts.weight != null) card.querySelector(".lz-weight").value = opts.weight;
+      if (opts.amp != null) card.querySelector(".lz-amp").value = opts.amp;
+      if (opts.sizeMode === "meters") {
+        card.querySelectorAll(".lz-sizemode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.sizemode === "meters"); });
+        card.querySelector(".lz-tiles-inputs").style.display = "none";
+        card.querySelector(".lz-meters-inputs").style.display = "grid";
+        card.querySelector(".lz-mx").readOnly = true;
+        card.querySelector(".lz-my").readOnly = true;
+        if (opts.targetW != null) card.querySelector(".lz-target-w").value = opts.targetW;
+        if (opts.targetH != null) card.querySelector(".lz-target-h").value = opts.targetH;
+      } else {
+        if (opts.mx != null) card.querySelector(".lz-mx").value = opts.mx;
+        if (opts.my != null) card.querySelector(".lz-my").value = opts.my;
+      }
+    }
     calcLedZones();
+    return card;
   }
 
   function lzApplyModel(card) {
@@ -2409,6 +2443,31 @@
     if (removeBtn) {
       removeBtn.closest(".card").remove();
       calcLedZones();
+      return;
+    }
+    var dupBtn = e.target.closest(".lz-duplicate");
+    if (dupBtn) {
+      var srcCard = dupBtn.closest(".card");
+      var count = Math.max(1, parseInt(srcCard.querySelector(".lz-dup-count").value, 10) || 1);
+      var srcName = srcCard.querySelector(".lz-name").value.trim() || "Zona";
+      var srcActiveSeg = srcCard.querySelector(".lz-sizemode-seg .seg-btn.active");
+      var opts = {
+        modelValue: srcCard.querySelector(".lz-model").value,
+        sizeMode: srcActiveSeg ? srcActiveSeg.dataset.sizemode : "tiles",
+        mx: srcCard.querySelector(".lz-mx").value,
+        my: srcCard.querySelector(".lz-my").value,
+        targetW: srcCard.querySelector(".lz-target-w").value,
+        targetH: srcCard.querySelector(".lz-target-h").value,
+        mw: srcCard.querySelector(".lz-mw").value,
+        mh: srcCard.querySelector(".lz-mh").value,
+        rx: srcCard.querySelector(".lz-rx").value,
+        ry: srcCard.querySelector(".lz-ry").value,
+        weight: srcCard.querySelector(".lz-weight").value,
+        amp: srcCard.querySelector(".lz-amp").value
+      };
+      for (var i = 0; i < count; i++) {
+        lzAddZone(srcName + (count > 1 ? " (cópia " + (i + 1) + ")" : " (cópia)"), opts);
+      }
       return;
     }
     var modeBtn = e.target.closest(".lz-sizemode-seg .seg-btn");
