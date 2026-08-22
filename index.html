@@ -652,7 +652,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.23</span>
+    <span class="mark">v1.24</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2421,6 +2421,11 @@
     return card;
   }
 
+  function lzBaseName(name) {
+    var m = name.match(/^(.*?)\s+\d+$/);
+    return (m ? m[1] : name).trim();
+  }
+
   function lzApplyModel(card) {
     var sel = card.querySelector(".lz-model");
     var isCustom = sel.value === "custom";
@@ -2465,8 +2470,18 @@
         weight: srcCard.querySelector(".lz-weight").value,
         amp: srcCard.querySelector(".lz-amp").value
       };
+      var root = lzBaseName(srcName) || srcName;
+      var maxIndex = 0, rootCount = 0;
+      document.querySelectorAll("#lz-list .lz-name").forEach(function (inp) {
+        var n = inp.value.trim();
+        if (lzBaseName(n) !== root) return;
+        rootCount++;
+        var m = n.match(/^.*?\s+(\d+)$/);
+        if (m) maxIndex = Math.max(maxIndex, parseInt(m[1], 10));
+      });
+      var nextIdx = maxIndex > 0 ? maxIndex + 1 : rootCount + 1;
       for (var i = 0; i < count; i++) {
-        lzAddZone(srcName + (count > 1 ? " (cópia " + (i + 1) + ")" : " (cópia)"), opts);
+        lzAddZone(root + " " + (nextIdx + i), opts);
       }
       return;
     }
