@@ -1596,7 +1596,15 @@
             </select>
           </div>
         </div>
-        <div class="hint">Assume RGB 4:4:4 (3 canais). Pixel clock calculado com blanking real (VESA CVT-RB2), não uma percentagem fixa.</div>
+        <div class="field">
+          <label for="sg-chroma">Amostragem de cor (chroma sampling)</label>
+          <select id="sg-chroma" class="plain">
+            <option value="3" selected>RGB / YCbCr 4:4:4 (3 amostras/píxel)</option>
+            <option value="2">YCbCr 4:2:2 (2 amostras/píxel)</option>
+            <option value="1.5">YCbCr 4:2:0 (1,5 amostras/píxel)</option>
+          </select>
+        </div>
+        <div class="hint" id="sg-chroma-hint">Pixel clock calculado com blanking real (VESA CVT-RB2), não uma percentagem fixa — não muda com a amostragem de cor, só o data rate muda.</div>
       </div>
 
       <div class="card results" data-accent="sinal">
@@ -3048,11 +3056,14 @@
     return "Acima de 600MHz — precisa de DisplayPort 1.4 com DSC, ou dividir o sinal por várias saídas";
   }
 
+  var CHROMA_LABELS = { "3": "RGB/YCbCr 4:4:4", "2": "YCbCr 4:2:2", "1.5": "YCbCr 4:2:0" };
+
   function calcSinal() {
     var h = val("sg-h"), v = val("sg-v"), fps = val("sg-fps");
     var bits = parseInt(document.getElementById("sg-bits").value, 10);
+    var samplesPerPx = parseFloat(document.getElementById("sg-chroma").value);
     var totalPx = h * v;
-    var dataRateGbps = (bits * 3 * fps * totalPx) / 1e9;
+    var dataRateGbps = (bits * samplesPerPx * fps * totalPx) / 1e9;
     var clockMHz = cvtRb2ClockMHz(h, v, fps);
 
     document.getElementById("sg-out-px").innerHTML = fmtInt(totalPx) + "<small>px</small>";
@@ -3060,10 +3071,13 @@
     document.getElementById("sg-out-clock").innerHTML = fmt(clockMHz, 1) + "<small>MHz</small>";
     document.getElementById("sg-out-connector").textContent = connectorForClock(clockMHz);
 
-    var bpp = bits * 3;
+    var chromaLabel = CHROMA_LABELS[document.getElementById("sg-chroma").value] || "RGB/YCbCr 4:4:4";
+    document.getElementById("sg-chroma-hint").textContent = "Pixel clock calculado com blanking real (VESA CVT-RB2), não uma percentagem fixa — não muda com a amostragem de cor, só o data rate muda. A ligação mínima recomendada abaixo é baseada só no pixel clock (timing); confirma sempre também se o link aguenta o data rate a " + chromaLabel + ".";
+
+    var bpp = bits * samplesPerPx;
     var dpHint = document.getElementById("sg-dp-hint");
     dpHint.style.display = "block";
-    dpHint.textContent = "DisplayPort não define um limite único de pixel clock (é um link empacotado) — a " + bpp + "bpp (" + bits + "-bit 4:4:4), o máximo teórico é ≈" + fmtInt(360 * (24 / bpp)) + "MHz em DP1.1a, ≈" + fmtInt(720 * (24 / bpp)) + "MHz em DP1.2, ≈" + fmtInt(1080 * (24 / bpp)) + "MHz em DP1.4 (valores derivados do débito, não publicados pela VESA em MHz).";
+    dpHint.textContent = "DisplayPort não define um limite único de pixel clock (é um link empacotado) — a " + fmt(bpp,1) + "bpp (" + bits + "-bit " + chromaLabel + "), o máximo teórico é ≈" + fmtInt(360 * (24 / bpp)) + "MHz em DP1.1a, ≈" + fmtInt(720 * (24 / bpp)) + "MHz em DP1.2, ≈" + fmtInt(1080 * (24 / bpp)) + "MHz em DP1.4 (valores derivados do débito, não publicados pela VESA em MHz).";
 
     var switchers = (PROCESSORS_DATA.switchers || []).filter(function (s) { return s.maxPixelClockMHz; })
       .map(function (s) { return { s: s, fits: s.maxPixelClockMHz >= clockMHz - 0.1 }; })
