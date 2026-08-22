@@ -652,7 +652,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.21</span>
+    <span class="mark">v1.22</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2353,9 +2353,20 @@
         '<label>Modelo de tile</label>' +
         '<select class="lz-model plain">' + lzZoneModelOptionsHtml() + '</select>' +
       '</div>' +
-      '<div class="row2">' +
+      '<div class="field">' +
+        '<label>Como queres indicar o tamanho desta zona?</label>' +
+        '<div class="seg lz-sizemode-seg">' +
+          '<button type="button" class="seg-btn active" data-sizemode="tiles">Nº de tiles</button>' +
+          '<button type="button" class="seg-btn" data-sizemode="meters">Medida da zona (m)</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="row2 lz-tiles-inputs">' +
         '<div class="field"><label>Tiles na horizontal</label><div class="inputgroup"><input class="lz-mx" type="number" value="4" min="1" step="1"></div></div>' +
         '<div class="field"><label>Tiles na vertical</label><div class="inputgroup"><input class="lz-my" type="number" value="3" min="1" step="1"></div></div>' +
+      '</div>' +
+      '<div class="row2 lz-meters-inputs" style="display:none;">' +
+        '<div class="field"><label>Largura desejada</label><div class="inputgroup"><input class="lz-target-w" type="number" inputmode="decimal" value="2.0" min="0.1" step="0.1"><span class="unit">m</span></div></div>' +
+        '<div class="field"><label>Altura desejada</label><div class="inputgroup"><input class="lz-target-h" type="number" inputmode="decimal" value="1.5" min="0.1" step="0.1"><span class="unit">m</span></div></div>' +
       '</div>' +
       '<div class="row2 lz-custom-fields" style="display:none;">' +
         '<div class="field"><label>Largura módulo</label><div class="inputgroup"><input class="lz-mw" type="number" value="500" min="1" step="1"><span class="unit">mm</span></div></div>' +
@@ -2394,10 +2405,24 @@
   document.getElementById("lz-add").addEventListener("click", function () { lzAddZone(); });
 
   lzList.addEventListener("click", function (e) {
-    var btn = e.target.closest(".lz-remove");
-    if (!btn) return;
-    btn.closest(".card").remove();
-    calcLedZones();
+    var removeBtn = e.target.closest(".lz-remove");
+    if (removeBtn) {
+      removeBtn.closest(".card").remove();
+      calcLedZones();
+      return;
+    }
+    var modeBtn = e.target.closest(".lz-sizemode-seg .seg-btn");
+    if (modeBtn) {
+      var card = modeBtn.closest(".card");
+      card.querySelectorAll(".lz-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      modeBtn.classList.add("active");
+      var isMeters = modeBtn.dataset.sizemode === "meters";
+      card.querySelector(".lz-tiles-inputs").style.display = isMeters ? "none" : "grid";
+      card.querySelector(".lz-meters-inputs").style.display = isMeters ? "grid" : "none";
+      card.querySelector(".lz-mx").readOnly = isMeters;
+      card.querySelector(".lz-my").readOnly = isMeters;
+      calcLedZones();
+    }
   });
   lzList.addEventListener("change", function (e) {
     if (e.target.classList.contains("lz-model")) {
@@ -2429,8 +2454,21 @@
       var ry = parseFloat(card.querySelector(".lz-ry").value);
       var weight = parseFloat(card.querySelector(".lz-weight").value);
       var amp = parseFloat(card.querySelector(".lz-amp").value);
-      var mx = parseFloat(card.querySelector(".lz-mx").value);
-      var my = parseFloat(card.querySelector(".lz-my").value);
+      var mxInput = card.querySelector(".lz-mx");
+      var myInput = card.querySelector(".lz-my");
+      var activeSeg = card.querySelector(".lz-sizemode-seg .seg-btn.active");
+      var mx, my;
+      if (activeSeg && activeSeg.dataset.sizemode === "meters") {
+        var targetW = parseFloat(card.querySelector(".lz-target-w").value);
+        var targetH = parseFloat(card.querySelector(".lz-target-h").value);
+        mx = (isNaN(targetW) || !(mw > 0)) ? NaN : Math.max(1, Math.ceil((targetW * 1000) / mw));
+        my = (isNaN(targetH) || !(mh > 0)) ? NaN : Math.max(1, Math.ceil((targetH * 1000) / mh));
+        if (!isNaN(mx)) mxInput.value = mx;
+        if (!isNaN(my)) myInput.value = my;
+      } else {
+        mx = parseFloat(mxInput.value);
+        my = parseFloat(myInput.value);
+      }
 
       var totalPx = mx * rx, totalPy = my * ry;
       var wM = (mx * mw) / 1000, hM = (my * mh) / 1000;
