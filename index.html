@@ -1645,7 +1645,7 @@
   function val(id) { return parseFloat(document.getElementById(id).value); }
   function srcLinkHtml(fonte, label) {
     if (!fonte) return "";
-    return '<a class="srclink" href="' + fonte + '" target="_blank" rel="noopener">' + (label || "Ficha técnica do fabricante") + ' ↗</a>';
+    return '<a class="srclink" href="' + fonte + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + (label || "Ficha técnica do fabricante") + ' ↗</a>';
   }
   function selectedDataIdx(sel) {
     var opt = sel.options[sel.selectedIndex];
@@ -2691,7 +2691,7 @@
       } else {
         lensListEl.innerHTML = matches.map(function (l) {
           var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
-          return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span></span><span>' + ratioText + '</span></div>';
+          return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + '</span><span>' + ratioText + '</span></div>';
         }).join("");
       }
 
@@ -2747,7 +2747,7 @@
     } else {
       switcherListEl.innerHTML = switcherOk.map(function (x) {
         var checked = selectedSwitcherKeys.has(x.key) ? " checked" : "";
-        return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span></span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%</span></span></label>';
+        return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%</span></span></label>';
       }).join("");
       switcherListEl.querySelectorAll(".lm-check").forEach(function (cb) {
         cb.addEventListener("change", function () {
@@ -2774,7 +2774,7 @@
       var ledProcListEl = document.getElementById("proj-ledproc-list");
       ledProcListEl.innerHTML = ledProcOk.map(function (x) {
         var checked = selectedLedProcKeys.has(x.key) ? " checked" : "";
-        return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span></span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.unitCapacity) + ' px/unidade) — ' + x.pct + '%</span></span></label>';
+        return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.unitCapacity) + ' px/unidade) — ' + x.pct + '%</span></span></label>';
       }).join("");
       ledProcListEl.querySelectorAll(".lm-check").forEach(function (cb) {
         cb.addEventListener("change", function () {
@@ -3072,7 +3072,7 @@
 
     document.getElementById("sg-switcher-list").innerHTML = switchers.length
       ? switchers.map(function (x) {
-          return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span></span><span>' + fmt(x.s.maxPixelClockMHz, 1) + ' MHz (' + x.s.maxPixelClockSource + ')</span></div>';
+          return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.s.maxPixelClockMHz, 1) + ' MHz (' + x.s.maxPixelClockSource + ')</span></div>';
         }).join("")
       : '<div class="lm-item"><span>Nenhum com dados de pixel clock suficientes para este sinal</span></div>';
   }
