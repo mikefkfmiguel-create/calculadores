@@ -1,4 +1,4 @@
-const CACHE = "calculadores-v89";
+const CACHE = "calculadores-v90";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -11,7 +11,8 @@ const DATA_FILES = [
   "./data/projectors.json",
   "./data/led-tiles.json",
   "./data/lenses.json",
-  "./data/processors.json"
+  "./data/processors.json",
+  "./data/tvs.json"
 ];
 
 self.addEventListener("install", (event) => {

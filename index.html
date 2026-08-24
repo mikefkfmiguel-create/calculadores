@@ -58,6 +58,11 @@
     --cyan-200: #C4E6EE;
     --cyan-100: #E0F3F7;
 
+    --orange-600: #B8500A;
+    --orange-500: #D96A1A;
+    --orange-200: #F5D2AE;
+    --orange-100: #FBE9D6;
+
     --danger-600: #A83226;
     --danger-100: #FBE7E5;
 
@@ -110,6 +115,11 @@
       --cyan-200: #123943;
       --cyan-100: #0C282E;
 
+      --orange-600: #F0A868;
+      --orange-500: #E8934A;
+      --orange-200: #4A2E14;
+      --orange-100: #32200E;
+
       --danger-600: #E38178;
       --danger-100: #3A1613;
 
@@ -160,6 +170,11 @@
     --cyan-500: #4ABDD6;
     --cyan-200: #123943;
     --cyan-100: #0C282E;
+
+    --orange-600: #F0A868;
+    --orange-500: #E8934A;
+    --orange-200: #4A2E14;
+    --orange-100: #32200E;
 
     --danger-600: #E38178;
     --danger-100: #3A1613;
@@ -356,6 +371,7 @@
   .tab[data-mode="lentes"] .swatch { background: var(--blue-500); }
   .tab[data-mode="projeto"] .swatch { background: var(--green-500); }
   .tab[data-mode="sinal"] .swatch { background: var(--rose-500); }
+  .tab[data-mode="tv"] .swatch { background: var(--orange-500); }
   .tab[data-mode="ajuda"] .swatch { background: var(--ink-faint); }
   .tab[aria-selected="true"] { color: var(--ink); }
   .tab[data-mode="projecao"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
@@ -363,6 +379,7 @@
   .tab[data-mode="led"][aria-selected="true"] { border-bottom-color: var(--teal-500); }
   .tab[data-mode="blend"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
   .tab[data-mode="lentes"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
+  .tab[data-mode="tv"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
   .tab[data-mode="ajuda"][aria-selected="true"] { border-bottom-color: var(--ink-faint); }
   .tab[data-mode="projeto"][aria-selected="true"] { border-bottom-color: var(--green-500); }
   .tab[data-mode="sinal"][aria-selected="true"] { border-bottom-color: var(--rose-500); }
@@ -530,6 +547,7 @@
   .panel[data-mode="lentes"] .stripe, [data-accent="lentes"] .stripe { background: var(--blue-500); }
   .panel[data-mode="projeto"] .stripe, [data-accent="projeto"] .stripe { background: var(--green-500); }
   .panel[data-mode="sinal"] .stripe, [data-accent="sinal"] .stripe { background: var(--rose-500); }
+  .panel[data-mode="tv"] .stripe, [data-accent="tv"] .stripe { background: var(--orange-500); }
 
   .readout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
   .readout .item {
@@ -719,7 +737,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.56</span>
+    <span class="mark">v1.57</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -738,6 +756,7 @@
     <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
     <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
     <button class="tab" data-mode="sinal" role="tab" aria-selected="false"><span class="swatch"></span>Sinal &amp; Data Rate</button>
+    <button class="tab" data-mode="tv" role="tab" aria-selected="false"><span class="swatch"></span>TVs</button>
     <button class="tab" data-mode="ajuda" role="tab" aria-selected="false"><span class="swatch"></span>Ajuda</button>
   </div>
 
@@ -924,6 +943,13 @@
     <div class="grid">
       <div class="card">
         <h2>Ecrã</h2>
+        <div class="field">
+          <label for="v-tvmodel">Modelo de TV (atalho, opcional)</label>
+          <select id="v-tvmodel" class="plain">
+            <option value="custom">Nenhum / preencher à mão</option>
+          </select>
+          <div class="hint">Escolhe um modelo do inventário da AVK para preencher o formato e a diagonal abaixo.</div>
+        </div>
         <div class="field">
           <label for="v-ratio">Formato (relação de aspeto)</label>
           <select id="v-ratio" class="plain">
@@ -1647,6 +1673,13 @@
         </div>
 
         <div class="divider">Processamento</div>
+        <div class="field">
+          <label for="proj-dsm-tvmodel">Modelo de TV para os DSM (opcional)</label>
+          <select id="proj-dsm-tvmodel" class="plain">
+            <option value="custom">Nenhum / não sei ainda</option>
+          </select>
+          <div class="hint">Inventário da AVK — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.</div>
+        </div>
         <div class="row2">
           <div class="field">
             <label for="proj-dsm-count">Ecrãs DSM (monitores de palco)</label>
@@ -1670,6 +1703,13 @@
             <label for="proj-dsm-h">Altura</label>
             <div class="inputgroup"><input id="proj-dsm-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
           </div>
+        </div>
+        <div class="field">
+          <label for="proj-delay-tvmodel">Modelo de TV para os delay (opcional)</label>
+          <select id="proj-delay-tvmodel" class="plain">
+            <option value="custom">Nenhum / não sei ainda</option>
+          </select>
+          <div class="hint">Inventário da AVK — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.</div>
         </div>
         <div class="row2">
           <div class="field">
@@ -1847,6 +1887,67 @@
         <h2 style="margin-top:18px;">Switchers/processos compatíveis (entrada)</h2>
         <div class="hint">Comparado ao pixel clock da porta de entrada de maior largura de banda de cada aparelho. Onde a marca não publica MHz, o valor é derivado da resolução máxima publicada pela própria marca (indicado em cada linha) — nunca inventado.</div>
         <div class="lensmatch-list" id="sg-switcher-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TVs -->
+  <section class="panel" data-mode="tv">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Escolhe um modelo de TV do inventário da AVK (ou personaliza a diagonal) para saberes o tamanho do ecrã e a distância de visualização ideal. Nem todos os modelos têm a resolução confirmada — quando não tiver, ajusta à mão se precisares para o relatório.</p>
+        <p>Estes modelos também ficam disponíveis para escolher nos ecrãs DSM/delay da aba Projeto, e como atalho na aba Distância de Visualização.</p>
+      </div>
+    </details>
+    <div class="grid">
+      <div class="card">
+        <h2>Modelo de TV</h2>
+        <div class="field">
+          <label for="tv-model">Modelo de referência</label>
+          <select id="tv-model" class="plain">
+            <option value="custom">Personalizado…</option>
+          </select>
+          <div class="hint">Inventário da AVK — escolher preenche a diagonal (e a resolução, quando confirmada) abaixo.</div>
+        </div>
+        <div class="field">
+          <label for="tv-diag">Diagonal</label>
+          <div class="inputgroup"><input id="tv-diag" type="number" inputmode="decimal" value="55" min="1" step="1"><span class="unit">polegadas</span></div>
+        </div>
+        <div class="field">
+          <label for="tv-ratio">Formato</label>
+          <select id="tv-ratio" class="plain">
+            <option value="16:9" selected>16:9 — widescreen</option>
+            <option value="4:3">4:3 — clássico</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card results" data-accent="tv">
+        <div class="stripe"></div>
+        <h2>Tamanho do ecrã</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Largura</div><div class="v" id="tv-out-w">—</div></div>
+          <div class="item"><div class="k">Altura</div><div class="v" id="tv-out-h">—</div></div>
+          <div class="item wide"><div class="k">Resolução</div><div class="v" id="tv-out-res">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Distância de visualização</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Mínima</div><div class="v" id="tv-out-dmin">—</div></div>
+          <div class="item"><div class="k">Máxima</div><div class="v" id="tv-out-dmax">—</div></div>
+        </div>
+        <p class="note" id="tv-viewrule-note">—</p>
+        <p class="note">Standard usado: define-se na aba <button type="button" data-jumptab="visualizacao" style="font:inherit; font-weight:600; color:var(--cyan-600); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">Distância de Visualização</button>.</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <div class="summary-actions">
+              <button class="copy" data-target="tv-sum">Copiar resumo</button>
+            </div>
+          </div>
+          <pre class="sumbox" id="tv-sum"></pre>
+        </div>
       </div>
     </div>
   </section>
@@ -2143,6 +2244,7 @@
   var LENTES_DATA = [];
   var PROJECTORS_DATA = [];
   var LED_TILES_DATA = [];
+  var TVS_DATA = [];
   var PROCESSORS_DATA = { switchers: [], ledProcessors: [] };
   var BITS_PER_PIXEL = { "8": 24, "10": 48, "12": 48 };
   var USABLE_BPS = 930000000;
@@ -3990,16 +4092,105 @@
       : '<div class="lm-item"><span>Nenhum com dados de pixel clock suficientes para este sinal</span></div>';
   }
 
+  var tvModelSel = document.getElementById("tv-model");
+  var projDsmTvModelSel = document.getElementById("proj-dsm-tvmodel");
+  var projDelayTvModelSel = document.getElementById("proj-delay-tvmodel");
+  var vTvModelSel = document.getElementById("v-tvmodel");
+
+  tvModelSel.addEventListener("change", function () {
+    if (tvModelSel.value === "custom") return;
+    var tv = TVS_DATA[parseInt(tvModelSel.value, 10)];
+    document.getElementById("tv-diag").value = tv.diag;
+    document.getElementById("tv-ratio").value = tv.ratio;
+    calcTV();
+  });
+  ["tv-diag", "tv-ratio"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () {
+      tvModelSel.value = "custom";
+      updateSelectStockColor(tvModelSel);
+    });
+    document.getElementById(id).addEventListener("change", function () {
+      tvModelSel.value = "custom";
+      updateSelectStockColor(tvModelSel);
+    });
+  });
+  document.querySelectorAll('.panel[data-mode="tv"] input, .panel[data-mode="tv"] select').forEach(function (el) {
+    el.addEventListener("input", calcTV);
+    el.addEventListener("change", calcTV);
+  });
+
+  function calcTV() {
+    var diagIn = val("tv-diag");
+    var ratioVal = document.getElementById("tv-ratio").value;
+    var parts = ratioVal.split(":");
+    var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+    var r = rw / rh;
+    var diagM = diagIn * 0.0254;
+    var h = diagM / Math.sqrt(r * r + 1);
+    var w = h * r;
+
+    document.getElementById("tv-out-w").innerHTML = fmt(w, 2) + "<small>m</small>";
+    document.getElementById("tv-out-h").innerHTML = fmt(h, 2) + "<small>m</small>";
+
+    var tv = tvModelSel.value !== "custom" ? TVS_DATA[parseInt(tvModelSel.value, 10)] : null;
+    var resLabel = tv && tv.resolucao ? fmtRes(tv.resolucao) : "não confirmada";
+    document.getElementById("tv-out-res").textContent = resLabel;
+
+    var range = viewingDistanceRange(w, h);
+    document.getElementById("tv-out-dmin").innerHTML = fmt(range.min, 2) + "<small>m</small>";
+    document.getElementById("tv-out-dmax").innerHTML = fmt(range.max, 2) + "<small>m</small>";
+    document.getElementById("tv-viewrule-note").textContent = "Regra: " + viewRuleDescription();
+
+    document.getElementById("tv-sum").textContent =
+      "TV: " + (tv ? tv.modelo : "Personalizado") + " — " + fmt(diagIn, 0) + '" (' + rw + ":" + rh + ") — " + fmt(w, 2) + " x " + fmt(h, 2) + " m\n" +
+      "Resolução: " + resLabel + "\n" +
+      "Standard: " + viewRuleDescription() + "\n" +
+      "Distância de visualização ideal: " + fmt(range.min, 2) + " – " + fmt(range.max, 2) + " m";
+  }
+
+  projDsmTvModelSel.addEventListener("change", function () {
+    if (projDsmTvModelSel.value === "custom") return;
+    var tv = TVS_DATA[parseInt(projDsmTvModelSel.value, 10)];
+    document.getElementById("proj-dsm-res").value = "custom";
+    document.getElementById("proj-dsm-custom-res").style.display = "grid";
+    if (tv.resolucao) {
+      document.getElementById("proj-dsm-w").value = tv.resolucao.rx;
+      document.getElementById("proj-dsm-h").value = tv.resolucao.ry;
+    }
+  });
+  projDelayTvModelSel.addEventListener("change", function () {
+    if (projDelayTvModelSel.value === "custom") return;
+    var tv = TVS_DATA[parseInt(projDelayTvModelSel.value, 10)];
+    document.getElementById("proj-delay-res").value = "custom";
+    document.getElementById("proj-delay-custom-res").style.display = "grid";
+    if (tv.resolucao) {
+      document.getElementById("proj-delay-w").value = tv.resolucao.rx;
+      document.getElementById("proj-delay-h").value = tv.resolucao.ry;
+    }
+  });
+
+  vTvModelSel.addEventListener("change", function () {
+    if (vTvModelSel.value === "custom") return;
+    var tv = TVS_DATA[parseInt(vTvModelSel.value, 10)];
+    document.getElementById("v-ratio").value = tv.ratio;
+    document.getElementById("v-ratio").dispatchEvent(new Event("change"));
+    segClick("v-sizemode-seg", "sizemode", "diag");
+    document.getElementById("v-diag").value = tv.diag;
+    calcVisualizacao();
+  });
+
   Promise.all([
     fetch("data/projectors.json").then(function (r) { return r.json(); }),
     fetch("data/led-tiles.json").then(function (r) { return r.json(); }),
     fetch("data/lenses.json").then(function (r) { return r.json(); }),
-    fetch("data/processors.json").then(function (r) { return r.json(); })
+    fetch("data/processors.json").then(function (r) { return r.json(); }),
+    fetch("data/tvs.json").then(function (r) { return r.json(); })
   ]).then(function (results) {
-    var projectors = results[0], ledTiles = results[1], lenses = results[2], processors = results[3];
+    var projectors = results[0], ledTiles = results[1], lenses = results[2], processors = results[3], tvs = results[4];
     PROJECTORS_DATA = projectors;
     LED_TILES_DATA = ledTiles;
     PROCESSORS_DATA = processors;
+    TVS_DATA = tvs;
 
     var defaultProj = projectors.find(function (p) { return p.default; }) || projectors[0];
     var projOrder = stockFirstIndices(projectors);
@@ -4036,6 +4227,16 @@
       document.getElementById("l-nits").value = defaultTile.nitsMax == null ? "" : defaultTile.nitsMax;
     }
 
+    var tvOrder = stockFirstIndices(tvs);
+    [tvModelSel, projDsmTvModelSel, projDelayTvModelSel, vTvModelSel].forEach(function (sel) {
+      tvOrder.forEach(function (i) {
+        var t = tvs[i];
+        addOption(sel, String(i), t.modelo + ' — ' + t.diag + '"' + (t.touchscreen ? " touchscreen" : ""), false, i);
+      });
+      wireStockColor(sel);
+      updateSelectStockColor(sel);
+    });
+
     lenses.sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
     LENTES_DATA = lenses;
     renderLenses(lenses);
@@ -4064,6 +4265,7 @@
     calcLentes();
     calcProjeto();
     calcSinal();
+    calcTV();
   }).catch(function (err) {
     console.error("Falha a carregar dados de data/*.json:", err);
     calcProjecao();
@@ -4072,6 +4274,7 @@
     calcBlend();
     calcLentes();
     calcSinal();
+    calcTV();
   });
 
   if ("serviceWorker" in navigator) {
