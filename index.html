@@ -737,7 +737,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.58</span>
+    <span class="mark">v1.59</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1006,17 +1006,18 @@
         <div class="field">
           <label for="v-standard">Regra de distância de visualização</label>
           <select id="v-standard" class="plain">
-            <option value="width-thx" selected>Largura × 1,5–6 (THX / SMPTE)</option>
-            <option value="width-sweet">Largura × 1,5–2,5 (sweet spot genérico)</option>
-            <option value="avixa">AVIXA / DISCAS — regra 4-6-8 (base: altura)</option>
+            <option value="width-thx" selected>Espetáculo / entretenimento — concertos, cinema (largura × 1,5–6)</option>
+            <option value="width-sweet">Zona ideal, mais compacta — salas pequenas, reuniões (largura × 1,5–2,5)</option>
+            <option value="avixa">Conteúdo com texto/dados para ler — apresentações, sinalética (AVIXA 4-6-8)</option>
           </select>
+          <div class="hint">Escolhe consoante o tipo de evento e o que o público precisa de ver com nitidez — não precisas de saber os nomes dos standards.</div>
         </div>
         <div class="field" id="v-avixa-content-field" style="display:none;">
-          <label for="v-avixa-content">Tipo de conteúdo (AVIXA)</label>
+          <label for="v-avixa-content">Quanto detalhe o público precisa de ler?</label>
           <select id="v-avixa-content" class="plain">
-            <option value="detailed">Dados detalhados / decisão analítica (altura × 4)</option>
-            <option value="basic" selected>Instrução / decisão básica (altura × 6)</option>
-            <option value="passive">Vídeo / visão passiva (altura × 8)</option>
+            <option value="detailed">Muito — dados/gráficos densos, decisão analítica (altura × 4)</option>
+            <option value="basic" selected>O normal — a maioria das apresentações (altura × 6)</option>
+            <option value="passive">Pouco/nenhum — vídeo, visão passiva (altura × 8)</option>
           </select>
         </div>
       </div>
@@ -2035,14 +2036,14 @@
   // Standards de distância de visualização, partilhados entre a aba
   // "Distância de Visualização" e a leitura de referência na aba de Ecrã LED.
   var VIEW_STANDARDS = {
-    "width-thx": { label: "Largura × 1,5–6 (THX / SMPTE)", basis: "width", min: 1.5, max: 6 },
-    "width-sweet": { label: "Largura × 1,5–2,5 (sweet spot genérico)", basis: "width", min: 1.5, max: 2.5 },
-    "avixa": { label: "AVIXA / DISCAS — regra 4-6-8 (base: altura)", basis: "height", min: 2 }
+    "width-thx": { label: "Espetáculo / entretenimento — concertos, cinema (largura × 1,5–6)", basis: "width", min: 1.5, max: 6 },
+    "width-sweet": { label: "Zona ideal, mais compacta — salas pequenas, reuniões (largura × 1,5–2,5)", basis: "width", min: 1.5, max: 2.5 },
+    "avixa": { label: "Conteúdo com texto/dados para ler — apresentações, sinalética (AVIXA 4-6-8)", basis: "height", min: 2 }
   };
   var AVIXA_CONTENT = {
-    detailed: { label: "Dados detalhados / decisão analítica (altura × 4)", mult: 4 },
-    basic: { label: "Instrução / decisão básica (altura × 6)", mult: 6 },
-    passive: { label: "Vídeo / visão passiva (altura × 8)", mult: 8 }
+    detailed: { label: "muito detalhe a ler — dados/gráficos densos (altura × 4)", mult: 4 },
+    basic: { label: "detalhe normal — a maioria das apresentações (altura × 6)", mult: 6 },
+    passive: { label: "pouco/nenhum detalhe — vídeo, visão passiva (altura × 8)", mult: 8 }
   };
   var vStandardKey = "width-thx";
   var vAvixaContentKey = "basic";
