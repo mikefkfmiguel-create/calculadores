@@ -737,7 +737,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.59</span>
+    <span class="mark">v1.60</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1077,6 +1077,7 @@
       <div class="howto-body">
         <p>Escolhe o modelo de tile (ou personaliza, incluindo o brilho em nits — se souberes o valor mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã, em nº de tiles ou em metros. Para ecrãs com várias secções diferentes (ex: central + laterais), usa <strong>"+ Adicionar zona"</strong> mais abaixo — e <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais de uma vez.</p>
         <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar este ecrã para a aba Projeto — ou, se usaste zonas, ativa lá <strong>"Usar total das zonas"</strong> para somar tudo.</p>
+        <p>Para modelos com meio-tile disponível (ex: 100×50 + 50×50), o modo "Medida do ecrã (m)" afina automaticamente a medida final com um meio-tile na borda quando isso bate mais certo que arredondar sempre para o tile inteiro.</p>
       </div>
     </details>
     <div class="grid">
@@ -1122,7 +1123,7 @@
               <div class="inputgroup"><input id="l-target-h" type="number" inputmode="decimal" value="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
             </div>
           </div>
-          <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida — o tamanho real fica no resultado.</div>
+          <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida — o tamanho real fica no resultado. Para modelos com meio-tile disponível (ex: 100×50 + 50×50), a medida é afinada automaticamente com um meio-tile na borda quando isso bate mais certo.</div>
         </div>
 
         <div class="divider">Tamanho do tile</div>
@@ -1185,6 +1186,7 @@
           <div class="item"><div class="k">Formato</div><div class="v" id="l-out-ratio">—</div></div>
           <div class="item wide"><div class="k">Brilho</div><div class="v" id="l-out-nits">—</div></div>
         </div>
+        <p class="note" id="l-halftile-note" style="display:none;"></p>
         <h2 style="margin-top:18px;">Distância de visualização</h2>
         <div class="readout">
           <div class="item"><div class="k">Mínima</div><div class="v" id="l-out-dmin">—</div></div>
@@ -2697,30 +2699,100 @@
     });
   });
 
+  // Para modelos que existem em dois tamanhos de tile (ex: 100x50 e a
+  // metade, 50x50), encontra a melhor combinação de tiles inteiros + no
+  // máx. 1 meio-tile que cobre o alvo (targetMM) com o menor excesso.
+  function computeAxisTiles(targetMM, fullSize, halfSize) {
+    if (!halfSize || halfSize >= fullSize) {
+      var n = Math.max(1, Math.ceil(targetMM / fullSize));
+      return { full: n, half: 0, totalMM: n * fullSize };
+    }
+    var best = null;
+    var nFullMax = Math.max(0, Math.ceil(targetMM / fullSize));
+    for (var nFull = 0; nFull <= nFullMax; nFull++) {
+      for (var nHalf = 0; nHalf <= 1; nHalf++) {
+        var total = nFull * fullSize + nHalf * halfSize;
+        if (total <= 0) continue;
+        if (total >= targetMM && (!best || total < best.totalMM)) best = { full: nFull, half: nHalf, totalMM: total };
+      }
+    }
+    if (!best) best = { full: nFullMax, half: 0, totalMM: nFullMax * fullSize };
+    return best;
+  }
+
   function calcLed() {
     updateSourceHint(ledModelSel, LED_TILES_DATA, "l-model-source", true);
     var mw = val("l-mw"), mh = val("l-mh");
     var rx = val("l-rx"), ry = val("l-ry");
+    var weightPerTile = val("l-weight"), ampPerTile = val("l-amp");
+    var nits = val("l-nits");
     var mx, my;
+    var mixed = null;
+
     if (lSizeMode === "meters") {
       var targetW = val("l-target-w"), targetH = val("l-target-h");
-      mx = Math.max(1, Math.ceil((targetW * 1000) / mw));
-      my = Math.max(1, Math.ceil((targetH * 1000) / mh));
+      var selT = ledModelSel.value !== "custom" ? LED_TILES_DATA[parseInt(ledModelSel.value, 10)] : null;
+      var halfT = selT && selT.halfTile ? LED_TILES_DATA.filter(function (t) { return t.modelo === selT.halfTile; })[0] : null;
+      if (halfT && selT.mw === mw && selT.mh === mh) {
+        if (selT.mw !== halfT.mw) {
+          var wr = computeAxisTiles(targetW * 1000, mw, halfT.mw);
+          mixed = { axis: "w", nFull: wr.full, nHalf: wr.half, n: Math.max(1, Math.ceil((targetH * 1000) / mh)), half: halfT };
+        } else if (selT.mh !== halfT.mh) {
+          var hr = computeAxisTiles(targetH * 1000, mh, halfT.mh);
+          mixed = { axis: "h", nFull: hr.full, nHalf: hr.half, n: Math.max(1, Math.ceil((targetW * 1000) / mw)), half: halfT };
+        }
+      }
+      if (mixed) {
+        mx = mixed.axis === "w" ? (mixed.nFull + mixed.nHalf) : mixed.n;
+        my = mixed.axis === "h" ? (mixed.nFull + mixed.nHalf) : mixed.n;
+      } else {
+        mx = Math.max(1, Math.ceil((targetW * 1000) / mw));
+        my = Math.max(1, Math.ceil((targetH * 1000) / mh));
+      }
       lMxInput.value = mx;
       lMyInput.value = my;
     } else {
       mx = val("l-mx");
       my = val("l-my");
     }
-    var weightPerTile = val("l-weight"), ampPerTile = val("l-amp");
-    var nits = val("l-nits");
 
-    var totalPx = mx * rx, totalPy = my * ry;
-    var totalWm = (mx * mw) / 1000, totalHm = (my * mh) / 1000;
+    var totalPx, totalPy, totalWm, totalHm, numTiles, weightTotal, ampTotal, halfNoteText = "";
+    if (mixed) {
+      var half = mixed.half;
+      if (mixed.axis === "w") {
+        totalPx = mixed.nFull * rx + mixed.nHalf * half.rx;
+        totalPy = mixed.n * ry;
+        totalWm = (mixed.nFull * mw + mixed.nHalf * half.mw) / 1000;
+        totalHm = (mixed.n * mh) / 1000;
+        numTiles = mixed.n * (mixed.nFull + mixed.nHalf);
+        weightTotal = mixed.n * (mixed.nFull * weightPerTile + mixed.nHalf * half.weight);
+        ampTotal = mixed.n * (mixed.nFull * ampPerTile + mixed.nHalf * half.amp);
+        if (mixed.nHalf) {
+          halfNoteText = "Cada linha (× " + mixed.n + "): " + mixed.nFull + " tile" + (mixed.nFull === 1 ? "" : "s") + " " + fmtInt(mw) + "×" + fmtInt(mh) + "mm + " + mixed.nHalf + " meio-tile " + fmtInt(half.mw) + "×" + fmtInt(half.mh) + "mm na borda, para bater certo com a largura.";
+        }
+      } else {
+        totalPx = mixed.n * rx;
+        totalPy = mixed.nFull * ry + mixed.nHalf * half.ry;
+        totalWm = (mixed.n * mw) / 1000;
+        totalHm = (mixed.nFull * mh + mixed.nHalf * half.mh) / 1000;
+        numTiles = mixed.n * (mixed.nFull + mixed.nHalf);
+        weightTotal = mixed.n * (mixed.nFull * weightPerTile + mixed.nHalf * half.weight);
+        ampTotal = mixed.n * (mixed.nFull * ampPerTile + mixed.nHalf * half.amp);
+        if (mixed.nHalf) {
+          halfNoteText = "Cada coluna (× " + mixed.n + "): " + mixed.nFull + " tile" + (mixed.nFull === 1 ? "" : "s") + " " + fmtInt(mw) + "×" + fmtInt(mh) + "mm + " + mixed.nHalf + " meio-tile " + fmtInt(half.mw) + "×" + fmtInt(half.mh) + "mm na borda, para bater certo com a altura.";
+        }
+      }
+    } else {
+      totalPx = mx * rx; totalPy = my * ry;
+      totalWm = (mx * mw) / 1000; totalHm = (my * mh) / 1000;
+      numTiles = mx * my;
+      weightTotal = weightPerTile * numTiles;
+      ampTotal = ampPerTile * numTiles;
+    }
+
     var area = totalWm * totalHm;
     var pitchX = mw / rx, pitchY = mh / ry;
     var pitchAvg = (pitchX + pitchY) / 2;
-    var numTiles = mx * my;
 
     document.getElementById("l-out-px").innerHTML = fmtInt(totalPx) + "<small>px</small>";
     document.getElementById("l-out-py").innerHTML = fmtInt(totalPy) + "<small>px</small>";
@@ -2736,13 +2808,19 @@
     document.getElementById("l-out-dmax").innerHTML = fmt(dmax,1) + "<small>m</small>";
     document.getElementById("l-viewrule-note").textContent = "Regra: " + viewRuleDescription();
 
-    var weightTotal = weightPerTile * numTiles;
-    var ampTotal = ampPerTile * numTiles;
     var ampPhase = ampTotal / 3;
     document.getElementById("l-out-tiles").textContent = fmtInt(numTiles);
     document.getElementById("l-out-weight").innerHTML = fmt(weightTotal,1) + "<small>kg</small>";
     document.getElementById("l-out-amp").innerHTML = fmt(ampTotal,2) + "<small>A</small>";
     document.getElementById("l-out-ampphase").innerHTML = fmt(ampPhase,2) + "<small>A</small>";
+
+    var halfNoteEl = document.getElementById("l-halftile-note");
+    if (halfNoteText) {
+      halfNoteEl.textContent = halfNoteText;
+      halfNoteEl.style.display = "block";
+    } else {
+      halfNoteEl.style.display = "none";
+    }
 
     var warnEl = document.getElementById("l-warn");
     if (Math.abs(pitchX - pitchY) > 0.01) {
@@ -2754,6 +2832,7 @@
 
     document.getElementById("l-sum").textContent =
       "Ecrã LED: " + mx + " x " + my + " tiles (" + mw + " x " + mh + " mm cada, " + fmtInt(numTiles) + " tiles)\n" +
+      (halfNoteText ? halfNoteText + "\n" : "") +
       "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px  —  formato " + describeRatio(totalPx, totalPy) + "\n" +
       "Tamanho físico: " + fmt(totalWm,2) + " x " + fmt(totalHm,2) + " m  (" + fmt(area,2) + " m²)\n" +
       "Pixel pitch: " + fmt(pitchAvg,2) + " mm\n" +
