@@ -541,6 +541,13 @@
 
   /* Results */
   .results { position: sticky; top: 16px; }
+  /* No Ecrã Complexo, o resultado/diagrama é o que se está sempre a
+     precisar de ver enquanto se edita a lista de zonas — em ecrãs
+     estreitos (telemóvel, sem 2 colunas) fica em primeiro lugar e fixo
+     no topo, em vez de só aparecer depois de descer toda a lista. */
+  @media (max-width: 759px) {
+    #lz-totals-card { order: -1; margin-bottom: 4px; }
+  }
   .stripe { height: 3px; border-radius: 3px 3px 0 0; margin: -20px -20px 18px; }
   .panel[data-mode="projecao"] .stripe, [data-accent="projecao"] .stripe { background: var(--amber-500); }
   .panel[data-mode="visualizacao"] .stripe, [data-accent="visualizacao"] .stripe { background: var(--cyan-500); }
@@ -741,7 +748,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.68</span>
+    <span class="mark">v1.69</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1275,7 +1282,8 @@
       <div class="howto-body">
         <p>Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição.</p>
         <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão.</p>
-        <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas.</p>
+        <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas. Se depois precisares de mudar o modelo/tamanho dessas cópias, edita só a zona original e usa <strong>"Atualizar réplicas"</strong> — aplica a alteração às outras com o mesmo nome-base sem criar novas nem mexer nas posições de cada uma.</p>
+        <p>As zonas ficam guardadas automaticamente neste aparelho (mesmo que atualizes a página ou feches a app) — não precisas de gravar nada à parte.</p>
         <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar o total das zonas para a aba Projeto (equivale a ativar lá "Usar total das zonas").</p>
         <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
       </div>
@@ -1301,7 +1309,7 @@
         </div>
         <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá) — é a soma dos píxeis nativos de cada zona, não o canvas final. A área total também aparece lá — referência interna, não sai no material para o cliente. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas. A "resolução final do canvas" é esse mesmo retângulo convertido em píxeis (usando o pitch da zona maior como referência) — é o tamanho real a configurar no media server, incluindo o espaço dos gaps.</p>
         <div id="lz-diagram-wrap" style="margin: 4px 0 18px; display:none;">
-          <svg id="lz-diagram" width="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; max-height:360px;"></svg>
+          <svg id="lz-diagram" width="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; max-height:520px; min-height:220px;"></svg>
           <div style="display:flex; gap:16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-faint);">
             <span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:var(--teal-500); opacity:0.55; margin-right:5px; vertical-align:-1px;"></span>zona (LED real)</span>
             <span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:var(--rose-500); opacity:0.3; border:1px dashed var(--rose-500); margin-right:5px; vertical-align:-1px;"></span>gap (sem LED)</span>
@@ -3032,6 +3040,57 @@
     return { x: maxRight > 0 ? Math.round((maxRight + 0.1) * 100) / 100 : 0, y: 0 };
   }
 
+  // Aplica modelo/tamanho (mas nunca posição — cada zona mantém a sua) a um
+  // card já existente. Usada tanto para preencher um card acabado de criar
+  // como para "Atualizar réplicas" nos já existentes.
+  function lzApplyOptsToCard(card, opts) {
+    if (opts && opts.modelValue != null) {
+      var modelSel = card.querySelector(".lz-model");
+      var hasOption = Array.prototype.some.call(modelSel.options, function (o) { return o.value === opts.modelValue; });
+      modelSel.value = hasOption ? opts.modelValue : "custom";
+      updateSelectStockColor(modelSel);
+    }
+    lzApplyModel(card);
+    if (!opts) return;
+    if (opts.mw != null) card.querySelector(".lz-mw").value = opts.mw;
+    if (opts.mh != null) card.querySelector(".lz-mh").value = opts.mh;
+    if (opts.rx != null) card.querySelector(".lz-rx").value = opts.rx;
+    if (opts.ry != null) card.querySelector(".lz-ry").value = opts.ry;
+    if (opts.weight != null) card.querySelector(".lz-weight").value = opts.weight;
+    if (opts.amp != null) card.querySelector(".lz-amp").value = opts.amp;
+    var isMeters = opts.sizeMode === "meters";
+    card.querySelectorAll(".lz-sizemode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", (b.dataset.sizemode === "meters") === isMeters); });
+    card.querySelector(".lz-tiles-inputs").style.display = isMeters ? "none" : "grid";
+    card.querySelector(".lz-meters-inputs").style.display = isMeters ? "grid" : "none";
+    card.querySelector(".lz-mx").readOnly = isMeters;
+    card.querySelector(".lz-my").readOnly = isMeters;
+    if (isMeters) {
+      if (opts.targetW != null) card.querySelector(".lz-target-w").value = opts.targetW;
+      if (opts.targetH != null) card.querySelector(".lz-target-h").value = opts.targetH;
+    } else {
+      if (opts.mx != null) card.querySelector(".lz-mx").value = opts.mx;
+      if (opts.my != null) card.querySelector(".lz-my").value = opts.my;
+    }
+  }
+
+  function lzOptsFromCard(card) {
+    var activeSeg = card.querySelector(".lz-sizemode-seg .seg-btn.active");
+    return {
+      modelValue: card.querySelector(".lz-model").value,
+      sizeMode: activeSeg ? activeSeg.dataset.sizemode : "tiles",
+      mx: card.querySelector(".lz-mx").value,
+      my: card.querySelector(".lz-my").value,
+      targetW: card.querySelector(".lz-target-w").value,
+      targetH: card.querySelector(".lz-target-h").value,
+      mw: card.querySelector(".lz-mw").value,
+      mh: card.querySelector(".lz-mh").value,
+      rx: card.querySelector(".lz-rx").value,
+      ry: card.querySelector(".lz-ry").value,
+      weight: card.querySelector(".lz-weight").value,
+      amp: card.querySelector(".lz-amp").value
+    };
+  }
+
   function lzAddZone(name, opts) {
     var id = "z" + (lzNextId++);
     var defaultPos = lzNextDefaultPos();
@@ -3059,8 +3118,9 @@
             '<option value="v">↓ vertical</option>' +
           '</select>' +
         '</div>' +
-        '<div style="display:flex; gap:8px;">' +
+        '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
           '<button type="button" class="copy lz-duplicate" title="Cria o nº de zonas indicado em Cópias, iguais a esta, em fila com o gap e direção indicados">Aplicar réplicas</button>' +
+          '<button type="button" class="copy lz-update-replicas" title="Aplica o modelo/tamanho desta zona às outras zonas com o mesmo nome-base (ex: &quot;Lateral 2&quot;, &quot;Lateral 3&quot;), sem criar novas nem mexer nas posições delas">Atualizar réplicas</button>' +
           '<button type="button" class="copy lz-remove">Remover</button>' +
         '</div>' +
       '</div>' +
@@ -3102,35 +3162,9 @@
       '<p class="hint lz-readout">—</p>';
     lzList.appendChild(card);
     lzPopulateModelSelect(card.querySelector(".lz-model"));
-    if (opts && opts.modelValue != null) {
-      var modelSel = card.querySelector(".lz-model");
-      var hasOption = Array.prototype.some.call(modelSel.options, function (o) { return o.value === opts.modelValue; });
-      modelSel.value = hasOption ? opts.modelValue : "custom";
-      updateSelectStockColor(modelSel);
-    }
-    lzApplyModel(card);
+    lzApplyOptsToCard(card, opts);
     card.querySelector(".lz-posx").value = (opts && opts.posX != null) ? opts.posX : defaultPos.x;
     card.querySelector(".lz-posy").value = (opts && opts.posY != null) ? opts.posY : defaultPos.y;
-    if (opts) {
-      if (opts.mw != null) card.querySelector(".lz-mw").value = opts.mw;
-      if (opts.mh != null) card.querySelector(".lz-mh").value = opts.mh;
-      if (opts.rx != null) card.querySelector(".lz-rx").value = opts.rx;
-      if (opts.ry != null) card.querySelector(".lz-ry").value = opts.ry;
-      if (opts.weight != null) card.querySelector(".lz-weight").value = opts.weight;
-      if (opts.amp != null) card.querySelector(".lz-amp").value = opts.amp;
-      if (opts.sizeMode === "meters") {
-        card.querySelectorAll(".lz-sizemode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.sizemode === "meters"); });
-        card.querySelector(".lz-tiles-inputs").style.display = "none";
-        card.querySelector(".lz-meters-inputs").style.display = "grid";
-        card.querySelector(".lz-mx").readOnly = true;
-        card.querySelector(".lz-my").readOnly = true;
-        if (opts.targetW != null) card.querySelector(".lz-target-w").value = opts.targetW;
-        if (opts.targetH != null) card.querySelector(".lz-target-h").value = opts.targetH;
-      } else {
-        if (opts.mx != null) card.querySelector(".lz-mx").value = opts.mx;
-        if (opts.my != null) card.querySelector(".lz-my").value = opts.my;
-      }
-    }
     calcLedZones();
     return card;
   }
@@ -3169,21 +3203,7 @@
       var srcCard = dupBtn.closest(".card");
       var count = Math.max(1, parseInt(srcCard.querySelector(".lz-dup-count").value, 10) || 1);
       var srcName = srcCard.querySelector(".lz-name").value.trim() || "Zona";
-      var srcActiveSeg = srcCard.querySelector(".lz-sizemode-seg .seg-btn.active");
-      var opts = {
-        modelValue: srcCard.querySelector(".lz-model").value,
-        sizeMode: srcActiveSeg ? srcActiveSeg.dataset.sizemode : "tiles",
-        mx: srcCard.querySelector(".lz-mx").value,
-        my: srcCard.querySelector(".lz-my").value,
-        targetW: srcCard.querySelector(".lz-target-w").value,
-        targetH: srcCard.querySelector(".lz-target-h").value,
-        mw: srcCard.querySelector(".lz-mw").value,
-        mh: srcCard.querySelector(".lz-mh").value,
-        rx: srcCard.querySelector(".lz-rx").value,
-        ry: srcCard.querySelector(".lz-ry").value,
-        weight: srcCard.querySelector(".lz-weight").value,
-        amp: srcCard.querySelector(".lz-amp").value
-      };
+      var opts = lzOptsFromCard(srcCard);
       var root = lzBaseName(srcName) || srcName;
       var maxIndex = 0, rootCount = 0;
       document.querySelectorAll("#lz-list .lz-name").forEach(function (inp) {
@@ -3206,6 +3226,27 @@
         opts.posY = dupDir === "v" ? srcPosY + step : srcPosY;
         lzAddZone(root + " " + (nextIdx + i), opts);
       }
+      return;
+    }
+    var updBtn = e.target.closest(".lz-update-replicas");
+    if (updBtn) {
+      var updSrcCard = updBtn.closest(".card");
+      var updSrcName = updSrcCard.querySelector(".lz-name").value.trim() || "Zona";
+      var updRoot = lzBaseName(updSrcName) || updSrcName;
+      var updOpts = lzOptsFromCard(updSrcCard);
+      var updated = 0;
+      document.querySelectorAll("#lz-list .card").forEach(function (card) {
+        if (card === updSrcCard) return;
+        var n = card.querySelector(".lz-name").value.trim();
+        if (lzBaseName(n) !== updRoot) return;
+        lzApplyOptsToCard(card, updOpts);
+        updated++;
+      });
+      if (!updated) {
+        alert("Não encontrei outras zonas com o mesmo nome-base (\"" + updRoot + "\") para atualizar — usa \"Aplicar réplicas\" primeiro para as criar.");
+        return;
+      }
+      calcLedZones();
       return;
     }
     var modeBtn = e.target.closest(".lz-sizemode-seg .seg-btn");
@@ -3429,12 +3470,41 @@
   document.getElementById("lz-export-map").addEventListener("click", lzExportPixelMapPNG);
   document.getElementById("lz-export-mask").addEventListener("click", lzExportMaskPNG);
 
+  // As zonas ficam gravadas no localStorage a cada alteração e restauradas
+  // ao abrir a app — um refresh acidental (ou o telemóvel a recarregar a
+  // PWA em segundo plano) já não apaga um setup complexo de várias zonas,
+  // que demora a voltar a preencher à mão.
+  var LZ_STORAGE_KEY = "calculadores-zonas-v1";
+  function lzSaveToStorage() {
+    try {
+      var data = Array.from(lzList.querySelectorAll(".card")).map(function (card) {
+        var opts = lzOptsFromCard(card);
+        opts.name = card.querySelector(".lz-name").value;
+        opts.posX = card.querySelector(".lz-posx").value;
+        opts.posY = card.querySelector(".lz-posy").value;
+        return opts;
+      });
+      if (data.length) localStorage.setItem(LZ_STORAGE_KEY, JSON.stringify(data));
+      else localStorage.removeItem(LZ_STORAGE_KEY);
+    } catch (e) {}
+  }
+  function lzRestoreFromStorage() {
+    var raw;
+    try { raw = localStorage.getItem(LZ_STORAGE_KEY); } catch (e) { return; }
+    if (!raw) return;
+    var data;
+    try { data = JSON.parse(raw); } catch (e) { return; }
+    if (!Array.isArray(data) || !data.length) return;
+    data.forEach(function (opts) { lzAddZone(opts.name, opts); });
+  }
+
   function calcLedZones() {
     var cards = lzList.querySelectorAll(".card");
     var totalsCard = document.getElementById("lz-totals-card");
     if (!cards.length) {
       totalsCard.style.display = "none";
       lzLastTotals = null;
+      lzSaveToStorage();
       return;
     }
     totalsCard.style.display = "block";
@@ -3516,6 +3586,7 @@
       (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência" : "") : "");
 
     lzLastTotals = { zones: zones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm };
+    lzSaveToStorage();
     if (typeof calcProjeto === "function") calcProjeto();
   }
 
@@ -4665,6 +4736,7 @@
     calcProjecao();
     calcVisualizacao();
     calcLed();
+    lzRestoreFromStorage();
     calcBlend();
     calcLentes();
     calcProjeto();
@@ -4675,6 +4747,7 @@
     calcProjecao();
     calcVisualizacao();
     calcLed();
+    lzRestoreFromStorage();
     calcBlend();
     calcLentes();
     calcSinal();
