@@ -367,6 +367,7 @@
   .tab[data-mode="projecao"] .swatch { background: var(--amber-500); }
   .tab[data-mode="visualizacao"] .swatch { background: var(--cyan-500); }
   .tab[data-mode="led"] .swatch { background: var(--teal-500); }
+  .tab[data-mode="zonas"] .swatch { background: var(--teal-500); }
   .tab[data-mode="blend"] .swatch { background: var(--violet-500); }
   .tab[data-mode="lentes"] .swatch { background: var(--blue-500); }
   .tab[data-mode="projeto"] .swatch { background: var(--green-500); }
@@ -377,6 +378,7 @@
   .tab[data-mode="projecao"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
   .tab[data-mode="visualizacao"][aria-selected="true"] { border-bottom-color: var(--cyan-500); }
   .tab[data-mode="led"][aria-selected="true"] { border-bottom-color: var(--teal-500); }
+  .tab[data-mode="zonas"][aria-selected="true"] { border-bottom-color: var(--teal-500); }
   .tab[data-mode="blend"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
   .tab[data-mode="lentes"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
   .tab[data-mode="tv"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
@@ -543,6 +545,7 @@
   .panel[data-mode="projecao"] .stripe, [data-accent="projecao"] .stripe { background: var(--amber-500); }
   .panel[data-mode="visualizacao"] .stripe, [data-accent="visualizacao"] .stripe { background: var(--cyan-500); }
   .panel[data-mode="led"] .stripe, [data-accent="led"] .stripe { background: var(--teal-500); }
+  .panel[data-mode="zonas"] .stripe, [data-accent="zonas"] .stripe { background: var(--teal-500); }
   .panel[data-mode="blend"] .stripe, [data-accent="blend"] .stripe { background: var(--violet-500); }
   .panel[data-mode="lentes"] .stripe, [data-accent="lentes"] .stripe { background: var(--blue-500); }
   .panel[data-mode="projeto"] .stripe, [data-accent="projeto"] .stripe { background: var(--green-500); }
@@ -573,6 +576,7 @@
   .readout .item.wide { grid-column: 1 / -1; }
   [data-accent="projecao"] .readout .item .v { color: var(--amber-600); }
   [data-accent="led"] .readout .item .v { color: var(--teal-600); }
+  [data-accent="zonas"] .readout .item .v { color: var(--teal-600); }
   [data-accent="blend"] .readout .item .v { color: var(--violet-600); }
   [data-accent="lentes"] .readout .item .v { color: var(--blue-600); }
   [data-accent="projeto"] .readout .item .v { color: var(--green-600); }
@@ -737,7 +741,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.65</span>
+    <span class="mark">v1.66</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -753,6 +757,7 @@
     <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
     <button class="tab" data-mode="visualizacao" role="tab" aria-selected="false"><span class="swatch"></span>Distância de Visualização</button>
     <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
+    <button class="tab" data-mode="zonas" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã Complexo</button>
     <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
     <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
     <button class="tab" data-mode="sinal" role="tab" aria-selected="false"><span class="swatch"></span>Sinal &amp; Data Rate</button>
@@ -1075,8 +1080,8 @@
     <details class="howto">
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
-        <p>Escolhe o modelo de tile (ou personaliza, incluindo o brilho em nits — se souberes o valor mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã, em nº de tiles ou em metros. Para ecrãs com várias secções diferentes (ex: central + laterais + tiras espalhadas com gaps entre elas), usa <strong>"+ Adicionar zona"</strong> mais abaixo. Cada zona tem uma posição X/Y (em metros) que desenha um diagrama à escala e calcula a dimensão total do conjunto já com os gaps contemplados. Usa <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais em fila de uma vez, com o gap e direção que definires.</p>
-        <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar este ecrã para a aba Projeto — ou, se usaste zonas, ativa lá <strong>"Usar total das zonas"</strong> para somar tudo.</p>
+        <p>Escolhe o modelo de tile (ou personaliza, incluindo o brilho em nits — se souberes o valor mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã, em nº de tiles ou em metros. Para ecrãs com várias secções diferentes (ex: central + laterais + tiras espalhadas com gaps entre elas), usa a aba <strong>Ecrã Complexo</strong> em vez desta.</p>
+        <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar este ecrã para a aba Projeto.</p>
         <p>Para modelos com meio-tile disponível (ex: 100×50 + 50×50), o modo "Medida do ecrã (m)" afina automaticamente a medida final com um meio-tile na borda quando isso bate mais certo que arredondar sempre para o tile inteiro.</p>
       </div>
     </details>
@@ -1261,12 +1266,24 @@
       </div>
     </div>
 
-    <div class="divider" style="margin-top:26px;">ecrã complexo — múltiplas zonas</div>
-    <p class="hint">Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição. A posição (X = horizontal, Y = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e contempla os gaps entre zonas.</p>
+  </section>
+
+  <!-- ECRÃ COMPLEXO (múltiplas zonas) -->
+  <section class="panel" data-mode="zonas">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição.</p>
+        <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão.</p>
+        <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas.</p>
+        <p>Depois, na aba <strong>Projeto</strong>, ativa <strong>"Usar total das zonas"</strong> para somar tudo isto ao dimensionar switcher/processador de LED.</p>
+      </div>
+    </details>
+    <div class="divider">ecrã complexo — múltiplas zonas</div>
     <div id="lz-list"></div>
     <button type="button" class="copy" id="lz-add">+ Adicionar zona</button>
 
-    <div class="card results" data-accent="led" style="margin-top:16px; display:none;" id="lz-totals-card">
+    <div class="card results" data-accent="zonas" style="margin-top:16px; display:none;" id="lz-totals-card">
       <div class="stripe"></div>
       <h2>Total combinado</h2>
       <div class="readout">
@@ -1530,7 +1547,7 @@
         <div id="proj-led-fields">
           <div class="divider">Ecrã LED</div>
           <div class="field">
-            <label class="addproject"><input type="checkbox" id="proj-led-usezones">Usar total das zonas (aba Ecrã LED)</label>
+            <label class="addproject"><input type="checkbox" id="proj-led-usezones">Usar total das zonas (aba Ecrã Complexo)</label>
             <div class="hint" id="proj-led-zones-hint" style="display:none;"></div>
           </div>
           <div id="proj-led-single-fields">
@@ -1969,7 +1986,8 @@
         <li><strong>Distância de Projeção</strong> — dado um projetor e um ecrã, diz que lente/distância precisas (ou o inverso).</li>
         <li><strong>Blending Multi-Projetor</strong> — junta vários projetores num ecrã maior, com overlap.</li>
         <li><strong>Distância de Visualização</strong> — tamanho de ecrã ideal consoante a distância da plateia (e vice-versa).</li>
-        <li><strong>Ecrã LED &amp; Pixel Pitch</strong> — resolução, tamanho físico, peso e amperagem de um ecrã LED, com suporte para várias zonas.</li>
+        <li><strong>Ecrã LED &amp; Pixel Pitch</strong> — resolução, tamanho físico, peso e amperagem de um único ecrã LED.</li>
+        <li><strong>Ecrã Complexo</strong> — o mesmo, mas para setups com várias secções (central + laterais + tiras), cada uma com posição, para ver o diagrama à escala e a dimensão total já com os gaps contemplados.</li>
         <li><strong>Lentes</strong> — consulta as lentes do mercado e o que cada uma cobre.</li>
         <li><strong>Projeto</strong> — junta tudo numa ficha técnica única para um evento.</li>
         <li><strong>Sinal &amp; Data Rate</strong> — largura de banda e ligação mínima para um sinal de vídeo.</li>
@@ -1993,7 +2011,7 @@
       <h2>Dicas rápidas</h2>
       <ul style="margin: 10px 0 0; padding-left: 20px; line-height: 1.9;">
         <li>Sempre que souberes a referência da lente, escolhe-a pelo nome em vez de meter o throw ratio à mão — preenche-se sozinho e fica identificada no relatório.</li>
-        <li>Ecrã LED com várias secções (ex: central + laterais + tiras espalhadas): usa <strong>"+ Adicionar zona"</strong> na aba Ecrã LED, dá a cada uma a sua posição X/Y para ver o diagrama e a dimensão total com gaps, e usa <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais em fila de uma vez. Depois ativa <strong>"Usar total das zonas"</strong> na aba Projeto para somar tudo.</li>
+        <li>Ecrã LED com várias secções (ex: central + laterais + tiras espalhadas): usa a aba <strong>Ecrã Complexo</strong>, adiciona uma zona por secção com a sua posição X/Y para ver o diagrama e a dimensão total com gaps, e usa <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais em fila de uma vez. Depois ativa <strong>"Usar total das zonas"</strong> na aba Projeto para somar tudo.</li>
         <li>Em Blending, escolhe <strong>"Calcular a partir do ecrã"</strong> para a app decidir o nº de projetores sozinha, ou <strong>"Eu defino nº e overlap"</strong> para controlares tu.</li>
         <li>Equipamento marcado <strong>(stock)</strong> nos menus é o que a empresa já tem — prioriza sempre que der.</li>
         <li>Todos os valores são para conferência antes de enviar ao cliente — a app não substitui medir no local.</li>
@@ -3641,7 +3659,7 @@
       if (useZones) {
         if (!lzLastTotals || !lzLastTotals.zones.length) {
           zonesHint.style.display = "block";
-          zonesHint.textContent = "Ainda não há zonas na aba Ecrã LED — adiciona pelo menos uma em \"ecrã complexo — múltiplas zonas\".";
+          zonesHint.textContent = "Ainda não há zonas — adiciona pelo menos uma na aba Ecrã Complexo.";
           document.getElementById("proj-zones-breakdown-wrap").style.display = "none";
           return;
         }
@@ -3659,7 +3677,7 @@
 
         document.getElementById("proj-out-tiles").textContent = fmtInt(numTiles) + " (várias zonas)";
         document.getElementById("proj-out-res").innerHTML = fmtInt(lzLastTotals.totalPixels) + "<small>px totais</small>";
-        document.getElementById("proj-out-size").innerHTML = "várias zonas<small> — ver detalhe na aba Ecrã LED</small>";
+        document.getElementById("proj-out-size").innerHTML = "várias zonas<small> — ver detalhe na aba Ecrã Complexo</small>";
         document.getElementById("proj-out-pitch").innerHTML = "vário<small> (zonas com pitches diferentes)</small>";
         document.getElementById("proj-out-weight").innerHTML = fmt(totalWeight, 1) + "<small>kg</small>";
         document.getElementById("proj-out-amp").innerHTML = fmt(totalAmp, 2) + "<small>A</small> (" + fmt(ampPhaseZ, 2) + "<small>A/fase</small>)";
