@@ -741,7 +741,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.66</span>
+    <span class="mark">v1.67</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1276,34 +1276,47 @@
         <p>Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição.</p>
         <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão.</p>
         <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas.</p>
-        <p>Depois, na aba <strong>Projeto</strong>, ativa <strong>"Usar total das zonas"</strong> para somar tudo isto ao dimensionar switcher/processador de LED.</p>
+        <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar o total das zonas para a aba Projeto (equivale a ativar lá "Usar total das zonas").</p>
+        <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
       </div>
     </details>
     <div class="divider">ecrã complexo — múltiplas zonas</div>
-    <div id="lz-list"></div>
-    <button type="button" class="copy" id="lz-add">+ Adicionar zona</button>
+    <div class="grid">
+      <div>
+        <div id="lz-list"></div>
+        <button type="button" class="copy" id="lz-add">+ Adicionar zona</button>
+      </div>
 
-    <div class="card results" data-accent="zonas" style="margin-top:16px; display:none;" id="lz-totals-card">
-      <div class="stripe"></div>
-      <h2>Total combinado</h2>
-      <div class="readout">
-        <div class="item"><div class="k">Nº de tiles</div><div class="v" id="lz-out-tiles">—</div></div>
-        <div class="item"><div class="k">Total de píxeis</div><div class="v" id="lz-out-pixels">—</div></div>
-        <div class="item"><div class="k">Área total (tiles)</div><div class="v" id="lz-out-area">—</div></div>
-        <div class="item"><div class="k">Peso total</div><div class="v" id="lz-out-weight">—</div></div>
-        <div class="item"><div class="k">Amp total</div><div class="v" id="lz-out-amp">—</div></div>
-        <div class="item wide"><div class="k">Dimensão do conjunto (com gaps)</div><div class="v" id="lz-out-bbox">—</div></div>
-      </div>
-      <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá). A área total também aparece lá — referência interna, não sai no material para o cliente. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas (diferente da área total, que é só a soma das áreas de cada zona).</p>
-      <div id="lz-diagram-wrap" style="margin: 4px 0 18px; display:none;">
-        <svg id="lz-diagram" width="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; max-height:360px;"></svg>
-      </div>
-      <div class="summary">
-        <div class="summary-head">
-          <span class="k">Resumo por zona</span>
-          <button class="copy" data-target="lz-sum">Copiar resumo</button>
+      <div class="card results" data-accent="zonas" style="display:none;" id="lz-totals-card">
+        <div class="stripe"></div>
+        <h2>Total combinado</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Nº de tiles</div><div class="v" id="lz-out-tiles">—</div></div>
+          <div class="item"><div class="k">Total de píxeis</div><div class="v" id="lz-out-pixels">—</div></div>
+          <div class="item"><div class="k">Área total (tiles)</div><div class="v" id="lz-out-area">—</div></div>
+          <div class="item"><div class="k">Peso total</div><div class="v" id="lz-out-weight">—</div></div>
+          <div class="item"><div class="k">Amp total</div><div class="v" id="lz-out-amp">—</div></div>
+          <div class="item wide"><div class="k">Dimensão do conjunto (com gaps)</div><div class="v" id="lz-out-bbox">—</div></div>
         </div>
-        <pre class="sumbox" id="lz-sum"></pre>
+        <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá). A área total também aparece lá — referência interna, não sai no material para o cliente. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas (diferente da área total, que é só a soma das áreas de cada zona).</p>
+        <div id="lz-diagram-wrap" style="margin: 4px 0 18px; display:none;">
+          <svg id="lz-diagram" width="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; max-height:360px;"></svg>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+            <button type="button" class="copy" id="lz-export-map">Exportar mapa de píxeis (PNG)</button>
+            <button type="button" class="copy" id="lz-export-mask">Exportar máscara (PNG)</button>
+          </div>
+          <p class="hint" style="margin-top:8px;">Canvas único em píxeis para importar num media server. Se as zonas tiverem pitches diferentes, a posição/tamanho no canvas é aproximada — usa como referência o pitch da zona com maior área (fica indicado no ficheiro). O "mapa" tem legendas com os valores; a "máscara" é só preto/branco (uma zona = branco), para usar como matte de conteúdo.</p>
+        </div>
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo por zona</span>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="z-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="lz-sum">Copiar resumo</button>
+            </div>
+          </div>
+          <pre class="sumbox" id="lz-sum"></pre>
+        </div>
       </div>
     </div>
   </section>
@@ -2154,7 +2167,7 @@
   // de duplicar o resumo). Um projeto só tem um tipo (LED ou Projeção) e,
   // dentro de Projeção, só um modo (único ou blend) — por isso marcar uma
   // destas três desmarca as outras duas automaticamente.
-  var PROJTYPE_ADDPROJECT_IDS = ["p-addproject", "l-addproject", "b-addproject"];
+  var PROJTYPE_ADDPROJECT_IDS = ["p-addproject", "l-addproject", "b-addproject", "z-addproject"];
   function setExclusiveAddProject(activeId) {
     PROJTYPE_ADDPROJECT_IDS.forEach(function (id) {
       if (id === activeId) return;
@@ -2238,6 +2251,12 @@
     calcProjeto();
   }
 
+  function syncZonesToProject() {
+    segClick("proj-type-seg", "projtype", "led");
+    document.getElementById("proj-led-usezones").checked = true;
+    calcProjeto();
+  }
+
   function syncBlendToProject() {
     segClick("proj-type-seg", "projtype", "projecao");
     segClick("proj-blendmode-seg", "blendmode", "blend");
@@ -2266,6 +2285,9 @@
   });
   document.getElementById("b-addproject").addEventListener("change", function () {
     if (this.checked) { setExclusiveAddProject("b-addproject"); syncBlendToProject(); }
+  });
+  document.getElementById("z-addproject").addEventListener("change", function () {
+    if (this.checked) { setExclusiveAddProject("z-addproject"); syncZonesToProject(); }
   });
 
   var LENTES_DATA = [];
@@ -3230,27 +3252,161 @@
     var maxX = Math.max.apply(null, valid.map(function (z) { return z.posX + z.w; }));
     var maxY = Math.max.apply(null, valid.map(function (z) { return z.posY + z.h; }));
     var totalW = maxX - minX, totalH = maxY - minY;
-    var pad = Math.max(totalW, totalH) * 0.08 || 0.2;
-    var vbW = totalW + pad * 2, vbH = totalH + pad * 2;
-    svg.setAttribute("viewBox", "0 0 " + vbW + " " + vbH);
+    var unit = Math.max(totalW, totalH) || 1;
+    var fontSize = unit * 0.028;
+    var strokeW = unit * 0.004, radius = unit * 0.006;
+    // A legenda fica acima de cada zona (fora do retângulo) — dentro do
+    // retângulo fica ilegível quando as zonas são pequenas ou têm gaps
+    // apertados entre si. O padding de topo tem de caber a linha de texto,
+    // e o da direita tem de caber a legenda mais larga (estimativa de
+    // largura de texto, já que não há como medir texto real num SVG gerado
+    // à parte do DOM).
+    var labelGap = fontSize * 0.5;
+    var padTop = Math.max(unit * 0.06, fontSize * 1.8);
+    var padSide = unit * 0.06;
+    var labels = valid.map(function (z) {
+      return { z: z, text: z.name + " — " + fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m" };
+    });
+    var maxLabelRight = 0;
+    labels.forEach(function (l) {
+      var textWidth = l.text.length * fontSize * 0.56;
+      maxLabelRight = Math.max(maxLabelRight, (l.z.posX - minX) + textWidth);
+    });
+    var padRight = Math.max(padSide, maxLabelRight - totalW + padSide);
 
     var style = getComputedStyle(document.documentElement);
     var ink = style.getPropertyValue("--ink").trim() || "#10181F";
     var teal = style.getPropertyValue("--teal-500").trim() || "#159187";
-    var unit = Math.max(totalW, totalH);
-    var fontSize = unit * 0.03, fontSizeSmall = unit * 0.024;
-    var strokeW = unit * 0.004, radius = unit * 0.006;
+
+    var vbW = totalW + padSide + padRight, vbH = totalH + padTop * 2;
+    svg.setAttribute("viewBox", "0 0 " + vbW + " " + vbH);
 
     var parts = [];
-    valid.forEach(function (z) {
-      var x = z.posX - minX + pad, y = z.posY - minY + pad;
+    labels.forEach(function (l) {
+      var z = l.z;
+      var x = z.posX - minX + padSide, y = z.posY - minY + padTop;
       parts.push('<rect x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + teal + '" fill-opacity="0.20" stroke="' + teal + '" stroke-width="' + strokeW + '" rx="' + radius + '"/>');
-      parts.push('<text x="' + (x + z.w / 2) + '" y="' + (y + z.h / 2 - fontSize * 0.25) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="middle" dominant-baseline="middle">' + escapeXml(z.name) + '</text>');
-      parts.push('<text x="' + (x + z.w / 2) + '" y="' + (y + z.h / 2 + fontSizeSmall) + '" font-size="' + fontSizeSmall + '" fill="' + ink + '" opacity="0.65" text-anchor="middle" dominant-baseline="middle">' + fmt(z.w, 2) + '×' + fmt(z.h, 2) + 'm</text>');
+      parts.push('<text x="' + x + '" y="' + (y - labelGap) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
     });
     svg.innerHTML = parts.join("");
     return { w: totalW, h: totalH };
   }
+
+  // Converte as zonas (posição/tamanho em metros, cada uma com o seu
+  // próprio pitch) para um único canvas em píxeis, para exportar para
+  // media server. Pitches diferentes entre zonas não têm conversão exata
+  // (um metro físico corresponde a nº de píxeis diferente consoante o
+  // pitch) — usa-se o pitch da zona com maior área como referência para
+  // posicionar tudo num canvas comum.
+  function lzComputePixelMap(zones) {
+    var valid = zones.filter(function (z) {
+      return isFinite(z.posX) && isFinite(z.posY) && z.w > 0 && z.h > 0 && z.totalPx > 0 && z.totalPy > 0;
+    });
+    if (!valid.length) return null;
+    valid.forEach(function (z) {
+      z.pitchX = (z.w * 1000) / z.totalPx;
+      z.pitchY = (z.h * 1000) / z.totalPy;
+    });
+    var ref = valid.reduce(function (a, b) { return (b.w * b.h) > (a.w * a.h) ? b : a; });
+    var refPitch = (ref.pitchX + ref.pitchY) / 2;
+    var mixedPitch = valid.some(function (z) { return Math.abs((z.pitchX + z.pitchY) / 2 - refPitch) > 0.05; });
+
+    var minX = Math.min.apply(null, valid.map(function (z) { return z.posX; }));
+    var minY = Math.min.apply(null, valid.map(function (z) { return z.posY; }));
+    valid.forEach(function (z) {
+      z.pxX = Math.round(((z.posX - minX) * 1000) / refPitch);
+      z.pxY = Math.round(((z.posY - minY) * 1000) / refPitch);
+      z.pxW = Math.max(1, Math.round((z.w * 1000) / refPitch));
+      z.pxH = Math.max(1, Math.round((z.h * 1000) / refPitch));
+    });
+    var canvasW = Math.max.apply(null, valid.map(function (z) { return z.pxX + z.pxW; }));
+    var canvasH = Math.max.apply(null, valid.map(function (z) { return z.pxY + z.pxH; }));
+    return { zones: valid, canvasW: canvasW, canvasH: canvasH, refPitch: refPitch, refName: ref.name, mixedPitch: mixedPitch };
+  }
+
+  function lzCanvasScale(pm) {
+    var MAX_DIM = 4000;
+    var longest = Math.max(pm.canvasW, pm.canvasH);
+    return longest > MAX_DIM ? MAX_DIM / longest : 1;
+  }
+
+  function lzExportPixelMapPNG() {
+    var pm = lzLastTotals && lzLastTotals.zones ? lzComputePixelMap(lzLastTotals.zones) : null;
+    if (!pm) { alert("Preenche pelo menos uma zona com modelo/resolução válidos primeiro."); return; }
+    var scale = lzCanvasScale(pm);
+    var baseW = Math.max(1, Math.round(pm.canvasW * scale)), baseH = Math.max(1, Math.round(pm.canvasH * scale));
+    var fontPx = Math.max(11, Math.round(Math.min(baseW, baseH) * 0.02));
+    var labelFont = fontPx + "px sans-serif";
+    var captionFont = Math.max(10, Math.round(fontPx * 0.75)) + "px sans-serif";
+
+    // Mede o texto real das legendas (não é só o mapa — é uma imagem de
+    // referência) para garantir que nenhuma fica cortada na borda direita,
+    // e reserva uma faixa no topo para a legenda de cada zona + a legenda
+    // geral do canvas não ficarem sobrepostas.
+    var measureCtx = document.createElement("canvas").getContext("2d");
+    measureCtx.font = labelFont;
+    var labels = pm.zones.map(function (z) {
+      return { z: z, text: z.name + " — " + z.pxW + "×" + z.pxH + "px @ (" + z.pxX + "," + z.pxY + ")" };
+    });
+    var maxRight = 0;
+    labels.forEach(function (l) {
+      maxRight = Math.max(maxRight, l.z.pxX * scale + measureCtx.measureText(l.text).width);
+    });
+    var extraRight = Math.max(0, Math.ceil(maxRight - baseW) + 8);
+    var offsetTop = Math.round(fontPx * 3.2);
+
+    var cw = baseW + extraRight, ch = baseH + offsetTop;
+    var canvas = document.createElement("canvas");
+    canvas.width = cw; canvas.height = ch;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#0B1116";
+    ctx.fillRect(0, 0, cw, ch);
+
+    ctx.fillStyle = "#8FA0AC";
+    ctx.font = captionFont;
+    ctx.textBaseline = "top";
+    ctx.fillText("Canvas do conteúdo: " + pm.canvasW + "×" + pm.canvasH + "px — pitch de referência: " + fmt(pm.refPitch, 2) + "mm (\"" + pm.refName + "\")" + (scale < 1 ? " — imagem reduzida " + fmt(scale * 100, 0) + "%, os valores nas legendas são os reais" : ""), 4, 4);
+
+    ctx.font = labelFont;
+    ctx.textBaseline = "bottom";
+    labels.forEach(function (l) {
+      var z = l.z;
+      var x = z.pxX * scale, y = z.pxY * scale + offsetTop, w = z.pxW * scale, h = z.pxH * scale;
+      ctx.fillStyle = "rgba(21,145,135,0.28)";
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = "#159187";
+      ctx.lineWidth = Math.max(1, Math.round(Math.min(baseW, baseH) * 0.0025));
+      ctx.strokeRect(x, y, w, h);
+      ctx.fillStyle = "#E7EDF2";
+      ctx.fillText(l.text, x, y - 4);
+    });
+
+    canvas.toBlob(function (blob) {
+      if (blob) saveOrShareBlob("mapa-pixeis-" + Date.now() + ".png", blob);
+    }, "image/png");
+  }
+
+  function lzExportMaskPNG() {
+    var pm = lzLastTotals && lzLastTotals.zones ? lzComputePixelMap(lzLastTotals.zones) : null;
+    if (!pm) { alert("Preenche pelo menos uma zona com modelo/resolução válidos primeiro."); return; }
+    var scale = lzCanvasScale(pm);
+    var cw = Math.max(1, Math.round(pm.canvasW * scale)), ch = Math.max(1, Math.round(pm.canvasH * scale));
+    var canvas = document.createElement("canvas");
+    canvas.width = cw; canvas.height = ch;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.fillStyle = "#FFFFFF";
+    pm.zones.forEach(function (z) {
+      ctx.fillRect(z.pxX * scale, z.pxY * scale, z.pxW * scale, z.pxH * scale);
+    });
+    canvas.toBlob(function (blob) {
+      if (blob) saveOrShareBlob("mascara-" + Date.now() + ".png", blob);
+    }, "image/png");
+  }
+
+  document.getElementById("lz-export-map").addEventListener("click", lzExportPixelMapPNG);
+  document.getElementById("lz-export-mask").addEventListener("click", lzExportMaskPNG);
 
   function calcLedZones() {
     var cards = lzList.querySelectorAll(".card");
@@ -4022,10 +4178,9 @@
     URL.revokeObjectURL(url);
   }
 
-  function saveOrShareFile(filename, content, mimeType) {
-    var blob = new Blob([content], { type: mimeType });
+  function saveOrShareBlob(filename, blob) {
     var file = null;
-    try { file = new File([blob], filename, { type: mimeType }); } catch (e) {}
+    try { file = new File([blob], filename, { type: blob.type }); } catch (e) {}
     // Em PWA instalada no telemóvel, o download por <a download> pode falhar
     // silenciosamente — a partilha nativa é mais fiável quando disponível.
     if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -4036,6 +4191,10 @@
       return;
     }
     downloadBlob(blob, filename);
+  }
+
+  function saveOrShareFile(filename, content, mimeType) {
+    saveOrShareBlob(filename, new Blob([content], { type: mimeType }));
   }
 
   document.getElementById("proj-download").addEventListener("click", function () {
