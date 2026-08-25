@@ -790,7 +790,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.73</span>
+    <span class="mark">v1.74</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1325,6 +1325,8 @@
         <p>Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição.</p>
         <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão.</p>
         <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas. Se depois precisares de mudar o modelo/tamanho dessas cópias, edita só a zona original e usa <strong>"Atualizar réplicas"</strong> — aplica a alteração às outras com o mesmo nome-base sem criar novas nem mexer nas posições de cada uma.</p>
+        <p>Para abrir espaço a uma zona nova (ex: adicionar um ecrã à esquerda de tudo o resto): marca a caixa <strong>"Sel."</strong> nas zonas que já lá estão (ou usa "Selecionar todas"), indica quanto deslocar em X/Y no bloco acima da lista e carrega em <strong>"Mover selecionadas"</strong> — soma esse deslocamento à posição de todas as marcadas de uma vez, sem teres de editar zona a zona.</p>
+        <p>Zonas com o mesmo nome-base (ex: "Lateral", "Lateral 2", "Lateral 3") ficam marcadas automaticamente com a mesma cor no diagrama, no mapa de píxeis exportado e num pontinho junto ao nome de cada zona — só para ajudar a distinguir grupos à vista, não afeta os cálculos.</p>
         <p>As zonas ficam guardadas automaticamente neste aparelho (mesmo que atualizes a página ou feches a app) — não precisas de gravar nada à parte.</p>
         <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar o total das zonas para a aba Projeto (equivale a ativar lá "Usar total das zonas").</p>
         <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
@@ -1337,6 +1339,20 @@
     <div class="divider">ecrã complexo — múltiplas zonas</div>
     <div class="grid">
       <div>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:14px; padding:10px 12px; border:1px solid var(--line-soft); border-radius:10px; background:var(--paper);">
+          <div class="field" style="margin-bottom:0;">
+            <label>Deslocar X selecionadas</label>
+            <div class="inputgroup"><input id="lz-bulk-dx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Deslocar Y selecionadas</label>
+            <div class="inputgroup"><input id="lz-bulk-dy" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div>
+          </div>
+          <button type="button" class="copy" id="lz-bulk-move" title="Soma o deslocamento X/Y às zonas com a caixa 'Sel.' marcada — útil para abrir espaço para uma zona nova">Mover selecionadas</button>
+          <button type="button" class="copy" id="lz-select-all">Selecionar todas</button>
+          <button type="button" class="copy" id="lz-select-none">Limpar seleção</button>
+          <span class="hint" id="lz-bulk-count" style="margin:0 0 8px;">0 selecionadas</span>
+        </div>
         <div id="lz-list"></div>
         <button type="button" class="copy" id="lz-add">+ Adicionar zona</button>
       </div>
@@ -1356,10 +1372,7 @@
         <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá) — é a soma dos píxeis nativos de cada zona, não o canvas final. A área total também aparece lá — referência interna, não sai no material para o cliente. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas. A "resolução final do canvas" é esse mesmo retângulo convertido em píxeis (usando o pitch da zona maior como referência) — é o tamanho real a configurar no media server, incluindo o espaço dos gaps.</p>
         <div id="lz-diagram-wrap" style="margin: 4px 0 18px; display:none;">
           <svg id="lz-diagram" width="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; max-height:520px; min-height:220px;"></svg>
-          <div style="display:flex; gap:16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-faint);">
-            <span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:var(--teal-500); opacity:0.55; margin-right:5px; vertical-align:-1px;"></span>zona (LED real)</span>
-            <span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:var(--rose-500); opacity:0.3; border:1px dashed var(--rose-500); margin-right:5px; vertical-align:-1px;"></span>gap (sem LED)</span>
-          </div>
+          <div id="lz-diagram-legend" style="display:flex; gap:16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-faint); flex-wrap:wrap;"></div>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
             <button type="button" class="copy" id="lz-export-map">Exportar mapa de píxeis (PNG)</button>
             <button type="button" class="copy" id="lz-export-mask">Exportar máscara (PNG)</button>
@@ -3155,6 +3168,13 @@
     card.dataset.zoneId = id;
     card.innerHTML =
       '<div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-bottom:14px; flex-wrap:wrap;">' +
+        '<div class="field" style="width:32px; margin-bottom:0;">' +
+          '<label style="text-align:center;">Sel.</label>' +
+          '<div style="display:flex; align-items:center; justify-content:center; gap:5px; height:35px;">' +
+            '<input type="checkbox" class="lz-select" title="Selecionar esta zona para mover em bloco">' +
+            '<span class="lz-color-dot" style="width:10px; height:10px; border-radius:3px; flex:none;"></span>' +
+          '</div>' +
+        '</div>' +
         '<div class="field" style="flex:1; min-width:160px; margin-bottom:0;">' +
           '<label>Nome da zona</label>' +
           '<div class="inputgroup"><input type="text" class="lz-name" value="' + (name || ("Zona " + (lzNextId - 1))) + '"></div>' +
@@ -3230,6 +3250,26 @@
     return (m ? m[1] : name).trim();
   }
 
+  // Cor por grupo (zonas com o mesmo nome-base, ex: "Lateral"/"Lateral
+  // 2"/"Lateral 3" partilham cor) — paleta categórica com boa distinção em
+  // daltonismo, nas variantes escuras (a app fica sempre em tema escuro).
+  var LZ_GROUP_PALETTE = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+  function lzGroupColorMap(zones) {
+    var order = [], seen = {};
+    zones.forEach(function (z) {
+      var base = lzBaseName(z.name);
+      if (!seen[base]) { seen[base] = true; order.push(base); }
+    });
+    var map = {};
+    order.forEach(function (base, i) { map[base] = LZ_GROUP_PALETTE[i % LZ_GROUP_PALETTE.length]; });
+    return map;
+  }
+  function lzHexToRgba(hex, alpha) {
+    var h = hex.replace("#", "");
+    var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
+    return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+  }
+
   function lzApplyModel(card) {
     var sel = card.querySelector(".lz-model");
     var isCustom = sel.value === "custom";
@@ -3248,6 +3288,29 @@
   document.getElementById("lz-add").addEventListener("click", function () { lzAddZone(); });
   document.getElementById("lz-preview-bar").addEventListener("click", function () {
     document.getElementById("lz-totals-card").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  document.getElementById("lz-select-all").addEventListener("click", function () {
+    lzList.querySelectorAll(".lz-select").forEach(function (cb) { cb.checked = true; });
+    calcLedZones();
+  });
+  document.getElementById("lz-select-none").addEventListener("click", function () {
+    lzList.querySelectorAll(".lz-select").forEach(function (cb) { cb.checked = false; });
+    calcLedZones();
+  });
+  document.getElementById("lz-bulk-move").addEventListener("click", function () {
+    var dx = parseFloat(document.getElementById("lz-bulk-dx").value) || 0;
+    var dy = parseFloat(document.getElementById("lz-bulk-dy").value) || 0;
+    if (!dx && !dy) { alert("Indica um deslocamento em X e/ou Y primeiro."); return; }
+    var selected = lzList.querySelectorAll(".lz-select:checked");
+    if (!selected.length) { alert("Marca a caixa \"Sel.\" de pelo menos uma zona primeiro — são as que vão ser deslocadas."); return; }
+    selected.forEach(function (cb) {
+      var card = cb.closest(".card");
+      var xInput = card.querySelector(".lz-posx"), yInput = card.querySelector(".lz-posy");
+      xInput.value = (Math.round(((parseFloat(xInput.value) || 0) + dx) * 100) / 100).toFixed(2);
+      yInput.value = (Math.round(((parseFloat(yInput.value) || 0) + dy) * 100) / 100).toFixed(2);
+    });
+    calcLedZones();
   });
 
   lzList.addEventListener("click", function (e) {
@@ -3340,15 +3403,17 @@
   // uma noção visual do conjunto e devolve a caixa (bounding box) que as
   // envolve — usada para "dimensão do conjunto" (já com os gaps incluídos,
   // ao contrário da área total que é só a soma das áreas de cada zona).
-  function lzRenderDiagram(zones) {
+  function lzRenderDiagram(zones, colorMap) {
     var wrap = document.getElementById("lz-diagram-wrap");
     var svg = document.getElementById("lz-diagram");
+    var legend = document.getElementById("lz-diagram-legend");
     var valid = zones.filter(function (z) {
       return isFinite(z.posX) && isFinite(z.posY) && z.w > 0 && z.h > 0;
     });
     if (!valid.length) {
       wrap.style.display = "none";
       svg.innerHTML = "";
+      legend.innerHTML = "";
       return null;
     }
     wrap.style.display = "block";
@@ -3367,38 +3432,67 @@
     // largura de texto, já que não há como medir texto real num SVG gerado
     // à parte do DOM).
     var labelGap = fontSize * 0.5;
-    var padTop = Math.max(unit * 0.06, fontSize * 1.8);
     var padSide = unit * 0.06;
     var labels = valid.map(function (z) {
-      return { z: z, text: z.name + " — " + fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m" };
+      var text = z.name + " — " + fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m";
+      return { z: z, text: text, textW: text.length * fontSize * 0.56, level: 0 };
     });
     var maxLabelRight = 0;
     labels.forEach(function (l) {
-      var textWidth = l.text.length * fontSize * 0.56;
-      maxLabelRight = Math.max(maxLabelRight, (l.z.posX - minX) + textWidth);
+      maxLabelRight = Math.max(maxLabelRight, (l.z.posX - minX) + l.textW);
     });
     var padRight = Math.max(padSide, maxLabelRight - totalW + padSide);
 
+    // Zonas vizinhas com a mesma posição Y (ex: várias tiras lado a lado)
+    // têm legendas mais largas do que elas próprias — sem isto ficavam
+    // coladas. Empilha as que colidem em "andares" alternados, tal como no
+    // mapa de píxeis exportado.
+    var rowH = fontSize * 1.3;
+    var rowGroups = {};
+    labels.forEach(function (l) { var key = l.z.posY.toFixed(3); (rowGroups[key] = rowGroups[key] || []).push(l); });
+    Object.keys(rowGroups).forEach(function (key) {
+      var group = rowGroups[key].sort(function (a, b) { return a.z.posX - b.z.posX; });
+      var levelRightEdge = [];
+      group.forEach(function (l) {
+        var x = l.z.posX - minX;
+        var lvl = 0;
+        while (levelRightEdge[lvl] !== undefined && x < levelRightEdge[lvl] + unit * 0.01) lvl++;
+        l.level = lvl;
+        levelRightEdge[lvl] = x + l.textW;
+      });
+    });
+    var maxLevel = labels.reduce(function (m, l) { return Math.max(m, l.level); }, 0);
+    var padTop = Math.max(unit * 0.06, fontSize * 1.8) + maxLevel * rowH;
+
     var style = getComputedStyle(document.documentElement);
     var ink = style.getPropertyValue("--ink").trim() || "#10181F";
-    var teal = style.getPropertyValue("--teal-500").trim() || "#159187";
     var rose = style.getPropertyValue("--rose-500").trim() || "#D14D78";
 
     var vbW = totalW + padSide + padRight, vbH = totalH + padTop * 2;
     svg.setAttribute("viewBox", "0 0 " + vbW + " " + vbH);
 
     // O retângulo do conjunto todo fica marcado a rosa (= gap, sem LED) por
-    // baixo; as zonas com LED desenham-se por cima a teal, "tapando" essa
-    // marca onde há ecrã real — distingue de imediato o que é pixel do que
-    // é só espaço vazio dentro do canvas.
+    // baixo; as zonas com LED desenham-se por cima, cada uma com a cor do
+    // seu grupo (mesmo nome-base), "tapando" essa marca onde há ecrã real —
+    // distingue de imediato o que é pixel do que é só espaço vazio, e
+    // agrupa visualmente zonas relacionadas (ex: as várias tiras).
     var parts = ['<rect x="' + padSide + '" y="' + padTop + '" width="' + totalW + '" height="' + totalH + '" fill="' + rose + '" fill-opacity="0.12" stroke="' + rose + '" stroke-width="' + strokeW + '" stroke-dasharray="' + (strokeW * 2.5) + ' ' + (strokeW * 2.5) + '"/>'];
     labels.forEach(function (l) {
       var z = l.z;
       var x = z.posX - minX + padSide, y = z.posY - minY + padTop;
-      parts.push('<rect x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + teal + '" fill-opacity="0.55" stroke="' + teal + '" stroke-width="' + strokeW + '" rx="' + radius + '"/>');
-      parts.push('<text x="' + x + '" y="' + (y - labelGap) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
+      var color = colorMap[lzBaseName(z.name)];
+      parts.push('<rect x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '"/>');
+      parts.push('<text x="' + x + '" y="' + (y - labelGap - l.level * rowH) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
     });
     svg.innerHTML = parts.join("");
+
+    var groupNames = [];
+    Object.keys(colorMap).forEach(function (base) { if (valid.some(function (z) { return lzBaseName(z.name) === base; })) groupNames.push(base); });
+    legend.innerHTML = groupNames.map(function (base) {
+      return '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + colorMap[base] + '; opacity:0.75; margin-right:5px; vertical-align:-1px;"></span>' + escapeXml(base) + '</span>';
+    }).join("") +
+      '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + rose + '; opacity:0.3; border:1px dashed ' + rose + '; margin-right:5px; vertical-align:-1px;"></span>gap (sem LED)</span>';
+
     return { w: totalW, h: totalH };
   }
 
@@ -3443,6 +3537,7 @@
   function lzExportPixelMapPNG() {
     var pm = lzLastTotals && lzLastTotals.zones ? lzComputePixelMap(lzLastTotals.zones) : null;
     if (!pm) { alert("Preenche pelo menos uma zona com modelo/resolução válidos primeiro."); return; }
+    var colorMap = (lzLastTotals && lzLastTotals.colorMap) || lzGroupColorMap(pm.zones);
     var scale = lzCanvasScale(pm);
     var baseW = Math.max(1, Math.round(pm.canvasW * scale)), baseH = Math.max(1, Math.round(pm.canvasH * scale));
 
@@ -3520,8 +3615,9 @@
     ctx.fillText(canvasResLabel, 12, ch - bandH / 2);
 
     // Marca o canvas todo a rosa (= gap, sem LED) por baixo; as zonas
-    // desenham-se por cima a teal, "tapando" essa marca onde há ecrã real —
-    // distingue de imediato pixel real de espaço vazio dentro do canvas.
+    // desenham-se por cima com a cor do seu grupo, "tapando" essa marca onde
+    // há ecrã real — distingue de imediato pixel real de espaço vazio, e
+    // agrupa visualmente zonas relacionadas.
     ctx.fillStyle = "rgba(209,77,120,0.14)";
     ctx.fillRect(0, offsetTop, baseW, baseH);
     ctx.strokeStyle = "rgba(209,77,120,0.6)";
@@ -3535,9 +3631,10 @@
     labels.forEach(function (l) {
       var z = l.z;
       var x = z.pxX * scale, y = z.pxY * scale + offsetTop, w = z.pxW * scale, h = z.pxH * scale;
-      ctx.fillStyle = "rgba(21,145,135,0.6)";
+      var color = colorMap[lzBaseName(z.name)] || "#159187";
+      ctx.fillStyle = lzHexToRgba(color, 0.6);
       ctx.fillRect(x, y, w, h);
-      ctx.strokeStyle = "#159187";
+      ctx.strokeStyle = color;
       ctx.lineWidth = Math.max(1, Math.round(Math.min(baseW, baseH) * 0.0025));
       ctx.strokeRect(x, y, w, h);
 
@@ -3613,6 +3710,8 @@
     var cards = lzList.querySelectorAll(".card");
     var totalsCard = document.getElementById("lz-totals-card");
     var previewBar = document.getElementById("lz-preview-bar");
+    var bulkCount = lzList.querySelectorAll(".lz-select:checked").length;
+    document.getElementById("lz-bulk-count").textContent = bulkCount + (bulkCount === 1 ? " selecionada" : " selecionadas");
     if (!cards.length) {
       totalsCard.style.display = "none";
       previewBar.classList.remove("lz-has-zones");
@@ -3684,7 +3783,13 @@
     document.getElementById("lz-out-weight").innerHTML = fmt(totalWeight,1) + "<small>kg</small>";
     document.getElementById("lz-out-amp").innerHTML = fmt(totalAmp,2) + "<small>A</small> (" + fmt(totalAmp/3,2) + "<small>A/fase</small>)";
 
-    var bbox = lzRenderDiagram(zones);
+    var colorMap = lzGroupColorMap(zones);
+    cards.forEach(function (card, i) {
+      var dot = card.querySelector(".lz-color-dot");
+      if (dot) dot.style.background = colorMap[lzBaseName(zones[i].name)];
+    });
+
+    var bbox = lzRenderDiagram(zones, colorMap);
     document.getElementById("lz-out-bbox").innerHTML = bbox ? (fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + "<small>m</small>") : "—";
 
     var pm = lzComputePixelMap(zones);
@@ -3700,7 +3805,7 @@
       (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "") +
       (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência" : "") : "");
 
-    lzLastTotals = { zones: zones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm };
+    lzLastTotals = { zones: zones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm, colorMap: colorMap };
     lzSaveToStorage();
     if (typeof calcProjeto === "function") calcProjeto();
   }
