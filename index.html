@@ -737,7 +737,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.64</span>
+    <span class="mark">v1.65</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1075,7 +1075,7 @@
     <details class="howto">
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
-        <p>Escolhe o modelo de tile (ou personaliza, incluindo o brilho em nits — se souberes o valor mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã, em nº de tiles ou em metros. Para ecrãs com várias secções diferentes (ex: central + laterais), usa <strong>"+ Adicionar zona"</strong> mais abaixo — e <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais de uma vez.</p>
+        <p>Escolhe o modelo de tile (ou personaliza, incluindo o brilho em nits — se souberes o valor mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã, em nº de tiles ou em metros. Para ecrãs com várias secções diferentes (ex: central + laterais + tiras espalhadas com gaps entre elas), usa <strong>"+ Adicionar zona"</strong> mais abaixo. Cada zona tem uma posição X/Y (em metros) que desenha um diagrama à escala e calcula a dimensão total do conjunto já com os gaps contemplados. Usa <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais em fila de uma vez, com o gap e direção que definires.</p>
         <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar este ecrã para a aba Projeto — ou, se usaste zonas, ativa lá <strong>"Usar total das zonas"</strong> para somar tudo.</p>
         <p>Para modelos com meio-tile disponível (ex: 100×50 + 50×50), o modo "Medida do ecrã (m)" afina automaticamente a medida final com um meio-tile na borda quando isso bate mais certo que arredondar sempre para o tile inteiro.</p>
       </div>
@@ -1262,7 +1262,7 @@
     </div>
 
     <div class="divider" style="margin-top:26px;">ecrã complexo — múltiplas zonas</div>
-    <p class="hint">Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo e nº de tiles.</p>
+    <p class="hint">Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição. A posição (X = horizontal, Y = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e contempla os gaps entre zonas.</p>
     <div id="lz-list"></div>
     <button type="button" class="copy" id="lz-add">+ Adicionar zona</button>
 
@@ -1272,11 +1272,15 @@
       <div class="readout">
         <div class="item"><div class="k">Nº de tiles</div><div class="v" id="lz-out-tiles">—</div></div>
         <div class="item"><div class="k">Total de píxeis</div><div class="v" id="lz-out-pixels">—</div></div>
-        <div class="item"><div class="k">Área total</div><div class="v" id="lz-out-area">—</div></div>
+        <div class="item"><div class="k">Área total (tiles)</div><div class="v" id="lz-out-area">—</div></div>
         <div class="item"><div class="k">Peso total</div><div class="v" id="lz-out-weight">—</div></div>
         <div class="item"><div class="k">Amp total</div><div class="v" id="lz-out-amp">—</div></div>
+        <div class="item wide"><div class="k">Dimensão do conjunto (com gaps)</div><div class="v" id="lz-out-bbox">—</div></div>
       </div>
-      <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá). A área total também aparece lá — referência interna, não sai no material para o cliente.</p>
+      <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá). A área total também aparece lá — referência interna, não sai no material para o cliente. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas (diferente da área total, que é só a soma das áreas de cada zona).</p>
+      <div id="lz-diagram-wrap" style="margin: 4px 0 18px; display:none;">
+        <svg id="lz-diagram" width="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; max-height:360px;"></svg>
+      </div>
       <div class="summary">
         <div class="summary-head">
           <span class="k">Resumo por zona</span>
@@ -1989,7 +1993,7 @@
       <h2>Dicas rápidas</h2>
       <ul style="margin: 10px 0 0; padding-left: 20px; line-height: 1.9;">
         <li>Sempre que souberes a referência da lente, escolhe-a pelo nome em vez de meter o throw ratio à mão — preenche-se sozinho e fica identificada no relatório.</li>
-        <li>Ecrã LED com várias secções (ex: central + laterais): usa <strong>"+ Adicionar zona"</strong> na aba Ecrã LED, e <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais de uma vez. Depois ativa <strong>"Usar total das zonas"</strong> na aba Projeto para somar tudo.</li>
+        <li>Ecrã LED com várias secções (ex: central + laterais + tiras espalhadas): usa <strong>"+ Adicionar zona"</strong> na aba Ecrã LED, dá a cada uma a sua posição X/Y para ver o diagrama e a dimensão total com gaps, e usa <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais em fila de uma vez. Depois ativa <strong>"Usar total das zonas"</strong> na aba Projeto para somar tudo.</li>
         <li>Em Blending, escolhe <strong>"Calcular a partir do ecrã"</strong> para a app decidir o nº de projetores sozinha, ou <strong>"Eu defino nº e overlap"</strong> para controlares tu.</li>
         <li>Equipamento marcado <strong>(stock)</strong> nos menus é o que a empresa já tem — prioriza sempre que der.</li>
         <li>Todos os valores são para conferência antes de enviar ao cliente — a app não substitui medir no local.</li>
@@ -2956,8 +2960,36 @@
     updateSelectStockColor(sel);
   }
 
+  function lzCardWH(card) {
+    var mw = parseFloat(card.querySelector(".lz-mw").value);
+    var mh = parseFloat(card.querySelector(".lz-mh").value);
+    var activeSeg = card.querySelector(".lz-sizemode-seg .seg-btn.active");
+    var mx, my;
+    if (activeSeg && activeSeg.dataset.sizemode === "meters") {
+      var tw = parseFloat(card.querySelector(".lz-target-w").value);
+      var th = parseFloat(card.querySelector(".lz-target-h").value);
+      mx = (isNaN(tw) || !(mw > 0)) ? NaN : Math.max(1, Math.ceil((tw * 1000) / mw));
+      my = (isNaN(th) || !(mh > 0)) ? NaN : Math.max(1, Math.ceil((th * 1000) / mh));
+    } else {
+      mx = parseFloat(card.querySelector(".lz-mx").value);
+      my = parseFloat(card.querySelector(".lz-my").value);
+    }
+    return { w: (mx * mw) / 1000, h: (my * mh) / 1000 };
+  }
+
+  function lzNextDefaultPos() {
+    var maxRight = 0;
+    document.querySelectorAll("#lz-list .card").forEach(function (card) {
+      var posX = parseFloat(card.querySelector(".lz-posx").value) || 0;
+      var wh = lzCardWH(card);
+      if (!isNaN(wh.w)) maxRight = Math.max(maxRight, posX + wh.w);
+    });
+    return { x: maxRight > 0 ? Math.round((maxRight + 0.1) * 100) / 100 : 0, y: 0 };
+  }
+
   function lzAddZone(name, opts) {
     var id = "z" + (lzNextId++);
+    var defaultPos = lzNextDefaultPos();
     var card = document.createElement("div");
     card.className = "card";
     card.dataset.zoneId = id;
@@ -2967,14 +2999,29 @@
           '<label>Nome da zona</label>' +
           '<div class="inputgroup"><input type="text" class="lz-name" value="' + (name || ("Zona " + (lzNextId - 1))) + '"></div>' +
         '</div>' +
-        '<div class="field" style="width:84px; margin-bottom:0;">' +
+        '<div class="field" style="width:70px; margin-bottom:0;">' +
           '<label>Cópias</label>' +
           '<div class="inputgroup"><input type="number" class="lz-dup-count" value="1" min="1" step="1"></div>' +
         '</div>' +
+        '<div class="field" style="width:90px; margin-bottom:0;">' +
+          '<label>Gap p/ cópia</label>' +
+          '<div class="inputgroup"><input type="number" class="lz-dup-gap" value="0.05" min="0" step="0.01"></div>' +
+        '</div>' +
+        '<div class="field" style="width:118px; margin-bottom:0;">' +
+          '<label>Direção cópias</label>' +
+          '<select class="lz-dup-dir plain">' +
+            '<option value="h" selected>→ horizontal</option>' +
+            '<option value="v">↓ vertical</option>' +
+          '</select>' +
+        '</div>' +
         '<div style="display:flex; gap:8px;">' +
-          '<button type="button" class="copy lz-duplicate" title="Cria o nº de zonas indicado em Cópias, iguais a esta">Aplicar réplicas</button>' +
+          '<button type="button" class="copy lz-duplicate" title="Cria o nº de zonas indicado em Cópias, iguais a esta, em fila com o gap e direção indicados">Aplicar réplicas</button>' +
           '<button type="button" class="copy lz-remove">Remover</button>' +
         '</div>' +
+      '</div>' +
+      '<div class="row2 lz-position-inputs">' +
+        '<div class="field"><label>Posição X (horizontal)</label><div class="inputgroup"><input class="lz-posx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
+        '<div class="field"><label>Posição Y (vertical)</label><div class="inputgroup"><input class="lz-posy" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
       '</div>' +
       '<div class="field">' +
         '<label>Modelo de tile</label>' +
@@ -3017,6 +3064,8 @@
       updateSelectStockColor(modelSel);
     }
     lzApplyModel(card);
+    card.querySelector(".lz-posx").value = (opts && opts.posX != null) ? opts.posX : defaultPos.x;
+    card.querySelector(".lz-posy").value = (opts && opts.posY != null) ? opts.posY : defaultPos.y;
     if (opts) {
       if (opts.mw != null) card.querySelector(".lz-mw").value = opts.mw;
       if (opts.mh != null) card.querySelector(".lz-mh").value = opts.mh;
@@ -3100,7 +3149,16 @@
         if (m) maxIndex = Math.max(maxIndex, parseInt(m[1], 10));
       });
       var nextIdx = maxIndex > 0 ? maxIndex + 1 : rootCount + 1;
+      var srcWH = lzCardWH(srcCard);
+      var srcPosX = parseFloat(srcCard.querySelector(".lz-posx").value) || 0;
+      var srcPosY = parseFloat(srcCard.querySelector(".lz-posy").value) || 0;
+      var dupGap = parseFloat(srcCard.querySelector(".lz-dup-gap").value);
+      if (isNaN(dupGap)) dupGap = 0;
+      var dupDir = srcCard.querySelector(".lz-dup-dir").value;
       for (var i = 0; i < count; i++) {
+        var step = (i + 1) * ((dupDir === "v" ? srcWH.h : srcWH.w) + dupGap);
+        opts.posX = dupDir === "v" ? srcPosX : srcPosX + step;
+        opts.posY = dupDir === "v" ? srcPosY + step : srcPosY;
         lzAddZone(root + " " + (nextIdx + i), opts);
       }
       return;
@@ -3127,6 +3185,55 @@
   });
   lzList.addEventListener("input", calcLedZones);
 
+  function escapeXml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[c];
+    });
+  }
+
+  // Desenha um diagrama SVG à escala das zonas (posição + tamanho), para dar
+  // uma noção visual do conjunto e devolve a caixa (bounding box) que as
+  // envolve — usada para "dimensão do conjunto" (já com os gaps incluídos,
+  // ao contrário da área total que é só a soma das áreas de cada zona).
+  function lzRenderDiagram(zones) {
+    var wrap = document.getElementById("lz-diagram-wrap");
+    var svg = document.getElementById("lz-diagram");
+    var valid = zones.filter(function (z) {
+      return isFinite(z.posX) && isFinite(z.posY) && z.w > 0 && z.h > 0;
+    });
+    if (!valid.length) {
+      wrap.style.display = "none";
+      svg.innerHTML = "";
+      return null;
+    }
+    wrap.style.display = "block";
+    var minX = Math.min.apply(null, valid.map(function (z) { return z.posX; }));
+    var minY = Math.min.apply(null, valid.map(function (z) { return z.posY; }));
+    var maxX = Math.max.apply(null, valid.map(function (z) { return z.posX + z.w; }));
+    var maxY = Math.max.apply(null, valid.map(function (z) { return z.posY + z.h; }));
+    var totalW = maxX - minX, totalH = maxY - minY;
+    var pad = Math.max(totalW, totalH) * 0.08 || 0.2;
+    var vbW = totalW + pad * 2, vbH = totalH + pad * 2;
+    svg.setAttribute("viewBox", "0 0 " + vbW + " " + vbH);
+
+    var style = getComputedStyle(document.documentElement);
+    var ink = style.getPropertyValue("--ink").trim() || "#10181F";
+    var teal = style.getPropertyValue("--teal-500").trim() || "#159187";
+    var unit = Math.max(totalW, totalH);
+    var fontSize = unit * 0.03, fontSizeSmall = unit * 0.024;
+    var strokeW = unit * 0.004, radius = unit * 0.006;
+
+    var parts = [];
+    valid.forEach(function (z) {
+      var x = z.posX - minX + pad, y = z.posY - minY + pad;
+      parts.push('<rect x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + teal + '" fill-opacity="0.20" stroke="' + teal + '" stroke-width="' + strokeW + '" rx="' + radius + '"/>');
+      parts.push('<text x="' + (x + z.w / 2) + '" y="' + (y + z.h / 2 - fontSize * 0.25) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="middle" dominant-baseline="middle">' + escapeXml(z.name) + '</text>');
+      parts.push('<text x="' + (x + z.w / 2) + '" y="' + (y + z.h / 2 + fontSizeSmall) + '" font-size="' + fontSizeSmall + '" fill="' + ink + '" opacity="0.65" text-anchor="middle" dominant-baseline="middle">' + fmt(z.w, 2) + '×' + fmt(z.h, 2) + 'm</text>');
+    });
+    svg.innerHTML = parts.join("");
+    return { w: totalW, h: totalH };
+  }
+
   function calcLedZones() {
     var cards = lzList.querySelectorAll(".card");
     var totalsCard = document.getElementById("lz-totals-card");
@@ -3140,6 +3247,10 @@
     var zones = [];
     cards.forEach(function (card) {
       var name = card.querySelector(".lz-name").value.trim() || "Zona";
+      var posX = parseFloat(card.querySelector(".lz-posx").value);
+      var posY = parseFloat(card.querySelector(".lz-posy").value);
+      if (isNaN(posX)) posX = 0;
+      if (isNaN(posY)) posY = 0;
       var modelSel = card.querySelector(".lz-model");
       var modelLabel = modelSel.value === "custom" ? "Personalizado" : (LED_TILES_DATA[parseInt(modelSel.value, 10)] || {}).modelo || "Personalizado";
       var mw = parseFloat(card.querySelector(".lz-mw").value);
@@ -3179,7 +3290,7 @@
         readout.innerHTML = fmtInt(totalPx) + "×" + fmtInt(totalPy) + " px — " + fmt(wM,2) + " x " + fmt(hM,2) + " m (" + fmt(zoneArea,2) + " m²) — " + fmtInt(numTiles) + " tiles" + (isNaN(weight) ? "" : " — " + fmt(zoneWeight,1) + " kg") + (isNaN(amp) ? "" : " — " + fmt(zoneAmp,2) + " A");
       }
 
-      zones.push({ name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp });
+      zones.push({ name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY });
     });
 
     var totalTiles = zones.reduce(function (s, z) { return s + z.numTiles; }, 0);
@@ -3194,11 +3305,15 @@
     document.getElementById("lz-out-weight").innerHTML = fmt(totalWeight,1) + "<small>kg</small>";
     document.getElementById("lz-out-amp").innerHTML = fmt(totalAmp,2) + "<small>A</small> (" + fmt(totalAmp/3,2) + "<small>A/fase</small>)";
 
-    document.getElementById("lz-sum").textContent = zones.map(function (z) {
-      return z.name + ": " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A";
-    }).join("\n") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP), " + fmt(totalArea,2) + " m², " + fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A (" + fmt(totalAmp/3,2) + " A/fase)";
+    var bbox = lzRenderDiagram(zones);
+    document.getElementById("lz-out-bbox").innerHTML = bbox ? (fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + "<small>m</small>") : "—";
 
-    lzLastTotals = { zones: zones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp };
+    document.getElementById("lz-sum").textContent = zones.map(function (z) {
+      return z.name + " (X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A";
+    }).join("\n") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP), " + fmt(totalArea,2) + " m² (soma das zonas), " + fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A (" + fmt(totalAmp/3,2) + " A/fase)" +
+      (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "");
+
+    lzLastTotals = { zones: zones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox };
     if (typeof calcProjeto === "function") calcProjeto();
   }
 
