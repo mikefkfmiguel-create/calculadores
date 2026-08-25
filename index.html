@@ -499,6 +499,23 @@
     padding: 9px 10px;
   }
   select.plain:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+  /* Campo de pesquisa por cima de cada select de modelo — filtra as opções
+     ao escrever. Quando não há nenhuma correspondência, mostra um link para
+     pesquisar o termo no Google numa nova aba (não traz resultados para
+     dentro da app — só um atalho externo, tal como as fichas técnicas). */
+  .model-search-wrap { margin-bottom: 6px; }
+  .model-search {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 7px 10px;
+  }
+  .model-search:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .model-search-noresult { margin-top: 6px; font-size: 12.5px; color: var(--ink-faint); }
 
   .divider {
     display: flex;
@@ -840,7 +857,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.77</span>
+    <span class="mark">v1.78</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2197,6 +2214,56 @@
     var opt = sel.options[sel.selectedIndex];
     return opt && opt.dataset.idx !== undefined ? parseInt(opt.dataset.idx, 10) : NaN;
   }
+  function normalizeSearch(s) {
+    return (s || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  }
+  // Campo de pesquisa por cima de um select de modelo — filtra as opções ao
+  // escrever (sem trazer nada de fora para a app). Sem nenhuma opção a
+  // corresponder, mostra um link para pesquisar o termo no Google numa nova
+  // aba — um atalho para o mercado, não uma pesquisa dentro da app.
+  function lzAttachModelSearch(select) {
+    if (!select || select.dataset.searchAttached) return;
+    select.dataset.searchAttached = "1";
+
+    var wrap = document.createElement("div");
+    wrap.className = "model-search-wrap";
+    var input = document.createElement("input");
+    input.type = "text";
+    input.className = "model-search";
+    input.placeholder = "Pesquisar modelo…";
+    input.setAttribute("autocomplete", "off");
+    wrap.appendChild(input);
+    select.parentNode.insertBefore(wrap, select);
+
+    var noResult = document.createElement("div");
+    noResult.className = "model-search-noresult";
+    noResult.style.display = "none";
+    select.parentNode.insertBefore(noResult, select.nextSibling);
+
+    function applyFilter() {
+      var raw = input.value.trim();
+      var q = normalizeSearch(raw);
+      var anyVisible = false;
+      Array.prototype.forEach.call(select.options, function (opt) {
+        var match = !q || normalizeSearch(opt.textContent).indexOf(q) !== -1;
+        opt.hidden = !match;
+        if (match) anyVisible = true;
+      });
+      if (!anyVisible && q) {
+        var query = encodeURIComponent(raw + " ficha técnica");
+        noResult.innerHTML = 'Não encontrei nada na lista — <a class="srclink" href="https://www.google.com/search?q=' + query + '" target="_blank" rel="noopener">procurar "' + escapeXml(raw) + '" no mercado ↗</a>';
+        noResult.style.display = "block";
+      } else {
+        noResult.style.display = "none";
+      }
+    }
+    select._modelSearchRefresh = applyFilter;
+
+    input.addEventListener("input", applyFilter);
+    select.addEventListener("change", function () {
+      if (input.value) { input.value = ""; applyFilter(); }
+    });
+  }
   function updateSourceHint(sel, dataArray, hintElId, useValueAsIdx) {
     var el = document.getElementById(hintElId);
     if (!el) return;
@@ -2533,6 +2600,8 @@
       var ratioText = l.min === l.max ? fmt(l.min, 2) + " fixo" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
       addOption(sel, String(idx), l.marca + " " + l.modelo + " (" + ratioText + ")", false, idx, true);
     });
+    lzAttachModelSearch(sel);
+    if (sel._modelSearchRefresh) sel._modelSearchRefresh();
   }
 
   var projModelSel = document.getElementById("p-projmodel");
@@ -3158,6 +3227,7 @@
     });
     sel.selectedIndex = 0;
     updateSelectStockColor(sel);
+    lzAttachModelSearch(sel);
   }
 
   function lzCardWH(card) {
@@ -5118,6 +5188,9 @@
       wireStockColor(sel);
       updateSelectStockColor(sel);
     });
+
+    [projModelSel, blendProjModelSel, projProjModelSel, ledModelSel, projLedModelSel,
+     tvModelSel, projDsmTvModelSel, projDelayTvModelSel, vTvModelSel].forEach(lzAttachModelSearch);
 
     calcProjecao();
     calcVisualizacao();
