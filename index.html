@@ -589,6 +589,22 @@
     text-align: left;
   }
   #lz-preview-bar .lz-preview-bar-cta { color: var(--teal-600); font-weight: 600; white-space: nowrap; }
+  /* Coluna de detalhes ao lado do diagrama — a identificação de cada zona
+     fica curta e dentro/perto da própria forma no desenho; o resto das
+     características (tamanho, posição) fica aqui, fora do desenho, para
+     não colidir com zonas vizinhas apertadas. */
+  .lz-detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .lz-detail-row:hover { background: var(--paper); }
+  .lz-detail-dot { width: 10px; height: 10px; border-radius: 3px; flex: none; margin-top: 4px; }
+  .lz-detail-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .lz-detail-meta { font-size: 12px; color: var(--ink-faint); margin-top: 1px; }
   @media (max-width: 759px) {
     #lz-preview-bar.lz-has-zones {
       display: flex;
@@ -824,7 +840,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.76</span>
+    <span class="mark">v1.77</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1359,7 +1375,7 @@
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
         <p>Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição.</p>
-        <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão. As legendas do diagrama mostram também o ponto de início e fim de cada zona em metros, e a lista à esquerda ordena-se sozinha pela posição (mais à esquerda primeiro) para ser mais fácil encontrar o card certo. Clicar numa zona no diagrama salta logo para o card dela na lista.</p>
+        <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão. O desenho mostra só o nome de cada zona; o tamanho e o ponto de início/fim em metros ficam na coluna de detalhes ao lado. A lista de cards ordena-se sozinha pela posição (mais à esquerda primeiro) para ser mais fácil encontrar o card certo. Clicar numa zona no desenho ou na coluna de detalhes salta logo para o card dela na lista.</p>
         <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas. Se depois precisares de mudar o modelo/tamanho dessas cópias, edita só a zona original e usa <strong>"Atualizar réplicas"</strong> — aplica a alteração às outras com o mesmo nome-base sem criar novas nem mexer nas posições de cada uma.</p>
         <p>Para abrir espaço a uma zona nova (ex: adicionar um ecrã à esquerda de tudo o resto): marca a caixa <strong>"Sel."</strong> nas zonas que já lá estão (ou usa "Selecionar todas"), indica quanto deslocar em X/Y no bloco acima da lista e carrega em <strong>"Mover selecionadas"</strong> — soma esse deslocamento à posição de todas as marcadas de uma vez, sem teres de editar zona a zona.</p>
         <p>Zonas com o mesmo nome-base (ex: "Lateral", "Lateral 2", "Lateral 3") ficam marcadas automaticamente com a mesma cor no diagrama, no mapa de píxeis exportado e num pontinho junto ao nome de cada zona — só para ajudar a distinguir grupos à vista, não afeta os cálculos.</p>
@@ -1379,7 +1395,10 @@
       <div class="stripe"></div>
       <h2>Diagrama do conjunto</h2>
       <div id="lz-diagram-wrap" style="display:none;">
-        <svg id="lz-diagram" width="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; max-height:min(340px, 38vh); min-height:200px;"></svg>
+        <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+          <svg id="lz-diagram" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; flex:1 1 420px; min-width:280px; max-height:min(460px, 46vh); min-height:220px;"></svg>
+          <div id="lz-diagram-details" style="flex:0 0 260px; max-width:100%; max-height:min(460px, 46vh); overflow-y:auto; display:flex; flex-direction:column; gap:2px;"></div>
+        </div>
         <div id="lz-diagram-legend" style="display:flex; gap:16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-faint); flex-wrap:wrap;"></div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
           <button type="button" class="copy" id="lz-export-map">Exportar mapa de píxeis (PNG)</button>
@@ -3368,17 +3387,30 @@
     document.getElementById("lz-totals-card").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  // Clicar numa zona no diagrama salta para o card de edição correspondente
-  // na lista — mais rápido do que procurar pelo nome numa lista comprida.
-  document.getElementById("lz-diagram").addEventListener("click", function (e) {
-    var rect = e.target.closest("rect[data-zone-id]");
-    if (!rect || !rect.dataset.zoneId) return;
-    var card = lzList.querySelector('.card[data-zone-id="' + rect.dataset.zoneId + '"]');
+  // Clicar numa zona no diagrama (ou na coluna de detalhes) salta para o
+  // card de edição correspondente na lista — mais rápido do que procurar
+  // pelo nome numa lista comprida. O diagrama fica fixo no topo (ver
+  // #lz-diagram-card), por isso não basta centrar o card — tem de se
+  // descontar a altura do próprio diagrama, senão ele tapa a parte de
+  // cima do card para onde se salta.
+  function lzJumpToZoneCard(zoneId) {
+    var card = lzList.querySelector('.card[data-zone-id="' + zoneId + '"]');
     if (!card) return;
-    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    var diagramCard = document.getElementById("lz-diagram-card");
+    var coverH = (diagramCard && getComputedStyle(diagramCard).position !== "static") ? diagramCard.getBoundingClientRect().height : 0;
+    var targetTop = card.getBoundingClientRect().top + window.scrollY - coverH - 20;
+    window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
     card.classList.remove("lz-flash");
     void card.offsetWidth;
     card.classList.add("lz-flash");
+  }
+  document.getElementById("lz-diagram").addEventListener("click", function (e) {
+    var rect = e.target.closest("rect[data-zone-id]");
+    if (rect && rect.dataset.zoneId) lzJumpToZoneCard(rect.dataset.zoneId);
+  });
+  document.getElementById("lz-diagram-details").addEventListener("click", function (e) {
+    var row = e.target.closest(".lz-detail-row[data-zone-id]");
+    if (row && row.dataset.zoneId) lzJumpToZoneCard(row.dataset.zoneId);
   });
 
   document.getElementById("lz-select-all").addEventListener("click", function () {
@@ -3524,10 +3556,11 @@
     // à parte do DOM).
     var labelGap = fontSize * 0.5;
     var padSide = unit * 0.06;
+    // A legenda no desenho fica só com o nome — curta, para não colidir
+    // entre zonas vizinhas apertadas. O tamanho/posição de cada uma fica
+    // na coluna de detalhes ao lado (fora do desenho).
     var labels = valid.map(function (z) {
-      var text = z.name + " — " + fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m (X:" + fmt(z.posX, 2) + "→" + fmt(z.posX + z.w, 2) +
-        (z.posY ? ", Y:" + fmt(z.posY, 2) + "→" + fmt(z.posY + z.h, 2) : "") + "m)";
-      return { z: z, text: text, textW: text.length * fontSize * 0.56, level: 0 };
+      return { z: z, text: z.name, textW: z.name.length * fontSize * 0.56, level: 0 };
     });
     var maxLabelRight = 0;
     labels.forEach(function (l) {
@@ -3601,6 +3634,19 @@
       return '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + colorMap[base] + '; opacity:0.75; margin-right:5px; vertical-align:-1px;"></span>' + escapeXml(base) + '</span>';
     }).join("") +
       '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + rose + '; opacity:0.3; border:1px dashed ' + rose + '; margin-right:5px; vertical-align:-1px;"></span>gap (sem LED)</span>';
+
+    // Coluna de detalhes ao lado do desenho — ordenada como a lista (mais à
+    // esquerda primeiro), com a informação toda que antes ia na legenda do
+    // desenho (tamanho e ponto de início/fim em metros).
+    var details = document.getElementById("lz-diagram-details");
+    details.innerHTML = valid.slice().sort(function (a, b) { return a.posX - b.posX || a.posY - b.posY; }).map(function (z) {
+      var meta = fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m — X:" + fmt(z.posX, 2) + "→" + fmt(z.posX + z.w, 2) +
+        (z.posY ? ", Y:" + fmt(z.posY, 2) + "→" + fmt(z.posY + z.h, 2) : "") + "m";
+      return '<div class="lz-detail-row" data-zone-id="' + escapeXml(z.id || "") + '">' +
+        '<span class="lz-detail-dot" style="background:' + colorMap[lzBaseName(z.name)] + ';"></span>' +
+        '<div><div class="lz-detail-name">' + escapeXml(z.name) + '</div><div class="lz-detail-meta">' + escapeXml(meta) + '</div></div>' +
+        '</div>';
+    }).join("");
 
     return { w: totalW, h: totalH };
   }
