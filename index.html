@@ -427,6 +427,11 @@
     font-weight: 600;
   }
   .card + .card { margin-top: 16px; }
+  @keyframes lz-flash-anim {
+    0%, 100% { box-shadow: var(--shadow); }
+    30% { box-shadow: 0 0 0 3px var(--teal-500), var(--shadow); }
+  }
+  .lz-flash { animation: lz-flash-anim 0.9s ease; }
 
   .field { margin-bottom: 14px; }
   .field:last-child { margin-bottom: 0; }
@@ -555,6 +560,26 @@
   @media (max-width: 759px) {
     #lz-totals-card { order: -1; margin-bottom: 4px; }
   }
+  /* Em ecrãs largos, o painel de resultado do Ecrã Complexo "destaca-se"
+     como um painel flutuante fixo no canto, sempre visível independente do
+     scroll — em vez de só "colar" dentro da própria coluna (que ainda
+     assim exige scroll para voltar a vê-lo depois de descer muito na
+     lista). Só faz sentido com espaço de sobra; em ecrãs mais estreitos
+     (incluindo tablet/telemóvel) mantém-se o comportamento normal. */
+  @media (min-width: 1100px) {
+    .panel[data-mode="zonas"] .grid { grid-template-columns: 1fr; }
+    .panel[data-mode="zonas"] .lz-col-list { padding-right: 460px; }
+    #lz-totals-card {
+      position: fixed;
+      top: 140px;
+      right: 24px;
+      bottom: 20px;
+      width: 420px;
+      overflow-y: auto;
+      overflow-anchor: none;
+      z-index: 20;
+    }
+  }
   /* Barra fixa com o resultado essencial (resolução do canvas + tiles),
      sempre visível por cima do teclado/conteúdo enquanto se edita a lista
      de zonas em ecrãs estreitos — não depende de "position: sticky" (que
@@ -590,6 +615,30 @@
       box-shadow: var(--shadow);
     }
   }
+  /* Notificação leve para avisos/erros simples (em vez do alert() nativo do
+     browser, que sai feio e sem estilo nenhum, ex: caixa do Windows). */
+  #app-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(12px);
+    max-width: min(92vw, 480px);
+    background: var(--paper-raised);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: var(--shadow);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+  }
+  #app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+
   .stripe { height: 3px; border-radius: 3px 3px 0 0; margin: -20px -20px 18px; }
   .panel[data-mode="projecao"] .stripe, [data-accent="projecao"] .stripe { background: var(--amber-500); }
   .panel[data-mode="visualizacao"] .stripe, [data-accent="visualizacao"] .stripe { background: var(--cyan-500); }
@@ -790,7 +839,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.74</span>
+    <span class="mark">v1.75</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -800,6 +849,8 @@
     <button class="install-btn" id="install-banner-btn" style="display:none;">Instalar</button>
     <button class="install-dismiss" id="install-banner-dismiss" aria-label="Fechar">×</button>
   </div>
+
+  <div id="app-toast" role="status" aria-live="polite"></div>
 
   <div class="tabs" role="tablist">
     <button class="tab" data-mode="projecao" role="tab" aria-selected="true"><span class="swatch"></span>Distância de Projeção</button>
@@ -1323,11 +1374,12 @@
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
         <p>Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição.</p>
-        <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão.</p>
+        <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão. As legendas do diagrama mostram também o ponto de início e fim de cada zona em metros, e a lista à esquerda ordena-se sozinha pela posição (mais à esquerda primeiro) para ser mais fácil encontrar o card certo. Clicar numa zona no diagrama salta logo para o card dela na lista.</p>
         <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas. Se depois precisares de mudar o modelo/tamanho dessas cópias, edita só a zona original e usa <strong>"Atualizar réplicas"</strong> — aplica a alteração às outras com o mesmo nome-base sem criar novas nem mexer nas posições de cada uma.</p>
         <p>Para abrir espaço a uma zona nova (ex: adicionar um ecrã à esquerda de tudo o resto): marca a caixa <strong>"Sel."</strong> nas zonas que já lá estão (ou usa "Selecionar todas"), indica quanto deslocar em X/Y no bloco acima da lista e carrega em <strong>"Mover selecionadas"</strong> — soma esse deslocamento à posição de todas as marcadas de uma vez, sem teres de editar zona a zona.</p>
         <p>Zonas com o mesmo nome-base (ex: "Lateral", "Lateral 2", "Lateral 3") ficam marcadas automaticamente com a mesma cor no diagrama, no mapa de píxeis exportado e num pontinho junto ao nome de cada zona — só para ajudar a distinguir grupos à vista, não afeta os cálculos.</p>
         <p>As zonas ficam guardadas automaticamente neste aparelho (mesmo que atualizes a página ou feches a app) — não precisas de gravar nada à parte.</p>
+        <p>Em ecrãs largos (computador), o painel de resultado fica destacado num canto, sempre visível enquanto editas as zonas, em vez de ficar preso ao fim da lista. Em telemóvel/tablet mantém-se a barra fixa condensada em baixo — um painel destacado inteiro seria confuso num ecrã pequeno.</p>
         <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar o total das zonas para a aba Projeto (equivale a ativar lá "Usar total das zonas").</p>
         <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
       </div>
@@ -1338,7 +1390,7 @@
     </button>
     <div class="divider">ecrã complexo — múltiplas zonas</div>
     <div class="grid">
-      <div>
+      <div class="lz-col-list">
         <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:14px; padding:10px 12px; border:1px solid var(--line-soft); border-radius:10px; background:var(--paper);">
           <div class="field" style="margin-bottom:0;">
             <label>Deslocar X selecionadas</label>
@@ -2387,6 +2439,26 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   });
+
+  // O painel de resultado flutuante do Ecrã Complexo (position:fixed, em
+  // ecrãs largos — ver regra #lz-totals-card) tem de começar por baixo das
+  // abas, senão fica por cima delas e bloqueia o clique. A altura do
+  // cabeçalho (logo + abas, que podem quebrar linha consoante a largura)
+  // não é fixa, por isso mede-se em vez de assumir um valor.
+  function lzUpdateFloatingPanelTop() {
+    var card = document.getElementById("lz-totals-card");
+    if (!card) return;
+    // Abaixo de 1100px o painel volta a "position: sticky" (regra .results,
+    // top:16px) — um "top" inline aqui ganhava a essa regra por
+    // especificidade e partia o sticky, por isso só se define acima disso.
+    if (window.innerWidth < 1100) { card.style.top = ""; return; }
+    var tabsEl = document.querySelector(".tabs");
+    if (!tabsEl) return;
+    var rect = tabsEl.getBoundingClientRect();
+    card.style.top = Math.round(rect.bottom + window.scrollY + 16) + "px";
+  }
+  lzUpdateFloatingPanelTop();
+  window.addEventListener("resize", lzUpdateFloatingPanelTop);
   // A animação "rise" ao trocar de aba fica "presa" (fill: both) com um
   // transform aplicado (matrix identidade, mas não é literalmente "none")
   // — isso cria um novo containing block e parte qualquer "position: fixed"
@@ -2396,6 +2468,21 @@
     if (e.animationName === "rise") {
       e.target.getAnimations().forEach(function (a) { a.cancel(); });
     }
+  });
+
+  // Notificação leve para avisos simples (substitui alert() nativo).
+  var appToastTimer = null;
+  function showToast(message) {
+    var el = document.getElementById("app-toast");
+    if (!el) { alert(message); return; }
+    el.textContent = message;
+    el.classList.add("show");
+    clearTimeout(appToastTimer);
+    appToastTimer = setTimeout(function () { el.classList.remove("show"); }, 4200);
+  }
+  document.getElementById("app-toast").addEventListener("click", function () {
+    this.classList.remove("show");
+    clearTimeout(appToastTimer);
   });
 
   // Custom ratio toggle
@@ -3264,6 +3351,25 @@
     order.forEach(function (base, i) { map[base] = LZ_GROUP_PALETTE[i % LZ_GROUP_PALETTE.length]; });
     return map;
   }
+  // Arruma os cards na lista pela posição das zonas (mais à esquerda
+  // primeiro, X depois Y como desempate) em vez de pela ordem em que foram
+  // criados — mais fácil de encontrar o card certo depois de mexer em
+  // posições. Não reordena enquanto o utilizador está a escrever num campo
+  // de posição (perderia o foco a meio da edição); só quando o campo é
+  // confirmado (blur) ou noutras ações (adicionar, duplicar, mover em bloco).
+  function lzSortCardsByPosition() {
+    var active = document.activeElement;
+    if (active && lzList.contains(active) && (active.classList.contains("lz-posx") || active.classList.contains("lz-posy"))) return;
+    var cards = Array.from(lzList.querySelectorAll(".card"));
+    cards.sort(function (a, b) {
+      var ax = parseFloat(a.querySelector(".lz-posx").value) || 0, ay = parseFloat(a.querySelector(".lz-posy").value) || 0;
+      var bx = parseFloat(b.querySelector(".lz-posx").value) || 0, by = parseFloat(b.querySelector(".lz-posy").value) || 0;
+      return ax - bx || ay - by;
+    });
+    var alreadySorted = cards.every(function (c, i) { return lzList.children[i] === c; });
+    if (alreadySorted) return;
+    cards.forEach(function (c) { lzList.appendChild(c); });
+  }
   function lzHexToRgba(hex, alpha) {
     var h = hex.replace("#", "");
     var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
@@ -3290,6 +3396,19 @@
     document.getElementById("lz-totals-card").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
+  // Clicar numa zona no diagrama salta para o card de edição correspondente
+  // na lista — mais rápido do que procurar pelo nome numa lista comprida.
+  document.getElementById("lz-diagram").addEventListener("click", function (e) {
+    var rect = e.target.closest("rect[data-zone-id]");
+    if (!rect || !rect.dataset.zoneId) return;
+    var card = lzList.querySelector('.card[data-zone-id="' + rect.dataset.zoneId + '"]');
+    if (!card) return;
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    card.classList.remove("lz-flash");
+    void card.offsetWidth;
+    card.classList.add("lz-flash");
+  });
+
   document.getElementById("lz-select-all").addEventListener("click", function () {
     lzList.querySelectorAll(".lz-select").forEach(function (cb) { cb.checked = true; });
     calcLedZones();
@@ -3301,9 +3420,9 @@
   document.getElementById("lz-bulk-move").addEventListener("click", function () {
     var dx = parseFloat(document.getElementById("lz-bulk-dx").value) || 0;
     var dy = parseFloat(document.getElementById("lz-bulk-dy").value) || 0;
-    if (!dx && !dy) { alert("Indica um deslocamento em X e/ou Y primeiro."); return; }
+    if (!dx && !dy) { showToast("Indica um deslocamento em X e/ou Y primeiro."); return; }
     var selected = lzList.querySelectorAll(".lz-select:checked");
-    if (!selected.length) { alert("Marca a caixa \"Sel.\" de pelo menos uma zona primeiro — são as que vão ser deslocadas."); return; }
+    if (!selected.length) { showToast("Marca a caixa \"Sel.\" de pelo menos uma zona primeiro — são as que vão ser deslocadas."); return; }
     selected.forEach(function (cb) {
       var card = cb.closest(".card");
       var xInput = card.querySelector(".lz-posx"), yInput = card.querySelector(".lz-posy");
@@ -3365,7 +3484,7 @@
         updated++;
       });
       if (!updated) {
-        alert("Não encontrei outras zonas com o mesmo nome-base (\"" + updRoot + "\") para atualizar — usa \"Aplicar réplicas\" primeiro para as criar.");
+        showToast("Não encontrei outras zonas com o mesmo nome-base (\"" + updRoot + "\") para atualizar — usa \"Aplicar réplicas\" primeiro para as criar.");
         return;
       }
       calcLedZones();
@@ -3434,7 +3553,8 @@
     var labelGap = fontSize * 0.5;
     var padSide = unit * 0.06;
     var labels = valid.map(function (z) {
-      var text = z.name + " — " + fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m";
+      var text = z.name + " — " + fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m (X:" + fmt(z.posX, 2) + "→" + fmt(z.posX + z.w, 2) +
+        (z.posY ? ", Y:" + fmt(z.posY, 2) + "→" + fmt(z.posY + z.h, 2) : "") + "m)";
       return { z: z, text: text, textW: text.length * fontSize * 0.56, level: 0 };
     });
     var maxLabelRight = 0;
@@ -3481,7 +3601,7 @@
       var z = l.z;
       var x = z.posX - minX + padSide, y = z.posY - minY + padTop;
       var color = colorMap[lzBaseName(z.name)];
-      parts.push('<rect x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '"/>');
+      parts.push('<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '" style="cursor:pointer;"><title>Clicar para saltar para esta zona na lista</title></rect>');
       parts.push('<text x="' + x + '" y="' + (y - labelGap - l.level * rowH) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
     });
     svg.innerHTML = parts.join("");
@@ -3536,7 +3656,7 @@
 
   function lzExportPixelMapPNG() {
     var pm = lzLastTotals && lzLastTotals.zones ? lzComputePixelMap(lzLastTotals.zones) : null;
-    if (!pm) { alert("Preenche pelo menos uma zona com modelo/resolução válidos primeiro."); return; }
+    if (!pm) { showToast("Preenche pelo menos uma zona com modelo/resolução válidos primeiro."); return; }
     var colorMap = (lzLastTotals && lzLastTotals.colorMap) || lzGroupColorMap(pm.zones);
     var scale = lzCanvasScale(pm);
     var baseW = Math.max(1, Math.round(pm.canvasW * scale)), baseH = Math.max(1, Math.round(pm.canvasH * scale));
@@ -3655,7 +3775,7 @@
 
   function lzExportMaskPNG() {
     var pm = lzLastTotals && lzLastTotals.zones ? lzComputePixelMap(lzLastTotals.zones) : null;
-    if (!pm) { alert("Preenche pelo menos uma zona com modelo/resolução válidos primeiro."); return; }
+    if (!pm) { showToast("Preenche pelo menos uma zona com modelo/resolução válidos primeiro."); return; }
     var scale = lzCanvasScale(pm);
     var cw = Math.max(1, Math.round(pm.canvasW * scale)), ch = Math.max(1, Math.round(pm.canvasH * scale));
     var canvas = document.createElement("canvas");
@@ -3768,7 +3888,7 @@
         readout.innerHTML = fmtInt(totalPx) + "×" + fmtInt(totalPy) + " px — " + fmt(wM,2) + " x " + fmt(hM,2) + " m (" + fmt(zoneArea,2) + " m²) — " + fmtInt(numTiles) + " tiles" + (isNaN(weight) ? "" : " — " + fmt(zoneWeight,1) + " kg") + (isNaN(amp) ? "" : " — " + fmt(zoneAmp,2) + " A");
       }
 
-      zones.push({ name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY });
+      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY });
     });
 
     var totalTiles = zones.reduce(function (s, z) { return s + z.numTiles; }, 0);
@@ -3806,6 +3926,7 @@
       (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência" : "") : "");
 
     lzLastTotals = { zones: zones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm, colorMap: colorMap };
+    lzSortCardsByPosition();
     lzSaveToStorage();
     if (typeof calcProjeto === "function") calcProjeto();
   }
@@ -4600,8 +4721,8 @@
     var reader = new FileReader();
     reader.onload = function () {
       var state;
-      try { state = JSON.parse(reader.result); } catch (err) { alert("Ficheiro inválido."); return; }
-      if (!state || state._app !== "calculadores-projeto") { alert("Este ficheiro não é um projeto guardado desta app."); return; }
+      try { state = JSON.parse(reader.result); } catch (err) { showToast("Ficheiro inválido."); return; }
+      if (!state || state._app !== "calculadores-projeto") { showToast("Este ficheiro não é um projeto guardado desta app."); return; }
 
       setFieldVal("proj-nome", state.nome);
       setFieldVal("proj-data-inicio", state.dataInicio);
