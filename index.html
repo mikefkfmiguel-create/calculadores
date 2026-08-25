@@ -548,6 +548,41 @@
   @media (max-width: 759px) {
     #lz-totals-card { order: -1; margin-bottom: 4px; }
   }
+  /* Barra fixa com o resultado essencial (resolução do canvas + tiles),
+     sempre visível por cima do teclado/conteúdo enquanto se edita a lista
+     de zonas em ecrãs estreitos — não depende de "position: sticky" (que
+     tem comportamento inconsistente em grids em alguns browsers móveis),
+     por isso garante-se sempre visível mesmo que o sticky do resultado
+     completo falhe nalgum aparelho. */
+  #lz-preview-bar {
+    display: none;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    margin: 10px 0 4px;
+    background: var(--paper-raised);
+    border: 1px solid var(--teal-500);
+    border-radius: 10px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+  }
+  #lz-preview-bar .lz-preview-bar-cta { color: var(--teal-600); font-weight: 600; white-space: nowrap; }
+  @media (max-width: 759px) {
+    #lz-preview-bar.lz-has-zones {
+      display: flex;
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      z-index: 40;
+      box-shadow: var(--shadow);
+    }
+  }
   .stripe { height: 3px; border-radius: 3px 3px 0 0; margin: -20px -20px 18px; }
   .panel[data-mode="projecao"] .stripe, [data-accent="projecao"] .stripe { background: var(--amber-500); }
   .panel[data-mode="visualizacao"] .stripe, [data-accent="visualizacao"] .stripe { background: var(--cyan-500); }
@@ -748,7 +783,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.69</span>
+    <span class="mark">v1.70</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1288,6 +1323,10 @@
         <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
       </div>
     </details>
+    <button type="button" id="lz-preview-bar">
+      <span id="lz-preview-bar-text">—</span>
+      <span class="lz-preview-bar-cta">ver resultado ▾</span>
+    </button>
     <div class="divider">ecrã complexo — múltiplas zonas</div>
     <div class="grid">
       <div>
@@ -2328,6 +2367,16 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   });
+  // A animação "rise" ao trocar de aba fica "presa" (fill: both) com um
+  // transform aplicado (matrix identidade, mas não é literalmente "none")
+  // — isso cria um novo containing block e parte qualquer "position: fixed"
+  // lá dentro (ex: a barra fixa de resultado no Ecrã Complexo). Cancelar a
+  // animação assim que acaba resolve, sem perder o efeito visual.
+  document.addEventListener("animationend", function (e) {
+    if (e.animationName === "rise") {
+      e.target.getAnimations().forEach(function (a) { a.cancel(); });
+    }
+  });
 
   // Custom ratio toggle
   var ratioSel = document.getElementById("p-ratio");
@@ -3190,6 +3239,9 @@
   }
 
   document.getElementById("lz-add").addEventListener("click", function () { lzAddZone(); });
+  document.getElementById("lz-preview-bar").addEventListener("click", function () {
+    document.getElementById("lz-totals-card").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
   lzList.addEventListener("click", function (e) {
     var removeBtn = e.target.closest(".lz-remove");
@@ -3501,13 +3553,16 @@
   function calcLedZones() {
     var cards = lzList.querySelectorAll(".card");
     var totalsCard = document.getElementById("lz-totals-card");
+    var previewBar = document.getElementById("lz-preview-bar");
     if (!cards.length) {
       totalsCard.style.display = "none";
+      previewBar.classList.remove("lz-has-zones");
       lzLastTotals = null;
       lzSaveToStorage();
       return;
     }
     totalsCard.style.display = "block";
+    previewBar.classList.add("lz-has-zones");
 
     var zones = [];
     cards.forEach(function (card) {
@@ -3578,6 +3633,7 @@
     document.getElementById("lz-out-canvasres").innerHTML = pm
       ? (fmtInt(pm.canvasW) + "×" + fmtInt(pm.canvasH) + "<small>px</small>" + (pm.mixedPitch ? " <small>(pitches diferentes — aproximado, ref. \"" + escapeXml(pm.refName) + "\")</small>" : ""))
       : "—";
+    document.getElementById("lz-preview-bar-text").textContent = (pm ? canvasResText : "—") + " · " + fmtInt(totalTiles) + " tiles · " + zones.length + " zona(s)";
 
     document.getElementById("lz-sum").textContent = zones.map(function (z) {
       return z.name + " (X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A";
