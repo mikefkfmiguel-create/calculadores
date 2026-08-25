@@ -790,7 +790,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.72</span>
+    <span class="mark">v1.73</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3445,37 +3445,79 @@
     if (!pm) { alert("Preenche pelo menos uma zona com modelo/resolução válidos primeiro."); return; }
     var scale = lzCanvasScale(pm);
     var baseW = Math.max(1, Math.round(pm.canvasW * scale)), baseH = Math.max(1, Math.round(pm.canvasH * scale));
-    var fontPx = Math.max(11, Math.round(Math.min(baseW, baseH) * 0.02));
-    var labelFont = fontPx + "px sans-serif";
-    var captionFont = Math.max(10, Math.round(fontPx * 0.75)) + "px sans-serif";
 
-    // Mede o texto real das legendas (não é só o mapa — é uma imagem de
-    // referência) para garantir que nenhuma fica cortada na borda direita,
-    // e reserva uma faixa no topo para a legenda de cada zona + a legenda
-    // geral do canvas não ficarem sobrepostas.
+    // Tamanho de letra com limites absolutos — canvas muito compridos e
+    // baixos (ex: várias tiras largas e pouco altas) davam letra minúscula
+    // se calculada só a partir da altura, e a legenda geral colava-se à
+    // legenda da primeira zona. Usa a média geométrica de W×H como
+    // referência de escala, com mínimo e máximo fixos.
+    var sizeRef = Math.sqrt(baseW * baseH);
+    var fontPx = Math.max(14, Math.min(26, Math.round(sizeRef * 0.018)));
+    var labelFont = fontPx + "px sans-serif";
+    var captionFontPx = Math.max(13, Math.round(fontPx * 0.85));
+    var captionFont = captionFontPx + "px sans-serif";
+
     var measureCtx = document.createElement("canvas").getContext("2d");
     measureCtx.font = labelFont;
     var labels = pm.zones.map(function (z) {
-      return { z: z, text: z.name + " — " + z.pxW + "×" + z.pxH + "px @ (" + z.pxX + "," + z.pxY + ")" };
+      var text = z.name + " — " + z.pxW + "×" + z.pxH + "px @ (" + z.pxX + "," + z.pxY + ")";
+      return { z: z, text: text, textW: measureCtx.measureText(text).width, level: 0 };
     });
     var maxRight = 0;
     labels.forEach(function (l) {
-      maxRight = Math.max(maxRight, l.z.pxX * scale + measureCtx.measureText(l.text).width);
+      maxRight = Math.max(maxRight, l.z.pxX * scale + l.textW);
     });
-    var extraRight = Math.max(0, Math.ceil(maxRight - baseW) + 8);
-    var offsetTop = Math.round(fontPx * 3.2);
+    var extraRight = Math.max(0, Math.ceil(maxRight - baseW) + 10);
 
-    var cw = baseW + extraRight, ch = baseH + offsetTop;
+    // Zonas vizinhas na mesma linha (ex: várias tiras lado a lado) têm
+    // legendas mais largas do que elas próprias — sem isto, ficavam coladas
+    // umas às outras. Empilha as que colidem em "andares" alternados por
+    // cima da própria zona, dentro do mesmo grupo (zonas com o mesmo Y).
+    var padX = 5, padY = 3, rowGap = 4;
+    var rowH = fontPx + padY * 2 + rowGap;
+    var groups = {};
+    labels.forEach(function (l) { (groups[l.z.pxY] = groups[l.z.pxY] || []).push(l); });
+    Object.keys(groups).forEach(function (key) {
+      var group = groups[key].sort(function (a, b) { return a.z.pxX - b.z.pxX; });
+      var levelRightEdge = [];
+      group.forEach(function (l) {
+        var x = l.z.pxX * scale;
+        var lvl = 0;
+        while (levelRightEdge[lvl] !== undefined && x < levelRightEdge[lvl] + 10) lvl++;
+        l.level = lvl;
+        levelRightEdge[lvl] = x + l.textW + padX * 2;
+      });
+    });
+    var maxLevel = labels.reduce(function (m, l) { return Math.max(m, l.level); }, 0);
+
+    var canvasResLabel = "Canvas: " + pm.canvasW + "×" + pm.canvasH + "px" +
+      " — pitch de referência: " + fmt(pm.refPitch, 2) + "mm (\"" + pm.refName + "\")" +
+      (pm.mixedPitch ? " — pitches diferentes, aproximado" : "") +
+      (scale < 1 ? " — imagem reduzida " + fmt(scale * 100, 0) + "%, valores nas legendas são os reais" : "");
+
+    // Faixas de cabeçalho/rodapé em fundo próprio, bem separadas da área do
+    // canvas — a legenda geral deixa de disputar espaço com a legenda da
+    // primeira zona. A resolução repete-se no rodapé para não ter de subir
+    // a imagem toda para a conferir.
+    var bandH = Math.round(captionFontPx * 2.4);
+    var labelGap = Math.round(fontPx * 1.5);
+    var offsetTop = bandH + labelGap + maxLevel * rowH;
+
+    var cw = baseW + extraRight, ch = offsetTop + baseH + bandH;
     var canvas = document.createElement("canvas");
     canvas.width = cw; canvas.height = ch;
     var ctx = canvas.getContext("2d");
     ctx.fillStyle = "#0B1116";
     ctx.fillRect(0, 0, cw, ch);
 
-    ctx.fillStyle = "#8FA0AC";
+    ctx.fillStyle = "#182028";
+    ctx.fillRect(0, 0, cw, bandH);
+    ctx.fillRect(0, ch - bandH, cw, bandH);
+    ctx.fillStyle = "#D7E0E6";
     ctx.font = captionFont;
-    ctx.textBaseline = "top";
-    ctx.fillText("Canvas do conteúdo: " + pm.canvasW + "×" + pm.canvasH + "px — pitch de referência: " + fmt(pm.refPitch, 2) + "mm (\"" + pm.refName + "\")" + (scale < 1 ? " — imagem reduzida " + fmt(scale * 100, 0) + "%, os valores nas legendas são os reais" : ""), 4, 4);
+    ctx.textBaseline = "middle";
+    ctx.fillText(canvasResLabel, 12, bandH / 2);
+    ctx.fillText(canvasResLabel, 12, ch - bandH / 2);
 
     // Marca o canvas todo a rosa (= gap, sem LED) por baixo; as zonas
     // desenham-se por cima a teal, "tapando" essa marca onde há ecrã real —
@@ -3498,8 +3540,15 @@
       ctx.strokeStyle = "#159187";
       ctx.lineWidth = Math.max(1, Math.round(Math.min(baseW, baseH) * 0.0025));
       ctx.strokeRect(x, y, w, h);
+
+      // Legenda com fundo próprio — fica legível mesmo em cima de outra
+      // zona/gap. Zonas vizinhas com legendas coladas sobem para o andar
+      // seguinte (l.level), calculado acima por grupo.
+      var labelBaselineY = y - 6 - l.level * rowH;
+      ctx.fillStyle = "rgba(8,12,16,0.82)";
+      ctx.fillRect(x - padX, labelBaselineY - fontPx - padY, l.textW + padX * 2, fontPx + padY * 2);
       ctx.fillStyle = "#E7EDF2";
-      ctx.fillText(l.text, x, y - 4);
+      ctx.fillText(l.text, x, labelBaselineY);
     });
 
     canvas.toBlob(function (blob) {
@@ -3534,15 +3583,18 @@
   // PWA em segundo plano) já não apaga um setup complexo de várias zonas,
   // que demora a voltar a preencher à mão.
   var LZ_STORAGE_KEY = "calculadores-zonas-v1";
+  function lzSerializeZones() {
+    return Array.from(lzList.querySelectorAll(".card")).map(function (card) {
+      var opts = lzOptsFromCard(card);
+      opts.name = card.querySelector(".lz-name").value;
+      opts.posX = card.querySelector(".lz-posx").value;
+      opts.posY = card.querySelector(".lz-posy").value;
+      return opts;
+    });
+  }
   function lzSaveToStorage() {
     try {
-      var data = Array.from(lzList.querySelectorAll(".card")).map(function (card) {
-        var opts = lzOptsFromCard(card);
-        opts.name = card.querySelector(".lz-name").value;
-        opts.posX = card.querySelector(".lz-posx").value;
-        opts.posY = card.querySelector(".lz-posy").value;
-        return opts;
-      });
+      var data = lzSerializeZones();
       if (data.length) localStorage.setItem(LZ_STORAGE_KEY, JSON.stringify(data));
       else localStorage.removeItem(LZ_STORAGE_KEY);
     } catch (e) {}
@@ -4416,6 +4468,8 @@
       ledSizeMode: segActive("proj-led-sizemode-seg").sizemode,
       ledMx: fieldVal("proj-led-mx"), ledMy: fieldVal("proj-led-my"),
       ledW: fieldVal("proj-led-w"), ledH: fieldVal("proj-led-h"),
+      ledUseZones: document.getElementById("proj-led-usezones").checked,
+      ledZones: document.getElementById("proj-led-usezones").checked ? lzSerializeZones() : [],
       projModelName: modelIdxToName(PROJECTORS_DATA, document.getElementById("proj-proj-model").value),
       blendMode: segActive("proj-blendmode-seg").blendmode,
       blendRes: fieldVal("proj-blend-res"), blendW: fieldVal("proj-blend-w"), blendH: fieldVal("proj-blend-h"),
@@ -4454,6 +4508,11 @@
       segClick("proj-led-sizemode-seg", "sizemode", state.ledSizeMode);
       setFieldVal("proj-led-mx", state.ledMx); setFieldVal("proj-led-my", state.ledMy);
       setFieldVal("proj-led-w", state.ledW); setFieldVal("proj-led-h", state.ledH);
+      document.getElementById("proj-led-usezones").checked = !!state.ledUseZones;
+      if (state.ledUseZones && Array.isArray(state.ledZones) && state.ledZones.length) {
+        lzList.innerHTML = "";
+        state.ledZones.forEach(function (opts) { lzAddZone(opts.name, opts); });
+      }
 
       document.getElementById("proj-proj-model").value = modelNameToIdx(PROJECTORS_DATA, state.projModelName);
       document.getElementById("proj-proj-model").dispatchEvent(new Event("change"));
