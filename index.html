@@ -741,7 +741,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.67</span>
+    <span class="mark">v1.68</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1297,10 +1297,15 @@
           <div class="item"><div class="k">Peso total</div><div class="v" id="lz-out-weight">—</div></div>
           <div class="item"><div class="k">Amp total</div><div class="v" id="lz-out-amp">—</div></div>
           <div class="item wide"><div class="k">Dimensão do conjunto (com gaps)</div><div class="v" id="lz-out-bbox">—</div></div>
+          <div class="item wide"><div class="k">Resolução final do canvas (com gaps)</div><div class="v" id="lz-out-canvasres">—</div></div>
         </div>
-        <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá). A área total também aparece lá — referência interna, não sai no material para o cliente. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas (diferente da área total, que é só a soma das áreas de cada zona).</p>
+        <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá) — é a soma dos píxeis nativos de cada zona, não o canvas final. A área total também aparece lá — referência interna, não sai no material para o cliente. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas. A "resolução final do canvas" é esse mesmo retângulo convertido em píxeis (usando o pitch da zona maior como referência) — é o tamanho real a configurar no media server, incluindo o espaço dos gaps.</p>
         <div id="lz-diagram-wrap" style="margin: 4px 0 18px; display:none;">
           <svg id="lz-diagram" width="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; max-height:360px;"></svg>
+          <div style="display:flex; gap:16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-faint);">
+            <span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:var(--teal-500); opacity:0.55; margin-right:5px; vertical-align:-1px;"></span>zona (LED real)</span>
+            <span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:var(--rose-500); opacity:0.3; border:1px dashed var(--rose-500); margin-right:5px; vertical-align:-1px;"></span>gap (sem LED)</span>
+          </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
             <button type="button" class="copy" id="lz-export-map">Exportar mapa de píxeis (PNG)</button>
             <button type="button" class="copy" id="lz-export-mask">Exportar máscara (PNG)</button>
@@ -3277,15 +3282,20 @@
     var style = getComputedStyle(document.documentElement);
     var ink = style.getPropertyValue("--ink").trim() || "#10181F";
     var teal = style.getPropertyValue("--teal-500").trim() || "#159187";
+    var rose = style.getPropertyValue("--rose-500").trim() || "#D14D78";
 
     var vbW = totalW + padSide + padRight, vbH = totalH + padTop * 2;
     svg.setAttribute("viewBox", "0 0 " + vbW + " " + vbH);
 
-    var parts = [];
+    // O retângulo do conjunto todo fica marcado a rosa (= gap, sem LED) por
+    // baixo; as zonas com LED desenham-se por cima a teal, "tapando" essa
+    // marca onde há ecrã real — distingue de imediato o que é pixel do que
+    // é só espaço vazio dentro do canvas.
+    var parts = ['<rect x="' + padSide + '" y="' + padTop + '" width="' + totalW + '" height="' + totalH + '" fill="' + rose + '" fill-opacity="0.12" stroke="' + rose + '" stroke-width="' + strokeW + '" stroke-dasharray="' + (strokeW * 2.5) + ' ' + (strokeW * 2.5) + '"/>'];
     labels.forEach(function (l) {
       var z = l.z;
       var x = z.posX - minX + padSide, y = z.posY - minY + padTop;
-      parts.push('<rect x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + teal + '" fill-opacity="0.20" stroke="' + teal + '" stroke-width="' + strokeW + '" rx="' + radius + '"/>');
+      parts.push('<rect x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + teal + '" fill-opacity="0.55" stroke="' + teal + '" stroke-width="' + strokeW + '" rx="' + radius + '"/>');
       parts.push('<text x="' + x + '" y="' + (y - labelGap) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
     });
     svg.innerHTML = parts.join("");
@@ -3367,12 +3377,23 @@
     ctx.textBaseline = "top";
     ctx.fillText("Canvas do conteúdo: " + pm.canvasW + "×" + pm.canvasH + "px — pitch de referência: " + fmt(pm.refPitch, 2) + "mm (\"" + pm.refName + "\")" + (scale < 1 ? " — imagem reduzida " + fmt(scale * 100, 0) + "%, os valores nas legendas são os reais" : ""), 4, 4);
 
+    // Marca o canvas todo a rosa (= gap, sem LED) por baixo; as zonas
+    // desenham-se por cima a teal, "tapando" essa marca onde há ecrã real —
+    // distingue de imediato pixel real de espaço vazio dentro do canvas.
+    ctx.fillStyle = "rgba(209,77,120,0.14)";
+    ctx.fillRect(0, offsetTop, baseW, baseH);
+    ctx.strokeStyle = "rgba(209,77,120,0.6)";
+    ctx.setLineDash([6, 6]);
+    ctx.lineWidth = Math.max(1, Math.round(Math.min(baseW, baseH) * 0.0025));
+    ctx.strokeRect(0, offsetTop, baseW, baseH);
+    ctx.setLineDash([]);
+
     ctx.font = labelFont;
     ctx.textBaseline = "bottom";
     labels.forEach(function (l) {
       var z = l.z;
       var x = z.pxX * scale, y = z.pxY * scale + offsetTop, w = z.pxW * scale, h = z.pxH * scale;
-      ctx.fillStyle = "rgba(21,145,135,0.28)";
+      ctx.fillStyle = "rgba(21,145,135,0.6)";
       ctx.fillRect(x, y, w, h);
       ctx.strokeStyle = "#159187";
       ctx.lineWidth = Math.max(1, Math.round(Math.min(baseW, baseH) * 0.0025));
@@ -3482,12 +3503,19 @@
     var bbox = lzRenderDiagram(zones);
     document.getElementById("lz-out-bbox").innerHTML = bbox ? (fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + "<small>m</small>") : "—";
 
+    var pm = lzComputePixelMap(zones);
+    var canvasResText = pm ? (fmtInt(pm.canvasW) + " x " + fmtInt(pm.canvasH) + " px") : "—";
+    document.getElementById("lz-out-canvasres").innerHTML = pm
+      ? (fmtInt(pm.canvasW) + "×" + fmtInt(pm.canvasH) + "<small>px</small>" + (pm.mixedPitch ? " <small>(pitches diferentes — aproximado, ref. \"" + escapeXml(pm.refName) + "\")</small>" : ""))
+      : "—";
+
     document.getElementById("lz-sum").textContent = zones.map(function (z) {
       return z.name + " (X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A";
-    }).join("\n") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP), " + fmt(totalArea,2) + " m² (soma das zonas), " + fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A (" + fmt(totalAmp/3,2) + " A/fase)" +
-      (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "");
+    }).join("\n") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos de cada zona), " + fmt(totalArea,2) + " m² (soma das zonas), " + fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A (" + fmt(totalAmp/3,2) + " A/fase)" +
+      (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "") +
+      (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência" : "") : "");
 
-    lzLastTotals = { zones: zones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox };
+    lzLastTotals = { zones: zones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm };
     if (typeof calcProjeto === "function") calcProjeto();
   }
 
