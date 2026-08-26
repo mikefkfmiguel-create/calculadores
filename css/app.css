@@ -823,6 +823,11 @@
 
   .readout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
   .readout .item {
+    /* min-width:0 — sem isto, uma coluna "1fr" nunca encolhe abaixo do
+       min-content do valor lá dentro (ex: "27,87 Gbit/s" no mono), e em
+       vez de o texto quebrar linha o grid inteiro (e a página) ficava
+       mais largo que o ecrã em telemóveis estreitos. */
+    min-width: 0;
     border: 1px solid var(--line-soft);
     border-radius: 10px;
     padding: 12px 13px;
