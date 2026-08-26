@@ -255,12 +255,52 @@
     card.querySelector(".lz-amp").value = t.amp == null ? "" : t.amp;
   }
 
-  document.querySelectorAll("#lz-add, #lz-add-top").forEach(function (btn) {
+  document.querySelectorAll("#lz-add, #lz-add-top, #lz-add-canvas").forEach(function (btn) {
     btn.addEventListener("click", function () { lzAddZone(); });
   });
   document.getElementById("lz-preview-bar").addEventListener("click", function () {
     document.getElementById("lz-totals-card").scrollIntoView({ behavior: "smooth", block: "start" });
   });
+
+  // Na página "Ecrã Complexo" à parte, o preâmbulo (cabeçalho+explicação)
+  // fica em fluxo normal e o diagrama fica fixo logo por baixo dele (ver
+  // "#ecra-preamble"/"#ecra-fixed-top" em css/app.css) — a lista por
+  // baixo precisa de um espaço reservado do tamanho exato do diagrama,
+  // senão os cards arrancam por baixo dele. Não existe em index.html
+  // (elementos ausentes, a função sai logo no primeiro "if").
+  (function () {
+    var preamble = document.getElementById("ecra-preamble");
+    var fixedTop = document.getElementById("ecra-fixed-top");
+    var list = document.getElementById("lz-list");
+    var totalsCard = document.getElementById("lz-totals-card");
+    if (!preamble || !fixedTop || typeof ResizeObserver === "undefined") return;
+    var update = function () {
+      var preambleH = preamble.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--ecra-preamble-h", preambleH + "px");
+      var fixedH = fixedTop.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--ecra-fixed-top-h", fixedH ? (fixedH + 20) + "px" : "0px");
+      // A altura disponível é calculada a partir da posição real de cada
+      // coluna no ecrã (a da lista já reflete a barra de ações por cima)
+      // menos uma reserva para o botão "+ Adicionar zona"/rodapé. O card
+      // de totais ganha o mesmo tipo de limite — senão, sendo mais alto
+      // do que a lista, obrigava a página em si a rolar para o ver todo.
+      if (list && window.innerWidth >= 760) {
+        var listTop = list.getBoundingClientRect().top;
+        list.style.maxHeight = Math.max(140, window.innerHeight - listTop - 80) + "px";
+        if (totalsCard) {
+          var totalsTop = totalsCard.getBoundingClientRect().top;
+          totalsCard.style.maxHeight = Math.max(140, window.innerHeight - totalsTop - 80) + "px";
+          totalsCard.style.overflowY = "auto";
+        }
+      } else if (list) {
+        list.style.maxHeight = "";
+        if (totalsCard) { totalsCard.style.maxHeight = ""; totalsCard.style.overflowY = ""; }
+      }
+    };
+    new ResizeObserver(update).observe(preamble);
+    new ResizeObserver(update).observe(fixedTop);
+    window.addEventListener("resize", update);
+  })();
 
   // Clicar numa zona no diagrama (ou na coluna de detalhes) salta para o
   // card de edição correspondente na lista — mais rápido do que procurar
@@ -268,7 +308,7 @@
   function lzJumpToZoneCard(zoneId) {
     var card = lzList.querySelector('.card[data-zone-id="' + zoneId + '"]');
     if (!card) return;
-    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    card.scrollIntoView({ behavior: "smooth", block: "start" });
     card.classList.remove("lz-flash");
     void card.offsetWidth;
     card.classList.add("lz-flash");

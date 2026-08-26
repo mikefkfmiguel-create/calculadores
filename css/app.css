@@ -589,6 +589,53 @@
   @media (max-width: 759px) {
     #lz-totals-card { order: -1; margin-bottom: 4px; }
   }
+  /* Página "Ecrã Complexo" à parte (ecra-complexo.html): o cabeçalho e a
+     explicação (#ecra-preamble) ficam em fluxo normal (rolam e saem de
+     vista, só interessa vê-los uma vez); só o diagrama (#ecra-fixed-top)
+     é que fica fixo, mesmo por baixo do preâmbulo (position:fixed, não
+     sticky — sticky já causou bugs de repaint numa tentativa anterior;
+     fixed não muda de modo a meio do scroll, mais previsível). Só a lista
+     de zonas por baixo é que rola. #lz-add-top não existe nesta página (o
+     botão de adicionar zona vive dentro do próprio card do diagrama). */
+  @media (min-width: 760px) {
+    #ecra-fixed-top {
+      position: fixed;
+      top: var(--ecra-preamble-h, 28px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 1400px;
+      padding: 0 20px 16px;
+      background: var(--paper);
+      z-index: 30;
+      /* Salvaguarda: com muitas zonas o nome de cada uma na legenda pode
+         ocupar várias linhas e este bloco crescer bastante — sem limite
+         podia comer o ecrã todo e não sobrar espaço nenhum para a lista
+         por baixo. Acima disto, o próprio bloco ganha scroll. */
+      max-height: 38vh;
+      overflow-y: auto;
+    }
+    /* Com scroll normal da página, uma lista comprida acaba sempre por
+       passar por baixo de um painel fixo mais acima (confirmado com
+       testes: a partir de um certo scroll a sobreposição volta, seja com
+       "fixed" seja com "sticky" — é como qualquer painel fixo sobre
+       conteúdo mais alto do que ele). Por isso a página em si não rola:
+       só a lista de zonas, dentro do espaço que sobra abaixo do bloco
+       fixo, com scroll próprio — os cards nunca chegam a entrar na faixa
+       do diagrama. Só #lz-list (não a ".grid" toda) para não limitar
+       também o card de totais, mais curto — senão ficava metido no mesmo
+       scroll da lista e desaparecia de vista com listas longas. */
+    #ecra-fixed-top ~ .grid { margin-top: var(--ecra-fixed-top-h, 0px); }
+    /* A altura máxima exata é calculada em JS a partir da posição real de
+       "#lz-list" no ecrã (ver o ResizeObserver em js/zonas.js) — mais
+       fiável do que tentar adivinhar aqui a altura da barra de ações por
+       cima dela. */
+    #ecra-fixed-top ~ .grid #lz-list {
+      overflow-y: auto;
+      padding: 4px 6px 4px 2px;
+      margin: 0 -6px 12px -2px;
+    }
+  }
   /* Barra fixa com o resultado essencial (resolução do canvas + tiles),
      sempre visível por cima do teclado/conteúdo enquanto se edita a lista
      de zonas em ecrãs estreitos — não depende de "position: sticky" (que
