@@ -1,8 +1,12 @@
-const CACHE = "calculadores-v112";
+const CACHE = "calculadores-v114";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./ecra-complexo.html",
   "./manifest.json",
+  "./css/app.css",
+  "./js/utils.js",
+  "./js/zonas.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png"

@@ -1,0 +1,136 @@
+<html data-theme="dark">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ecrã Complexo — AVK Calculadores</title>
+<meta name="theme-color" content="#0E1418">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ecrã Complexo">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icons/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/app.css">
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
+      <h1>Ecrã Complexo</h1>
+    </div>
+    <a href="index.html" class="srclink" style="white-space:nowrap;">← Calculadores</a>
+  </div>
+  <p class="sub">Construtor de ecrãs LED com várias zonas/pitches — as zonas ficam guardadas no aparelho e também aparecem na aba "Ecrã Complexo" dos Calculadores.</p>
+
+  <div id="app-toast" role="status" aria-live="polite"></div>
+
+  <details class="howto">
+    <summary>Como usar esta calculadora</summary>
+    <div class="howto-body">
+      <p>Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição.</p>
+      <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão. O desenho mostra só o nome de cada zona; o tamanho e o ponto de início/fim em metros ficam na coluna de detalhes ao lado. A lista de cards ordena-se sozinha pela posição (mais à esquerda primeiro) para ser mais fácil encontrar o card certo. Clicar numa zona no desenho ou na coluna de detalhes salta logo para o card dela na lista.</p>
+      <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas. Se depois precisares de mudar o modelo/tamanho dessas cópias, edita só a zona original e usa <strong>"Atualizar réplicas"</strong> — aplica a alteração às outras com o mesmo nome-base sem criar novas nem mexer nas posições de cada uma.</p>
+      <p>Para abrir espaço a uma zona nova (ex: adicionar um ecrã à esquerda de tudo o resto): marca a caixa <strong>"Sel."</strong> nas zonas que já lá estão (ou usa "Selecionar todas"), indica quanto deslocar em X/Y no bloco acima da lista e carrega em <strong>"Mover selecionadas"</strong> — soma esse deslocamento à posição de todas as marcadas de uma vez, sem teres de editar zona a zona.</p>
+      <p>Zonas com o mesmo nome-base (ex: "Lateral", "Lateral 2", "Lateral 3") ficam marcadas automaticamente com a mesma cor no diagrama, no mapa de píxeis exportado e num pontinho junto ao nome de cada zona — só para ajudar a distinguir grupos à vista, não afeta os cálculos.</p>
+      <p>Desmarca a caixa <strong>"Vis."</strong> numa zona para a esconder — sai do diagrama, dos totais e do mapa de píxeis exportado, mas fica guardada (não é apagada). Útil para testar cenários sem uma zona ou para preparar uma zona que ainda não está confirmada.</p>
+      <p>As zonas ficam guardadas automaticamente neste aparelho (mesmo que atualizes a página ou feches esta app) — e são as mesmas zonas que aparecem na aba "Ecrã Complexo" dos Calculadores, dos dois lados.</p>
+      <p>Em ecrãs largos (computador), o diagrama fica num card à parte no topo, com a largura toda, e "cola" ao cimo da página ao desceres a lista — fácil de ver mesmo em projetos com muitas zonas. Em telemóvel/tablet mantém-se a barra fixa condensada em baixo.</p>
+      <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
+    </div>
+  </details>
+  <button type="button" id="lz-preview-bar">
+    <span id="lz-preview-bar-text">—</span>
+    <span class="lz-preview-bar-cta">ver resultado ▾</span>
+  </button>
+
+  <div class="card results" data-accent="zonas" style="display:none;" id="lz-diagram-card">
+    <div class="stripe"></div>
+    <h2>Diagrama do conjunto</h2>
+    <div id="lz-diagram-wrap" style="display:none;">
+      <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+        <svg id="lz-diagram" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; flex:1 1 420px; min-width:280px; max-height:min(460px, 46vh); min-height:220px;"></svg>
+        <div id="lz-diagram-details" style="flex:0 0 260px; max-width:100%; max-height:min(460px, 46vh); overflow-y:auto; display:flex; flex-direction:column; gap:2px;"></div>
+      </div>
+      <div id="lz-diagram-legend" style="display:flex; gap:16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-faint); flex-wrap:wrap;"></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+        <button type="button" class="copy" id="lz-export-map">Exportar mapa de píxeis (PNG)</button>
+        <button type="button" class="copy" id="lz-export-mask">Exportar máscara (PNG)</button>
+      </div>
+      <p class="hint" style="margin-top:8px;">Canvas único em píxeis para importar num media server. Se as zonas tiverem pitches diferentes, a posição/tamanho no canvas é aproximada — usa como referência o pitch da zona com maior área (fica indicado no ficheiro). O "mapa" tem legendas com os valores; a "máscara" é só preto/branco (uma zona = branco), para usar como matte de conteúdo.</p>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:14px; padding:10px 12px; border:1px solid var(--line-soft); border-radius:10px; background:var(--paper);">
+        <div class="field" style="margin-bottom:0;">
+          <label>Deslocar X selecionadas</label>
+          <div class="inputgroup"><input id="lz-bulk-dx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Deslocar Y selecionadas</label>
+          <div class="inputgroup"><input id="lz-bulk-dy" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div>
+        </div>
+        <button type="button" class="copy" id="lz-bulk-move" title="Soma o deslocamento X/Y às zonas com a caixa 'Sel.' marcada — útil para abrir espaço para uma zona nova">Mover selecionadas</button>
+        <button type="button" class="copy" id="lz-select-all">Selecionar todas</button>
+        <button type="button" class="copy" id="lz-select-none">Limpar seleção</button>
+        <span class="hint" id="lz-bulk-count" style="margin:0 0 8px;">0 selecionadas</span>
+      </div>
+      <div id="lz-list"></div>
+      <button type="button" class="copy" id="lz-add">+ Adicionar zona</button>
+    </div>
+
+    <div class="card results" data-accent="zonas" style="display:none;" id="lz-totals-card">
+      <div class="stripe"></div>
+      <h2>Total combinado</h2>
+      <div class="readout">
+        <div class="item"><div class="k">Nº de tiles</div><div class="v" id="lz-out-tiles">—</div></div>
+        <div class="item"><div class="k">Total de píxeis</div><div class="v" id="lz-out-pixels">—</div></div>
+        <div class="item"><div class="k">Área total (tiles)</div><div class="v" id="lz-out-area">—</div></div>
+        <div class="item"><div class="k">Peso total</div><div class="v" id="lz-out-weight">—</div></div>
+        <div class="item"><div class="k">Amp total</div><div class="v" id="lz-out-amp">—</div></div>
+        <div class="item wide"><div class="k">Dimensão do conjunto (com gaps)</div><div class="v" id="lz-out-bbox">—</div></div>
+        <div class="item wide"><div class="k">Resolução final do canvas (com gaps)</div><div class="v" id="lz-out-canvasres">—</div></div>
+      </div>
+      <p class="hint">O total de píxeis serve para dimensionar switcher/processador de LED — é a soma dos píxeis nativos de cada zona, não o canvas final. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas. A "resolução final do canvas" é esse mesmo retângulo convertido em píxeis (usando o pitch da zona maior como referência) — é o tamanho real a configurar no media server, incluindo o espaço dos gaps.</p>
+      <div class="summary">
+        <div class="summary-head">
+          <span class="k">Resumo por zona</span>
+          <div class="summary-actions">
+            <button class="copy" data-target="lz-sum">Copiar resumo</button>
+          </div>
+        </div>
+        <pre class="sumbox" id="lz-sum"></pre>
+      </div>
+    </div>
+  </div>
+
+  <footer>Calculadores — ferramenta interna, valores para conferência antes de envio ao cliente.</footer>
+</div>
+
+<script src="js/utils.js"></script>
+<script src="js/zonas.js"></script>
+<script>
+  document.querySelectorAll("button.copy[data-target]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var el = document.getElementById(btn.dataset.target);
+      if (!el) return;
+      navigator.clipboard.writeText(el.textContent).then(function () {
+        var orig = btn.textContent;
+        btn.textContent = "Copiado!";
+        setTimeout(function () { btn.textContent = orig; }, 2000);
+      });
+    });
+  });
+
+  var LED_TILES_DATA = [];
+  fetch("data/led-tiles.json").then(function (r) { return r.json(); }).then(function (data) {
+    LED_TILES_DATA = data;
+    lzRestoreFromStorage();
+    calcLedZones();
+  }).catch(function (err) {
+    console.error("Falha a carregar data/led-tiles.json:", err);
+  });
+</script>
