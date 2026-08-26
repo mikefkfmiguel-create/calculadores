@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.87</span>
+    <span class="mark">v1.88</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1182,6 +1182,7 @@
       <div class="howto-body">
         <p>Indica a resolução, frame rate e profundidade de cor do sinal de vídeo para saberes o data rate e a ligação mínima (HDMI/DisplayPort/SDI) necessária, e que switchers ou processadores aguentam esse sinal na entrada.</p>
         <p>Usa <strong>"↙ Ecrã Complexo"</strong> ou <strong>"↙ Projeto"</strong> para preencher a resolução acima com o canvas final já calculado nessas abas, em vez de a escreveres à mão — útil para veres já a ligação mínima e os switchers/processadores compatíveis para o ecrã real do projeto.</p>
+        <p>Em baixo também mostra, para o total de píxeis acima: quantos switchers de show da casa aguentam esse total (capacidade em megapíxeis, não só o pixel clock de um único sinal) e, se for para um ecrã LED, quantas unidades/portas de cada processo de LED seriam precisas — a mesma conta usada na aba Projeto.</p>
       </div>
     </details>
     <div class="grid">
@@ -1247,6 +1248,14 @@
         <h2 style="margin-top:18px;">Switchers/processos compatíveis (entrada)</h2>
         <div class="hint">Comparado ao pixel clock da porta de entrada de maior largura de banda de cada aparelho. Onde a marca não publica MHz, o valor é derivado da resolução máxima publicada pela própria marca (indicado em cada linha) — nunca inventado.</div>
         <div class="lensmatch-list" id="sg-switcher-list"></div>
+
+        <h2 style="margin-top:18px;">Switchers de show — capacidade total (MP)</h2>
+        <div class="hint">Total de píxeis acima (não o pixel clock de um único sinal) comparado à capacidade em megapíxeis de cada switcher — a mesma conta usada na aba Projeto para o total do ecrã + DSM + delay.</div>
+        <div class="lensmatch-list" id="sg-switcher-mp-list"></div>
+
+        <h2 style="margin-top:18px;">Portas de saída necessárias — processo de LED</h2>
+        <div class="hint">Só relevante se o sinal acima for para um ecrã LED. Portas Ethernet/fibra de cada processo de LED, com a capacidade em píxeis por porta calculada com a largura de banda utilizável (930 Mbps/porta) ao refresh rate e profundidade de cor indicados acima — igual à conta da aba Projeto.</div>
+        <div class="lensmatch-list" id="sg-ledproc-list"></div>
       </div>
     </div>
   </section>
@@ -3253,6 +3262,39 @@
           return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.s.maxPixelClockMHz, 1) + ' MHz (' + x.s.maxPixelClockSource + ')</span></div>';
         }).join("")
       : '<div class="lm-item"><span>Nenhum com dados de pixel clock suficientes para este sinal</span></div>';
+
+    var totalMP = totalPx / 1e6;
+    var switchersMP = (PROCESSORS_DATA.switchers || []).map(function (s) {
+      var linked = s.unitsOwned >= 2 && s.maxMPSwitcherLinked;
+      var capSwitcher = (linked ? s.maxMPSwitcherLinked : s.maxMPSwitcher) || 0;
+      var capPgm = (linked ? s.maxMPPgmOnlyLinked : s.maxMPPgmOnly) || capSwitcher;
+      var fits = totalMP <= capPgm;
+      var mode = totalMP <= capSwitcher ? "PGM + Preview" : "só PGM (sem Preview)";
+      if (linked) mode += ", " + s.unitsOwned + " unidades ligadas";
+      return { s: s, fits: fits, mode: mode, cap: capPgm };
+    }).filter(function (x) { return x.fits && x.cap; }).sort(function (a, b) { return a.cap - b.cap; });
+
+    document.getElementById("sg-switcher-mp-list").innerHTML = switchersMP.length
+      ? switchersMP.map(function (x) {
+          var pct = fmt((totalMP / x.cap) * 100, 0);
+          return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + pct + '%</span></div>';
+        }).join("")
+      : '<div class="lm-item"><span>Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>';
+
+    var portCapacity = Math.floor(USABLE_BPS / ((BITS_PER_PIXEL[String(bits)] || 24) * fps));
+    var ledProcOk = (PROCESSORS_DATA.ledProcessors || []).map(function (p) {
+      var unitCapacity = portCapacity * p.ports;
+      if (p.maxPixelsHardCap) unitCapacity = Math.min(unitCapacity, p.maxPixelsHardCap);
+      var numUnits = Math.ceil(totalPx / unitCapacity);
+      return { p: p, unitCapacity: unitCapacity, numUnits: numUnits };
+    }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports; });
+
+    document.getElementById("sg-ledproc-list").innerHTML = ledProcOk.length
+      ? ledProcOk.map(function (x) {
+          var pct = fmt((totalPx / (x.numUnits * x.unitCapacity)) * 100, 0);
+          return '<div class="lm-item"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.p.ports) + ' portas, ' + fmtInt(x.unitCapacity) + ' px/unidade) — ' + pct + '%</span></div>';
+        }).join("")
+      : '<div class="lm-item"><span>Sem processos de LED na base de dados</span></div>';
   }
 
   var tvModelSel = document.getElementById("tv-model");
