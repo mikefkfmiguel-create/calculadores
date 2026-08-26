@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.105</span>
+    <span class="mark">v1.106</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3388,6 +3388,9 @@
       var entradaVal = x.s.maxPixelClockMHz
         ? (fmt(clockMHz, 1) + " MHz de " + fmt(x.s.maxPixelClockMHz, 1) + " MHz máx. — " + (x.clockFits ? "cabe numa entrada" : "⚠ excede a entrada de maior largura de banda"))
         : "Marca não publica pixel clock — sem dados para confirmar a entrada";
+      var entradaWarn = (x.s.maxPixelClockMHz && !x.clockFits)
+        ? '<div class="lm-note">Este sinal não cabe numa ligação de entrada, seja qual for o cabo ou conector usado — teria mesmo de ser repartido por várias entradas antes de chegar a este switcher.</div>'
+        : '';
       var saidaVal = x.connsNeeded != null
         ? (x.connsEstimated ? "usar ~" : "usar ") + fmtInt(x.connsNeeded) + (x.effectiveOutputs ? " de " + fmtInt(x.effectiveOutputs) + " saídas" : " ligações (nº de saídas não publicado)") +
           (x.connsEstimated ? " (estimado, sem pixel clock publicado)" : "") +
@@ -3400,7 +3403,7 @@
         : '';
       var note = x.s.nota ? '<div class="lm-note">' + x.s.nota + '</div>' : '';
       return '<div class="sinal-detail-card"><h3>' + x.s.marca + ' ' + x.s.modelo + ' ' + srcLinkHtml(x.s.fonte) + '</h3>' +
-        '<div class="sinal-detail-row"><span class="k">Entrada (este sinal)</span><span class="v">' + entradaVal + '</span></div>' +
+        '<div class="sinal-detail-row"><span class="k">Entrada (este sinal)</span><span class="v">' + entradaVal + '</span></div>' + entradaWarn +
         '<div class="sinal-detail-row"><span class="k">Saída (para o canvas)</span><span class="v">' + saidaVal + modeSelect + '</span></div>' +
         '<div class="sinal-detail-row"><span class="k">Capacidade total</span><span class="v">' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%</span></div>' +
         note + '</div>';
