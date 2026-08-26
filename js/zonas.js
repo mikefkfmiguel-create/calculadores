@@ -262,11 +262,12 @@
     document.getElementById("lz-totals-card").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  // Na página "Ecrã Complexo" à parte, o preâmbulo (cabeçalho+explicação)
-  // fica em fluxo normal e o diagrama fica fixo logo por baixo dele (ver
-  // "#ecra-preamble"/"#ecra-fixed-top" em css/app.css) — a lista por
-  // baixo precisa de um espaço reservado do tamanho exato do diagrama,
-  // senão os cards arrancam por baixo dele. Não existe em index.html
+  // Na página "Ecrã Complexo" à parte, o diagrama é mesmo o topo da
+  // página, fixo (ver "#ecra-fixed-top" em css/app.css) — o resto
+  // (cabeçalho/explicação incluídos, "#ecra-preamble") precisa de um
+  // espaço reservado do tamanho exato do diagrama MAIS uma folga extra
+  // de segurança, senão um card no topo da lista pode ficar cortado mesmo
+  // debaixo dele ao chegar lá por scroll. Não existe em index.html
   // (elementos ausentes, a função sai logo no primeiro "if").
   (function () {
     var preamble = document.getElementById("ecra-preamble");
@@ -274,11 +275,10 @@
     var list = document.getElementById("lz-list");
     var totalsCard = document.getElementById("lz-totals-card");
     if (!preamble || !fixedTop || typeof ResizeObserver === "undefined") return;
+    var SAFETY_GAP = 40;
     var update = function () {
-      var preambleH = preamble.getBoundingClientRect().height;
-      document.documentElement.style.setProperty("--ecra-preamble-h", preambleH + "px");
       var fixedH = fixedTop.getBoundingClientRect().height;
-      document.documentElement.style.setProperty("--ecra-fixed-top-h", fixedH ? (fixedH + 20) + "px" : "0px");
+      document.documentElement.style.setProperty("--ecra-fixed-top-h", fixedH ? (fixedH + SAFETY_GAP) + "px" : "0px");
       // A altura disponível é calculada a partir da posição real de cada
       // coluna no ecrã (a da lista já reflete a barra de ações por cima)
       // menos uma reserva para o botão "+ Adicionar zona"/rodapé. O card
