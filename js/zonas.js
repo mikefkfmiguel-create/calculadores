@@ -262,29 +262,13 @@
     document.getElementById("lz-totals-card").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  // Mantém a margem de scroll dos cards (ver "#lz-list > .card" em
-  // css/app.css) igual à altura real do diagrama sticky, para
-  // "scrollIntoView" nunca trazer um card para debaixo dele.
-  (function () {
-    var diagramCard = document.getElementById("lz-diagram-card");
-    if (!diagramCard || typeof ResizeObserver === "undefined") return;
-    var update = function () {
-      var h = diagramCard.getBoundingClientRect().height;
-      document.documentElement.style.setProperty("--lz-diagram-offset", h ? (h + 16) + "px" : "16px");
-    };
-    new ResizeObserver(update).observe(diagramCard);
-  })();
-
   // Clicar numa zona no diagrama (ou na coluna de detalhes) salta para o
   // card de edição correspondente na lista — mais rápido do que procurar
-  // pelo nome numa lista comprida. "scrollIntoView" trata sozinho tanto o
-  // scroll da página como o scroll próprio da lista em computador (ver
-  // "#lz-list" com altura limitada, em css/app.css), sem ser preciso
-  // calcular manualmente a altura do diagrama a descontar.
+  // pelo nome numa lista comprida.
   function lzJumpToZoneCard(zoneId) {
     var card = lzList.querySelector('.card[data-zone-id="' + zoneId + '"]');
     if (!card) return;
-    card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
     card.classList.remove("lz-flash");
     void card.offsetWidth;
     card.classList.add("lz-flash");
