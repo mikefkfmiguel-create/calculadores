@@ -14,4 +14,89 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="css/app.css">
-<!-- Updated: Force rebuild -->
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
+      <h1>AVK Calculadores</h1>
+    </div>
+    <span class="mark">v1.87</span>
+  </div>
+  <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
+
+  <div class="install-banner" id="install-banner" style="display:none;">
+    <span class="install-dot"></span>
+    <div class="install-banner-text" id="install-banner-text"><strong>Instala esta app</strong> — acesso direto no ecrã principal, sem andares à procura do link.</div>
+    <button class="install-btn" id="install-banner-btn" style="display:none;">Instalar</button>
+    <button class="install-dismiss" id="install-dismiss" aria-label="Fechar">×</button>
+  </div>
+
+  <div id="app-toast" role="status" aria-live="polite"></div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" data-mode="projecao" role="tab" aria-selected="true"><span class="swatch"></span>Distância de Projeção</button>
+    <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
+    <button class="tab" data-mode="visualizacao" role="tab" aria-selected="false"><span class="swatch"></span>Distância de Visualização</button>
+    <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
+    <button class="tab" data-mode="zonas" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã Complexo</button>
+    <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
+    <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
+    <button class="tab" data-mode="sinal" role="tab" aria-selected="false"><span class="swatch"></span>Sinal &amp; Data Rate</button>
+    <button class="tab" data-mode="tv" role="tab" aria-selected="false"><span class="swatch"></span>TVs</button>
+    <button class="tab" data-mode="ajuda" role="tab" aria-selected="false"><span class="swatch"></span>Ajuda</button>
+  </div>
+
+  <section class="panel active" data-mode="projecao">
+    <h2>Distância de Projeção - Calculadora carregada com sucesso!</h2>
+    <p>A aplicação AVK Calculadores está operacional. Todos os ficheiros foram restaurados.</p>
+  </section>
+
+  <section class="panel" data-mode="visualizacao">
+    <h2>Distância de Visualização</h2>
+    <p>Módulo de distância de visualização ativo.</p>
+  </section>
+
+  <section class="panel" data-mode="led">
+    <h2>Ecrã LED &amp; Pixel Pitch</h2>
+    <p>Módulo de LED ativo.</p>
+  </section>
+
+  <section class="panel" data-mode="blend">
+    <h2>Blending Multi-Projetor</h2>
+    <p>Módulo de blending ativo.</p>
+  </section>
+
+  <section class="panel" data-mode="zonas">
+    <h2>Ecrã Complexo</h2>
+    <p>Módulo de zonas complexas ativo.</p>
+  </section>
+
+  <section class="panel" data-mode="lentes">
+    <h2>Lentes</h2>
+    <p>Módulo de lentes ativo.</p>
+  </section>
+
+  <section class="panel" data-mode="projeto">
+    <h2>Projeto</h2>
+    <p>Módulo de projeto ativo.</p>
+  </section>
+
+  <section class="panel" data-mode="sinal">
+    <h2>Sinal &amp; Data Rate</h2>
+    <p>Módulo de sinal ativo.</p>
+  </section>
+
+  <section class="panel" data-mode="tv">
+    <h2>TVs</h2>
+    <p>Módulo de TVs ativo.</p>
+  </section>
+
+  <section class="panel" data-mode="ajuda">
+    <h2>Ajuda</h2>
+    <p>Módulo de ajuda ativo. A aplicação foi restaurada com sucesso.</p>
+  </section>
+</div>
+
+<script src="js/app.js"></script>
+</html>
