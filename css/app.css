@@ -316,11 +316,21 @@
   .howto-body strong { color: var(--ink); }
 
   /* Tabs */
+  /* Sticky para nunca ser preciso voltar ao topo da página só para trocar
+     de calculadora — fica sempre alcançável enquanto se rola dentro de
+     qualquer aba, em telemóvel e em desktop. z-index baixo (20) para ficar
+     sempre por baixo dos elementos fixos específicos de cada aba (ex:
+     #lz-add-top a 40), nunca a tapá-los. */
   .tabs {
     display: flex;
     gap: 6px;
     border-bottom: 1px solid var(--line);
     margin-bottom: 26px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--paper);
+    padding-top: 8px;
   }
   .tab {
     font-family: inherit;
@@ -653,7 +663,7 @@
   @media (min-width: 760px) {
     #lz-add-top {
       position: fixed;
-      top: 16px;
+      top: 78px;
       right: 16px;
       z-index: 40;
       box-shadow: var(--shadow);
