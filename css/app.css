@@ -411,6 +411,32 @@
     font-weight: 600;
   }
   .card + .card { margin-top: 16px; }
+
+  /* Sinal & Data Rate: coluna única central em vez do .grid de 2 colunas,
+     com os 3 blocos (sinal, resultado, switchers/portas) como <details>
+     colapsáveis — a aba tem um resultado longo (várias listas de
+     switchers/processos) que não precisa de estar sempre expandido. */
+  .sinal-col { max-width: 640px; margin: 0 auto; }
+  .sinal-block summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sinal-block summary::-webkit-details-marker { display: none; }
+  .sinal-block summary::after {
+    content: "▾";
+    color: var(--ink-faint);
+    font-size: 12px;
+    margin-left: 12px;
+  }
+  .sinal-block[open] summary::after { content: "▴"; }
+  .sinal-block[open] summary { padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--line-soft); }
+  .sinal-block-body > h2:first-child { margin-top: 0; }
   @keyframes lz-flash-anim {
     0%, 100% { box-shadow: var(--shadow); }
     30% { box-shadow: 0 0 0 3px var(--teal-500), var(--shadow); }

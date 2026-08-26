@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.88</span>
+    <span class="mark">v1.89</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1182,81 +1182,90 @@
       <div class="howto-body">
         <p>Indica a resolução, frame rate e profundidade de cor do sinal de vídeo para saberes o data rate e a ligação mínima (HDMI/DisplayPort/SDI) necessária, e que switchers ou processadores aguentam esse sinal na entrada.</p>
         <p>Usa <strong>"↙ Ecrã Complexo"</strong> ou <strong>"↙ Projeto"</strong> para preencher a resolução acima com o canvas final já calculado nessas abas, em vez de a escreveres à mão — útil para veres já a ligação mínima e os switchers/processadores compatíveis para o ecrã real do projeto.</p>
-        <p>Em baixo também mostra, para o total de píxeis acima: quantos switchers de show da casa aguentam esse total (capacidade em megapíxeis, não só o pixel clock de um único sinal) e, se for para um ecrã LED, quantas unidades/portas de cada processo de LED seriam precisas — a mesma conta usada na aba Projeto.</p>
+        <p>Em baixo também mostra, para o total de píxeis acima: quantos switchers de show da casa aguentam esse total (capacidade em megapíxeis, não só o pixel clock de um único sinal) e, se for para um ecrã LED, quantas unidades e exatamente quantas portas de cada processo de LED seriam precisas — a mesma conta usada na aba Projeto.</p>
+        <p>Os três blocos abaixo (Sinal de vídeo, Resultado, Switchers disponíveis e ligações a usar) abrem/fecham ao clicar no título — fecha o que não precisares para ver a página toda de relance.</p>
       </div>
     </details>
-    <div class="grid">
-      <div class="card">
-        <h2>Sinal de vídeo</h2>
-        <div class="row2">
-          <div class="field">
-            <label for="sg-h">Resolução horizontal</label>
-            <div class="inputgroup"><input id="sg-h" type="number" value="3840" min="1" step="1"><span class="unit">px</span></div>
+    <div class="sinal-col">
+      <details class="card sinal-block" open>
+        <summary>Sinal de vídeo</summary>
+        <div class="sinal-block-body">
+          <div class="row2">
+            <div class="field">
+              <label for="sg-h">Resolução horizontal</label>
+              <div class="inputgroup"><input id="sg-h" type="number" value="3840" min="1" step="1"><span class="unit">px</span></div>
+            </div>
+            <div class="field">
+              <label for="sg-v">Resolução vertical</label>
+              <div class="inputgroup"><input id="sg-v" type="number" value="2160" min="1" step="1"><span class="unit">px</span></div>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:14px;">
+            <label>Usar resolução de</label>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+              <button type="button" class="copy" id="sg-use-zones" title="Preenche a resolução acima com o canvas final (com gaps) da aba Ecrã Complexo">↙ Ecrã Complexo</button>
+              <button type="button" class="copy" id="sg-use-proj" title="Preenche a resolução acima com o ecrã atual da aba Projeto">↙ Projeto</button>
+            </div>
+            <div class="hint" id="sg-use-hint"></div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="sg-fps">Frame rate</label>
+              <div class="inputgroup"><input id="sg-fps" type="number" value="60" min="1" step="1"><span class="unit">Hz</span></div>
+            </div>
+            <div class="field">
+              <label for="sg-bits">Profundidade de cor</label>
+              <select id="sg-bits" class="plain">
+                <option value="8" selected>8-bit por canal</option>
+                <option value="10">10-bit por canal</option>
+                <option value="12">12-bit por canal</option>
+              </select>
+            </div>
           </div>
           <div class="field">
-            <label for="sg-v">Resolução vertical</label>
-            <div class="inputgroup"><input id="sg-v" type="number" value="2160" min="1" step="1"><span class="unit">px</span></div>
-          </div>
-        </div>
-        <div class="field" style="margin-bottom:14px;">
-          <label>Usar resolução de</label>
-          <div style="display:flex; flex-wrap:wrap; gap:8px;">
-            <button type="button" class="copy" id="sg-use-zones" title="Preenche a resolução acima com o canvas final (com gaps) da aba Ecrã Complexo">↙ Ecrã Complexo</button>
-            <button type="button" class="copy" id="sg-use-proj" title="Preenche a resolução acima com o ecrã atual da aba Projeto">↙ Projeto</button>
-          </div>
-          <div class="hint" id="sg-use-hint"></div>
-        </div>
-        <div class="row2">
-          <div class="field">
-            <label for="sg-fps">Frame rate</label>
-            <div class="inputgroup"><input id="sg-fps" type="number" value="60" min="1" step="1"><span class="unit">Hz</span></div>
-          </div>
-          <div class="field">
-            <label for="sg-bits">Profundidade de cor</label>
-            <select id="sg-bits" class="plain">
-              <option value="8" selected>8-bit por canal</option>
-              <option value="10">10-bit por canal</option>
-              <option value="12">12-bit por canal</option>
+            <label for="sg-chroma">Amostragem de cor (chroma sampling)</label>
+            <select id="sg-chroma" class="plain">
+              <option value="3" selected>RGB / YCbCr 4:4:4 (3 amostras/píxel)</option>
+              <option value="2">YCbCr 4:2:2 (2 amostras/píxel)</option>
+              <option value="1.5">YCbCr 4:2:0 (1,5 amostras/píxel)</option>
             </select>
           </div>
+          <div class="hint" id="sg-chroma-hint">Pixel clock calculado com blanking real (VESA CVT-RB2), não uma percentagem fixa — não muda com a amostragem de cor, só o data rate muda.</div>
         </div>
-        <div class="field">
-          <label for="sg-chroma">Amostragem de cor (chroma sampling)</label>
-          <select id="sg-chroma" class="plain">
-            <option value="3" selected>RGB / YCbCr 4:4:4 (3 amostras/píxel)</option>
-            <option value="2">YCbCr 4:2:2 (2 amostras/píxel)</option>
-            <option value="1.5">YCbCr 4:2:0 (1,5 amostras/píxel)</option>
-          </select>
+      </details>
+
+      <details class="card sinal-block" open>
+        <summary>Resultado</summary>
+        <div class="sinal-block-body">
+          <div class="readout">
+            <div class="item"><div class="k">Total de píxeis</div><div class="v" id="sg-out-px">—</div></div>
+            <div class="item"><div class="k">Data rate (ativo)</div><div class="v" id="sg-out-datarate">—</div></div>
+            <div class="item wide"><div class="k">Pixel clock (com blanking, CVT-RB2)</div><div class="v" id="sg-out-clock">—</div></div>
+          </div>
+          <h2 style="margin-top:18px;">Ligação mínima recomendada</h2>
+          <div class="readout">
+            <div class="item wide"><div class="k">Standard</div><div class="v" id="sg-out-connector">—</div></div>
+          </div>
+          <div class="hint" id="sg-dp-hint" style="display:none;"></div>
         </div>
-        <div class="hint" id="sg-chroma-hint">Pixel clock calculado com blanking real (VESA CVT-RB2), não uma percentagem fixa — não muda com a amostragem de cor, só o data rate muda.</div>
-      </div>
+      </details>
 
-      <div class="card results" data-accent="sinal">
-        <div class="stripe"></div>
-        <h2>Resultado</h2>
-        <div class="readout">
-          <div class="item"><div class="k">Total de píxeis</div><div class="v" id="sg-out-px">—</div></div>
-          <div class="item"><div class="k">Data rate (ativo)</div><div class="v" id="sg-out-datarate">—</div></div>
-          <div class="item wide"><div class="k">Pixel clock (com blanking, CVT-RB2)</div><div class="v" id="sg-out-clock">—</div></div>
+      <details class="card sinal-block">
+        <summary>Switchers disponíveis e ligações a usar</summary>
+        <div class="sinal-block-body">
+          <h2>Switchers/processos compatíveis (entrada)</h2>
+          <div class="hint">Comparado ao pixel clock da porta de entrada de maior largura de banda de cada aparelho. Onde a marca não publica MHz, o valor é derivado da resolução máxima publicada pela própria marca (indicado em cada linha) — nunca inventado.</div>
+          <div class="lensmatch-list" id="sg-switcher-list"></div>
+
+          <h2 style="margin-top:18px;">Switchers de show — capacidade total (MP)</h2>
+          <div class="hint">Total de píxeis acima (não o pixel clock de um único sinal) comparado à capacidade em megapíxeis de cada switcher — a mesma conta usada na aba Projeto para o total do ecrã + DSM + delay. Nº de entradas/saídas do aparelho mostrado quando a marca o publica.</div>
+          <div class="lensmatch-list" id="sg-switcher-mp-list"></div>
+
+          <h2 style="margin-top:18px;">Portas de saída necessárias — processo de LED</h2>
+          <div class="hint">Só relevante se o sinal acima for para um ecrã LED. Portas Ethernet/fibra de cada processo de LED, com a capacidade em píxeis por porta calculada com a largura de banda utilizável (930 Mbps/porta) ao refresh rate e profundidade de cor indicados acima, e o nº exato de portas a ligar para o total de píxeis acima — igual à conta da aba Projeto.</div>
+          <div class="lensmatch-list" id="sg-ledproc-list"></div>
         </div>
-        <h2 style="margin-top:18px;">Ligação mínima recomendada</h2>
-        <div class="readout">
-          <div class="item wide"><div class="k">Standard</div><div class="v" id="sg-out-connector">—</div></div>
-        </div>
-        <div class="hint" id="sg-dp-hint" style="display:none;"></div>
-
-        <h2 style="margin-top:18px;">Switchers/processos compatíveis (entrada)</h2>
-        <div class="hint">Comparado ao pixel clock da porta de entrada de maior largura de banda de cada aparelho. Onde a marca não publica MHz, o valor é derivado da resolução máxima publicada pela própria marca (indicado em cada linha) — nunca inventado.</div>
-        <div class="lensmatch-list" id="sg-switcher-list"></div>
-
-        <h2 style="margin-top:18px;">Switchers de show — capacidade total (MP)</h2>
-        <div class="hint">Total de píxeis acima (não o pixel clock de um único sinal) comparado à capacidade em megapíxeis de cada switcher — a mesma conta usada na aba Projeto para o total do ecrã + DSM + delay.</div>
-        <div class="lensmatch-list" id="sg-switcher-mp-list"></div>
-
-        <h2 style="margin-top:18px;">Portas de saída necessárias — processo de LED</h2>
-        <div class="hint">Só relevante se o sinal acima for para um ecrã LED. Portas Ethernet/fibra de cada processo de LED, com a capacidade em píxeis por porta calculada com a largura de banda utilizável (930 Mbps/porta) ao refresh rate e profundidade de cor indicados acima — igual à conta da aba Projeto.</div>
-        <div class="lensmatch-list" id="sg-ledproc-list"></div>
-      </div>
+      </details>
     </div>
   </section>
 
@@ -3277,7 +3286,8 @@
     document.getElementById("sg-switcher-mp-list").innerHTML = switchersMP.length
       ? switchersMP.map(function (x) {
           var pct = fmt((totalMP / x.cap) * 100, 0);
-          return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + pct + '%</span></div>';
+          var io = (x.s.inputs || x.s.outputs) ? " · " + (x.s.inputs ? fmtInt(x.s.inputs) + " entradas" : "") + (x.s.inputs && x.s.outputs ? " / " : "") + (x.s.outputs ? fmtInt(x.s.outputs) + " saídas" : "") : "";
+          return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + pct + '%' + io + '</span></div>';
         }).join("")
       : '<div class="lm-item"><span>Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>';
 
@@ -3286,13 +3296,15 @@
       var unitCapacity = portCapacity * p.ports;
       if (p.maxPixelsHardCap) unitCapacity = Math.min(unitCapacity, p.maxPixelsHardCap);
       var numUnits = Math.ceil(totalPx / unitCapacity);
-      return { p: p, unitCapacity: unitCapacity, numUnits: numUnits };
+      var portsAvailable = numUnits * p.ports;
+      var portsUsed = Math.min(portsAvailable, Math.ceil(totalPx / portCapacity));
+      return { p: p, unitCapacity: unitCapacity, numUnits: numUnits, portsUsed: portsUsed, portsAvailable: portsAvailable };
     }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports; });
 
     document.getElementById("sg-ledproc-list").innerHTML = ledProcOk.length
       ? ledProcOk.map(function (x) {
           var pct = fmt((totalPx / (x.numUnits * x.unitCapacity)) * 100, 0);
-          return '<div class="lm-item"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.p.ports) + ' portas, ' + fmtInt(x.unitCapacity) + ' px/unidade) — ' + pct + '%</span></div>';
+          return '<div class="lm-item"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.p.ports) + ' portas, ' + fmtInt(x.unitCapacity) + ' px/unidade) — usar ' + fmtInt(x.portsUsed) + ' de ' + fmtInt(x.portsAvailable) + ' portas (' + pct + '%)</span></div>';
         }).join("")
       : '<div class="lm-item"><span>Sem processos de LED na base de dados</span></div>';
   }
