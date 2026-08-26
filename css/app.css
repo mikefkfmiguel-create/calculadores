@@ -443,6 +443,23 @@
   .sinal-block[open] summary::after { content: "▴"; }
   .sinal-block[open] summary { padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--line-soft); }
   .sinal-block-body > h2:first-child { margin-top: 0; }
+  /* Texto explicativo dentro de cada bloco de Sinal — colapsado por
+     defeito, para o resultado (a lista) aparecer logo a seguir ao
+     título, sem parede de texto pelo meio a atrasar. */
+  .hint-collapse { margin-bottom: 10px; }
+  .hint-collapse summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 12px;
+    color: var(--ink-faint);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .hint-collapse summary::-webkit-details-marker { display: none; }
+  .hint-collapse summary::after { content: "▾"; font-size: 10px; }
+  .hint-collapse[open] summary::after { content: "▴"; }
+  .hint-collapse .hint { margin-top: 6px; }
   @keyframes lz-flash-anim {
     0%, 100% { box-shadow: var(--shadow); }
     30% { box-shadow: 0 0 0 3px var(--teal-500), var(--shadow); }
@@ -572,12 +589,14 @@
   .lensmatch-list { font-size: 13.5px; }
   .lensmatch-list .lm-item {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: 10px;
     padding: 7px 0;
     border-bottom: 1px solid var(--line-soft);
   }
   .lensmatch-list .lm-item:last-child { border-bottom: none; }
+  .lensmatch-list .lm-note { flex-basis: 100%; font-size: 12px; color: var(--ink-faint); line-height: 1.5; margin-top: 2px; }
   .lensmatch-list .lm-model { color: var(--ink-soft); }
   .lensmatch-list .lm-empty { color: var(--ink-faint); font-style: italic; }
   .lensmatch-list .lm-checkitem { align-items: center; cursor: pointer; }
@@ -586,6 +605,16 @@
 
   /* Results */
   .results { position: sticky; top: 16px; }
+  /* Em telemóvel o .grid de 2 colunas passa a 1 coluna só — quando uma aba
+     (ex: Projeto) tem 2 cards ".results" empilhados nessa coluna única
+     (checklist + relatório), ambos tentam colar-se ao mesmo "top:16px" ao
+     descer a página, sobrepondo-se/travando o scroll (mesma família de bug
+     do sticky já documentada abaixo para o Ecrã Complexo). O sticky só faz
+     sentido a acompanhar a coluna do formulário lado a lado — em coluna
+     única desliga-se. */
+  @media (max-width: 759px) {
+    .results { position: static; }
+  }
   /* No Ecrã Complexo, o diagrama é o que se está sempre a precisar de ver
      enquanto se edita a lista de zonas — fica num card próprio, à parte e
      por cima da grelha lista/totais, para ocupar a largura toda (mais
