@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.91</span>
+    <span class="mark">v1.92</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2673,7 +2673,7 @@
 
         document.getElementById("proj-out-tiles").textContent = fmtInt(numTiles) + " (várias zonas)";
         document.getElementById("proj-out-res").innerHTML = fmtInt(lzLastTotals.totalPixels) + "<small>px totais</small>" +
-          (lzLastTotals.pixelMap ? "<br><small>canvas (com gaps): " + fmtInt(lzLastTotals.pixelMap.canvasW) + "×" + fmtInt(lzLastTotals.pixelMap.canvasH) + "px</small>" : "");
+          (lzLastTotals.pixelMap ? "<span class=\"canvas-note\">canvas (com gaps): " + fmtInt(lzLastTotals.pixelMap.canvasW) + "×" + fmtInt(lzLastTotals.pixelMap.canvasH) + "px</span>" : "");
         document.getElementById("proj-out-size").innerHTML = "várias zonas<small> — ver detalhe na aba Ecrã Complexo</small>";
         document.getElementById("proj-out-pitch").innerHTML = "vário<small> (zonas com pitches diferentes)</small>";
         document.getElementById("proj-out-weight").innerHTML = fmt(totalWeight, 1) + "<small>kg</small>";

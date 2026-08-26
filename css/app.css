@@ -836,6 +836,15 @@
     color: var(--ink);
   }
   .readout .item .v small { font-size: 12px; font-weight: 500; color: var(--ink-faint); margin-left: 3px; }
+  .readout .item .v .canvas-note {
+    display: block;
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--teal-600);
+    margin-top: 4px;
+  }
   .readout .item.wide { grid-column: 1 / -1; }
   [data-accent="projecao"] .readout .item .v { color: var(--amber-600); }
   [data-accent="led"] .readout .item .v { color: var(--teal-600); }
