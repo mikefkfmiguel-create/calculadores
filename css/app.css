@@ -443,6 +443,19 @@
   .sinal-block[open] summary::after { content: "▴"; }
   .sinal-block[open] summary { padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--line-soft); }
   .sinal-block-body > h2:first-child { margin-top: 0; }
+  .sinal-detail-card {
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 12px 14px 14px;
+    margin-top: 10px;
+  }
+  .sinal-detail-card:first-child { margin-top: 0; }
+  .sinal-detail-card h3 { font-size: 14px; margin: 0 0 10px; color: var(--ink); }
+  .sinal-detail-row { margin-bottom: 8px; }
+  .sinal-detail-row:last-of-type { margin-bottom: 0; }
+  .sinal-detail-row .k { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); margin-bottom: 3px; }
+  .sinal-detail-row .v { display: block; font-size: 13.5px; color: var(--ink); line-height: 1.5; }
+  .sinal-detail-card .lm-note { font-size: 12px; color: var(--ink-faint); margin-top: 10px; line-height: 1.5; }
   /* Texto explicativo dentro de cada bloco de Sinal — colapsado por
      defeito, para o resultado (a lista) aparecer logo a seguir ao
      título, sem parede de texto pelo meio a atrasar. */
