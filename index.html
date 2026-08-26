@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.108</span>
+    <span class="mark">v1.109</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1251,28 +1251,11 @@
       </details>
 
       <details class="card sinal-block">
-        <summary>Switchers/processos compatíveis (entrada)</summary>
-        <div class="sinal-block-body">
-          <details class="hint-collapse">
-            <summary>Como é calculado</summary>
-            <div class="hint">Comparado ao pixel clock da porta de entrada de maior largura de banda de cada aparelho. Onde a marca não publica MHz, o valor é derivado da resolução máxima publicada pela própria marca (indicado em cada linha) — nunca inventado.</div>
-          </details>
-          <div class="lensmatch-list" id="sg-switcher-list"></div>
-        </div>
-      </details>
-
-      <details class="card sinal-block">
         <summary>Switchers de show — capacidade e ligações a usar</summary>
         <div class="sinal-block-body">
-          <details class="hint-collapse">
-            <summary>Como é calculado</summary>
-            <div class="hint">Lista os switchers com capacidade (em megapíxeis) para o total de píxeis acima — a mesma conta usada na aba Projeto para o total do ecrã + DSM + delay. Ordenados pelo que precisa de menos ligações de saída primeiro. Marca a caixa num ou mais para ver em baixo o detalhe: entrada (cabe o sinal no pixel clock deste aparelho?) e saída ("usar X de Y saídas" — calculado a partir do pixel clock máximo do aparelho quando publicado; quando só publica a capacidade total, o valor vem marcado com "~" e é estimado a dividir essa capacidade pelo nº de saídas, por não haver dado mais fino).</div>
-          </details>
           <div class="lensmatch-list" id="sg-switcher-mp-list"></div>
 
           <div id="sg-switcher-detail-wrap" style="display:none; margin-top:18px;">
-            <h2>Detalhe do(s) escolhido(s)</h2>
-            <div class="hint">Marca a caixa num switcher acima para ver aqui a entrada e saída exatas necessárias para o sinal indicado no topo desta aba.</div>
             <div id="sg-switcher-detail"></div>
           </div>
         </div>
@@ -1285,11 +1268,6 @@
             <label for="sg-led-tile">Tile de referência (para contar em tiles, não só píxeis)</label>
             <select id="sg-led-tile" class="plain"></select>
           </div>
-          <details class="hint-collapse">
-            <summary>Como é calculado</summary>
-            <div class="hint">Só relevante se o sinal acima for para um ecrã LED. Portas Ethernet/fibra de cada processo de LED, com a capacidade em píxeis (e em tiles do modelo escolhido acima) por porta, calculada com a largura de banda utilizável (930 Mbps/porta) ao refresh rate e profundidade de cor indicados acima, e o nº exato de portas a ligar para o total de píxeis acima — igual à conta da aba Projeto. Marca a caixa para incluir no relatório final.</div>
-            <div class="hint" id="sg-ledproc-bwnote" style="margin-top:6px;"></div>
-          </details>
           <div class="lensmatch-list" id="sg-ledproc-list"></div>
         </div>
       </details>
@@ -2539,6 +2517,8 @@
   var selectedSinalSwitcherKeys = new Set();
   var selectedSinalOutputMode = new Map();
   var selectedSinalLedProcKeys = new Set();
+  var sinalSwitcherListExpanded = false;
+  var sinalLedProcListExpanded = false;
   function itemKey(marca, modelo) { return marca + "|" + modelo; }
 
   var projLedModelSel = document.getElementById("proj-led-model");
@@ -3328,17 +3308,6 @@
     dpHint.style.display = "block";
     dpHint.textContent = "DisplayPort não define um limite único de pixel clock (é um link empacotado) — a " + fmt(bpp,1) + "bpp (" + bits + "-bit " + chromaLabel + "), o máximo teórico é ≈" + fmtInt(360 * (24 / bpp)) + "MHz em DP1.1a, ≈" + fmtInt(720 * (24 / bpp)) + "MHz em DP1.2, ≈" + fmtInt(1080 * (24 / bpp)) + "MHz em DP1.4 (valores derivados do débito, não publicados pela VESA em MHz).";
 
-    var switchers = (PROCESSORS_DATA.switchers || []).filter(function (s) { return s.maxPixelClockMHz; })
-      .map(function (s) { return { s: s, fits: s.maxPixelClockMHz >= clockMHz - 0.1 }; })
-      .filter(function (x) { return x.fits; })
-      .sort(function (a, b) { return a.s.maxPixelClockMHz - b.s.maxPixelClockMHz; });
-
-    document.getElementById("sg-switcher-list").innerHTML = switchers.length
-      ? switchers.map(function (x) {
-          return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.s.maxPixelClockMHz, 1) + ' MHz (' + x.s.maxPixelClockSource + ')</span></div>';
-        }).join("")
-      : '<div class="lm-item"><span>Nenhum com dados de pixel clock suficientes para este sinal</span></div>';
-
     var totalMP = totalPx / 1e6;
     var switchersMP = (PROCESSORS_DATA.switchers || []).map(function (s) {
       var linked = s.unitsOwned >= 2 && s.maxMPSwitcherLinked;
@@ -3366,47 +3335,53 @@
     }).filter(function (x) { return x.fits && x.cap; })
       .sort(function (a, b) { return (a.connsNeeded || 999) - (b.connsNeeded || 999) || a.cap - b.cap; });
 
-    document.getElementById("sg-switcher-mp-list").innerHTML = switchersMP.length
-      ? switchersMP.map(function (x) {
+    var switchersChosen = switchersMP.filter(function (x) { return selectedSinalSwitcherKeys.has(x.key); });
+    var switchersShown = (switchersChosen.length && !sinalSwitcherListExpanded) ? switchersChosen : switchersMP;
+
+    document.getElementById("sg-switcher-mp-list").innerHTML = (switchersShown.length
+      ? switchersShown.map(function (x) {
           var checked = selectedSinalSwitcherKeys.has(x.key) ? " checked" : "";
           var io = x.s.inputs ? " · " + fmtInt(x.s.inputs) + " entradas" : "";
           return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%' + io + '</span></span></label>';
         }).join("")
-      : '<div class="lm-item"><span>Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>';
+      : '<div class="lm-item"><span>Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>') +
+      (switchersChosen.length
+        ? '<button type="button" class="copy" id="sg-switcher-showmore" style="margin-top:8px;">' + (sinalSwitcherListExpanded ? "Mostrar só escolhido(s)" : "+ Escolher outro switcher") + '</button>'
+        : '');
 
     document.getElementById("sg-switcher-mp-list").querySelectorAll(".lm-check").forEach(function (cb) {
       cb.addEventListener("change", function () {
         if (cb.checked) selectedSinalSwitcherKeys.add(cb.dataset.key); else selectedSinalSwitcherKeys.delete(cb.dataset.key);
+        sinalSwitcherListExpanded = false;
         calcSinal();
       });
     });
+    var switcherShowMoreBtn = document.getElementById("sg-switcher-showmore");
+    if (switcherShowMoreBtn) switcherShowMoreBtn.addEventListener("click", function () {
+      sinalSwitcherListExpanded = !sinalSwitcherListExpanded;
+      calcSinal();
+    });
 
-    var switchersChosen = switchersMP.filter(function (x) { return selectedSinalSwitcherKeys.has(x.key); });
     var detailWrap = document.getElementById("sg-switcher-detail-wrap");
     detailWrap.style.display = switchersChosen.length ? "block" : "none";
     document.getElementById("sg-switcher-detail").innerHTML = switchersChosen.map(function (x) {
       var entradaVal = x.s.maxPixelClockMHz
-        ? (fmt(clockMHz, 1) + " MHz de " + fmt(x.s.maxPixelClockMHz, 1) + " MHz máx. — " + (x.clockFits ? "cabe numa entrada" : "⚠ excede a entrada de maior largura de banda"))
-        : "Marca não publica pixel clock — sem dados para confirmar a entrada";
-      var entradaWarn = (x.s.maxPixelClockMHz && !x.clockFits)
-        ? '<div class="lm-note">Este sinal não cabe numa ligação de entrada, seja qual for o cabo ou conector usado — teria mesmo de ser repartido por várias entradas antes de chegar a este switcher.</div>'
-        : '';
+        ? (fmt(clockMHz, 1) + " MHz de " + fmt(x.s.maxPixelClockMHz, 1) + " MHz máx. — " + (x.clockFits ? "cabe numa entrada" : "⚠ excede a entrada"))
+        : "sem dados de pixel clock";
       var saidaVal = x.connsNeeded != null
-        ? (x.connsEstimated ? "usar ~" : "usar ") + fmtInt(x.connsNeeded) + (x.effectiveOutputs ? " de " + fmtInt(x.effectiveOutputs) + " saídas" : " ligações (nº de saídas não publicado)") +
-          (x.connsEstimated ? " (estimado, sem pixel clock publicado)" : "") +
-          (x.outputsEnough === false ? " — ⚠ insuficiente sozinho" : "")
-        : (x.effectiveOutputs ? fmtInt(x.effectiveOutputs) + " saídas (sem dados para calcular quantas usar)" : "Sem dados de saídas publicados");
+        ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.effectiveOutputs ? " de " + fmtInt(x.effectiveOutputs) + " saídas" : " ligações") +
+          (x.outputsEnough === false ? " — ⚠ insuficiente" : "")
+        : (x.effectiveOutputs ? fmtInt(x.effectiveOutputs) + " saídas" : "sem dados de saídas");
       var modeSelect = x.s.outputModes
         ? '<select class="plain sinal-mode-select" data-key="' + x.key + '" style="margin-top:4px;">' +
             x.s.outputModes.map(function (m, i) { return '<option value="' + i + '"' + (i === x.modeIdx ? ' selected' : '') + '>' + m.label + '</option>'; }).join('') +
           '</select>'
         : '';
-      var note = x.s.nota ? '<div class="lm-note">' + x.s.nota + '</div>' : '';
       return '<div class="sinal-detail-card"><h3>' + x.s.marca + ' ' + x.s.modelo + ' ' + srcLinkHtml(x.s.fonte) + '</h3>' +
-        '<div class="sinal-detail-row"><span class="k">Entrada (este sinal)</span><span class="v">' + entradaVal + '</span></div>' + entradaWarn +
-        '<div class="sinal-detail-row"><span class="k">Saída (para o canvas)</span><span class="v">' + saidaVal + modeSelect + '</span></div>' +
-        '<div class="sinal-detail-row"><span class="k">Capacidade total</span><span class="v">' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%</span></div>' +
-        note + '</div>';
+        '<div class="sinal-detail-row"><span class="k">Entrada</span><span class="v">' + entradaVal + '</span></div>' +
+        '<div class="sinal-detail-row"><span class="k">Saída</span><span class="v">' + saidaVal + modeSelect + '</span></div>' +
+        '<div class="sinal-detail-row"><span class="k">Capacidade</span><span class="v">' + fmt(x.cap, 1) + ' MP — ' + x.pct + '%</span></div>' +
+        '</div>';
     }).join("");
 
     document.getElementById("sg-switcher-detail").querySelectorAll(".sinal-mode-select").forEach(function (sel) {
@@ -3417,8 +3392,6 @@
     });
 
     var portCapacity = Math.floor(USABLE_BPS / ((BITS_PER_PIXEL[String(bits)] || 24) * fps));
-    var bwNoteEl = document.getElementById("sg-ledproc-bwnote");
-    if (bwNoteEl) bwNoteEl.textContent = PROCESSORS_DATA.bandwidthNote || "";
     var refTileIdx = parseInt(sgLedTileSel.value, 10);
     var refTile = !isNaN(refTileIdx) ? LED_TILES_DATA[refTileIdx] : null;
     var refTilePx = refTile ? refTile.rx * refTile.ry : 0;
@@ -3433,24 +3406,35 @@
       return { p: p, key: itemKey(p.marca, p.modelo), unitCapacity: unitCapacity, numUnits: numUnits, portsUsed: portsUsed, portsAvailable: portsAvailable, tilesPerPort: tilesPerPort, pct: pct };
     }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports; });
 
-    document.getElementById("sg-ledproc-list").innerHTML = ledProcOk.length
-      ? ledProcOk.map(function (x) {
+    var ledProcChosen = ledProcOk.filter(function (x) { return selectedSinalLedProcKeys.has(x.key); });
+    var ledProcShown = (ledProcChosen.length && !sinalLedProcListExpanded) ? ledProcChosen : ledProcOk;
+
+    document.getElementById("sg-ledproc-list").innerHTML = (ledProcShown.length
+      ? ledProcShown.map(function (x) {
           var checked = selectedSinalLedProcKeys.has(x.key) ? " checked" : "";
           var tilesInfo = x.tilesPerPort != null ? " (máx. " + fmtInt(x.tilesPerPort) + " tiles/porta, " + (refTile.modelo) + ")" : "";
           return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.p.ports) + ' portas, ' + fmtInt(x.unitCapacity) + ' px/unidade) — usar ' + fmtInt(x.portsUsed) + ' de ' + fmtInt(x.portsAvailable) + ' portas (' + x.pct + '%)' + tilesInfo + '</span></span></label>';
         }).join("")
-      : '<div class="lm-item"><span>Sem processos de LED na base de dados</span></div>';
+      : '<div class="lm-item"><span>Sem processos de LED na base de dados</span></div>') +
+      (ledProcChosen.length
+        ? '<button type="button" class="copy" id="sg-ledproc-showmore" style="margin-top:8px;">' + (sinalLedProcListExpanded ? "Mostrar só escolhido(s)" : "+ Escolher outro processo") + '</button>'
+        : '');
 
     document.getElementById("sg-ledproc-list").querySelectorAll(".lm-check").forEach(function (cb) {
       cb.addEventListener("change", function () {
         if (cb.checked) selectedSinalLedProcKeys.add(cb.dataset.key); else selectedSinalLedProcKeys.delete(cb.dataset.key);
+        sinalLedProcListExpanded = false;
         calcSinal();
       });
     });
+    var ledProcShowMoreBtn = document.getElementById("sg-ledproc-showmore");
+    if (ledProcShowMoreBtn) ledProcShowMoreBtn.addEventListener("click", function () {
+      sinalLedProcListExpanded = !sinalLedProcListExpanded;
+      calcSinal();
+    });
 
-    var ledProcChosen = ledProcOk.filter(function (x) { return selectedSinalLedProcKeys.has(x.key); });
-
-    // Relatório final — só texto, junta o sinal, os switchers e o processo de LED escolhidos.
+    // Relatório final — só texto, junta o sinal, os switchers e o processo de LED escolhidos,
+    // com toda a explicação/notas que já não aparecem nos cards interativos.
     var switchersLines = switchersChosen.length
       ? switchersChosen.map(function (x) {
           var entradaTxt = x.s.maxPixelClockMHz
@@ -3460,13 +3444,16 @@
             ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.effectiveOutputs ? " de " + fmtInt(x.effectiveOutputs) + " saídas" : " ligações")
             : (x.effectiveOutputs ? fmtInt(x.effectiveOutputs) + " saídas (sem dados para calcular quantas usar)" : "sem dados de saídas");
           var modeTxt = x.s.outputModes ? " [" + x.s.outputModes[x.modeIdx].label + "]" : "";
-          return "  " + x.s.marca + " " + x.s.modelo + modeTxt + " — entrada: " + entradaTxt + " — saída: " + saidaTxt + " — capacidade: " + fmt(x.cap, 1) + " MP (" + x.pct + "%)";
+          var line = "  " + x.s.marca + " " + x.s.modelo + modeTxt + " — entrada: " + entradaTxt + " — saída: " + saidaTxt + " — capacidade: " + fmt(x.cap, 1) + " MP (" + x.pct + "%)";
+          if (x.s.maxPixelClockMHz && !x.clockFits) line += "\n    ⚠ este sinal não cabe numa ligação de entrada, seja qual for o cabo — teria de ser repartido por várias entradas antes de chegar a este switcher.";
+          if (x.s.nota) line += "\n    " + x.s.nota;
+          return line;
         }).join("\n")
       : "  nenhum escolhido";
     var ledProcLines = ledProcChosen.length
       ? ledProcChosen.map(function (x) {
           return "  " + fmtInt(x.numUnits) + "× " + x.p.marca + " " + x.p.modelo + " — usar " + fmtInt(x.portsUsed) + " de " + fmtInt(x.portsAvailable) + " portas (" + x.pct + "%)" + (x.tilesPerPort != null ? ", máx. " + fmtInt(x.tilesPerPort) + " tiles/porta (" + refTile.modelo + ")" : "");
-        }).join("\n")
+        }).join("\n") + (PROCESSORS_DATA.bandwidthNote ? "\n  " + PROCESSORS_DATA.bandwidthNote : "")
       : "  nenhum escolhido";
 
     document.getElementById("sg-sum").textContent =
