@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="css/app.css">
 
 <div class="wrap">
+  <div id="ecra-preamble">
   <div class="top">
     <div class="brand">
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
@@ -23,8 +24,6 @@
     <a href="index.html" class="srclink" style="white-space:nowrap;">← Calculadores</a>
   </div>
   <p class="sub">Construtor de ecrãs LED com várias zonas/pitches — as zonas ficam guardadas no aparelho e também aparecem na aba "Ecrã Complexo" dos Calculadores.</p>
-
-  <div id="app-toast" role="status" aria-live="polite"></div>
 
   <details class="howto">
     <summary>Como usar esta calculadora</summary>
@@ -36,7 +35,7 @@
       <p>Zonas com o mesmo nome-base (ex: "Lateral", "Lateral 2", "Lateral 3") ficam marcadas automaticamente com a mesma cor no diagrama, no mapa de píxeis exportado e num pontinho junto ao nome de cada zona — só para ajudar a distinguir grupos à vista, não afeta os cálculos.</p>
       <p>Desmarca a caixa <strong>"Vis."</strong> numa zona para a esconder — sai do diagrama, dos totais e do mapa de píxeis exportado, mas fica guardada (não é apagada). Útil para testar cenários sem uma zona ou para preparar uma zona que ainda não está confirmada.</p>
       <p>As zonas ficam guardadas automaticamente neste aparelho (mesmo que atualizes a página ou feches esta app) — e são as mesmas zonas que aparecem na aba "Ecrã Complexo" dos Calculadores, dos dois lados.</p>
-      <p>Em ecrãs largos (computador), o diagrama fica num card à parte no topo, com a largura toda, e "cola" ao cimo da página ao desceres a lista — fácil de ver mesmo em projetos com muitas zonas. Em telemóvel/tablet mantém-se a barra fixa condensada em baixo.</p>
+      <p>Em ecrãs largos (computador), o diagrama fica fixo no topo e só a lista de zonas desce — fácil de ver mesmo em projetos com muitas zonas. Em telemóvel/tablet mantém-se a barra fixa condensada em baixo.</p>
       <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
     </div>
   </details>
@@ -44,27 +43,32 @@
     <span id="lz-preview-bar-text">—</span>
     <span class="lz-preview-bar-cta">ver resultado ▾</span>
   </button>
+  </div>
 
+  <div id="ecra-fixed-top">
   <div class="card results" data-accent="zonas" style="display:none;" id="lz-diagram-card">
     <div class="stripe"></div>
-    <h2>Diagrama do conjunto</h2>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:16px;">
+      <h2 style="margin-bottom:0;">Diagrama do conjunto</h2>
+      <button type="button" class="copy" id="lz-add-canvas">+ Adicionar zona</button>
+    </div>
     <div id="lz-diagram-wrap" style="display:none;">
       <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
-        <svg id="lz-diagram" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; flex:1 1 420px; min-width:280px; max-height:min(300px, 34vh); min-height:180px;"></svg>
-        <div id="lz-diagram-details" style="flex:0 0 220px; max-width:100%; max-height:min(300px, 34vh); overflow-y:auto; display:flex; flex-direction:column; gap:2px;"></div>
+        <svg id="lz-diagram" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; flex:1 1 420px; min-width:280px; max-height:min(220px, 26vh); min-height:150px;"></svg>
+        <div id="lz-diagram-details" style="flex:0 0 220px; max-width:100%; max-height:min(220px, 26vh); overflow-y:auto; display:flex; flex-direction:column; gap:2px;"></div>
       </div>
       <div id="lz-diagram-legend" style="display:flex; gap:16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-faint); flex-wrap:wrap;"></div>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
-        <button type="button" class="copy" id="lz-export-map">Exportar mapa de píxeis (PNG)</button>
-        <button type="button" class="copy" id="lz-export-mask">Exportar máscara (PNG)</button>
+        <button type="button" class="copy" id="lz-export-map" title="Canvas único em píxeis para importar num media server, com legendas com os valores. Se as zonas tiverem pitches diferentes, a posição/tamanho é aproximada, usando como referência o pitch da zona com maior área.">Exportar mapa de píxeis (PNG)</button>
+        <button type="button" class="copy" id="lz-export-mask" title="Igual ao mapa de píxeis, mas só preto/branco (uma zona = branco), para usar como matte de conteúdo.">Exportar máscara (PNG)</button>
       </div>
-      <p class="hint" style="margin-top:8px;">Canvas único em píxeis para importar num media server. Se as zonas tiverem pitches diferentes, a posição/tamanho no canvas é aproximada — usa como referência o pitch da zona com maior área (fica indicado no ficheiro). O "mapa" tem legendas com os valores; a "máscara" é só preto/branco (uma zona = branco), para usar como matte de conteúdo.</p>
     </div>
   </div>
+  </div>
+  <div id="app-toast" role="status" aria-live="polite"></div>
 
   <div class="grid">
     <div>
-      <button type="button" class="copy" id="lz-add-top">+ Adicionar zona</button>
       <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:14px; padding:10px 12px; border:1px solid var(--line-soft); border-radius:10px; background:var(--paper);">
         <div class="field" style="margin-bottom:0;">
           <label>Deslocar X selecionadas</label>
