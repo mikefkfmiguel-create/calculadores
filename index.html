@@ -29,7 +29,7 @@
     <span class="install-dot"></span>
     <div class="install-banner-text" id="install-banner-text"><strong>Instala esta app</strong> — acesso direto no ecrã principal, sem andares à procura do link.</div>
     <button class="install-btn" id="install-banner-btn" style="display:none;">Instalar</button>
-    <button class="install-dismiss" id="install-dismiss" aria-label="Fechar">×</button>
+    <button class="install-dismiss" id="install-banner-dismiss" aria-label="Fechar">×</button>
   </div>
 
   <div id="app-toast" role="status" aria-live="polite"></div>
@@ -47,56 +47,3494 @@
     <button class="tab" data-mode="ajuda" role="tab" aria-selected="false"><span class="swatch"></span>Ajuda</button>
   </div>
 
+  <!-- PROJEÇÃO -->
   <section class="panel active" data-mode="projecao">
-    <h2>Distância de Projeção - Calculadora carregada com sucesso!</h2>
-    <p>A aplicação AVK Calculadores está operacional. Todos os ficheiros foram restaurados.</p>
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Escolhe o projetor (ou personaliza os lumens — se souberes o light output mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã. A app calcula os dois sentidos ao mesmo tempo: se souberes a <strong>distância</strong> disponível, mostra as lentes que a cobrem; se souberes a <strong>lente</strong>, mostra a distância mínima e máxima onde funciona.</p>
+        <p>Quando estiveres satisfeito com o resultado, marca <strong>"Adicionar ao projeto"</strong> no resumo — os valores passam sozinhos para a aba Projeto.</p>
+      </div>
+    </details>
+    <div class="grid">
+      <div class="card">
+        <h2>Ecrã</h2>
+        <div class="field">
+          <label for="p-ratio">Formato (relação de aspeto)</label>
+          <select id="p-ratio" class="plain">
+            <option value="16:9" selected>16:9 — widescreen</option>
+            <option value="16:10">16:10</option>
+            <option value="4:3">4:3 — clássico</option>
+            <option value="21:9">21:9 — cinema</option>
+            <option value="custom">Personalizado — tenho a largura e altura em metros</option>
+          </select>
+        </div>
+        <div id="p-diagormode-wrap">
+          <div class="field">
+            <label>Como queres indicar o tamanho?</label>
+            <div class="seg" id="p-sizemode-seg">
+              <button type="button" class="seg-btn active" data-sizemode="diag">Diagonal (polegadas)</button>
+              <button type="button" class="seg-btn" data-sizemode="width">Largura (metros)</button>
+              <button type="button" class="seg-btn" data-sizemode="height">Altura (metros)</button>
+            </div>
+          </div>
+          <div class="field" id="p-diag-field">
+            <label for="p-diag">Diagonal do ecrã</label>
+            <div class="inputgroup">
+              <input id="p-diag" type="number" inputmode="decimal" value="120" min="1" step="1">
+              <span class="unit">polegadas</span>
+            </div>
+            <div class="hint">Junto com o formato acima, calcula a largura/altura do ecrã.</div>
+          </div>
+          <div class="field" id="p-width-field" style="display:none;">
+            <label for="p-width-fixed">Largura do ecrã</label>
+            <div class="inputgroup">
+              <input id="p-width-fixed" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01">
+              <span class="unit">m</span>
+            </div>
+            <div class="hint">Junto com o formato acima, calcula a diagonal/altura do ecrã.</div>
+          </div>
+          <div class="field" id="p-height-field" style="display:none;">
+            <label for="p-height-fixed">Altura do ecrã</label>
+            <div class="inputgroup">
+              <input id="p-height-fixed" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01">
+              <span class="unit">m</span>
+            </div>
+            <div class="hint">Junto com o formato acima, calcula a diagonal/largura do ecrã.</div>
+          </div>
+        </div>
+        <div class="row2" id="p-custom-ratio" style="display:none;">
+          <div class="field">
+            <label for="p-rw">Largura do ecrã</label>
+            <div class="inputgroup"><input id="p-rw" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01"><span class="unit">m</span></div>
+          </div>
+          <div class="field">
+            <label for="p-rh">Altura do ecrã</label>
+            <div class="inputgroup"><input id="p-rh" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Projetor</div>
+
+        <div class="field">
+          <label for="p-projmodel">Modelo de projetor</label>
+          <select id="p-projmodel" class="plain">
+            <option value="custom">Personalizado…</option>
+          </select>
+          <div class="srclink-wrap" id="p-projmodel-source"></div>
+        </div>
+        <div class="field" id="p-resmode-field" style="display:none;">
+          <label>Resolução a usar nos cálculos</label>
+          <div class="seg" id="p-resmode-seg">
+            <button type="button" class="seg-btn active" data-resmode="enhanced">Declarada (pixel-shift)</button>
+            <button type="button" class="seg-btn" data-resmode="native">Nativa (painel/chip)</button>
+          </div>
+          <div class="hint">Este modelo atinge a resolução declarada por pixel-shift — o painel/chip nativo é mais baixo. Escolhe qual usar.</div>
+        </div>
+        <div class="field">
+          <label for="p-lumens">Luminosidade do projetor (100%)</label>
+          <div class="inputgroup"><input id="p-lumens" type="number" inputmode="decimal" value="20000" min="0" step="100"><span class="unit">lumens</span></div>
+          <div class="hint">ANSI lumens da ficha técnica.</div>
+        </div>
+
+        <div id="p-throwmode-dist-inputs">
+          <div class="field">
+            <label for="p-knowndist">Distância entre a lente e o ecrã</label>
+            <div class="inputgroup"><input id="p-knowndist" type="number" inputmode="decimal" value="4.00" min="0.1" step="0.01"><span class="unit">m</span></div>
+            <div class="hint">Medida a partir da lente do projetor — não do centro ou da traseira do corpo do projetor.</div>
+          </div>
+        </div>
+
+        <div class="divider">Já sabes a lente? (opcional)</div>
+        <div id="p-throwmode-ratio-inputs">
+          <div class="field">
+            <label for="p-lensmodel">Lente</label>
+            <select id="p-lensmodel" class="plain">
+              <option value="custom">Nenhuma / não sei ainda</option>
+            </select>
+            <div class="hint">Escolhe a lente pela referência — preenche o throw ratio automaticamente e fica identificada no relatório.</div>
+          </div>
+          <div class="row2" id="p-lens-ratio-detail" style="display:none;">
+            <div class="field">
+              <label for="p-tmin">Throw ratio mínimo</label>
+              <div class="inputgroup"><input id="p-tmin" type="number" inputmode="decimal" value="1.39" min="0.1" step="0.01"></div>
+              <div class="hint">Da ficha técnica da lente</div>
+            </div>
+            <div class="field">
+              <label for="p-tmax">Throw ratio máximo</label>
+              <div class="inputgroup"><input id="p-tmax" type="number" inputmode="decimal" value="1.87" min="0.1" step="0.01"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card results" data-accent="projecao">
+        <div class="stripe"></div>
+        <h2>Tamanho do ecrã</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Largura</div><div class="v" id="p-out-w">—</div></div>
+          <div class="item"><div class="k">Altura</div><div class="v" id="p-out-h">—</div></div>
+          <div class="item wide"><div class="k">Resolução do projetor</div><div class="v" id="p-out-projres">—</div></div>
+        </div>
+        <div id="p-throwmode-ratio-output" style="display:none;">
+          <h2 style="margin-top:18px;">Distância de projeção (com a lente indicada)</h2>
+          <div class="readout">
+            <div class="item"><div class="k">Mínima</div><div class="v" id="p-out-dmin">—</div></div>
+            <div class="item"><div class="k">Máxima</div><div class="v" id="p-out-dmax">—</div></div>
+          </div>
+        </div>
+        <div id="p-throwmode-dist-output">
+          <h2 style="margin-top:18px;">Lente necessária (à distância indicada)</h2>
+          <div class="readout">
+            <div class="item wide"><div class="k">Throw ratio (distância ÷ largura)</div><div class="v" id="p-out-rationeeded">—</div></div>
+          </div>
+          <div class="field" style="margin-top:12px;">
+            <label>Lentes compatíveis na base</label>
+            <div class="lensmatch-list" id="p-lensmatch-list">—</div>
+          </div>
+        </div>
+        <h2 style="margin-top:18px;">Luminosidade</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Útil (80%)</div><div class="v" id="p-out-lumens80">—</div></div>
+          <div class="item"><div class="k">Lux no ecrã</div><div class="v" id="p-out-lux">—</div></div>
+        </div>
+        <p class="note">Trabalha sempre a 80% da luminosidade nominal (margem para desgaste da lâmpada/laser) — lux = (lumens × 0,8) ÷ área do ecrã.</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="p-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="p-sum">Copiar resumo</button>
+            </div>
+          </div>
+          <pre class="sumbox" id="p-sum"></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="crosslink">
+      Queres saber que tamanho de ecrã é ideal para uma distância de visualização específica (em vez do throw ratio do projetor)? Usa a aba <button type="button" data-jumptab="visualizacao">Distância de Visualização</button>.
+    </div>
   </section>
 
+  <!-- DISTÂNCIA DE VISUALIZAÇÃO -->
   <section class="panel" data-mode="visualizacao">
-    <h2>Distância de Visualização</h2>
-    <p>Módulo de distância de visualização ativo.</p>
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Indica o tamanho do ecrã (secção de cima) para saberes a que distância a plateia deve ficar. Mais abaixo, indica a distância disponível para saberes que tamanho de ecrã usar — usa o mesmo formato e standard escolhidos em cima.</p>
+        <p>O standard escolhido aqui é também usado pela aba Ecrã LED para calcular a distância de visualização.</p>
+      </div>
+    </details>
+    <div class="grid">
+      <div class="card">
+        <h2>Ecrã</h2>
+        <div class="field">
+          <label for="v-tvmodel">Modelo de TV (atalho, opcional)</label>
+          <select id="v-tvmodel" class="plain">
+            <option value="custom">Nenhum / preencher à mão</option>
+          </select>
+          <div class="hint">Escolhe um modelo do inventário da AVK para preencher o formato e a diagonal abaixo.</div>
+        </div>
+        <div class="field">
+          <label for="v-ratio">Formato (relação de aspeto)</label>
+          <select id="v-ratio" class="plain">
+            <option value="16:9" selected>16:9 — widescreen</option>
+            <option value="16:10">16:10</option>
+            <option value="4:3">4:3 — clássico</option>
+            <option value="21:9">21:9 — cinema</option>
+            <option value="custom">Personalizado — tenho a largura e altura em metros</option>
+          </select>
+        </div>
+        <div id="v-diagormode-wrap">
+          <div class="field">
+            <label>Como queres indicar o tamanho?</label>
+            <div class="seg" id="v-sizemode-seg">
+              <button type="button" class="seg-btn active" data-sizemode="diag">Diagonal (polegadas)</button>
+              <button type="button" class="seg-btn" data-sizemode="width">Largura (metros)</button>
+              <button type="button" class="seg-btn" data-sizemode="height">Altura (metros)</button>
+            </div>
+          </div>
+          <div class="field" id="v-diag-field">
+            <label for="v-diag">Diagonal do ecrã</label>
+            <div class="inputgroup">
+              <input id="v-diag" type="number" inputmode="decimal" value="120" min="1" step="1">
+              <span class="unit">polegadas</span>
+            </div>
+          </div>
+          <div class="field" id="v-width-field" style="display:none;">
+            <label for="v-width-fixed">Largura do ecrã</label>
+            <div class="inputgroup">
+              <input id="v-width-fixed" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01">
+              <span class="unit">m</span>
+            </div>
+          </div>
+          <div class="field" id="v-height-field" style="display:none;">
+            <label for="v-height-fixed">Altura do ecrã</label>
+            <div class="inputgroup">
+              <input id="v-height-fixed" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01">
+              <span class="unit">m</span>
+            </div>
+          </div>
+        </div>
+        <div class="row2" id="v-custom-ratio" style="display:none;">
+          <div class="field">
+            <label for="v-rw">Largura do ecrã</label>
+            <div class="inputgroup"><input id="v-rw" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01"><span class="unit">m</span></div>
+          </div>
+          <div class="field">
+            <label for="v-rh">Altura do ecrã</label>
+            <div class="inputgroup"><input id="v-rh" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Standard</div>
+        <div class="field">
+          <label for="v-standard">Regra de distância de visualização</label>
+          <select id="v-standard" class="plain">
+            <option value="width-thx" selected>Espetáculo / entretenimento — concertos, cinema (largura × 1,5–6)</option>
+            <option value="width-sweet">Zona ideal, mais compacta — salas pequenas, reuniões (largura × 1,5–2,5)</option>
+            <option value="avixa">Conteúdo com texto/dados para ler — apresentações, sinalética (AVIXA 4-6-8)</option>
+          </select>
+          <div class="hint">Escolhe consoante o tipo de evento e o que o público precisa de ver com nitidez — não precisas de saber os nomes dos standards.</div>
+        </div>
+        <div class="field" id="v-avixa-content-field" style="display:none;">
+          <label for="v-avixa-content">Quanto detalhe o público precisa de ler?</label>
+          <select id="v-avixa-content" class="plain">
+            <option value="detailed">Muito — dados/gráficos densos, decisão analítica (altura × 4)</option>
+            <option value="basic" selected>O normal — a maioria das apresentações (altura × 6)</option>
+            <option value="passive">Pouco/nenhum — vídeo, visão passiva (altura × 8)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card results" data-accent="visualizacao">
+        <div class="stripe"></div>
+        <h2>Distância de visualização ideal</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Mínima</div><div class="v" id="v-out-dmin">—</div></div>
+          <div class="item"><div class="k">Máxima</div><div class="v" id="v-out-dmax">—</div></div>
+        </div>
+        <p class="note" id="v-rule-note">—</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="v-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="v-sum">Copiar resumo</button>
+            </div>
+          </div>
+          <pre class="sumbox" id="v-sum"></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider" style="margin-top:26px;">ou calcular a partir da distância disponível</div>
+    <div class="grid">
+      <div class="card">
+        <h2>Distância da plateia</h2>
+        <div class="field">
+          <label for="v-avail">Distância entre a plateia e o ecrã</label>
+          <div class="inputgroup">
+            <input id="v-avail" type="number" inputmode="decimal" value="6" min="0.1" step="0.1">
+            <span class="unit">metros</span>
+          </div>
+          <div class="hint">Usa o standard escolhido acima e o mesmo formato de ecrã.</div>
+        </div>
+      </div>
+      <div class="card results" data-accent="visualizacao">
+        <div class="stripe"></div>
+        <h2>Tamanho de ecrã ideal</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Diagonal mín.</div><div class="v" id="v-out-diagmin">—</div></div>
+          <div class="item"><div class="k">Diagonal máx.</div><div class="v" id="v-out-diagmax">—</div></div>
+          <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="v-out-wrange">—</div></div>
+        </div>
+        <div id="v-viewwarn" class="warn" style="display:none;"></div>
+      </div>
+    </div>
   </section>
 
+  <!-- LED -->
   <section class="panel" data-mode="led">
-    <h2>Ecrã LED &amp; Pixel Pitch</h2>
-    <p>Módulo de LED ativo.</p>
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Escolhe o modelo de tile (ou personaliza, incluindo o brilho em nits — se souberes o valor mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã, em nº de tiles ou em metros. Para ecrãs com várias secções diferentes (ex: central + laterais + tiras espalhadas com gaps entre elas), usa a aba <strong>Ecrã Complexo</strong> em vez desta.</p>
+        <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar este ecrã para a aba Projeto.</p>
+        <p>Para modelos com meio-tile disponível (ex: 100×50 + 50×50), o modo "Medida do ecrã (m)" afina automaticamente a medida final com um meio-tile na borda quando isso bate mais certo que arredondar sempre para o tile inteiro.</p>
+      </div>
+    </details>
+    <div class="grid">
+      <div class="card">
+        <h2>Modelo de tile</h2>
+        <div class="field">
+          <label for="l-model">Modelo de referência</label>
+          <select id="l-model" class="plain">
+            <option value="custom">Personalizado…</option>
+          </select>
+          <div class="srclink-wrap" id="l-model-source"></div>
+          <div class="hint">Valores de fichas técnicas públicas — confirma sempre com o fabricante antes de produção. O modelo escolhido preenche tamanho, resolução, peso e amp abaixo (podes ajustar à mão).</div>
+        </div>
+
+        <div class="divider">Tamanho do ecrã</div>
+        <div class="field">
+          <label>Como queres indicar o tamanho?</label>
+          <div class="seg" id="l-sizemode-seg">
+            <button type="button" class="seg-btn active" data-sizemode="tiles">Nº de tiles</button>
+            <button type="button" class="seg-btn" data-sizemode="meters">Medida do ecrã (m)</button>
+          </div>
+        </div>
+        <div id="l-tiles-inputs">
+          <div class="row2">
+            <div class="field">
+              <label for="l-mx">Tiles na horizontal</label>
+              <div class="inputgroup"><input id="l-mx" type="number" value="16" min="1" step="1"></div>
+            </div>
+            <div class="field">
+              <label for="l-my">Tiles na vertical</label>
+              <div class="inputgroup"><input id="l-my" type="number" value="9" min="1" step="1"></div>
+            </div>
+          </div>
+        </div>
+        <div id="l-meters-inputs" style="display:none;">
+          <div class="row2">
+            <div class="field">
+              <label for="l-target-w">Largura desejada</label>
+              <div class="inputgroup"><input id="l-target-w" type="number" inputmode="decimal" value="8.0" min="0.1" step="0.1"><span class="unit">m</span></div>
+            </div>
+            <div class="field">
+              <label for="l-target-h">Altura desejada</label>
+              <div class="inputgroup"><input id="l-target-h" type="number" inputmode="decimal" value="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
+            </div>
+          </div>
+          <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida — o tamanho real fica no resultado. Para modelos com meio-tile disponível (ex: 100×50 + 50×50), a medida é afinada automaticamente com um meio-tile na borda quando isso bate mais certo.</div>
+        </div>
+
+        <div class="divider">Tamanho do tile</div>
+        <div class="row2">
+          <div class="field">
+            <label for="l-mw">Largura do módulo</label>
+            <div class="inputgroup"><input id="l-mw" type="number" inputmode="decimal" value="500" min="1" step="1"><span class="unit">mm</span></div>
+          </div>
+          <div class="field">
+            <label for="l-mh">Altura do módulo</label>
+            <div class="inputgroup"><input id="l-mh" type="number" inputmode="decimal" value="500" min="1" step="1"><span class="unit">mm</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Resolução do módulo</div>
+        <div class="row2">
+          <div class="field">
+            <label for="l-rx">Píxeis (horizontal)</label>
+            <div class="inputgroup"><input id="l-rx" type="number" value="128" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="l-ry">Píxeis (vertical)</label>
+            <div class="inputgroup"><input id="l-ry" type="number" value="128" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+        </div>
+        <div id="l-warn" class="warn" style="display:none;"></div>
+
+        <div class="divider">Peso &amp; energia por tile</div>
+        <div class="row2">
+          <div class="field">
+            <label for="l-weight">Peso por tile</label>
+            <div class="inputgroup"><input id="l-weight" type="number" inputmode="decimal" value="6.0" min="0" step="0.1"><span class="unit">kg</span></div>
+          </div>
+          <div class="field">
+            <label for="l-amp">Amp por tile</label>
+            <div class="inputgroup"><input id="l-amp" type="number" inputmode="decimal" value="0.52" min="0" step="0.01"><span class="unit">A</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Brilho</div>
+        <div class="field">
+          <label for="l-nits">Brilho do tile</label>
+          <div class="inputgroup"><input id="l-nits" type="number" inputmode="decimal" value="" min="0" step="50"><span class="unit">nits</span></div>
+          <div class="hint">Edita à mão se souberes o valor mas não o modelo — a lista de modelos acima filtra-se para os que correspondem.</div>
+        </div>
+      </div>
+
+      <div class="card results" data-accent="led">
+        <div class="stripe"></div>
+        <h2>Resolução total</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Largura</div><div class="v" id="l-out-px">—</div></div>
+          <div class="item"><div class="k">Altura</div><div class="v" id="l-out-py">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Ecrã físico</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Tamanho</div><div class="v" id="l-out-size">—</div></div>
+          <div class="item"><div class="k">Área</div><div class="v" id="l-out-area">—</div></div>
+          <div class="item"><div class="k">Pixel pitch</div><div class="v" id="l-out-pitch">—</div></div>
+          <div class="item"><div class="k">Formato</div><div class="v" id="l-out-ratio">—</div></div>
+          <div class="item wide"><div class="k">Brilho</div><div class="v" id="l-out-nits">—</div></div>
+        </div>
+        <p class="note" id="l-halftile-note" style="display:none;"></p>
+        <h2 style="margin-top:18px;">Distância de visualização</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Mínima</div><div class="v" id="l-out-dmin">—</div></div>
+          <div class="item"><div class="k">Máxima</div><div class="v" id="l-out-dmax">—</div></div>
+        </div>
+        <p class="note" id="l-viewrule-note">—</p>
+        <p class="note">Standard usado: define-se na aba <button type="button" data-jumptab="visualizacao" style="font:inherit; font-weight:600; color:var(--cyan-600); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">Distância de Visualização</button>.</p>
+
+        <h2 style="margin-top:18px;">Peso &amp; energia</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Nº de tiles</div><div class="v" id="l-out-tiles">—</div></div>
+          <div class="item"><div class="k">Peso total</div><div class="v" id="l-out-weight">—</div></div>
+          <div class="item"><div class="k">Amp total</div><div class="v" id="l-out-amp">—</div></div>
+          <div class="item"><div class="k">Amp por fase</div><div class="v" id="l-out-ampphase">—</div></div>
+        </div>
+        <p class="note">Trifásica: amp por fase = (amp por tile × nº de tiles) ÷ 3.</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="l-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="l-sum">Copiar resumo</button>
+            </div>
+          </div>
+          <pre class="sumbox" id="l-sum"></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider" style="margin-top:26px;">sugestão de grelha para formato standard</div>
+    <div class="grid">
+      <div class="card">
+        <h2>Formato alvo</h2>
+        <div class="field">
+          <label for="l-suggest-ratio">Formato (relação de aspeto)</label>
+          <select id="l-suggest-ratio" class="plain">
+            <option value="16:9" selected>16:9 — widescreen</option>
+            <option value="16:10">16:10</option>
+            <option value="4:3">4:3 — clássico</option>
+            <option value="21:9">21:9 — cinema</option>
+            <option value="1:1">1:1 — quadrado</option>
+            <option value="custom">Personalizado</option>
+          </select>
+        </div>
+        <div class="row2" id="l-suggest-custom-ratio" style="display:none;">
+          <div class="field">
+            <label for="l-suggest-rw">Rácio — largura</label>
+            <div class="inputgroup"><input id="l-suggest-rw" type="number" inputmode="decimal" value="16" min="0.1" step="0.1"></div>
+          </div>
+          <div class="field">
+            <label for="l-suggest-rh">Rácio — altura</label>
+            <div class="inputgroup"><input id="l-suggest-rh" type="number" inputmode="decimal" value="9" min="0.1" step="0.1"></div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="l-suggest-diag">Diagonal aproximada</label>
+            <div class="inputgroup"><input id="l-suggest-diag" type="number" inputmode="decimal" value="180" min="1" step="1"><span class="unit">polegadas</span></div>
+          </div>
+          <div class="field">
+            <label for="l-suggest-diag-m">Diagonal aproximada</label>
+            <div class="inputgroup"><input id="l-suggest-diag-m" type="number" inputmode="decimal" value="4.57" min="0.01" step="0.01"><span class="unit">metros</span></div>
+          </div>
+        </div>
+        <div class="hint">Usa o tamanho de módulo (largura/altura definidas acima em "Tamanho do tile") para sugerir a grelha de tiles mais próxima deste formato. Os dois campos ajustam-se automaticamente um ao outro.</div>
+      </div>
+      <div class="card results" data-accent="led">
+        <div class="stripe"></div>
+        <h2>Grelhas sugeridas</h2>
+        <div class="lensmatch-list" id="l-suggest-list">—</div>
+      </div>
+    </div>
+
   </section>
 
-  <section class="panel" data-mode="blend">
-    <h2>Blending Multi-Projetor</h2>
-    <p>Módulo de blending ativo.</p>
-  </section>
-
+  <!-- ECRÃ COMPLEXO (múltiplas zonas) -->
   <section class="panel" data-mode="zonas">
-    <h2>Ecrã Complexo</h2>
-    <p>Módulo de zonas complexas ativo.</p>
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição.</p>
+        <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama abaixo à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão. O desenho mostra só o nome de cada zona; o tamanho e o ponto de início/fim em metros ficam na coluna de detalhes ao lado. A lista de cards ordena-se sozinha pela posição (mais à esquerda primeiro) para ser mais fácil encontrar o card certo. Clicar numa zona no desenho ou na coluna de detalhes salta logo para o card dela na lista.</p>
+        <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas. Se depois precisares de mudar o modelo/tamanho dessas cópias, edita só a zona original e usa <strong>"Atualizar réplicas"</strong> — aplica a alteração às outras com o mesmo nome-base sem criar novas nem mexer nas posições de cada uma.</p>
+        <p>Para abrir espaço a uma zona nova (ex: adicionar um ecrã à esquerda de tudo o resto): marca a caixa <strong>"Sel."</strong> nas zonas que já lá estão (ou usa "Selecionar todas"), indica quanto deslocar em X/Y no bloco acima da lista e carrega em <strong>"Mover selecionadas"</strong> — soma esse deslocamento à posição de todas as marcadas de uma vez, sem teres de editar zona a zona.</p>
+        <p>Zonas com o mesmo nome-base (ex: "Lateral", "Lateral 2", "Lateral 3") ficam marcadas automaticamente com a mesma cor no diagrama, no mapa de píxeis exportado e num pontinho junto ao nome de cada zona — só para ajudar a distinguir grupos à vista, não afeta os cálculos.</p>
+        <p>Desmarca a caixa <strong>"Vis."</strong> numa zona para a esconder — sai do diagrama, dos totais e do mapa de píxeis exportado, mas fica guardada (não é apagada). Útil para testar cenários sem uma zona ou para preparar uma zona que ainda não está confirmada.</p>
+        <p>As zonas ficam guardadas automaticamente neste aparelho (mesmo que atualizes a página ou feches a app) — não precisas de gravar nada à parte.</p>
+        <p>Em ecrãs largos (computador), o diagrama fica num card à parte no topo, com a largura toda. O botão <strong>"+ Adicionar zona"</strong> fica sempre visível fixo no canto — não é preciso descer até ao fim da página com muitas zonas já criadas. Os números (total de tiles, píxeis, peso, etc.) ficam num card próprio ao lado da lista. Para o diagrama ficar mesmo fixo ao scrollar a lista, usa a <a href="ecra-complexo.html" target="_blank" rel="noopener">versão avançada</a>. Em telemóvel/tablet mantém-se a barra fixa condensada em baixo.</p>
+        <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar o total das zonas para a aba Projeto (equivale a ativar lá "Usar total das zonas").</p>
+        <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
+      </div>
+    </details>
+    <button type="button" id="lz-preview-bar">
+      <span id="lz-preview-bar-text">—</span>
+      <span class="lz-preview-bar-cta">ver resultado ▾</span>
+    </button>
+    <div class="divider">ecrã complexo — múltiplas zonas</div>
+    <p style="margin:-6px 0 14px;"><a href="ecra-complexo.html" class="srclink" target="_blank" rel="noopener">↗ Abrir versão avançada (página à parte, mesmas zonas)</a></p>
+
+    <div class="card results" data-accent="zonas" style="display:none;" id="lz-diagram-card">
+      <div class="stripe"></div>
+      <h2>Diagrama do conjunto</h2>
+      <div id="lz-diagram-wrap" style="display:none;">
+        <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+          <svg id="lz-diagram" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; flex:1 1 420px; min-width:280px; max-height:min(300px, 34vh); min-height:180px;"></svg>
+          <div id="lz-diagram-details" style="flex:0 0 220px; max-width:100%; max-height:min(300px, 34vh); overflow-y:auto; display:flex; flex-direction:column; gap:2px;"></div>
+        </div>
+        <div id="lz-diagram-legend" style="display:flex; gap:16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-faint); flex-wrap:wrap;"></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+          <button type="button" class="copy" id="lz-export-map">Exportar mapa de píxeis (PNG)</button>
+          <button type="button" class="copy" id="lz-export-mask">Exportar máscara (PNG)</button>
+        </div>
+        <p class="hint" style="margin-top:8px;">Canvas único em píxeis para importar num media server. Se as zonas tiverem pitches diferentes, a posição/tamanho no canvas é aproximada — usa como referência o pitch da zona com maior área (fica indicado no ficheiro). O "mapa" tem legendas com os valores; a "máscara" é só preto/branco (uma zona = branco), para usar como matte de conteúdo.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <button type="button" class="copy" id="lz-add-top">+ Adicionar zona</button>
+        <div class="lz-bulk-toolbar">
+          <span class="lz-bulk-label">Deslocar X (m)</span>
+          <div class="inputgroup lz-bulk-input"><input id="lz-bulk-dx" type="number" inputmode="decimal" value="0" step="0.01"></div>
+          <span class="lz-bulk-label">Y (m)</span>
+          <div class="inputgroup lz-bulk-input"><input id="lz-bulk-dy" type="number" inputmode="decimal" value="0" step="0.01"></div>
+          <button type="button" class="copy" id="lz-bulk-move" title="Soma o deslocamento X/Y às zonas com a caixa 'Sel.' marcada — útil para abrir espaço para uma zona nova">Mover</button>
+          <button type="button" class="copy" id="lz-select-all" title="Selecionar todas">Todas</button>
+          <button type="button" class="copy" id="lz-select-none" title="Limpar seleção">Limpar</button>
+          <span class="hint" id="lz-bulk-count">0 selecionadas</span>
+        </div>
+        <div id="lz-list"></div>
+        <button type="button" class="copy" id="lz-add">+ Adicionar zona</button>
+      </div>
+
+      <div class="card results" data-accent="zonas" style="display:none;" id="lz-totals-card">
+        <div class="stripe"></div>
+        <h2>Total combinado</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Nº de tiles</div><div class="v" id="lz-out-tiles">—</div></div>
+          <div class="item"><div class="k">Total de píxeis</div><div class="v" id="lz-out-pixels">—</div></div>
+          <div class="item"><div class="k">Área total (tiles)</div><div class="v" id="lz-out-area">—</div></div>
+          <div class="item"><div class="k">Peso total</div><div class="v" id="lz-out-weight">—</div></div>
+          <div class="item"><div class="k">Amp total</div><div class="v" id="lz-out-amp">—</div></div>
+          <div class="item wide"><div class="k">Dimensão do conjunto (com gaps)</div><div class="v" id="lz-out-bbox">—</div></div>
+          <div class="item wide"><div class="k">Resolução final do canvas (com gaps)</div><div class="v" id="lz-out-canvasres">—</div></div>
+        </div>
+        <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá) — é a soma dos píxeis nativos de cada zona, não o canvas final. A área total também aparece lá — referência interna, não sai no material para o cliente. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas. A "resolução final do canvas" é esse mesmo retângulo convertido em píxeis (usando o pitch da zona maior como referência) — é o tamanho real a configurar no media server, incluindo o espaço dos gaps.</p>
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo por zona</span>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="z-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="lz-sum">Copiar resumo</button>
+            </div>
+          </div>
+          <pre class="sumbox" id="lz-sum"></pre>
+        </div>
+      </div>
+    </div>
   </section>
 
+  <!-- BLENDING -->
+  <section class="panel" data-mode="blend">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Serve para juntar vários projetores num ecrã maior do que um único projetor consegue cobrir. Escolhe <strong>"Calcular a partir do ecrã"</strong> para a app decidir o nº de projetores e o overlap sozinha a partir do tamanho desejado, ou <strong>"Eu defino nº e overlap"</strong> para controlares tu mesmo. Tal como em Distância de Projeção, personalizar os lumens filtra a lista de projetores para os que correspondem.</p>
+        <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar esta configuração para a aba Projeto.</p>
+      </div>
+    </details>
+    <div class="grid">
+      <div class="card">
+        <h2>Projetores</h2>
+        <div class="field">
+          <label>Como queres definir os projetores?</label>
+          <div class="seg" id="b-mode-seg">
+            <button type="button" class="seg-btn active" data-blendmode="manual">Eu defino nº e overlap</button>
+            <button type="button" class="seg-btn" data-blendmode="auto">Calcular a partir do ecrã</button>
+          </div>
+        </div>
+        <div class="field" id="b-projratio-field" style="display:none;">
+          <label for="b-projratio">Formato (ratio) do projetor</label>
+          <select id="b-projratio" class="plain">
+            <option value="1.77778" selected>16:9</option>
+            <option value="1.6">16:10</option>
+          </select>
+          <div class="hint">Até 9 m de altura usa 1 projetor na vertical; acima disso, 2. A largura de cada projetor sai da altura de cada fiada × este formato.</div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="b-nh">Nº de projetores (horizontal)</label>
+            <div class="inputgroup"><input id="b-nh" type="number" value="2" min="1" step="1"></div>
+          </div>
+          <div class="field">
+            <label for="b-nv">Nº de projetores (vertical)</label>
+            <div class="inputgroup"><input id="b-nv" type="number" value="1" min="1" step="1"></div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="b-hpx">Resolução nativa — horizontal</label>
+            <div class="inputgroup"><input id="b-hpx" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="b-vpx">Resolução nativa — vertical</label>
+            <div class="inputgroup"><input id="b-vpx" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Sobreposição (overlap)</div>
+        <div class="row2">
+          <div class="field">
+            <label for="b-oh">Overlap por junção — horizontal</label>
+            <div class="inputgroup"><input id="b-oh" type="number" value="600" min="0" step="10"><span class="unit">px</span></div>
+            <div class="hint" id="b-oh-hint" style="display:none;">Calculado automaticamente. Edita para forçar um valor — o nº de projetores horizontal recalcula-se a partir daí.</div>
+          </div>
+          <div class="field">
+            <label for="b-ov">Overlap por junção — vertical</label>
+            <div class="inputgroup"><input id="b-ov" type="number" value="0" min="0" step="10"><span class="unit">px</span></div>
+          </div>
+        </div>
+
+        <div class="divider">Ecrã físico desejado</div>
+        <div class="row2">
+          <div class="field">
+            <label for="b-w">Largura</label>
+            <div class="inputgroup"><input id="b-w" type="number" inputmode="decimal" value="12.9" min="0.1" step="0.1"><span class="unit">m</span></div>
+          </div>
+          <div class="field">
+            <label for="b-h">Altura</label>
+            <div class="inputgroup"><input id="b-h" type="number" inputmode="decimal" value="4.3" min="0.1" step="0.1"><span class="unit">m</span></div>
+          </div>
+        </div>
+        <div id="b-warn" class="warn" style="display:none;"></div>
+
+        <div class="divider">Luminosidade</div>
+        <div class="field">
+          <label for="b-projmodel">Modelo de projetor</label>
+          <select id="b-projmodel" class="plain">
+            <option value="custom">Personalizado…</option>
+          </select>
+          <div class="srclink-wrap" id="b-projmodel-source"></div>
+        </div>
+        <div class="field">
+          <label for="b-lumens">Luminosidade por projetor (100%)</label>
+          <div class="inputgroup"><input id="b-lumens" type="number" inputmode="decimal" value="20000" min="0" step="100"><span class="unit">lumens</span></div>
+          <div class="hint">O mesmo valor para todos os projetores do blend.</div>
+        </div>
+      </div>
+
+      <div class="card results" data-accent="blend">
+        <div class="stripe"></div>
+        <h2>Tela combinada (canvas)</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Resolução total</div><div class="v" id="b-out-res">—</div></div>
+          <div class="item"><div class="k">Overlap total</div><div class="v" id="b-out-overlap">—</div></div>
+          <div class="item"><div class="k">Overlap % do total</div><div class="v" id="b-out-pcttotal">—</div></div>
+          <div class="item"><div class="k">Overlap % por projetor</div><div class="v" id="b-out-pctproj">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Ecrã físico</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Área</div><div class="v" id="b-out-area">—</div></div>
+          <div class="item"><div class="k">Formato</div><div class="v" id="b-out-ratio">—</div></div>
+          <div class="item wide"><div class="k">Pixel size (densidade)</div><div class="v" id="b-out-pitch">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Luminosidade combinada</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Total de projetores</div><div class="v" id="b-out-nproj">—</div></div>
+          <div class="item"><div class="k">Útil (80%)</div><div class="v" id="b-out-lumens80">—</div></div>
+          <div class="item wide"><div class="k">Lux no ecrã (somatório)</div><div class="v" id="b-out-lux">—</div></div>
+        </div>
+        <p class="note">Trabalha sempre a 80% da luminosidade nominal (um projetor mais gasto obriga os outros a acompanhar) — lux = (lumens × 0,8 × nº total de projetores) ÷ área do ecrã. Assume blending uniforme entre projetores.</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="b-addproject">Adicionar ao projeto</label>
+              <button class="copy" data-target="b-sum">Copiar resumo</button>
+            </div>
+          </div>
+          <pre class="sumbox" id="b-sum"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LENTES -->
   <section class="panel" data-mode="lentes">
-    <h2>Lentes</h2>
-    <p>Módulo de lentes ativo.</p>
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Indica a distância até ao ecrã e a largura desejada para veres o throw ratio necessário — as lentes destacadas na tabela em baixo cobrem esse ratio. Se já souberes a lente, escolhe-a para veres a que distância ela cobre essa largura.</p>
+        <p>Separador informativo — mostra o que existe no mercado em geral, não apenas o que a empresa tem. Para as lentes compatíveis com equipamento próprio, usa o separador <strong>Distância de Projeção</strong> ou <strong>Projeto</strong>.</p>
+      </div>
+    </details>
+    <div class="grid">
+      <div class="card">
+        <h2>Necessidade</h2>
+        <div class="field">
+          <label for="ln-dist">Distância até ao ecrã</label>
+          <div class="inputgroup"><input id="ln-dist" type="number" inputmode="decimal" value="10" min="0.1" step="0.1"><span class="unit">m</span></div>
+        </div>
+        <div class="field">
+          <label for="ln-w">Largura do ecrã</label>
+          <div class="inputgroup"><input id="ln-w" type="number" inputmode="decimal" value="4" min="0.1" step="0.1"><span class="unit">m</span></div>
+        </div>
+        <div class="field">
+          <label for="ln-brand">Marca do projetor</label>
+          <select id="ln-brand" class="plain">
+            <option value="" selected>Todas as marcas</option>
+          </select>
+          <div class="hint">Escolhe a marca para veres só as lentes compatíveis com esse projetor.</div>
+        </div>
+        <div class="field">
+          <label for="ln-lensmodel">Lente</label>
+          <select id="ln-lensmodel" class="plain">
+            <option value="custom" selected>Nenhuma — só calcular o ratio necessário</option>
+          </select>
+          <div class="hint">Escolhe uma lente pela referência para veres a que distância ela cobre a largura de ecrã indicada acima.</div>
+        </div>
+      </div>
+      <div class="card results" data-accent="lentes">
+        <div class="stripe"></div>
+        <h2>Throw ratio necessário</h2>
+        <div class="readout">
+          <div class="item wide"><div class="k">Ratio</div><div class="v" id="ln-out-ratio">—</div></div>
+        </div>
+        <p class="note">As lentes destacadas a azul na tabela cobrem este ratio.</p>
+        <div id="ln-out-lensdist-wrap" style="display:none;">
+          <h2 style="margin-top:18px;">Distância coberta com a lente escolhida</h2>
+          <div class="readout">
+            <div class="item wide"><div class="k">Para esta largura de ecrã</div><div class="v" id="ln-out-lensdist">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider" style="margin-top:26px;">Base de lentes do mercado</div>
+    <div class="card lenstable-wrap">
+      <table class="lenstable" id="lens-table">
+        <thead>
+          <tr><th>Marca</th><th>Modelo</th><th>Throw ratio</th><th></th><th>Fonte</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </section>
 
+  <!-- PROJETO -->
   <section class="panel" data-mode="projeto">
-    <h2>Projeto</h2>
-    <p>Módulo de projeto ativo.</p>
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Junta tudo numa ficha técnica única para um evento. Podes preencher os campos aqui à mão, ou marcar <strong>"Adicionar ao projeto"</strong> nas calculadoras de Distância de Projeção, Ecrã LED ou Blending para os campos correspondentes virem preenchidos sozinhos — marcar uma dessas três desliga automaticamente as outras, porque um projeto só tem um tipo de ecrã de cada vez.</p>
+        <p>No fim, usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir depois com <strong>"Abrir projeto…"</strong>.</p>
+      </div>
+    </details>
+    <div class="card results" data-accent="projeto" style="margin-bottom:16px;">
+      <div class="stripe"></div>
+      <h2>Itens do projeto</h2>
+      <div class="hint">Marca "Adicionar ao projeto" no resumo de Distância de Projeção, Ecrã LED ou Blending para preencher automaticamente os campos correspondentes abaixo — não precisas de copiar nada à mão, e o relatório do projeto não repete o que essa calculadora já mostra. Só a Distância de Visualização (sem campos próprios aqui) fica registada nesta checklist.</div>
+      <div id="proj-items-list" style="margin-top:12px;"></div>
+      <div class="summary" id="proj-items-summary-wrap" style="display:none;">
+        <div class="summary-head">
+          <span class="k">Checklist do projeto</span>
+          <button class="copy" data-target="proj-items-sum">Copiar checklist</button>
+        </div>
+        <pre class="sumbox" id="proj-items-sum"></pre>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Tipo de projeto</h2>
+        <div class="field">
+          <div class="seg" id="proj-type-seg">
+            <button type="button" class="seg-btn active" data-projtype="led">Ecrã LED</button>
+            <button type="button" class="seg-btn" data-projtype="projecao">Projeção</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="proj-nome">Nome do projeto</label>
+          <div class="inputgroup"><input id="proj-nome" type="text" placeholder="ex: Evento X — Sala Principal"></div>
+        </div>
+        <div class="row2 dates-row">
+          <div class="field">
+            <label for="proj-data-inicio">Data de início</label>
+            <div class="inputgroup"><input id="proj-data-inicio" type="date"></div>
+          </div>
+          <div class="field">
+            <label for="proj-data-fim">Data de fim</label>
+            <div class="inputgroup"><input id="proj-data-fim" type="date"></div>
+          </div>
+        </div>
+        <div class="hint">Opcional — fica registada no relatório. Útil já agora para referência; mais tarde vai servir para cruzar disponibilidade de equipamento entre projetos.</div>
+
+        <div id="proj-led-fields">
+          <div class="divider">Ecrã LED</div>
+          <div class="field">
+            <label class="addproject"><input type="checkbox" id="proj-led-usezones">Usar total das zonas (aba Ecrã Complexo)</label>
+            <div class="hint" id="proj-led-zones-hint" style="display:none;"></div>
+          </div>
+          <div id="proj-led-single-fields">
+            <div class="field">
+              <label for="proj-led-model">Modelo de tile</label>
+              <select id="proj-led-model" class="plain">
+                <option value="custom">Personalizado…</option>
+              </select>
+              <div class="srclink-wrap" id="proj-led-model-source"></div>
+            </div>
+            <div class="field">
+              <label>Como queres indicar o tamanho?</label>
+              <div class="seg" id="proj-led-sizemode-seg">
+                <button type="button" class="seg-btn active" data-sizemode="tiles">Nº de tiles</button>
+                <button type="button" class="seg-btn" data-sizemode="meters">Medida do ecrã (m)</button>
+              </div>
+            </div>
+            <div id="proj-led-tiles-inputs" style="display:none;">
+              <div class="row2">
+                <div class="field">
+                  <label for="proj-led-mx">Tiles na horizontal</label>
+                  <div class="inputgroup"><input id="proj-led-mx" type="number" value="16" min="1" step="1"></div>
+                </div>
+                <div class="field">
+                  <label for="proj-led-my">Tiles na vertical</label>
+                  <div class="inputgroup"><input id="proj-led-my" type="number" value="9" min="1" step="1"></div>
+                </div>
+              </div>
+            </div>
+            <div id="proj-led-meters-inputs">
+              <div class="row2">
+                <div class="field">
+                  <label for="proj-led-w">Largura desejada</label>
+                  <div class="inputgroup"><input id="proj-led-w" type="number" inputmode="decimal" value="8.0" min="0.1" step="0.1"><span class="unit">m</span></div>
+                </div>
+                <div class="field">
+                  <label for="proj-led-h">Altura desejada</label>
+                  <div class="inputgroup"><input id="proj-led-h" type="number" inputmode="decimal" value="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
+                </div>
+              </div>
+              <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="proj-projecao-fields" style="display:none;">
+          <div class="divider">Ecrã &amp; projetor</div>
+          <div class="field">
+            <label for="proj-proj-model">Modelo de projetor</label>
+            <select id="proj-proj-model" class="plain">
+              <option value="custom">Personalizado…</option>
+            </select>
+            <div class="srclink-wrap" id="proj-proj-model-source"></div>
+          </div>
+          <div class="field" id="proj-proj-resmode-field" style="display:none;">
+            <label>Resolução a usar nos cálculos</label>
+            <div class="seg" id="proj-proj-resmode-seg">
+              <button type="button" class="seg-btn active" data-resmode="enhanced">Declarada (pixel-shift)</button>
+              <button type="button" class="seg-btn" data-resmode="native">Nativa (painel/chip)</button>
+            </div>
+            <div class="hint">Este modelo atinge a resolução declarada por pixel-shift — o painel/chip nativo é mais baixo. Escolhe qual usar.</div>
+          </div>
+          <div class="field">
+            <label>Projetor único ou blend?</label>
+            <div class="seg" id="proj-blendmode-seg">
+              <button type="button" class="seg-btn active" data-blendmode="single">Projetor único</button>
+              <button type="button" class="seg-btn" data-blendmode="blend">Blend (vários projetores)</button>
+            </div>
+          </div>
+          <div class="field" id="proj-blend-projratio-field" style="display:none;">
+            <label for="proj-blend-res">Resolução de cada projetor</label>
+            <select id="proj-blend-res" class="plain">
+              <option value="1920x1080" selected>HD (1920×1080)</option>
+              <option value="3840x2160">UHD/4K (3840×2160)</option>
+              <option value="1920x1200">WUXGA (1920×1200)</option>
+              <option value="custom">Personalizado…</option>
+            </select>
+            <div class="hint">Até 9 m de altura usa 1 projetor na vertical; acima disso, 2 (mesma regra do separador Blending). O formato desta resolução define a largura de cada projetor.</div>
+          </div>
+          <div class="row2" id="proj-blend-custom-res" style="display:none;">
+            <div class="field">
+              <label for="proj-blend-w">Largura</label>
+              <div class="inputgroup"><input id="proj-blend-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+            </div>
+            <div class="field">
+              <label for="proj-blend-h">Altura</label>
+              <div class="inputgroup"><input id="proj-blend-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+            </div>
+          </div>
+          <div class="field" id="proj-ratio-field">
+            <label for="proj-proj-ratio">Formato (relação de aspeto)</label>
+            <select id="proj-proj-ratio" class="plain">
+              <option value="16:9" selected>16:9</option>
+              <option value="16:10">16:10</option>
+              <option value="4:3">4:3</option>
+              <option value="21:9">21:9</option>
+            </select>
+          </div>
+          <div class="field" id="proj-sizemode-seg-field">
+            <label>Como queres indicar o tamanho?</label>
+            <div class="seg" id="proj-sizemode-seg">
+              <button type="button" class="seg-btn active" data-sizemode="diag">Diagonal (polegadas)</button>
+              <button type="button" class="seg-btn" data-sizemode="height">Medidas (metros)</button>
+            </div>
+          </div>
+          <div class="hint" id="proj-blend-sizemode-hint" style="display:none;">Em blend, o tamanho é sempre em metros (largura x altura livres) — igual ao separador Blending. Um ecrã no mesmo formato do projetor cabe sempre num só projetor, seja qual for o tamanho.</div>
+          <div class="field" id="proj-diag-field">
+            <label for="proj-proj-diag">Diagonal do ecrã</label>
+            <div class="inputgroup"><input id="proj-proj-diag" type="number" inputmode="decimal" value="120" min="1" step="1"><span class="unit">"</span></div>
+          </div>
+          <div class="row2" id="proj-meters-field" style="display:none;">
+            <div class="field">
+              <label for="proj-proj-w">Largura do ecrã</label>
+              <div class="inputgroup"><input id="proj-proj-w" type="number" inputmode="decimal" value="2.66" min="0.1" step="0.01"><span class="unit">m</span></div>
+            </div>
+            <div class="field">
+              <label for="proj-proj-h">Altura do ecrã</label>
+              <div class="inputgroup"><input id="proj-proj-h" type="number" inputmode="decimal" value="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
+            </div>
+          </div>
+          <div class="field" id="proj-throwmode-dist-inputs">
+            <label for="proj-proj-dist">Distância de projeção disponível (lente ao ecrã)</label>
+            <div class="inputgroup"><input id="proj-proj-dist" type="number" inputmode="decimal" value="4.0" min="0.1" step="0.01"><span class="unit">m</span></div>
+            <div class="hint">Medida a partir da lente do projetor.</div>
+          </div>
+          <div class="divider" id="proj-throwmode-ratio-divider">Já sabes a lente? (opcional)</div>
+          <div id="proj-throwmode-ratio-inputs">
+            <div class="field">
+              <label for="proj-proj-lensmodel">Lente</label>
+              <select id="proj-proj-lensmodel" class="plain">
+                <option value="custom">Nenhuma / não sei ainda</option>
+              </select>
+              <div class="hint">Escolhe a lente pela referência — preenche o throw ratio automaticamente e fica identificada no relatório.</div>
+            </div>
+            <div class="row2" id="proj-lens-ratio-detail" style="display:none;">
+              <div class="field">
+                <label for="proj-proj-tmin">Throw ratio mínimo</label>
+                <div class="inputgroup"><input id="proj-proj-tmin" type="number" inputmode="decimal" value="1.39" min="0.1" step="0.01"></div>
+                <div class="hint">Da ficha técnica da lente</div>
+              </div>
+              <div class="field">
+                <label for="proj-proj-tmax">Throw ratio máximo</label>
+                <div class="inputgroup"><input id="proj-proj-tmax" type="number" inputmode="decimal" value="1.87" min="0.1" step="0.01"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider">Processamento</div>
+        <div class="field">
+          <label for="proj-dsm-tvmodel">Modelo de TV para os DSM (opcional)</label>
+          <select id="proj-dsm-tvmodel" class="plain">
+            <option value="custom">Nenhum / não sei ainda</option>
+          </select>
+          <div class="hint">Inventário da AVK — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.</div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="proj-dsm-count">Ecrãs DSM (monitores de palco)</label>
+            <div class="inputgroup"><input id="proj-dsm-count" type="number" value="0" min="0" step="1"></div>
+          </div>
+          <div class="field">
+            <label for="proj-dsm-res">Resolução de cada DSM</label>
+            <select id="proj-dsm-res" class="plain">
+              <option value="1920x1080" selected>HD (1920×1080)</option>
+              <option value="3840x2160">UHD/4K (3840×2160)</option>
+              <option value="custom">Personalizado…</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2" id="proj-dsm-custom-res" style="display:none;">
+          <div class="field">
+            <label for="proj-dsm-w">Largura</label>
+            <div class="inputgroup"><input id="proj-dsm-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="proj-dsm-h">Altura</label>
+            <div class="inputgroup"><input id="proj-dsm-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="proj-delay-tvmodel">Modelo de TV para os delay (opcional)</label>
+          <select id="proj-delay-tvmodel" class="plain">
+            <option value="custom">Nenhum / não sei ainda</option>
+          </select>
+          <div class="hint">Inventário da AVK — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.</div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="proj-delay-count">Ecrãs delay (repetidores para salas/espaços maiores)</label>
+            <div class="inputgroup"><input id="proj-delay-count" type="number" value="0" min="0" step="1"></div>
+          </div>
+          <div class="field">
+            <label for="proj-delay-res">Resolução de cada delay</label>
+            <select id="proj-delay-res" class="plain">
+              <option value="1920x1080" selected>HD (1920×1080)</option>
+              <option value="3840x2160">UHD/4K (3840×2160)</option>
+              <option value="custom">Personalizado…</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2" id="proj-delay-custom-res" style="display:none;">
+          <div class="field">
+            <label for="proj-delay-w">Largura</label>
+            <div class="inputgroup"><input id="proj-delay-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="proj-delay-h">Altura</label>
+            <div class="inputgroup"><input id="proj-delay-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="proj-refresh">Refresh rate</label>
+            <div class="inputgroup"><input id="proj-refresh" type="number" value="60" min="1" step="1"><span class="unit">Hz</span></div>
+          </div>
+          <div class="field">
+            <label for="proj-colordepth">Profundidade de cor</label>
+            <select id="proj-colordepth" class="plain">
+              <option value="8" selected>8-bit</option>
+              <option value="10">10-bit</option>
+              <option value="12">12-bit</option>
+            </select>
+          </div>
+        </div>
+        <div class="hint">DSM e delay somam ao total de píxeis para escolher o switcher de show. Só o ecrã LED entra na conta dos processadores de LED.</div>
+      </div>
+
+      <div class="card results" data-accent="projeto">
+        <div class="stripe"></div>
+        <h2>Relatório do projeto</h2>
+
+        <div id="proj-report-led">
+          <div class="readout">
+            <div class="item"><div class="k">Nº de tiles</div><div class="v" id="proj-out-tiles">—</div></div>
+            <div class="item"><div class="k">Resolução total</div><div class="v" id="proj-out-res">—</div></div>
+            <div class="item"><div class="k">Tamanho real</div><div class="v" id="proj-out-size">—</div></div>
+            <div class="item"><div class="k">Pixel pitch</div><div class="v" id="proj-out-pitch">—</div></div>
+            <div class="item"><div class="k">Peso total</div><div class="v" id="proj-out-weight">—</div></div>
+            <div class="item"><div class="k">Amp total (por fase)</div><div class="v" id="proj-out-amp">—</div></div>
+            <div class="item wide"><div class="k">Área total (uso interno)</div><div class="v" id="proj-out-area">—</div></div>
+            <div class="item wide" id="proj-out-boxes-wrap" style="display:none;"><div class="k">Nº de caixas</div><div class="v" id="proj-out-boxes">—</div></div>
+          </div>
+          <div class="field" id="proj-zones-breakdown-wrap" style="display:none; margin-top:12px;">
+            <label>Zonas incluídas — que ecrã é o quê</label>
+            <div class="lensmatch-list" id="proj-zones-breakdown">—</div>
+          </div>
+        </div>
+
+        <div id="proj-report-projecao" style="display:none;">
+          <div class="readout">
+            <div class="item"><div class="k">Tamanho do ecrã</div><div class="v" id="proj-out-screensize">—</div></div>
+            <div class="item"><div class="k" id="proj-out-projres-label">Resolução do projetor</div><div class="v" id="proj-out-projres">—</div></div>
+            <div class="item" id="proj-out-nproj-wrap" style="display:none;"><div class="k">Nº de projetores (H x V)</div><div class="v" id="proj-out-nproj">—</div></div>
+            <div class="item" id="proj-out-overlap-wrap" style="display:none;"><div class="k">Overlap por junção</div><div class="v" id="proj-out-overlap">—</div></div>
+            <div class="item wide" id="proj-out-totalpx-wrap" style="display:none;"><div class="k">Total de píxeis no ecrã</div><div class="v" id="proj-out-totalpx">—</div></div>
+            <div class="item"><div class="k">Throw ratio necessário</div><div class="v" id="proj-out-ratio">—</div></div>
+            <div class="item" id="proj-out-lensdist-wrap"><div class="k">Distância de projeção (com a lente indicada)</div><div class="v" id="proj-out-lensdist">—</div></div>
+            <div class="item"><div class="k">Luminosidade útil</div><div class="v" id="proj-out-lumens">—</div></div>
+            <div class="item"><div class="k">Lux no ecrã</div><div class="v" id="proj-out-lux">—</div></div>
+          </div>
+          <div class="field" style="margin-top:12px;">
+            <label>Lentes compatíveis do fabricante do projetor</label>
+            <div class="lensmatch-list" id="proj-lensmatch-list">—</div>
+          </div>
+        </div>
+
+        <h2 style="margin-top:18px;">Processamento</h2>
+        <div class="readout">
+          <div class="item" id="proj-out-pxled-wrap"><div class="k" id="proj-out-pxled-label">Ecrã LED</div><div class="v" id="proj-out-pxled">—</div></div>
+          <div class="item wide"><div class="k">Pixel usage total (ecrã + DSM + delay)</div><div class="v" id="proj-out-pxtotal">—</div></div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Opções de switcher de show (cobrem o total)</label>
+          <div class="hint">Marca a(s) opção(ões) escolhida(s) para o relatório sair limpo — sem marcar nenhuma, entram todas as compatíveis.</div>
+          <div class="lensmatch-list" id="proj-switcher-list">—</div>
+        </div>
+        <div class="field" style="margin-top:12px;" id="proj-ledproc-wrap">
+          <label>Opções de processo de LED (só o ecrã LED, a este refresh/cor)</label>
+          <div class="hint">Marca a(s) opção(ões) escolhida(s) para o relatório sair limpo — sem marcar nenhuma, entram todas as compatíveis.</div>
+          <div class="lensmatch-list" id="proj-ledproc-list">—</div>
+        </div>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Relatório completo</span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="copy" data-target="proj-sum">Copiar relatório</button>
+              <button class="copy" id="proj-download">Descarregar (.txt)</button>
+              <button class="copy" id="proj-save">Guardar projeto</button>
+              <button class="copy" id="proj-open">Abrir projeto…</button>
+              <input type="file" id="proj-open-file" accept="application/json,.json" style="display:none;">
+            </div>
+          </div>
+          <pre class="sumbox" id="proj-sum"></pre>
+        </div>
+      </div>
+    </div>
   </section>
 
+  <!-- SINAL / DATA RATE -->
   <section class="panel" data-mode="sinal">
-    <h2>Sinal &amp; Data Rate</h2>
-    <p>Módulo de sinal ativo.</p>
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Indica a resolução, frame rate e profundidade de cor do sinal de vídeo para saberes o data rate e a ligação mínima (HDMI/DisplayPort/SDI) necessária, e que switchers ou processadores aguentam esse sinal na entrada.</p>
+        <p>Usa <strong>"↙ Ecrã Complexo"</strong> ou <strong>"↙ Projeto"</strong> para preencher a resolução acima com o canvas final já calculado nessas abas, em vez de a escreveres à mão — útil para veres já a ligação mínima e os switchers/processadores compatíveis para o ecrã real do projeto.</p>
+      </div>
+    </details>
+    <div class="grid">
+      <div class="card">
+        <h2>Sinal de vídeo</h2>
+        <div class="row2">
+          <div class="field">
+            <label for="sg-h">Resolução horizontal</label>
+            <div class="inputgroup"><input id="sg-h" type="number" value="3840" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="sg-v">Resolução vertical</label>
+            <div class="inputgroup"><input id="sg-v" type="number" value="2160" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label>Usar resolução de</label>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <button type="button" class="copy" id="sg-use-zones" title="Preenche a resolução acima com o canvas final (com gaps) da aba Ecrã Complexo">↙ Ecrã Complexo</button>
+            <button type="button" class="copy" id="sg-use-proj" title="Preenche a resolução acima com o ecrã atual da aba Projeto">↙ Projeto</button>
+          </div>
+          <div class="hint" id="sg-use-hint"></div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="sg-fps">Frame rate</label>
+            <div class="inputgroup"><input id="sg-fps" type="number" value="60" min="1" step="1"><span class="unit">Hz</span></div>
+          </div>
+          <div class="field">
+            <label for="sg-bits">Profundidade de cor</label>
+            <select id="sg-bits" class="plain">
+              <option value="8" selected>8-bit por canal</option>
+              <option value="10">10-bit por canal</option>
+              <option value="12">12-bit por canal</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="sg-chroma">Amostragem de cor (chroma sampling)</label>
+          <select id="sg-chroma" class="plain">
+            <option value="3" selected>RGB / YCbCr 4:4:4 (3 amostras/píxel)</option>
+            <option value="2">YCbCr 4:2:2 (2 amostras/píxel)</option>
+            <option value="1.5">YCbCr 4:2:0 (1,5 amostras/píxel)</option>
+          </select>
+        </div>
+        <div class="hint" id="sg-chroma-hint">Pixel clock calculado com blanking real (VESA CVT-RB2), não uma percentagem fixa — não muda com a amostragem de cor, só o data rate muda.</div>
+      </div>
+
+      <div class="card results" data-accent="sinal">
+        <div class="stripe"></div>
+        <h2>Resultado</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Total de píxeis</div><div class="v" id="sg-out-px">—</div></div>
+          <div class="item"><div class="k">Data rate (ativo)</div><div class="v" id="sg-out-datarate">—</div></div>
+          <div class="item wide"><div class="k">Pixel clock (com blanking, CVT-RB2)</div><div class="v" id="sg-out-clock">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Ligação mínima recomendada</h2>
+        <div class="readout">
+          <div class="item wide"><div class="k">Standard</div><div class="v" id="sg-out-connector">—</div></div>
+        </div>
+        <div class="hint" id="sg-dp-hint" style="display:none;"></div>
+
+        <h2 style="margin-top:18px;">Switchers/processos compatíveis (entrada)</h2>
+        <div class="hint">Comparado ao pixel clock da porta de entrada de maior largura de banda de cada aparelho. Onde a marca não publica MHz, o valor é derivado da resolução máxima publicada pela própria marca (indicado em cada linha) — nunca inventado.</div>
+        <div class="lensmatch-list" id="sg-switcher-list"></div>
+      </div>
+    </div>
   </section>
 
+  <!-- TVs -->
   <section class="panel" data-mode="tv">
-    <h2>TVs</h2>
-    <p>Módulo de TVs ativo.</p>
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Escolhe um modelo de TV do inventário da AVK (ou personaliza a diagonal) para saberes o tamanho do ecrã e a distância de visualização ideal. Nem todos os modelos têm a resolução confirmada — quando não tiver, ajusta à mão se precisares para o relatório.</p>
+        <p>Estes modelos também ficam disponíveis para escolher nos ecrãs DSM/delay da aba Projeto, e como atalho na aba Distância de Visualização.</p>
+      </div>
+    </details>
+    <div class="grid">
+      <div class="card">
+        <h2>Modelo de TV</h2>
+        <div class="field">
+          <label for="tv-model">Modelo de referência</label>
+          <select id="tv-model" class="plain">
+            <option value="custom">Personalizado…</option>
+          </select>
+          <div class="srclink-wrap" id="tv-model-source"></div>
+          <div class="hint">Inventário da AVK — escolher preenche a diagonal (e a resolução, quando confirmada) abaixo.</div>
+        </div>
+        <div class="field">
+          <label for="tv-diag">Diagonal</label>
+          <div class="inputgroup"><input id="tv-diag" type="number" inputmode="decimal" value="55" min="1" step="1"><span class="unit">polegadas</span></div>
+        </div>
+        <div class="field">
+          <label for="tv-ratio">Formato</label>
+          <select id="tv-ratio" class="plain">
+            <option value="16:9" selected>16:9 — widescreen</option>
+            <option value="4:3">4:3 — clássico</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card results" data-accent="tv">
+        <div class="stripe"></div>
+        <h2>Tamanho do ecrã</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Largura</div><div class="v" id="tv-out-w">—</div></div>
+          <div class="item"><div class="k">Altura</div><div class="v" id="tv-out-h">—</div></div>
+          <div class="item wide"><div class="k">Resolução</div><div class="v" id="tv-out-res">—</div></div>
+        </div>
+        <h2 style="margin-top:18px;">Distância de visualização</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Mínima</div><div class="v" id="tv-out-dmin">—</div></div>
+          <div class="item"><div class="k">Máxima</div><div class="v" id="tv-out-dmax">—</div></div>
+        </div>
+        <p class="note" id="tv-viewrule-note">—</p>
+        <p class="note">Standard usado: define-se na aba <button type="button" data-jumptab="visualizacao" style="font:inherit; font-weight:600; color:var(--cyan-600); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">Distância de Visualização</button>.</p>
+
+        <div class="summary">
+          <div class="summary-head">
+            <span class="k">Resumo para ficha técnica</span>
+            <div class="summary-actions">
+              <button class="copy" data-target="tv-sum">Copiar resumo</button>
+            </div>
+          </div>
+          <pre class="sumbox" id="tv-sum"></pre>
+        </div>
+      </div>
+    </div>
   </section>
 
+  <!-- AJUDA -->
   <section class="panel" data-mode="ajuda">
-    <h2>Ajuda</h2>
-    <p>Módulo de ajuda ativo. A aplicação foi restaurada com sucesso.</p>
+    <div class="card">
+      <h2>Como navegar</h2>
+      <p>Cada aba no topo é uma calculadora independente — muda entre elas a qualquer momento sem perder o que já preencheste. No telemóvel, desliza a barra de abas para o lado para ver todas.</p>
+      <ul style="margin: 10px 0 0; padding-left: 20px; line-height: 1.7;">
+        <li><strong>Distância de Projeção</strong> — dado um projetor e um ecrã, diz que lente/distância precisas (ou o inverso).</li>
+        <li><strong>Blending Multi-Projetor</strong> — junta vários projetores num ecrã maior, com overlap.</li>
+        <li><strong>Distância de Visualização</strong> — tamanho de ecrã ideal consoante a distância da plateia (e vice-versa).</li>
+        <li><strong>Ecrã LED &amp; Pixel Pitch</strong> — resolução, tamanho físico, peso e amperagem de um único ecrã LED.</li>
+        <li><strong>Ecrã Complexo</strong> — o mesmo, mas para setups com várias secções (central + laterais + tiras), cada uma com posição, para ver o diagrama à escala e a dimensão total já com os gaps contemplados.</li>
+        <li><strong>Lentes</strong> — consulta as lentes do mercado e o que cada uma cobre.</li>
+        <li><strong>Projeto</strong> — junta tudo numa ficha técnica única para um evento.</li>
+        <li><strong>Sinal &amp; Data Rate</strong> — largura de banda e ligação mínima para um sinal de vídeo.</li>
+        <li><strong>TVs</strong> — lista de TVs/monitores da empresa com diagonal, resolução (quando confirmada) e distância de visualização ideal; serve também de atalho para preencher DSM/delay na aba Projeto.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Como criar um projeto</h2>
+      <p>Há duas formas — usa a que fizer mais sentido para o que estás a fazer:</p>
+      <div class="divider">Opção 1 — direto na aba Projeto</div>
+      <p>Vai à aba <strong>Projeto</strong> e preenche lá os campos (tipo de ecrã, projetor ou tile, tamanho, processamento). É mais rápido quando já sabes os números de cor.</p>
+      <div class="divider">Opção 2 — partir das calculadoras</div>
+      <p>Usa a <strong>Distância de Projeção</strong>, <strong>Ecrã LED</strong> ou <strong>Blending</strong> para calcular essa parte com calma. Quando estiveres satisfeito, marca <strong>"Adicionar ao projeto"</strong> no resumo — os valores passam sozinhos para os campos da aba Projeto, não precisas de copiar nada à mão. Marcar uma destas três desliga automaticamente as outras, porque um projeto só tem um tipo de ecrã de cada vez.</p>
+      <p class="hint" style="margin-top:8px;">A <strong>Distância de Visualização</strong> não tem campos próprios no projeto (o standard usado é geral, não é por projeto) — marcar "Adicionar ao projeto" aí só deixa uma nota de referência no topo da aba Projeto.</p>
+      <div class="divider">No fim</div>
+      <p>Na aba Projeto podes ainda somar ecrãs DSM/delay e escolher os switchers de show compatíveis. Usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir mais tarde com <strong>"Abrir projeto…"</strong> e continuar de onde ficaste.</p>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Dicas rápidas</h2>
+      <ul style="margin: 10px 0 0; padding-left: 20px; line-height: 1.9;">
+        <li>Sempre que souberes a referência da lente, escolhe-a pelo nome em vez de meter o throw ratio à mão — preenche-se sozinho e fica identificada no relatório.</li>
+        <li>Ecrã LED com várias secções (ex: central + laterais + tiras espalhadas): usa a aba <strong>Ecrã Complexo</strong>, adiciona uma zona por secção com a sua posição X/Y para ver o diagrama e a dimensão total com gaps, e usa <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais em fila de uma vez. Depois ativa <strong>"Usar total das zonas"</strong> na aba Projeto para somar tudo.</li>
+        <li>Em Blending, escolhe <strong>"Calcular a partir do ecrã"</strong> para a app decidir o nº de projetores sozinha, ou <strong>"Eu defino nº e overlap"</strong> para controlares tu.</li>
+        <li>Equipamento marcado <strong>(stock)</strong> nos menus é o que a empresa já tem — prioriza sempre que der.</li>
+        <li>Todos os valores são para conferência antes de enviar ao cliente — a app não substitui medir no local.</li>
+      </ul>
+    </div>
   </section>
+
+  <footer>Calculadores — ferramenta interna, valores para conferência antes de envio ao cliente.</footer>
 </div>
 
-<script src="js/app.js"></script>
-</html>
+<script src="js/utils.js"></script>
+<script src="js/zonas.js"></script>
+<script>
+  function describeRatio(w, h) {
+    if (!w || !h) return "—";
+    var r = w / h;
+    var presets = [[16,9],[16,10],[4,3],[21,9],[1,1],[9,16]];
+    for (var i = 0; i < presets.length; i++) {
+      var pw = presets[i][0], ph = presets[i][1];
+      if (Math.abs(r - pw/ph) < 0.01) return pw + ":" + ph;
+    }
+    return fmt(r, 2) + ":1";
+  }
+  function val(id) { return parseFloat(document.getElementById(id).value); }
+  function srcLinkHtml(fonte, label) {
+    if (!fonte) return "";
+    return '<a class="srclink" href="' + fonte + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + (label || "Ficha técnica do fabricante") + ' ↗</a>';
+  }
+  function selectedDataIdx(sel) {
+    var opt = sel.options[sel.selectedIndex];
+    return opt && opt.dataset.idx !== undefined ? parseInt(opt.dataset.idx, 10) : NaN;
+  }
+  function updateSourceHint(sel, dataArray, hintElId, useValueAsIdx) {
+    var el = document.getElementById(hintElId);
+    if (!el) return;
+    var idx = useValueAsIdx ? parseInt(sel.value, 10) : selectedDataIdx(sel);
+    var item = !isNaN(idx) && dataArray[idx] ? dataArray[idx] : null;
+    el.innerHTML = item ? srcLinkHtml(item.fonte) : "";
+  }
+
+  // Standards de distância de visualização, partilhados entre a aba
+  // "Distância de Visualização" e a leitura de referência na aba de Ecrã LED.
+  var VIEW_STANDARDS = {
+    "width-thx": { label: "Espetáculo / entretenimento — concertos, cinema (largura × 1,5–6)", basis: "width", min: 1.5, max: 6 },
+    "width-sweet": { label: "Zona ideal, mais compacta — salas pequenas, reuniões (largura × 1,5–2,5)", basis: "width", min: 1.5, max: 2.5 },
+    "avixa": { label: "Conteúdo com texto/dados para ler — apresentações, sinalética (AVIXA 4-6-8)", basis: "height", min: 2 }
+  };
+  var AVIXA_CONTENT = {
+    detailed: { label: "muito detalhe a ler — dados/gráficos densos (altura × 4)", mult: 4 },
+    basic: { label: "detalhe normal — a maioria das apresentações (altura × 6)", mult: 6 },
+    passive: { label: "pouco/nenhum detalhe — vídeo, visão passiva (altura × 8)", mult: 8 }
+  };
+  var vStandardKey = "width-thx";
+  var vAvixaContentKey = "basic";
+
+  function viewingDistanceRange(w, h) {
+    var std = VIEW_STANDARDS[vStandardKey];
+    if (std.basis === "width") {
+      return { min: w * std.min, max: w * std.max };
+    }
+    var mult = AVIXA_CONTENT[vAvixaContentKey].mult;
+    return { min: h * std.min, max: h * mult };
+  }
+
+  function idealScreenForDistance(distance, r) {
+    var std = VIEW_STANDARDS[vStandardKey];
+    if (std.basis === "width") {
+      return { wMin: distance / std.max, wMax: distance / std.min };
+    }
+    var mult = AVIXA_CONTENT[vAvixaContentKey].mult;
+    var hMin = distance / mult, hMax = distance / std.min;
+    return { wMin: hMin * r, wMax: hMax * r };
+  }
+
+  function viewRuleDescription() {
+    var std = VIEW_STANDARDS[vStandardKey];
+    if (std.basis === "width") return std.label;
+    return std.label + " — " + AVIXA_CONTENT[vAvixaContentKey].label;
+  }
+
+  // Checklist "Itens do projeto" — hoje só a Distância de Visualização não
+  // tem campos próprios na aba Projeto (o standard usado é global, não por
+  // projeto), por isso fica aqui como referência rápida. Projeção, LED e
+  // Blending preenchem os campos da aba Projeto diretamente (ver
+  // syncProjecaoToProject/syncLedToProject/syncBlendToProject abaixo),
+  // para o relatório do projeto não repetir o que a calculadora já mostra.
+  var PROJECT_SOURCES = [
+    { key: "visualizacao", label: "Distância de Visualização", sumId: "v-sum", checkboxId: "v-addproject" }
+  ];
+
+  function renderProjectItems() {
+    var listEl = document.getElementById("proj-items-list");
+    var summaryWrap = document.getElementById("proj-items-summary-wrap");
+    if (!listEl || !summaryWrap) return;
+
+    var included = PROJECT_SOURCES.filter(function (s) {
+      var cb = document.getElementById(s.checkboxId);
+      return cb && cb.checked;
+    });
+
+    listEl.innerHTML = "";
+    if (!included.length) {
+      listEl.innerHTML = '<div class="lm-empty">Nenhum item adicionado ainda.</div>';
+      summaryWrap.style.display = "none";
+      return;
+    }
+
+    var summaryParts = [];
+    included.forEach(function (s) {
+      var text = document.getElementById(s.sumId).textContent;
+      var item = document.createElement("div");
+      item.className = "projitem";
+      var h3 = document.createElement("h3");
+      h3.textContent = s.label;
+      var pre = document.createElement("pre");
+      pre.className = "sumbox";
+      pre.textContent = text;
+      item.appendChild(h3);
+      item.appendChild(pre);
+      listEl.appendChild(item);
+      summaryParts.push("== " + s.label + " ==\n" + text);
+    });
+    summaryWrap.style.display = "block";
+    document.getElementById("proj-items-sum").textContent = summaryParts.join("\n\n");
+  }
+
+  PROJECT_SOURCES.forEach(function (s) {
+    var cb = document.getElementById(s.checkboxId);
+    if (cb) cb.addEventListener("change", renderProjectItems);
+  });
+
+  // "Adicionar ao projeto" em Projeção, LED e Blending: envia os valores
+  // dessa calculadora para os campos correspondentes na aba Projeto (em vez
+  // de duplicar o resumo). Um projeto só tem um tipo (LED ou Projeção) e,
+  // dentro de Projeção, só um modo (único ou blend) — por isso marcar uma
+  // destas três desmarca as outras duas automaticamente.
+  var PROJTYPE_ADDPROJECT_IDS = ["p-addproject", "l-addproject", "b-addproject", "z-addproject"];
+  function setExclusiveAddProject(activeId) {
+    PROJTYPE_ADDPROJECT_IDS.forEach(function (id) {
+      if (id === activeId) return;
+      var cb = document.getElementById(id);
+      if (cb) cb.checked = false;
+    });
+  }
+
+  function computeScreenWH(ratioVal, sizeMode, diagVal, widthFixedVal, heightFixedVal) {
+    var parts = ratioVal.split(":");
+    var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+    var r = rw / rh;
+    if (sizeMode === "height") {
+      return { w: heightFixedVal * r, h: heightFixedVal };
+    }
+    if (sizeMode === "width") {
+      return { w: widthFixedVal, h: widthFixedVal / r };
+    }
+    var diagM = diagVal * 0.0254;
+    var h = diagM / Math.sqrt(r * r + 1);
+    return { w: h * r, h: h };
+  }
+
+  function syncModelSelectByIdx(sourceSel, destSel) {
+    var opt = sourceSel.options[sourceSel.selectedIndex];
+    var idx = opt && opt.dataset.idx !== undefined ? opt.dataset.idx : sourceSel.value;
+    var hasOpt = !!destSel.querySelector('option[value="' + idx + '"]');
+    destSel.value = hasOpt ? idx : "custom";
+    destSel.dispatchEvent(new Event("change"));
+  }
+
+  function syncProjecaoToProject() {
+    segClick("proj-type-seg", "projtype", "projecao");
+    segClick("proj-blendmode-seg", "blendmode", "single");
+    syncModelSelectByIdx(projModelSel, projProjModelSel);
+    if (pResMode === "native") segClick("proj-proj-resmode-seg", "resmode", "native");
+
+    var ratioVal = ratioSel.value;
+    if (ratioVal === "custom") {
+      segClick("proj-sizemode-seg", "sizemode", "height");
+      setFieldVal("proj-proj-w", fieldVal("p-rw"));
+      setFieldVal("proj-proj-h", fieldVal("p-rh"));
+    } else {
+      setFieldVal("proj-proj-ratio", ratioVal);
+      if (pSizeMode === "diag") {
+        segClick("proj-sizemode-seg", "sizemode", "diag");
+        setFieldVal("proj-proj-diag", fieldVal("p-diag"));
+      } else {
+        var wh = computeScreenWH(ratioVal, pSizeMode, null, val("p-width-fixed"), val("p-height-fixed"));
+        segClick("proj-sizemode-seg", "sizemode", "height");
+        setFieldVal("proj-proj-w", wh.w.toFixed(2));
+        setFieldVal("proj-proj-h", wh.h.toFixed(2));
+      }
+    }
+
+    setFieldVal("proj-proj-dist", fieldVal("p-knowndist"));
+
+    var lensVal = pLensModelSel.value;
+    var hasLens = !!projProjLensModelSel.querySelector('option[value="' + lensVal + '"]');
+    projProjLensModelSel.value = hasLens ? lensVal : "custom";
+    projProjLensModelSel.dispatchEvent(new Event("change"));
+    if (!hasLens) {
+      setFieldVal("proj-proj-tmin", fieldVal("p-tmin"));
+      setFieldVal("proj-proj-tmax", fieldVal("p-tmax"));
+    }
+
+    calcProjeto();
+  }
+
+  function syncLedToProject() {
+    segClick("proj-type-seg", "projtype", "led");
+    syncModelSelectByIdx(ledModelSel, document.getElementById("proj-led-model"));
+    segClick("proj-led-sizemode-seg", "sizemode", lSizeMode);
+    if (lSizeMode === "meters") {
+      setFieldVal("proj-led-w", fieldVal("l-target-w"));
+      setFieldVal("proj-led-h", fieldVal("l-target-h"));
+    } else {
+      setFieldVal("proj-led-mx", fieldVal("l-mx"));
+      setFieldVal("proj-led-my", fieldVal("l-my"));
+    }
+    calcProjeto();
+  }
+
+  function syncZonesToProject() {
+    segClick("proj-type-seg", "projtype", "led");
+    document.getElementById("proj-led-usezones").checked = true;
+    calcProjeto();
+  }
+
+  function syncBlendToProject() {
+    segClick("proj-type-seg", "projtype", "projecao");
+    segClick("proj-blendmode-seg", "blendmode", "blend");
+    syncModelSelectByIdx(blendProjModelSel, projProjModelSel);
+    setFieldVal("proj-blend-res", "custom");
+    document.getElementById("proj-blend-res").dispatchEvent(new Event("change"));
+    setFieldVal("proj-blend-w", fieldVal("b-hpx"));
+    setFieldVal("proj-blend-h", fieldVal("b-vpx"));
+    setFieldVal("proj-proj-w", fieldVal("b-w"));
+    setFieldVal("proj-proj-h", fieldVal("b-h"));
+    calcProjeto();
+  }
+
+  document.getElementById("p-addproject").addEventListener("change", function () {
+    if (this.checked) { setExclusiveAddProject("p-addproject"); syncProjecaoToProject(); }
+  });
+  document.getElementById("l-addproject").addEventListener("change", function () {
+    if (this.checked) {
+      setExclusiveAddProject("l-addproject");
+      // Só desliga "usar total das zonas" ao marcar (troca deliberada para o
+      // modelo/grelha únicos); edições seguintes ao modelo único não devem
+      // voltar a apagar a escolha de zonas se o utilizador a reativar depois.
+      document.getElementById("proj-led-usezones").checked = false;
+      syncLedToProject();
+    }
+  });
+  document.getElementById("b-addproject").addEventListener("change", function () {
+    if (this.checked) { setExclusiveAddProject("b-addproject"); syncBlendToProject(); }
+  });
+  document.getElementById("z-addproject").addEventListener("change", function () {
+    if (this.checked) { setExclusiveAddProject("z-addproject"); syncZonesToProject(); }
+  });
+
+  var LENTES_DATA = [];
+  var PROJECTORS_DATA = [];
+  var LED_TILES_DATA = [];
+  var TVS_DATA = [];
+  var PROCESSORS_DATA = { switchers: [], ledProcessors: [] };
+  var BITS_PER_PIXEL = { "8": 24, "10": 48, "12": 48 };
+  var USABLE_BPS = 930000000;
+
+  // Tabs
+  var tabs = document.querySelectorAll(".tab");
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      tabs.forEach(function (t) { t.setAttribute("aria-selected", "false"); });
+      tab.setAttribute("aria-selected", "true");
+      document.querySelectorAll(".panel").forEach(function (p) { p.classList.remove("active"); });
+      document.querySelector('.panel[data-mode="' + tab.dataset.mode + '"]').classList.add("active");
+      tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    });
+  });
+  document.querySelectorAll("[data-jumptab]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelector('.tab[data-mode="' + btn.dataset.jumptab + '"]').click();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
+  // A animação "rise" ao trocar de aba fica "presa" (fill: both) com um
+  // transform aplicado (matrix identidade, mas não é literalmente "none")
+  // — isso cria um novo containing block e parte qualquer "position: fixed"
+  // lá dentro (ex: a barra fixa de resultado no Ecrã Complexo). Cancelar a
+  // animação assim que acaba resolve, sem perder o efeito visual.
+  document.addEventListener("animationend", function (e) {
+    if (e.animationName === "rise") {
+      e.target.getAnimations().forEach(function (a) { a.cancel(); });
+    }
+  });
+
+
+  // Custom ratio toggle
+  var ratioSel = document.getElementById("p-ratio");
+  var customRatio = document.getElementById("p-custom-ratio");
+  var diagOrModeWrap = document.getElementById("p-diagormode-wrap");
+  ratioSel.addEventListener("change", function () {
+    var isCustom = ratioSel.value === "custom";
+    customRatio.style.display = isCustom ? "grid" : "none";
+    diagOrModeWrap.style.display = isCustom ? "none" : "block";
+    calcProjecao();
+  });
+
+  var pSizeMode = "diag";
+  var diagField = document.getElementById("p-diag-field");
+  var widthField = document.getElementById("p-width-field");
+  var heightField = document.getElementById("p-height-field");
+  document.querySelectorAll("#p-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#p-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      pSizeMode = btn.dataset.sizemode;
+      diagField.style.display = pSizeMode === "diag" ? "block" : "none";
+      widthField.style.display = pSizeMode === "width" ? "block" : "none";
+      heightField.style.display = pSizeMode === "height" ? "block" : "none";
+      calcProjecao();
+    });
+  });
+
+  function renderLensMatches(ratio, brand) {
+    var el = document.getElementById("p-lensmatch-list");
+    var matches = LENTES_DATA.filter(function (l) {
+      var brandOk = !brand || l.marca === brand || l.marca.indexOf(brand + " (") === 0;
+      return brandOk && ratio >= l.min && ratio <= l.max;
+    }).sort(function (a, b) {
+      var da = Math.abs(ratio - (a.min + a.max) / 2);
+      var db = Math.abs(ratio - (b.min + b.max) / 2);
+      return da - db;
+    });
+    if (!matches.length) {
+      el.innerHTML = '<div class="lm-empty">Nenhuma lente' + (brand ? " " + brand : "") + ' na base cobre este throw ratio.</div>';
+      return matches;
+    }
+    el.innerHTML = matches.map(function (l, i) {
+      var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
+      var bestBadge = i === 0 ? ' <span class="badge-match">melhor</span>' : "";
+      return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + bestBadge + '</span><span>' + ratioText + '</span></div>';
+    }).join("");
+    return matches;
+  }
+
+  function populateLensModelSelect(sel, brand) {
+    while (sel.options.length > 1) sel.remove(0);
+    LENTES_DATA.forEach(function (l, idx) {
+      var brandOk = !brand || l.marca === brand || l.marca.indexOf(brand + " (") === 0;
+      if (!brandOk) return;
+      var ratioText = l.min === l.max ? fmt(l.min, 2) + " fixo" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
+      addOption(sel, String(idx), l.marca + " " + l.modelo + " (" + ratioText + ")", false, idx, true);
+    });
+    lzAttachModelSearch(sel);
+    if (sel._modelSearchRefresh) sel._modelSearchRefresh();
+  }
+
+  var projModelSel = document.getElementById("p-projmodel");
+  var pResMode = "enhanced";
+  var pLensModelSel = document.getElementById("p-lensmodel");
+  var pTminInput = document.getElementById("p-tmin");
+  var pTmaxInput = document.getElementById("p-tmax");
+  function pSelectedProjBrand() {
+    var selOpt = projModelSel.options[projModelSel.selectedIndex];
+    var selP = selOpt && selOpt.dataset.idx !== undefined ? PROJECTORS_DATA[selOpt.dataset.idx] : null;
+    return selP ? selP.modelo.split(" ")[0] : null;
+  }
+  pLensModelSel.addEventListener("change", function () {
+    if (pLensModelSel.value === "custom") { calcProjecao(); return; }
+    var l = LENTES_DATA[parseInt(pLensModelSel.value, 10)];
+    pTminInput.value = l.min;
+    pTmaxInput.value = l.max;
+    calcProjecao();
+  });
+  [pTminInput, pTmaxInput].forEach(function (el) {
+    el.addEventListener("input", function () { pLensModelSel.value = "custom"; });
+  });
+  var pResModeField = document.getElementById("p-resmode-field");
+  document.querySelectorAll("#p-resmode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#p-resmode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      pResMode = btn.dataset.resmode;
+      calcProjecao();
+    });
+  });
+  // Restringe a lista de projetores aos que têm exatamente os lumens
+  // indicados — útil quando se sabe o light output mas não o modelo.
+  // Sem correspondência (ou campo vazio), volta a mostrar todos.
+  var LUMENS_BAND_PCT = 0.10;
+  function populateProjectorSelect(sel, filterLumens, keepIdx) {
+    while (sel.options.length > 1) sel.remove(0);
+    if (!PROJECTORS_DATA.length) return;
+    var order = stockFirstIndices(PROJECTORS_DATA);
+    var list = order;
+    if (filterLumens != null && !isNaN(filterLumens)) {
+      var lo = filterLumens * (1 - LUMENS_BAND_PCT), hi = filterLumens * (1 + LUMENS_BAND_PCT);
+      var filtered = order.filter(function (i) { var lm = PROJECTORS_DATA[i].lumens; return lm >= lo && lm <= hi; });
+      if (filtered.length) list = filtered;
+    }
+    list.forEach(function (i) {
+      var p = PROJECTORS_DATA[i];
+      addOption(sel, p.lumens, p.modelo + " — " + fmtInt(p.lumens) + " lm", false, i);
+    });
+    var matchOpt = keepIdx != null
+      ? Array.prototype.filter.call(sel.options, function (o) { return o.dataset.idx === String(keepIdx); })[0]
+      : null;
+    sel.value = matchOpt ? matchOpt.value : "custom";
+    updateSelectStockColor(sel);
+  }
+
+  projModelSel.addEventListener("change", function () {
+    var curOpt = projModelSel.options[projModelSel.selectedIndex];
+    populateProjectorSelect(projModelSel, null, curOpt ? curOpt.dataset.idx : undefined);
+    var selOpt = projModelSel.options[projModelSel.selectedIndex];
+    var selP = selOpt && selOpt.dataset.idx !== undefined ? PROJECTORS_DATA[selOpt.dataset.idx] : null;
+    pResModeField.style.display = selP && selP.resolucaoNativa ? "block" : "none";
+    pResMode = "enhanced";
+    document.querySelectorAll("#p-resmode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.resmode === "enhanced"); });
+    populateLensModelSelect(pLensModelSel, pSelectedProjBrand());
+    pLensModelSel.value = "custom";
+    if (projModelSel.value === "custom") { calcProjecao(); return; }
+    document.getElementById("p-lumens").value = projModelSel.value;
+    calcProjecao();
+  });
+  document.getElementById("p-lumens").addEventListener("input", function () {
+    populateProjectorSelect(projModelSel, val("p-lumens"));
+  });
+
+  var blendProjModelSel = document.getElementById("b-projmodel");
+  blendProjModelSel.addEventListener("change", function () {
+    var curOpt = blendProjModelSel.options[blendProjModelSel.selectedIndex];
+    populateProjectorSelect(blendProjModelSel, null, curOpt ? curOpt.dataset.idx : undefined);
+    if (blendProjModelSel.value === "custom") return;
+    document.getElementById("b-lumens").value = blendProjModelSel.value;
+    calcBlend();
+  });
+  document.getElementById("b-lumens").addEventListener("input", function () {
+    populateProjectorSelect(blendProjModelSel, val("b-lumens"));
+  });
+
+  var bBlendMode = "manual";
+  var bOhManualOverride = false;
+  var bNhInput = document.getElementById("b-nh");
+  var bNvInput = document.getElementById("b-nv");
+  var bOhHint = document.getElementById("b-oh-hint");
+  var bProjRatioField = document.getElementById("b-projratio-field");
+  document.querySelectorAll("#b-mode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#b-mode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      bBlendMode = btn.dataset.blendmode;
+      var isAuto = bBlendMode === "auto";
+      bNhInput.readOnly = isAuto;
+      bNvInput.readOnly = isAuto;
+      bOhHint.style.display = isAuto ? "block" : "none";
+      bProjRatioField.style.display = isAuto ? "block" : "none";
+      if (isAuto) bOhManualOverride = false;
+      calcBlend();
+    });
+  });
+  document.getElementById("b-oh").addEventListener("input", function () {
+    if (bBlendMode === "auto") bOhManualOverride = true;
+  });
+  ["b-w", "b-h", "b-hpx", "b-vpx", "b-projratio"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () { bOhManualOverride = false; });
+    document.getElementById(id).addEventListener("change", function () { bOhManualOverride = false; });
+  });
+
+  function calcProjecao() {
+    var isCustom = ratioSel.value === "custom";
+    var w, h, label;
+
+    if (isCustom) {
+      w = val("p-rw");
+      h = val("p-rh");
+      label = "Personalizado";
+    } else {
+      var parts = ratioSel.value.split(":");
+      var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+      var r = rw / rh;
+      if (pSizeMode === "height") {
+        h = val("p-height-fixed");
+        w = h * r;
+        var diagInFromH = h * Math.sqrt(r * r + 1) / 0.0254;
+        label = fmtInt(diagInFromH) + '" (' + rw + ":" + rh + ")";
+      } else if (pSizeMode === "width") {
+        w = val("p-width-fixed");
+        h = w / r;
+        var diagInFromW = w * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+        label = fmtInt(diagInFromW) + '" (' + rw + ":" + rh + ")";
+      } else {
+        var diagIn = val("p-diag");
+        var diagM = diagIn * 0.0254;
+        h = diagM / Math.sqrt(r * r + 1);
+        w = h * r;
+        label = fmt(diagIn,0) + '" (' + rw + ":" + rh + ")";
+      }
+    }
+    var r = w / h;
+
+    document.getElementById("p-out-w").innerHTML = fmt(w, 2) + "<small>m</small>";
+    document.getElementById("p-out-h").innerHTML = fmt(h, 2) + "<small>m</small>";
+    var selOpt = projModelSel.options[projModelSel.selectedIndex];
+    var selProj = selOpt && selOpt.dataset.idx !== undefined ? PROJECTORS_DATA[selOpt.dataset.idx] : null;
+    pResModeField.style.display = selProj && selProj.resolucaoNativa ? "block" : "none";
+    document.getElementById("p-out-projres").textContent = selProj ? fmtRes(effectiveProjRes(selProj, pResMode)) : "—";
+    updateSourceHint(projModelSel, PROJECTORS_DATA, "p-projmodel-source");
+
+    var tmin = val("p-tmin"), tmax = val("p-tmax");
+    var lumens = val("p-lumens");
+    var lumens80 = lumens * 0.8;
+    var area = w * h;
+    var lux = lumens80 / area;
+    document.getElementById("p-out-lumens80").innerHTML = fmtInt(lumens80) + "<small>lm</small>";
+    document.getElementById("p-out-lux").innerHTML = fmtInt(lux) + "<small>lux</small>";
+
+    var lensBrand = selProj ? selProj.modelo.split(" ")[0] : null;
+
+    var knownDist = val("p-knowndist");
+    var ratioNeeded = knownDist / w;
+    document.getElementById("p-out-rationeeded").innerHTML = fmt(ratioNeeded, 2) + "<small>:1</small>";
+    var lensMatches = renderLensMatches(ratioNeeded, lensBrand);
+    var matchNames = lensMatches.map(function (l) { return l.marca + " " + l.modelo; });
+
+    var dmin = tmin * w, dmax = tmax * w;
+    document.getElementById("p-out-dmin").innerHTML = fmt(dmin, 2) + "<small>m</small>";
+    document.getElementById("p-out-dmax").innerHTML = fmt(dmax, 2) + "<small>m</small>";
+    var pLens = pLensModelSel.value !== "custom" ? LENTES_DATA[parseInt(pLensModelSel.value, 10)] : null;
+    document.getElementById("p-lens-ratio-detail").style.display = pLens ? "grid" : "none";
+    document.getElementById("p-throwmode-ratio-output").style.display = pLens ? "block" : "none";
+    var pLensLines = pLens
+      ? "Lente: " + pLens.marca + " " + pLens.modelo + "\n" +
+        "Throw ratio (dessa lente): " + fmt(tmin,2) + " – " + fmt(tmax,2) + "\n" +
+        "Distância de projeção (com essa lente): " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n"
+      : "";
+    document.getElementById("p-sum").textContent =
+      "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
+      "Resolução do projetor: " + fmtResWithNote(selProj, pResMode) + "\n" +
+      pLensLines +
+      "Distância disponível indicada: " + fmt(knownDist,2) + " m\n" +
+      "Throw ratio necessário a essa distância: " + fmt(ratioNeeded,2) + ":1\n" +
+      "Lentes compatíveis a essa distância" + (lensBrand ? " (" + lensBrand + ")" : "") + ": " + (matchNames.length ? matchNames.join(", ") + (matchNames.length > 1 ? " — melhor: " + matchNames[0] : "") : "nenhuma na base") + "\n" +
+      "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
+
+    renderProjectItems();
+    if (document.getElementById("p-addproject").checked) syncProjecaoToProject();
+  }
+
+  // Distância de Visualização
+  var vRatioSel = document.getElementById("v-ratio");
+  var vCustomRatio = document.getElementById("v-custom-ratio");
+  var vDiagOrModeWrap = document.getElementById("v-diagormode-wrap");
+  vRatioSel.addEventListener("change", function () {
+    var isCustom = vRatioSel.value === "custom";
+    vCustomRatio.style.display = isCustom ? "grid" : "none";
+    vDiagOrModeWrap.style.display = isCustom ? "none" : "block";
+    calcVisualizacao();
+  });
+
+  var vSizeMode = "diag";
+  var vDiagField = document.getElementById("v-diag-field");
+  var vWidthField = document.getElementById("v-width-field");
+  var vHeightField = document.getElementById("v-height-field");
+  document.querySelectorAll("#v-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#v-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      vSizeMode = btn.dataset.sizemode;
+      vDiagField.style.display = vSizeMode === "diag" ? "block" : "none";
+      vWidthField.style.display = vSizeMode === "width" ? "block" : "none";
+      vHeightField.style.display = vSizeMode === "height" ? "block" : "none";
+      calcVisualizacao();
+    });
+  });
+
+  var vStandardSel = document.getElementById("v-standard");
+  var vAvixaField = document.getElementById("v-avixa-content-field");
+  var vAvixaSel = document.getElementById("v-avixa-content");
+  vStandardSel.addEventListener("change", function () {
+    vStandardKey = vStandardSel.value;
+    vAvixaField.style.display = vStandardKey === "avixa" ? "block" : "none";
+    calcVisualizacao();
+    calcLed();
+  });
+  vAvixaSel.addEventListener("change", function () {
+    vAvixaContentKey = vAvixaSel.value;
+    calcVisualizacao();
+    calcLed();
+  });
+
+  function calcVisualizacao() {
+    var isCustom = vRatioSel.value === "custom";
+    var w, h, label;
+
+    if (isCustom) {
+      w = val("v-rw");
+      h = val("v-rh");
+      label = "Personalizado";
+    } else {
+      var parts = vRatioSel.value.split(":");
+      var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+      var r = rw / rh;
+      if (vSizeMode === "height") {
+        h = val("v-height-fixed");
+        w = h * r;
+        var diagInFromH = h * Math.sqrt(r * r + 1) / 0.0254;
+        label = fmtInt(diagInFromH) + '" (' + rw + ":" + rh + ")";
+      } else if (vSizeMode === "width") {
+        w = val("v-width-fixed");
+        h = w / r;
+        var diagInFromW = w * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+        label = fmtInt(diagInFromW) + '" (' + rw + ":" + rh + ")";
+      } else {
+        var diagIn = val("v-diag");
+        var diagM = diagIn * 0.0254;
+        h = diagM / Math.sqrt(r * r + 1);
+        w = h * r;
+        label = fmt(diagIn,0) + '" (' + rw + ":" + rh + ")";
+      }
+    }
+    var r = w / h;
+
+    var range = viewingDistanceRange(w, h);
+    document.getElementById("v-out-dmin").innerHTML = fmt(range.min, 2) + "<small>m</small>";
+    document.getElementById("v-out-dmax").innerHTML = fmt(range.max, 2) + "<small>m</small>";
+    document.getElementById("v-rule-note").textContent = "Regra: " + viewRuleDescription();
+
+    document.getElementById("v-sum").textContent =
+      "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
+      "Standard: " + viewRuleDescription() + "\n" +
+      "Distância de visualização ideal: " + fmt(range.min,2) + " – " + fmt(range.max,2) + " m";
+
+    var avail = val("v-avail");
+    var ideal = idealScreenForDistance(avail, r);
+    var diagMin = ideal.wMin * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+    var diagMax = ideal.wMax * Math.sqrt(1 + 1/(r*r)) / 0.0254;
+    document.getElementById("v-out-diagmin").innerHTML = fmtInt(diagMin) + "<small>\"</small>";
+    document.getElementById("v-out-diagmax").innerHTML = fmtInt(diagMax) + "<small>\"</small>";
+    document.getElementById("v-out-wrange").innerHTML = fmt(ideal.wMin,2) + "–" + fmt(ideal.wMax,2) + "<small>m</small>";
+
+    var viewWarn = document.getElementById("v-viewwarn");
+    if (avail > range.max) {
+      viewWarn.style.display = "block";
+      viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é pequeno para " + fmt(avail,2) + " m de distância — ideal até " + fmt(range.max,2) + " m. Ajusta a largura para pelo menos " + fmt(ideal.wMax,2) + " m.";
+    } else if (avail < range.min) {
+      viewWarn.style.display = "block";
+      viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é grande para " + fmt(avail,2) + " m de distância — ideal a partir de " + fmt(range.min,2) + " m. Ajusta a largura para no máximo " + fmt(ideal.wMin,2) + " m.";
+    } else {
+      viewWarn.style.display = "none";
+    }
+
+    renderProjectItems();
+  }
+
+  // Restringe a lista de modelos de tile aos que cobrem o brilho (nits)
+  // indicado — útil quando se sabe o valor mas não o modelo. Compara por
+  // intervalo (nitsMin–nitsMax) porque os fabricantes publicam gamas, não
+  // um valor fixo. Sem correspondência (ou campo vazio), mostra todos.
+  function populateLedModelSelect(sel, filterNits, keepIdx) {
+    while (sel.options.length > 1) sel.remove(0);
+    if (!LED_TILES_DATA.length) return;
+    var order = stockFirstIndices(LED_TILES_DATA);
+    var list = order;
+    if (filterNits != null && !isNaN(filterNits)) {
+      var filtered = order.filter(function (i) {
+        var t = LED_TILES_DATA[i];
+        return t.nitsMin != null && t.nitsMax != null && filterNits >= t.nitsMin && filterNits <= t.nitsMax;
+      });
+      if (filtered.length) list = filtered;
+    }
+    list.forEach(function (i) {
+      var t = LED_TILES_DATA[i];
+      addOption(sel, String(i), t.modelo + " — " + t.label, false, i);
+    });
+    var matchOpt = keepIdx != null
+      ? Array.prototype.filter.call(sel.options, function (o) { return o.value === String(keepIdx); })[0]
+      : null;
+    sel.value = matchOpt ? matchOpt.value : "custom";
+    updateSelectStockColor(sel);
+  }
+
+  var ledModelSel = document.getElementById("l-model");
+  ledModelSel.addEventListener("change", function () {
+    var curValue = ledModelSel.value;
+    populateLedModelSelect(ledModelSel, null, curValue === "custom" ? null : curValue);
+    if (ledModelSel.value === "custom") { calcLed(); return; }
+    var t = LED_TILES_DATA[parseInt(ledModelSel.value, 10)];
+    document.getElementById("l-mw").value = t.mw;
+    document.getElementById("l-mh").value = t.mh;
+    document.getElementById("l-rx").value = t.rx;
+    document.getElementById("l-ry").value = t.ry;
+    document.getElementById("l-weight").value = t.weight == null ? "" : t.weight;
+    document.getElementById("l-amp").value = t.amp;
+    document.getElementById("l-nits").value = t.nitsMax == null ? "" : t.nitsMax;
+    calcLed();
+  });
+  ["l-mw", "l-mh", "l-rx", "l-ry", "l-weight", "l-amp"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () {
+      ledModelSel.value = "custom";
+      updateSelectStockColor(ledModelSel);
+    });
+  });
+  document.getElementById("l-nits").addEventListener("input", function () {
+    populateLedModelSelect(ledModelSel, val("l-nits"));
+  });
+
+  var lSizeMode = "tiles";
+  var lTilesInputs = document.getElementById("l-tiles-inputs");
+  var lMetersInputs = document.getElementById("l-meters-inputs");
+  var lMxInput = document.getElementById("l-mx");
+  var lMyInput = document.getElementById("l-my");
+  document.querySelectorAll("#l-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#l-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      lSizeMode = btn.dataset.sizemode;
+      var isMeters = lSizeMode === "meters";
+      lTilesInputs.style.display = isMeters ? "none" : "block";
+      lMetersInputs.style.display = isMeters ? "block" : "none";
+      lMxInput.readOnly = isMeters;
+      lMyInput.readOnly = isMeters;
+      calcLed();
+    });
+  });
+
+  // Para modelos que existem em dois tamanhos de tile (ex: 100x50 e a
+  // metade, 50x50), encontra a melhor combinação de tiles inteiros + no
+  // máx. 1 meio-tile que cobre o alvo (targetMM) com o menor excesso.
+  function computeAxisTiles(targetMM, fullSize, halfSize) {
+    if (!halfSize || halfSize >= fullSize) {
+      var n = Math.max(1, Math.ceil(targetMM / fullSize));
+      return { full: n, half: 0, totalMM: n * fullSize };
+    }
+    var best = null;
+    var nFullMax = Math.max(0, Math.ceil(targetMM / fullSize));
+    for (var nFull = 0; nFull <= nFullMax; nFull++) {
+      for (var nHalf = 0; nHalf <= 1; nHalf++) {
+        var total = nFull * fullSize + nHalf * halfSize;
+        if (total <= 0) continue;
+        if (total >= targetMM && (!best || total < best.totalMM)) best = { full: nFull, half: nHalf, totalMM: total };
+      }
+    }
+    if (!best) best = { full: nFullMax, half: 0, totalMM: nFullMax * fullSize };
+    return best;
+  }
+
+  function calcLed() {
+    updateSourceHint(ledModelSel, LED_TILES_DATA, "l-model-source", true);
+    var mw = val("l-mw"), mh = val("l-mh");
+    var rx = val("l-rx"), ry = val("l-ry");
+    var weightPerTile = val("l-weight"), ampPerTile = val("l-amp");
+    var nits = val("l-nits");
+    var mx, my;
+    var mixed = null;
+
+    if (lSizeMode === "meters") {
+      var targetW = val("l-target-w"), targetH = val("l-target-h");
+      var selT = ledModelSel.value !== "custom" ? LED_TILES_DATA[parseInt(ledModelSel.value, 10)] : null;
+      var halfT = selT && selT.halfTile ? LED_TILES_DATA.filter(function (t) { return t.modelo === selT.halfTile; })[0] : null;
+      if (halfT && selT.mw === mw && selT.mh === mh) {
+        if (selT.mw !== halfT.mw) {
+          var wr = computeAxisTiles(targetW * 1000, mw, halfT.mw);
+          mixed = { axis: "w", nFull: wr.full, nHalf: wr.half, n: Math.max(1, Math.ceil((targetH * 1000) / mh)), half: halfT };
+        } else if (selT.mh !== halfT.mh) {
+          var hr = computeAxisTiles(targetH * 1000, mh, halfT.mh);
+          mixed = { axis: "h", nFull: hr.full, nHalf: hr.half, n: Math.max(1, Math.ceil((targetW * 1000) / mw)), half: halfT };
+        }
+      }
+      if (mixed) {
+        mx = mixed.axis === "w" ? (mixed.nFull + mixed.nHalf) : mixed.n;
+        my = mixed.axis === "h" ? (mixed.nFull + mixed.nHalf) : mixed.n;
+      } else {
+        mx = Math.max(1, Math.ceil((targetW * 1000) / mw));
+        my = Math.max(1, Math.ceil((targetH * 1000) / mh));
+      }
+      lMxInput.value = mx;
+      lMyInput.value = my;
+    } else {
+      mx = val("l-mx");
+      my = val("l-my");
+    }
+
+    var totalPx, totalPy, totalWm, totalHm, numTiles, weightTotal, ampTotal, halfNoteText = "";
+    if (mixed) {
+      var half = mixed.half;
+      if (mixed.axis === "w") {
+        totalPx = mixed.nFull * rx + mixed.nHalf * half.rx;
+        totalPy = mixed.n * ry;
+        totalWm = (mixed.nFull * mw + mixed.nHalf * half.mw) / 1000;
+        totalHm = (mixed.n * mh) / 1000;
+        numTiles = mixed.n * (mixed.nFull + mixed.nHalf);
+        weightTotal = mixed.n * (mixed.nFull * weightPerTile + mixed.nHalf * half.weight);
+        ampTotal = mixed.n * (mixed.nFull * ampPerTile + mixed.nHalf * half.amp);
+        if (mixed.nHalf) {
+          halfNoteText = "Cada linha (× " + mixed.n + "): " + mixed.nFull + " tile" + (mixed.nFull === 1 ? "" : "s") + " " + fmtInt(mw) + "×" + fmtInt(mh) + "mm + " + mixed.nHalf + " meio-tile " + fmtInt(half.mw) + "×" + fmtInt(half.mh) + "mm na borda, para bater certo com a largura.";
+        }
+      } else {
+        totalPx = mixed.n * rx;
+        totalPy = mixed.nFull * ry + mixed.nHalf * half.ry;
+        totalWm = (mixed.n * mw) / 1000;
+        totalHm = (mixed.nFull * mh + mixed.nHalf * half.mh) / 1000;
+        numTiles = mixed.n * (mixed.nFull + mixed.nHalf);
+        weightTotal = mixed.n * (mixed.nFull * weightPerTile + mixed.nHalf * half.weight);
+        ampTotal = mixed.n * (mixed.nFull * ampPerTile + mixed.nHalf * half.amp);
+        if (mixed.nHalf) {
+          halfNoteText = "Cada coluna (× " + mixed.n + "): " + mixed.nFull + " tile" + (mixed.nFull === 1 ? "" : "s") + " " + fmtInt(mw) + "×" + fmtInt(mh) + "mm + " + mixed.nHalf + " meio-tile " + fmtInt(half.mw) + "×" + fmtInt(half.mh) + "mm na borda, para bater certo com a altura.";
+        }
+      }
+    } else {
+      totalPx = mx * rx; totalPy = my * ry;
+      totalWm = (mx * mw) / 1000; totalHm = (my * mh) / 1000;
+      numTiles = mx * my;
+      weightTotal = weightPerTile * numTiles;
+      ampTotal = ampPerTile * numTiles;
+    }
+
+    var area = totalWm * totalHm;
+    var pitchX = mw / rx, pitchY = mh / ry;
+    var pitchAvg = (pitchX + pitchY) / 2;
+
+    document.getElementById("l-out-px").innerHTML = fmtInt(totalPx) + "<small>px</small>";
+    document.getElementById("l-out-py").innerHTML = fmtInt(totalPy) + "<small>px</small>";
+    document.getElementById("l-out-size").innerHTML = fmt(totalWm,2) + " x " + fmt(totalHm,2) + "<small>m</small>";
+    document.getElementById("l-out-area").innerHTML = fmt(area,2) + "<small>m²</small>";
+    document.getElementById("l-out-pitch").innerHTML = fmt(pitchAvg,2) + "<small>mm</small>";
+    document.getElementById("l-out-ratio").textContent = describeRatio(totalPx, totalPy);
+    document.getElementById("l-out-nits").innerHTML = isNaN(nits) ? "—" : fmtInt(nits) + "<small>nits</small>";
+
+    var viewRange = viewingDistanceRange(totalWm, totalHm);
+    var dmin = viewRange.min, dmax = viewRange.max;
+    document.getElementById("l-out-dmin").innerHTML = fmt(dmin,1) + "<small>m</small>";
+    document.getElementById("l-out-dmax").innerHTML = fmt(dmax,1) + "<small>m</small>";
+    document.getElementById("l-viewrule-note").textContent = "Regra: " + viewRuleDescription();
+
+    var ampPhase = ampTotal / 3;
+    document.getElementById("l-out-tiles").textContent = fmtInt(numTiles);
+    document.getElementById("l-out-weight").innerHTML = fmt(weightTotal,1) + "<small>kg</small>";
+    document.getElementById("l-out-amp").innerHTML = fmt(ampTotal,2) + "<small>A</small>";
+    document.getElementById("l-out-ampphase").innerHTML = fmt(ampPhase,2) + "<small>A</small>";
+
+    var halfNoteEl = document.getElementById("l-halftile-note");
+    if (halfNoteText) {
+      halfNoteEl.textContent = halfNoteText;
+      halfNoteEl.style.display = "block";
+    } else {
+      halfNoteEl.style.display = "none";
+    }
+
+    var warnEl = document.getElementById("l-warn");
+    if (Math.abs(pitchX - pitchY) > 0.01) {
+      warnEl.style.display = "block";
+      warnEl.textContent = "Pitch horizontal (" + fmt(pitchX,2) + " mm) e vertical (" + fmt(pitchY,2) + " mm) não coincidem — confirma os valores do módulo.";
+    } else {
+      warnEl.style.display = "none";
+    }
+
+    document.getElementById("l-sum").textContent =
+      "Ecrã LED: " + mx + " x " + my + " tiles (" + mw + " x " + mh + " mm cada, " + fmtInt(numTiles) + " tiles)\n" +
+      (halfNoteText ? halfNoteText + "\n" : "") +
+      "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px  —  formato " + describeRatio(totalPx, totalPy) + "\n" +
+      "Tamanho físico: " + fmt(totalWm,2) + " x " + fmt(totalHm,2) + " m  (" + fmt(area,2) + " m²)\n" +
+      "Pixel pitch: " + fmt(pitchAvg,2) + " mm\n" +
+      (isNaN(nits) ? "" : "Brilho: " + fmtInt(nits) + " nits\n") +
+      "Distância de visualização: " + fmt(dmin,1) + " – " + fmt(dmax,1) + " m (mín. – máx.)\n" +
+      "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps: " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)";
+
+    calcLedSuggest();
+    renderProjectItems();
+    if (document.getElementById("l-addproject").checked) syncLedToProject();
+  }
+
+  var lSuggestRatioSel = document.getElementById("l-suggest-ratio");
+  var lSuggestCustomRatio = document.getElementById("l-suggest-custom-ratio");
+  lSuggestRatioSel.addEventListener("change", function () {
+    lSuggestCustomRatio.style.display = lSuggestRatioSel.value === "custom" ? "grid" : "none";
+    calcLed();
+  });
+
+  var lSuggestDiagIn = document.getElementById("l-suggest-diag");
+  var lSuggestDiagM = document.getElementById("l-suggest-diag-m");
+  lSuggestDiagIn.addEventListener("input", function () {
+    var inches = parseFloat(lSuggestDiagIn.value);
+    if (isFinite(inches) && inches > 0) lSuggestDiagM.value = (inches * 0.0254).toFixed(2);
+  });
+  lSuggestDiagM.addEventListener("input", function () {
+    var meters = parseFloat(lSuggestDiagM.value);
+    if (isFinite(meters) && meters > 0) lSuggestDiagIn.value = (meters / 0.0254).toFixed(0);
+  });
+
+  document.getElementById("l-suggest-list").addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-usegrid]");
+    if (!btn) return;
+    document.querySelectorAll("#l-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+    document.querySelector('#l-sizemode-seg .seg-btn[data-sizemode="tiles"]').classList.add("active");
+    lSizeMode = "tiles";
+    lTilesInputs.style.display = "block";
+    lMetersInputs.style.display = "none";
+    lMxInput.readOnly = false;
+    lMyInput.readOnly = false;
+    lMxInput.value = btn.dataset.mx;
+    lMyInput.value = btn.dataset.my;
+    calcLed();
+    lMxInput.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  function calcLedSuggest() {
+    var isCustom = lSuggestRatioSel.value === "custom";
+    var rw, rh;
+    if (isCustom) {
+      rw = val("l-suggest-rw");
+      rh = val("l-suggest-rh");
+    } else {
+      var parts = lSuggestRatioSel.value.split(":");
+      rw = parseFloat(parts[0]);
+      rh = parseFloat(parts[1]);
+    }
+    var r = rw / rh;
+    var diagIn = val("l-suggest-diag");
+    var mw = val("l-mw"), mh = val("l-mh");
+    var listEl = document.getElementById("l-suggest-list");
+
+    if (!(r > 0) || !(diagIn > 0) || !(mw > 0) || !(mh > 0)) {
+      listEl.innerHTML = '<div class="lm-empty">Preenche o formato, a diagonal e o tamanho do módulo.</div>';
+      return;
+    }
+
+    var diagM = diagIn * 0.0254;
+    var hIdeal = diagM / Math.sqrt(r * r + 1);
+    var wIdeal = hIdeal * r;
+    var mxIdeal = (wIdeal * 1000) / mw;
+    var mxFloor = Math.max(1, Math.floor(mxIdeal));
+
+    var candidates = [];
+    var seen = {};
+    for (var dx = -1; dx <= 2; dx++) {
+      var mx = mxFloor + dx;
+      if (mx < 1) continue;
+      var myExact = (mx * mw) / (mh * r);
+      var my = Math.max(1, Math.round(myExact));
+      var key = mx + "x" + my;
+      if (seen[key]) continue;
+      seen[key] = true;
+      var actualR = (mx * mw) / (my * mh);
+      candidates.push({ mx: mx, my: my, w: (mx * mw) / 1000, h: (my * mh) / 1000, delta: (actualR / r - 1) * 100 });
+    }
+    candidates.sort(function (a, b) { return Math.abs(a.delta) - Math.abs(b.delta); });
+    candidates = candidates.slice(0, 4);
+
+    if (!candidates.length) {
+      listEl.innerHTML = '<div class="lm-empty">Sem sugestões — confirma o tamanho do módulo e a diagonal.</div>';
+      return;
+    }
+    listEl.innerHTML = candidates.map(function (c, i) {
+      var deltaLabel = (c.delta >= 0 ? "+" : "") + fmt(c.delta, 1) + "%";
+      var bestBadge = i === 0 ? ' <span class="badge-match">melhor</span>' : "";
+      return '<div class="lm-item"><span><strong>' + c.mx + ' × ' + c.my + '</strong> tiles — ' + fmt(c.w,2) + ' x ' + fmt(c.h,2) + ' m — ' + describeRatio(c.w, c.h) + ' (' + deltaLabel + ')' + bestBadge + '</span>' +
+        '<button class="copy" data-usegrid data-mx="' + c.mx + '" data-my="' + c.my + '">Usar</button></div>';
+    }).join("");
+  }
+
+
+  function calcBlend() {
+    updateSourceHint(blendProjModelSel, PROJECTORS_DATA, "b-projmodel-source");
+    var wm = val("b-w"), hm = val("b-h");
+    var hpx = val("b-hpx"), vpx = val("b-vpx");
+    var nh, nv, oh;
+
+    if (bBlendMode === "auto") {
+      var aspect = parseFloat(document.getElementById("b-projratio").value);
+      nv = hm > 9 ? 2 : 1;
+      var hRow = hm / nv;
+      var widthPerProj = hRow * aspect;
+
+      if (!bOhManualOverride) {
+        nh = Math.max(1, Math.ceil(wm / widthPerProj));
+        var overlapM = nh > 1 ? (nh * widthPerProj - wm) / (nh - 1) : 0;
+        oh = Math.max(0, Math.round(overlapM * hpx / widthPerProj));
+        bNhInput.value = nh;
+        document.getElementById("b-oh").value = oh;
+      } else {
+        oh = val("b-oh");
+        var overlapM2 = oh * widthPerProj / hpx;
+        nh = Math.max(1, Math.ceil((wm - overlapM2) / (widthPerProj - overlapM2)));
+        bNhInput.value = nh;
+      }
+      bNvInput.value = nv;
+    } else {
+      nh = val("b-nh");
+      nv = val("b-nv");
+      oh = val("b-oh");
+    }
+    var ov = val("b-ov");
+
+    var overlapTotalH = oh * (nh - 1);
+    var overlapTotalV = ov * (nv - 1);
+    var totalPxH = nh * hpx - overlapTotalH;
+    var totalPxV = nv * vpx - overlapTotalV;
+
+    var pitchMmH = (wm * 1000) / totalPxH;
+    var pitchMmV = (hm * 1000) / totalPxV;
+    var pitchAvg = (pitchMmH + pitchMmV) / 2;
+
+    var pctTotal = overlapTotalH / totalPxH;
+    var pctProj = oh / hpx;
+    var area = wm * hm;
+
+    document.getElementById("b-out-res").innerHTML = fmtInt(totalPxH) + " x " + fmtInt(totalPxV) + "<small>px</small>";
+    document.getElementById("b-out-overlap").innerHTML = fmtInt(overlapTotalH) + "<small>px</small>";
+    document.getElementById("b-out-pcttotal").textContent = fmt(pctTotal * 100, 1) + "%";
+    document.getElementById("b-out-pctproj").textContent = fmt(pctProj * 100, 1) + "%";
+    document.getElementById("b-out-area").innerHTML = fmt(area, 2) + "<small>m²</small>";
+    document.getElementById("b-out-ratio").textContent = describeRatio(wm * 1000, hm * 1000);
+    document.getElementById("b-out-pitch").innerHTML = fmt(pitchAvg, 2) + "<small>mm</small>";
+
+    var warnMsgs = [];
+    if (Math.abs(pitchMmH - pitchMmV) / pitchAvg > 0.05) {
+      warnMsgs.push("A proporção física (" + fmt(wm,2) + " x " + fmt(hm,2) + " m) não bate certo com a resolução resultante — a imagem pode ficar esticada. Confirma largura/altura ou o overlap vertical.");
+    }
+    if (nh > 1 && oh < 300) {
+      warnMsgs.push("Overlap horizontal de " + fmtInt(oh) + "px está abaixo dos 300px recomendados — não aconselhável, mas possível.");
+    }
+    if (nv > 1 && ov < 300) {
+      warnMsgs.push("Overlap vertical de " + fmtInt(ov) + "px está abaixo dos 300px recomendados — não aconselhável, mas possível.");
+    }
+    var warnEl = document.getElementById("b-warn");
+    if (warnMsgs.length) {
+      warnEl.style.display = "block";
+      warnEl.textContent = warnMsgs.join(" ");
+    } else {
+      warnEl.style.display = "none";
+    }
+
+    var lumensEach = val("b-lumens");
+    var lumensEach80 = lumensEach * 0.8;
+    var nProj = nh * nv;
+    var lumensTotal80 = lumensEach80 * nProj;
+    var luxTotal = lumensTotal80 / area;
+    document.getElementById("b-out-nproj").textContent = fmtInt(nProj);
+    document.getElementById("b-out-lumens80").innerHTML = fmtInt(lumensEach80) + "<small>lm/proj.</small>";
+    document.getElementById("b-out-lux").innerHTML = fmtInt(luxTotal) + "<small>lux</small>";
+
+    document.getElementById("b-sum").textContent =
+      "Blending: " + nh + " x " + nv + " projetores (" + hpx + "x" + vpx + " px cada)\n" +
+      "Overlap: " + oh + " px horizontal, " + ov + " px vertical\n" +
+      "Resolução combinada: " + fmtInt(totalPxH) + " x " + fmtInt(totalPxV) + " px  —  overlap " + fmt(pctTotal*100,1) + "% do total (" + fmt(pctProj*100,1) + "% por projetor)\n" +
+      "Ecrã físico: " + fmt(wm,2) + " x " + fmt(hm,2) + " m  (" + fmt(area,2) + " m²)  —  formato " + describeRatio(wm*1000, hm*1000) + "\n" +
+      "Pixel size: " + fmt(pitchAvg,2) + " mm\n" +
+      "Luminosidade: " + nProj + " projetores x " + fmtInt(lumensEach) + " lm (100%) = " + fmtInt(lumensEach*nProj) + " lm  —  a 80%: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(luxTotal) + " lux no ecrã";
+
+    renderProjectItems();
+    if (document.getElementById("b-addproject").checked) syncBlendToProject();
+  }
+
+  function renderLenses(list) {
+    var lensTbody = document.querySelector("#lens-table tbody");
+    lensTbody.innerHTML = "";
+    list.forEach(function (l) {
+      var tr = document.createElement("tr");
+      tr.dataset.min = l.min;
+      tr.dataset.max = l.max;
+      tr.dataset.marca = l.marca;
+      var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
+      tr.innerHTML = "<td>" + l.marca + "</td><td>" + l.modelo + "</td><td class=\"ratio\">" + ratioText + "</td><td class=\"match-cell\"></td><td>" + srcLinkHtml(l.fonte, "Ver") + "</td>";
+      lensTbody.appendChild(tr);
+    });
+  }
+
+  var lnLensModelSel = document.getElementById("ln-lensmodel");
+  document.getElementById("ln-brand").addEventListener("change", function () {
+    populateLensModelSelect(lnLensModelSel, this.value);
+    lnLensModelSel.value = "custom";
+  });
+
+  function calcLentes() {
+    var dist = val("ln-dist"), w = val("ln-w");
+    var ratio = dist / w;
+    var brand = document.getElementById("ln-brand").value;
+    document.getElementById("ln-out-ratio").innerHTML = fmt(ratio, 2) + "<small>:1</small>";
+
+    var lensDistWrap = document.getElementById("ln-out-lensdist-wrap");
+    if (lnLensModelSel.value !== "custom") {
+      var lnLens = LENTES_DATA[parseInt(lnLensModelSel.value, 10)];
+      lensDistWrap.style.display = "block";
+      document.getElementById("ln-out-lensdist").innerHTML = fmt(lnLens.min * w, 2) + "–" + fmt(lnLens.max * w, 2) + "<small>m</small>";
+    } else {
+      lensDistWrap.style.display = "none";
+    }
+
+    document.querySelectorAll("#lens-table tbody tr").forEach(function (tr) {
+      var min = parseFloat(tr.dataset.min), max = parseFloat(tr.dataset.max);
+      var cell = tr.querySelector(".match-cell");
+      var brandOk = !brand || tr.dataset.marca === brand;
+      tr.style.display = brandOk ? "" : "none";
+      if (brandOk && ratio >= min && ratio <= max) {
+        tr.classList.add("match");
+        cell.innerHTML = '<span class="badge-match">✓ compatível</span>';
+      } else {
+        tr.classList.remove("match");
+        cell.innerHTML = "";
+      }
+    });
+  }
+
+  document.querySelectorAll('.panel[data-mode="lentes"] input, .panel[data-mode="lentes"] select').forEach(function (el) {
+    el.addEventListener("input", calcLentes);
+    el.addEventListener("change", calcLentes);
+  });
+
+  document.querySelectorAll('.panel[data-mode="blend"] input').forEach(function (el) {
+    el.addEventListener("input", calcBlend);
+  });
+  document.getElementById("b-projratio").addEventListener("change", calcBlend);
+
+  document.querySelectorAll('.panel[data-mode="projecao"] input, .panel[data-mode="projecao"] select').forEach(function (el) {
+    el.addEventListener("input", calcProjecao);
+  });
+  document.querySelectorAll('.panel[data-mode="visualizacao"] input, .panel[data-mode="visualizacao"] select').forEach(function (el) {
+    el.addEventListener("input", calcVisualizacao);
+  });
+  document.querySelectorAll('.panel[data-mode="led"] input').forEach(function (el) {
+    el.addEventListener("input", calcLed);
+  });
+
+  var selectedSwitcherKeys = new Set();
+  var selectedLedProcKeys = new Set();
+  function itemKey(marca, modelo) { return marca + "|" + modelo; }
+
+  var projLedModelSel = document.getElementById("proj-led-model");
+  var projProjModelSel = document.getElementById("proj-proj-model");
+  var projProjLensModelSel = document.getElementById("proj-proj-lensmodel");
+  var projProjTminInput = document.getElementById("proj-proj-tmin");
+  var projProjTmaxInput = document.getElementById("proj-proj-tmax");
+  function projProjSelectedBrand() {
+    var projIdx = parseInt(projProjModelSel.value, 10);
+    var selP = PROJECTORS_DATA[isNaN(projIdx) ? -1 : projIdx];
+    return selP ? selP.modelo.split(" ")[0] : null;
+  }
+  projProjLensModelSel.addEventListener("change", function () {
+    if (projProjLensModelSel.value === "custom") { calcProjeto(); return; }
+    var l = LENTES_DATA[parseInt(projProjLensModelSel.value, 10)];
+    projProjTminInput.value = l.min;
+    projProjTmaxInput.value = l.max;
+    calcProjeto();
+  });
+  [projProjTminInput, projProjTmaxInput].forEach(function (el) {
+    el.addEventListener("input", function () { projProjLensModelSel.value = "custom"; });
+  });
+  var projProjResMode = "enhanced";
+  document.querySelectorAll("#proj-proj-resmode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#proj-proj-resmode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      projProjResMode = btn.dataset.resmode;
+      calcProjeto();
+    });
+  });
+  projProjModelSel.addEventListener("change", function () {
+    projProjResMode = "enhanced";
+    document.querySelectorAll("#proj-proj-resmode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.resmode === "enhanced"); });
+    populateLensModelSelect(projProjLensModelSel, projProjSelectedBrand());
+    projProjLensModelSel.value = "custom";
+  });
+  var projLedSizeMode = "meters";
+  var projLedTilesInputs = document.getElementById("proj-led-tiles-inputs");
+  var projLedMetersInputs = document.getElementById("proj-led-meters-inputs");
+  document.querySelectorAll("#proj-led-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#proj-led-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      projLedSizeMode = btn.dataset.sizemode;
+      var isTiles = projLedSizeMode === "tiles";
+      projLedTilesInputs.style.display = isTiles ? "block" : "none";
+      projLedMetersInputs.style.display = isTiles ? "none" : "block";
+      calcProjeto();
+    });
+  });
+  function setupResPreset(selectId, customWrapId) {
+    var sel = document.getElementById(selectId);
+    var customWrap = document.getElementById(customWrapId);
+    sel.addEventListener("change", function () {
+      customWrap.style.display = sel.value === "custom" ? "grid" : "none";
+      calcProjeto();
+    });
+  }
+  setupResPreset("proj-dsm-res", "proj-dsm-custom-res");
+  setupResPreset("proj-delay-res", "proj-delay-custom-res");
+  setupResPreset("proj-blend-res", "proj-blend-custom-res");
+
+  function readResPreset(selectId, wId, hId) {
+    var sel = document.getElementById(selectId);
+    if (sel.value === "custom") {
+      return [val(wId), val(hId)];
+    }
+    var parts = sel.value.split("x");
+    return [parseInt(parts[0], 10), parseInt(parts[1], 10)];
+  }
+
+  var projType = "led";
+  var projLastRes = null;
+  var projLedFields = document.getElementById("proj-led-fields");
+  var projProjecaoFields = document.getElementById("proj-projecao-fields");
+  var projReportLed = document.getElementById("proj-report-led");
+  var projReportProjecao = document.getElementById("proj-report-projecao");
+  document.querySelectorAll("#proj-type-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#proj-type-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      projType = btn.dataset.projtype;
+      var isProjecao = projType === "projecao";
+      projLedFields.style.display = isProjecao ? "none" : "block";
+      projProjecaoFields.style.display = isProjecao ? "block" : "none";
+      projReportLed.style.display = isProjecao ? "none" : "block";
+      projReportProjecao.style.display = isProjecao ? "block" : "none";
+      calcProjeto();
+    });
+  });
+
+  var projBlendMode = "single";
+  var projBlendProjRatioField = document.getElementById("proj-blend-projratio-field");
+  document.querySelectorAll("#proj-blendmode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#proj-blendmode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      projBlendMode = btn.dataset.blendmode;
+      var isBlend = projBlendMode === "blend";
+      projBlendProjRatioField.style.display = isBlend ? "block" : "none";
+      document.getElementById("proj-throwmode-ratio-inputs").style.display = isBlend ? "none" : "block";
+      document.getElementById("proj-throwmode-ratio-divider").style.display = isBlend ? "none" : "flex";
+      document.getElementById("proj-out-lensdist-wrap").style.display = isBlend ? "none" : "block";
+      if (isBlend) {
+        // Blend só faz sentido com largura/altura livres — um ecrã no mesmo
+        // formato do projetor cabe sempre num só projetor, seja qual for o
+        // diagonal, por isso a diagonal não serve para disparar blend.
+        projSizeMode = "height";
+        document.querySelectorAll("#proj-sizemode-seg .seg-btn").forEach(function (b) {
+          b.classList.toggle("active", b.dataset.sizemode === "height");
+        });
+        projRatioField.style.display = "none";
+        projDiagField.style.display = "none";
+        projMetersField.style.display = "grid";
+        document.getElementById("proj-sizemode-seg-field").style.display = "none";
+        document.getElementById("proj-blend-sizemode-hint").style.display = "block";
+      } else {
+        document.getElementById("proj-sizemode-seg-field").style.display = "block";
+        document.getElementById("proj-blend-sizemode-hint").style.display = "none";
+      }
+      calcProjeto();
+    });
+  });
+
+  var projSizeMode = "diag";
+  var projRatioField = document.getElementById("proj-ratio-field");
+  var projDiagField = document.getElementById("proj-diag-field");
+  var projMetersField = document.getElementById("proj-meters-field");
+  document.querySelectorAll("#proj-sizemode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#proj-sizemode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      projSizeMode = btn.dataset.sizemode;
+      var isMeters = projSizeMode === "height";
+      projRatioField.style.display = isMeters ? "none" : "block";
+      projDiagField.style.display = isMeters ? "none" : "block";
+      projMetersField.style.display = isMeters ? "grid" : "none";
+      calcProjeto();
+    });
+  });
+
+
+  function calcProjeto() {
+    var nome = document.getElementById("proj-nome").value.trim() || "Projeto sem nome";
+    var dataInicio = document.getElementById("proj-data-inicio").value;
+    var dataFim = document.getElementById("proj-data-fim").value;
+    var datesLine = "";
+    if (dataInicio || dataFim) {
+      datesLine = "Datas: " + (dataInicio ? fmtDatePT(dataInicio) : "?") + " – " + (dataFim ? fmtDatePT(dataFim) : "?") + "\n";
+    }
+    var canvasPixels = 0, canvasLabel = "Ecrã", mainSumText = "";
+
+    if (projType === "led") {
+      var useZones = document.getElementById("proj-led-usezones").checked;
+      document.getElementById("proj-led-single-fields").style.display = useZones ? "none" : "block";
+      var zonesHint = document.getElementById("proj-led-zones-hint");
+
+      if (useZones) {
+        if (!lzLastTotals || !lzLastTotals.zones.length) {
+          zonesHint.style.display = "block";
+          zonesHint.textContent = "Ainda não há zonas — adiciona pelo menos uma na aba Ecrã Complexo.";
+          document.getElementById("proj-zones-breakdown-wrap").style.display = "none";
+          projLastRes = null;
+          return;
+        }
+        zonesHint.style.display = "block";
+        zonesHint.textContent = lzLastTotals.zones.length + " zona(s) somadas: " + lzLastTotals.zones.map(function (z) { return z.name; }).join(", ") + ".";
+
+        document.getElementById("proj-zones-breakdown-wrap").style.display = "block";
+        document.getElementById("proj-zones-breakdown").innerHTML = lzLastTotals.zones.map(function (z) {
+          return '<div class="lm-item"><span><strong>' + z.name + '</strong> — ' + z.model + ', ' + z.mx + '×' + z.my + ' tiles (' + fmtInt(z.numTiles) + ') — ' + fmt(z.w,2) + ' x ' + fmt(z.h,2) + ' m (' + fmt(z.area,2) + ' m²)</span></div>';
+        }).join("");
+
+        var numTiles = lzLastTotals.totalTiles;
+        var totalWeight = lzLastTotals.totalWeight, totalAmp = lzLastTotals.totalAmp;
+        var ampPhaseZ = totalAmp / 3;
+
+        document.getElementById("proj-out-tiles").textContent = fmtInt(numTiles) + " (várias zonas)";
+        document.getElementById("proj-out-res").innerHTML = fmtInt(lzLastTotals.totalPixels) + "<small>px totais</small>";
+        document.getElementById("proj-out-size").innerHTML = "várias zonas<small> — ver detalhe na aba Ecrã Complexo</small>";
+        document.getElementById("proj-out-pitch").innerHTML = "vário<small> (zonas com pitches diferentes)</small>";
+        document.getElementById("proj-out-weight").innerHTML = fmt(totalWeight, 1) + "<small>kg</small>";
+        document.getElementById("proj-out-amp").innerHTML = fmt(totalAmp, 2) + "<small>A</small> (" + fmt(ampPhaseZ, 2) + "<small>A/fase</small>)";
+        document.getElementById("proj-out-area").innerHTML = fmt(lzLastTotals.totalArea, 2) + "<small>m²</small>";
+        document.getElementById("proj-out-boxes-wrap").style.display = "none";
+
+        canvasPixels = lzLastTotals.totalPixels;
+        canvasLabel = "Ecrã LED (múltiplas zonas)";
+        projLastRes = lzLastTotals.pixelMap ? { x: lzLastTotals.pixelMap.canvasW, y: lzLastTotals.pixelMap.canvasH, label: "Projeto — Ecrã LED (múltiplas zonas)" } : null;
+
+        mainSumText =
+          "PROJETO: " + nome + "\n" +
+          datesLine +
+          "Tipo: Ecrã LED (múltiplas zonas)\n" +
+          lzLastTotals.zones.map(function (z) {
+            return "  " + z.name + ": " + z.model + " — " + z.mx + "x" + z.my + " tiles, " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²)";
+          }).join("\n") + "\n" +
+          "Nº de tiles total: " + fmtInt(numTiles) + "\n" +
+          "Total de píxeis: " + fmtInt(lzLastTotals.totalPixels) + " px\n" +
+          "Peso total: " + fmt(totalWeight, 1) + " kg\n" +
+          "Amp total: " + fmt(totalAmp, 2) + " A  —  " + fmt(ampPhaseZ, 2) + " A por fase (trifásica)\n" +
+          "Área total (uso interno): " + fmt(lzLastTotals.totalArea, 2) + " m²";
+      } else {
+      zonesHint.style.display = "none";
+      document.getElementById("proj-zones-breakdown-wrap").style.display = "none";
+      if (!LED_TILES_DATA.length) return;
+      updateSourceHint(projLedModelSel, LED_TILES_DATA, "proj-led-model-source", true);
+      var tileIdx = parseInt(projLedModelSel.value, 10);
+      var tile = LED_TILES_DATA[isNaN(tileIdx) ? 0 : tileIdx];
+      var mx, my;
+      if (projLedSizeMode === "tiles") {
+        mx = val("proj-led-mx");
+        my = val("proj-led-my");
+      } else {
+        var targetW = val("proj-led-w"), targetH = val("proj-led-h");
+        mx = Math.max(1, Math.ceil((targetW * 1000) / tile.mw));
+        my = Math.max(1, Math.ceil((targetH * 1000) / tile.mh));
+      }
+      var totalPx = mx * tile.rx, totalPy = my * tile.ry;
+      var totalWm = (mx * tile.mw) / 1000, totalHm = (my * tile.mh) / 1000;
+      var pitchAvg = ((tile.mw / tile.rx) + (tile.mh / tile.ry)) / 2;
+      var numTiles = mx * my;
+      var weightTotal = tile.weight == null ? null : tile.weight * numTiles;
+      var ampTotal = tile.amp == null ? null : tile.amp * numTiles;
+      var ampPhase = ampTotal == null ? null : ampTotal / 3;
+
+      document.getElementById("proj-out-tiles").textContent = mx + " x " + my + " (" + fmtInt(numTiles) + ")";
+      document.getElementById("proj-out-res").innerHTML = fmtInt(totalPx) + " x " + fmtInt(totalPy) + "<small>px</small>";
+      document.getElementById("proj-out-size").innerHTML = fmt(totalWm, 2) + " x " + fmt(totalHm, 2) + "<small>m</small>";
+      document.getElementById("proj-out-pitch").innerHTML = fmt(pitchAvg, 2) + "<small>mm</small>";
+      document.getElementById("proj-out-weight").innerHTML = weightTotal == null ? "—" : fmt(weightTotal, 1) + "<small>kg</small>";
+      document.getElementById("proj-out-amp").innerHTML = ampTotal == null ? "—" : fmt(ampTotal, 2) + "<small>A</small> (" + fmt(ampPhase, 2) + "<small>A/fase</small>)";
+      var areaTotal = totalWm * totalHm;
+      document.getElementById("proj-out-area").innerHTML = fmt(areaTotal, 2) + "<small>m²</small>";
+
+      var boxesWrap = document.getElementById("proj-out-boxes-wrap");
+      var boxesLine = "";
+      if (tile.tilesPerBox) {
+        var numBoxes = Math.ceil(numTiles / tile.tilesPerBox);
+        boxesWrap.style.display = "block";
+        document.getElementById("proj-out-boxes").textContent = fmtInt(numBoxes) + " (" + tile.tilesPerBox + " tiles/caixa)";
+        boxesLine = "Nº de caixas: " + fmtInt(numBoxes) + " (" + tile.tilesPerBox + " tiles/caixa)\n";
+      } else {
+        boxesWrap.style.display = "none";
+      }
+
+      canvasPixels = totalPx * totalPy;
+      canvasLabel = "Ecrã LED";
+      projLastRes = { x: totalPx, y: totalPy, label: "Projeto — Ecrã LED" };
+
+      mainSumText =
+        "PROJETO: " + nome + "\n" +
+        datesLine +
+        "Tipo: Ecrã LED\n" +
+        "Modelo de tile: " + tile.modelo + "\n" +
+        "Tiles: " + mx + " x " + my + " (" + fmtInt(numTiles) + " no total)\n" +
+        boxesLine +
+        "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px\n" +
+        "Tamanho real: " + fmt(totalWm, 2) + " x " + fmt(totalHm, 2) + " m\n" +
+        "Pixel pitch: " + fmt(pitchAvg, 2) + " mm\n" +
+        "Peso total: " + (weightTotal == null ? "não disponível" : fmt(weightTotal, 1) + " kg") + "\n" +
+        "Amp total: " + (ampTotal == null ? "não disponível" : fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)") + "\n" +
+        "Área total (uso interno): " + fmt(areaTotal, 2) + " m²";
+      }
+    } else {
+      if (!PROJECTORS_DATA.length) return;
+      updateSourceHint(projProjModelSel, PROJECTORS_DATA, "proj-proj-model-source", true);
+      var projIdx = parseInt(projProjModelSel.value, 10);
+      var proj = PROJECTORS_DATA[isNaN(projIdx) ? 0 : projIdx];
+      var brand = proj.modelo.split(" ")[0];
+      var isBlend = projBlendMode === "blend";
+      document.getElementById("proj-proj-resmode-field").style.display = (proj.resolucaoNativa && !isBlend) ? "block" : "none";
+
+      var w, h, screenLabel;
+      if (projSizeMode === "height") {
+        w = val("proj-proj-w");
+        h = val("proj-proj-h");
+        screenLabel = fmt(w, 2) + " x " + fmt(h, 2) + " m (" + describeRatio(w, h) + ")";
+      } else {
+        var parts = document.getElementById("proj-proj-ratio").value.split(":");
+        var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+        var r = rw / rh;
+        var diagIn = val("proj-proj-diag");
+        var diagM = diagIn * 0.0254;
+        h = diagM / Math.sqrt(r * r + 1);
+        w = h * r;
+        screenLabel = fmtInt(diagIn) + '" (' + rw + ":" + rh + ") — " + fmt(w, 2) + " x " + fmt(h, 2) + " m";
+      }
+      var area = w * h;
+
+      var nh = 1, nv = 1, widthPerProj = w, overlapM = 0, blendLine = "", blendResPx = null, totalPxLine = "";
+      if (isBlend) {
+        var blendRes = readResPreset("proj-blend-res", "proj-blend-w", "proj-blend-h");
+        blendResPx = { rx: blendRes[0], ry: blendRes[1] };
+        var blendAspect = blendResPx.rx / blendResPx.ry;
+        nv = h > 9 ? 2 : 1;
+        var hRow = h / nv;
+        widthPerProj = hRow * blendAspect;
+        nh = Math.max(1, Math.ceil(w / widthPerProj));
+        overlapM = nh > 1 ? (nh * widthPerProj - w) / (nh - 1) : 0;
+
+        // Overlapping pixels are shown by two adjacent projectors but only
+        // exist once on the final canvas — same accounting as the
+        // Blending tab: subtract the overlap (converted to px via this
+        // resolution's density) from the naive nh×rx sum.
+        var pxPerMeterH = blendResPx.rx / widthPerProj;
+        var overlapPx = nh > 1 ? Math.round(overlapM * pxPerMeterH) : 0;
+        var totalPxW = nh * blendResPx.rx - overlapPx * (nh - 1);
+        var totalPxH = nv * blendResPx.ry;
+        var totalPxCount = totalPxW * totalPxH;
+        document.getElementById("proj-out-nproj-wrap").style.display = "block";
+        document.getElementById("proj-out-overlap-wrap").style.display = "block";
+        document.getElementById("proj-out-totalpx-wrap").style.display = "block";
+        document.getElementById("proj-out-nproj").textContent = nh + " x " + nv + " = " + fmtInt(nh * nv);
+        document.getElementById("proj-out-overlap").innerHTML = fmt(overlapM * 100, 1) + "<small>cm</small> (" + fmtInt(overlapPx) + "<small>px</small>)";
+        document.getElementById("proj-out-totalpx").innerHTML = fmtInt(totalPxW) + "×" + fmtInt(totalPxH) + " — " + fmtInt(totalPxCount) + "<small>px (" + fmt(totalPxCount / 1e6, 1) + " MP)</small>";
+
+        blendLine = "Nº de projetores: " + nh + " x " + nv + " = " + fmtInt(nh * nv) + "\n" +
+          "Resolução de cada projetor: " + blendResPx.rx + "×" + blendResPx.ry + "\n" +
+          "Overlap por junção: " + fmt(overlapM * 100, 1) + " cm (" + fmtInt(overlapPx) + " px)\n";
+        totalPxLine = "Total de píxeis no ecrã: " + fmtInt(totalPxW) + "×" + fmtInt(totalPxH) + " = " + fmtInt(totalPxCount) + " px (" + fmt(totalPxCount / 1e6, 1) + " MP)\n";
+      } else {
+        document.getElementById("proj-out-nproj-wrap").style.display = "none";
+        document.getElementById("proj-out-overlap-wrap").style.display = "none";
+        document.getElementById("proj-out-totalpx-wrap").style.display = "none";
+      }
+
+      var lumens = proj.lumens;
+      var lumens80 = lumens * 0.8;
+      var nProj = isBlend ? nh * nv : 1;
+      var lumensTotal80 = lumens80 * nProj;
+      var lux = lumensTotal80 / area;
+
+      var dist = val("proj-proj-dist");
+      var ratioNeeded = dist / widthPerProj;
+      var matches = LENTES_DATA.filter(function (l) {
+        var brandOk = l.marca === brand || l.marca.indexOf(brand + " (") === 0;
+        return brandOk && ratioNeeded >= l.min && ratioNeeded <= l.max;
+      }).sort(function (a, b) {
+        var da = Math.abs(ratioNeeded - (a.min + a.max) / 2);
+        var db = Math.abs(ratioNeeded - (b.min + b.max) / 2);
+        return da - db;
+      });
+      var distLine = "Distância disponível" + (isBlend ? " (por projetor)" : "") + ": " + fmt(dist, 2) + " m\n";
+      var ratioLine = "Throw ratio necessário" + (isBlend ? " (por projetor)" : "") + ": " + fmt(ratioNeeded, 2) + ":1\n";
+
+      var lensDistHtml = "—", lensLine = "", lensRatioLine = "", lensDistLine = "";
+      var projProjLensChosen = !isBlend && projProjLensModelSel.value !== "custom";
+      document.getElementById("proj-lens-ratio-detail").style.display = projProjLensChosen ? "grid" : "none";
+      if (projProjLensChosen) {
+        var tmin = val("proj-proj-tmin"), tmax = val("proj-proj-tmax");
+        var lensDmin = tmin * w, lensDmax = tmax * w;
+        lensDistHtml = fmt(lensDmin, 2) + "–" + fmt(lensDmax, 2) + "<small>m</small>";
+        var projProjLens = LENTES_DATA[parseInt(projProjLensModelSel.value, 10)];
+        if (projProjLens) lensLine = "Lente: " + projProjLens.marca + " " + projProjLens.modelo + "\n";
+        lensRatioLine = "Throw ratio (dessa lente): " + fmt(tmin, 2) + " – " + fmt(tmax, 2) + "\n";
+        lensDistLine = "Distância de projeção (com essa lente): " + fmt(lensDmin, 2) + " – " + fmt(lensDmax, 2) + " m\n";
+      }
+      document.getElementById("proj-out-lensdist").innerHTML = lensDistHtml;
+      document.getElementById("proj-out-lensdist-wrap").style.display = projProjLensChosen ? "block" : "none";
+
+      var projRes = effectiveProjRes(proj, projProjResMode);
+      document.getElementById("proj-out-screensize").innerHTML = fmt(w, 2) + " x " + fmt(h, 2) + "<small>m</small>";
+      var projResLabel = document.getElementById("proj-out-projres-label");
+      var projResEl = document.getElementById("proj-out-projres");
+      if (isBlend) {
+        projResLabel.textContent = "Resolução por projetor (configurada)";
+        projResEl.textContent = fmtRes(blendResPx);
+      } else if (!projRes) {
+        projResLabel.textContent = "Resolução do projetor";
+        projResEl.textContent = "—";
+      } else {
+        projResLabel.textContent = "Resolução do projetor";
+        projResEl.textContent = fmtRes(projRes) + (proj.resolucaoNativa ? (projProjResMode === "native" ? " (nativo)" : " (declarado — pixel-shift)") : "");
+      }
+      document.getElementById("proj-out-ratio").innerHTML = fmt(ratioNeeded, 2) + "<small>:1</small>";
+      document.getElementById("proj-out-lumens").innerHTML = fmtInt(lumensTotal80) + "<small>lm</small>";
+      document.getElementById("proj-out-lux").innerHTML = fmtInt(lux) + "<small>lux</small>";
+
+      var lensListEl = document.getElementById("proj-lensmatch-list");
+      if (!matches.length) {
+        lensListEl.innerHTML = '<div class="lm-empty">Nenhuma lente ' + brand + ' na base cobre este throw ratio.</div>';
+      } else {
+        lensListEl.innerHTML = matches.map(function (l, i) {
+          var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
+          var bestBadge = i === 0 ? ' <span class="badge-match">melhor</span>' : "";
+          return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + bestBadge + '</span><span>' + ratioText + '</span></div>';
+        }).join("");
+      }
+
+      canvasLabel = isBlend ? "Ecrã (blend)" : "Ecrã (projeção)";
+      canvasPixels = isBlend ? totalPxCount : (projRes ? projRes.rx * projRes.ry : 0);
+      projLastRes = isBlend
+        ? { x: totalPxW, y: totalPxH, label: "Projeto — Ecrã (blend)" }
+        : (projRes ? { x: projRes.rx, y: projRes.ry, label: "Projeto — Ecrã (projeção)" } : null);
+
+      mainSumText =
+        "PROJETO: " + nome + "\n" +
+        datesLine +
+        "Tipo: Projeção" + (isBlend ? " (blend)" : "") + "\n" +
+        "Projetor: " + proj.modelo + " (" + fmtInt(lumens) + " lm cada)\n" +
+        (isBlend ? "" : "Resolução: " + projResEl.textContent + (proj.resolucaoNota ? " (" + proj.resolucaoNota + ")" : "") + "\n") +
+        "Ecrã: " + screenLabel + "\n" +
+        blendLine +
+        totalPxLine +
+        lensLine +
+        lensRatioLine +
+        lensDistLine +
+        distLine +
+        ratioLine +
+        "Lentes compatíveis a essa distância" + (isBlend ? " (por projetor)" : "") + ": " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") + (matches.length > 1 ? " — melhor: " + matches[0].marca + " " + matches[0].modelo : "") : "nenhuma na base") + "\n" +
+        "Luminosidade útil: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(lux) + " lux no ecrã";
+    }
+
+    document.getElementById("proj-out-pxled-label").textContent = canvasLabel;
+    document.getElementById("proj-out-pxled").innerHTML = canvasPixels ? fmtInt(canvasPixels) + "<small>px</small>" : "—";
+
+    var dsmCount = val("proj-dsm-count");
+    var dsmRes = readResPreset("proj-dsm-res", "proj-dsm-w", "proj-dsm-h");
+    var dsmPixels = dsmCount * dsmRes[0] * dsmRes[1];
+    var delayCount = val("proj-delay-count");
+    var delayRes = readResPreset("proj-delay-res", "proj-delay-w", "proj-delay-h");
+    var delayPixels = delayCount * delayRes[0] * delayRes[1];
+    var totalPixels = canvasPixels + dsmPixels + delayPixels;
+    var refresh = val("proj-refresh");
+    var colorDepth = document.getElementById("proj-colordepth").value;
+    var bpp = BITS_PER_PIXEL[colorDepth];
+    var totalMP = totalPixels / 1e6;
+
+    document.getElementById("proj-out-pxtotal").innerHTML = fmtInt(totalPixels) + "<small>px</small> (" + fmt(totalMP, 2) + "<small>MP</small>)";
+
+    var switcherOk = (PROCESSORS_DATA.switchers || []).map(function (s) {
+      var linked = s.unitsOwned >= 2 && s.maxMPSwitcherLinked;
+      var capSwitcher = (linked ? s.maxMPSwitcherLinked : s.maxMPSwitcher) || 0;
+      var capPgm = (linked ? s.maxMPPgmOnlyLinked : s.maxMPPgmOnly) || capSwitcher;
+      var fits = totalMP <= capPgm;
+      var mode = totalMP <= capSwitcher ? "PGM + Preview" : "só PGM (sem Preview)";
+      if (linked) mode += ", " + s.unitsOwned + " unidades ligadas";
+      return { s: s, fits: fits, mode: mode, cap: capPgm };
+    }).filter(function (x) { return x.fits; }).sort(function (a, b) { return a.cap - b.cap; });
+
+    switcherOk.forEach(function (x) { x.key = itemKey(x.s.marca, x.s.modelo); x.pct = fmt((totalMP / x.cap) * 100, 0); });
+
+    var switcherListEl = document.getElementById("proj-switcher-list");
+    if (!switcherOk.length) {
+      switcherListEl.innerHTML = '<div class="lm-empty">Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP).</div>';
+    } else {
+      switcherListEl.innerHTML = switcherOk.map(function (x) {
+        var checked = selectedSwitcherKeys.has(x.key) ? " checked" : "";
+        return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%</span></span></label>';
+      }).join("");
+      switcherListEl.querySelectorAll(".lm-check").forEach(function (cb) {
+        cb.addEventListener("change", function () {
+          if (cb.checked) selectedSwitcherKeys.add(cb.dataset.key); else selectedSwitcherKeys.delete(cb.dataset.key);
+          calcProjeto();
+        });
+      });
+    }
+
+    var ledProcWrap = document.getElementById("proj-ledproc-wrap");
+    var procSumText = "";
+    if (projType === "led") {
+      ledProcWrap.style.display = "block";
+      var portCapacity = Math.floor(USABLE_BPS / (bpp * refresh));
+      var ledProcOk = (PROCESSORS_DATA.ledProcessors || []).map(function (p) {
+        var unitCapacity = portCapacity * p.ports;
+        if (p.maxPixelsHardCap) unitCapacity = Math.min(unitCapacity, p.maxPixelsHardCap);
+        var numUnits = Math.ceil(canvasPixels / unitCapacity);
+        return { p: p, unitCapacity: unitCapacity, numUnits: numUnits };
+      }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports; });
+
+      ledProcOk.forEach(function (x) { x.key = itemKey(x.p.marca, x.p.modelo); x.pct = fmt((canvasPixels / (x.numUnits * x.unitCapacity)) * 100, 0); });
+
+      var ledProcListEl = document.getElementById("proj-ledproc-list");
+      ledProcListEl.innerHTML = ledProcOk.map(function (x) {
+        var checked = selectedLedProcKeys.has(x.key) ? " checked" : "";
+        return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.unitCapacity) + ' px/unidade) — ' + x.pct + '%</span></span></label>';
+      }).join("");
+      ledProcListEl.querySelectorAll(".lm-check").forEach(function (cb) {
+        cb.addEventListener("change", function () {
+          if (cb.checked) selectedLedProcKeys.add(cb.dataset.key); else selectedLedProcKeys.delete(cb.dataset.key);
+          calcProjeto();
+        });
+      });
+
+      var ledProcChosen = ledProcOk.filter(function (x) { return selectedLedProcKeys.has(x.key); });
+      var ledProcForReport = ledProcChosen.length ? ledProcChosen : ledProcOk;
+      procSumText = "\nProcesso de LED: " + ledProcForReport.map(function (x) { return fmtInt(x.numUnits) + "× " + x.p.marca + " " + x.p.modelo + " (" + x.pct + "%)"; }).join(", ");
+    } else {
+      ledProcWrap.style.display = "none";
+    }
+
+    var switcherChosen = switcherOk.filter(function (x) { return selectedSwitcherKeys.has(x.key); });
+    var switcherForReport = switcherChosen.length ? switcherChosen : switcherOk;
+
+    var dsmLine = dsmCount > 0 ? "DSM: " + fmtInt(dsmCount) + "× " + fmtInt(dsmRes[0]) + "×" + fmtInt(dsmRes[1]) + " (" + fmtInt(dsmPixels) + " px)\n" : "";
+    var delayLine = delayCount > 0 ? "Delay: " + fmtInt(delayCount) + "× " + fmtInt(delayRes[0]) + "×" + fmtInt(delayRes[1]) + " (" + fmtInt(delayPixels) + " px)\n" : "";
+
+    document.getElementById("proj-sum").textContent = mainSumText +
+      "\n\nProcessamento (" + refresh + "Hz, " + colorDepth + "-bit):\n" +
+      canvasLabel + ": " + fmtInt(canvasPixels) + " px\n" +
+      dsmLine +
+      delayLine +
+      "Pixel usage total (" + canvasLabel.toLowerCase() + " + DSM + delay): " + fmtInt(totalPixels) + " px (" + fmt(totalMP, 2) + " MP)\n" +
+      "Switchers de show compatíveis: " + (switcherForReport.length ? switcherForReport.map(function (x) { return x.s.marca + " " + x.s.modelo + " (" + x.mode + ") — " + x.pct + "%"; }).join(", ") : "nenhum") +
+      procSumText;
+  }
+
+  document.querySelectorAll('.panel[data-mode="projeto"] input, .panel[data-mode="projeto"] select').forEach(function (el) {
+    el.addEventListener("input", calcProjeto);
+    el.addEventListener("change", calcProjeto);
+  });
+
+  document.querySelectorAll('.panel[data-mode="sinal"] input, .panel[data-mode="sinal"] select').forEach(function (el) {
+    el.addEventListener("input", calcSinal);
+    el.addEventListener("change", calcSinal);
+  });
+
+  function useSinalRes(x, y, label) {
+    document.getElementById("sg-h").value = Math.round(x);
+    document.getElementById("sg-v").value = Math.round(y);
+    document.getElementById("sg-use-hint").textContent = label + ": " + fmtInt(Math.round(x)) + "×" + fmtInt(Math.round(y)) + "px.";
+    calcSinal();
+  }
+  document.getElementById("sg-use-zones").addEventListener("click", function () {
+    if (!lzLastTotals || !lzLastTotals.pixelMap) {
+      showToast("Ainda não há zonas com canvas calculado na aba Ecrã Complexo.");
+      return;
+    }
+    useSinalRes(lzLastTotals.pixelMap.canvasW, lzLastTotals.pixelMap.canvasH, "Ecrã Complexo");
+  });
+  document.getElementById("sg-use-proj").addEventListener("click", function () {
+    if (!projLastRes) {
+      showToast("Ainda não há uma resolução calculada na aba Projeto.");
+      return;
+    }
+    useSinalRes(projLastRes.x, projLastRes.y, projLastRes.label);
+  });
+
+
+  document.getElementById("proj-download").addEventListener("click", function () {
+    var nome = document.getElementById("proj-nome").value.trim() || "projeto";
+    var stripped = Array.from(nome.normalize("NFD")).filter(function (ch) {
+      var code = ch.codePointAt(0);
+      return code < 768 || code > 879;
+    }).join("");
+    var slug = stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
+    var text = document.getElementById("proj-sum").textContent;
+    saveOrShareFile(slug + ".txt", text, "text/plain;charset=utf-8");
+  });
+
+  function segActive(containerId) {
+    var el = document.querySelector("#" + containerId + " .seg-btn.active");
+    return el ? el.dataset : {};
+  }
+  function segClick(containerId, attr, value) {
+    if (value == null) return;
+    var btn = document.querySelector('#' + containerId + ' .seg-btn[data-' + attr + '="' + value + '"]');
+    if (btn) btn.click();
+  }
+  function fieldVal(id) {
+    var el = document.getElementById(id);
+    return el ? el.value : "";
+  }
+  function setFieldVal(id, value) {
+    var el = document.getElementById(id);
+    if (el != null && value !== undefined) el.value = value;
+  }
+  function modelIdxToName(dataArr, idxValue) {
+    var idx = parseInt(idxValue, 10);
+    return (!isNaN(idx) && dataArr[idx]) ? dataArr[idx].modelo : "custom";
+  }
+  function modelNameToIdx(dataArr, name) {
+    if (name === "custom" || name == null) return "custom";
+    var idx = dataArr.findIndex(function (item) { return item.modelo === name; });
+    return idx >= 0 ? String(idx) : "custom";
+  }
+
+  document.getElementById("proj-save").addEventListener("click", function () {
+    var nome = document.getElementById("proj-nome").value.trim() || "projeto";
+    var stripped = Array.from(nome.normalize("NFD")).filter(function (ch) {
+      var code = ch.codePointAt(0);
+      return code < 768 || code > 879;
+    }).join("");
+    var slug = stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
+
+    var state = {
+      _app: "calculadores-projeto",
+      _v: 1,
+      nome: fieldVal("proj-nome"),
+      dataInicio: fieldVal("proj-data-inicio"),
+      dataFim: fieldVal("proj-data-fim"),
+      projtype: segActive("proj-type-seg").projtype,
+      ledModelName: modelIdxToName(LED_TILES_DATA, document.getElementById("proj-led-model").value),
+      ledSizeMode: segActive("proj-led-sizemode-seg").sizemode,
+      ledMx: fieldVal("proj-led-mx"), ledMy: fieldVal("proj-led-my"),
+      ledW: fieldVal("proj-led-w"), ledH: fieldVal("proj-led-h"),
+      ledUseZones: document.getElementById("proj-led-usezones").checked,
+      ledZones: document.getElementById("proj-led-usezones").checked ? lzSerializeZones() : [],
+      projModelName: modelIdxToName(PROJECTORS_DATA, document.getElementById("proj-proj-model").value),
+      blendMode: segActive("proj-blendmode-seg").blendmode,
+      blendRes: fieldVal("proj-blend-res"), blendW: fieldVal("proj-blend-w"), blendH: fieldVal("proj-blend-h"),
+      projRatio: fieldVal("proj-proj-ratio"),
+      sizeMode: segActive("proj-sizemode-seg").sizemode,
+      projDiag: fieldVal("proj-proj-diag"), projW: fieldVal("proj-proj-w"), projH: fieldVal("proj-proj-h"),
+      projDist: fieldVal("proj-proj-dist"), projTmin: fieldVal("proj-proj-tmin"), projTmax: fieldVal("proj-proj-tmax"),
+      dsmCount: fieldVal("proj-dsm-count"), dsmRes: fieldVal("proj-dsm-res"), dsmW: fieldVal("proj-dsm-w"), dsmH: fieldVal("proj-dsm-h"),
+      delayCount: fieldVal("proj-delay-count"), delayRes: fieldVal("proj-delay-res"), delayW: fieldVal("proj-delay-w"), delayH: fieldVal("proj-delay-h"),
+      refresh: fieldVal("proj-refresh"), colordepth: fieldVal("proj-colordepth"),
+      selectedSwitchers: Array.from(selectedSwitcherKeys),
+      selectedLedProcs: Array.from(selectedLedProcKeys)
+    };
+    saveOrShareFile(slug + ".json", JSON.stringify(state, null, 2), "application/json;charset=utf-8");
+  });
+
+  document.getElementById("proj-open").addEventListener("click", function () {
+    document.getElementById("proj-open-file").click();
+  });
+  document.getElementById("proj-open-file").addEventListener("change", function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var state;
+      try { state = JSON.parse(reader.result); } catch (err) { showToast("Ficheiro inválido."); return; }
+      if (!state || state._app !== "calculadores-projeto") { showToast("Este ficheiro não é um projeto guardado desta app."); return; }
+
+      setFieldVal("proj-nome", state.nome);
+      setFieldVal("proj-data-inicio", state.dataInicio);
+      setFieldVal("proj-data-fim", state.dataFim);
+      segClick("proj-type-seg", "projtype", state.projtype);
+
+      document.getElementById("proj-led-model").value = modelNameToIdx(LED_TILES_DATA, state.ledModelName);
+      document.getElementById("proj-led-model").dispatchEvent(new Event("change"));
+      segClick("proj-led-sizemode-seg", "sizemode", state.ledSizeMode);
+      setFieldVal("proj-led-mx", state.ledMx); setFieldVal("proj-led-my", state.ledMy);
+      setFieldVal("proj-led-w", state.ledW); setFieldVal("proj-led-h", state.ledH);
+      document.getElementById("proj-led-usezones").checked = !!state.ledUseZones;
+      if (state.ledUseZones && Array.isArray(state.ledZones) && state.ledZones.length) {
+        lzList.innerHTML = "";
+        state.ledZones.forEach(function (opts) { lzAddZone(opts.name, opts); });
+      }
+
+      document.getElementById("proj-proj-model").value = modelNameToIdx(PROJECTORS_DATA, state.projModelName);
+      document.getElementById("proj-proj-model").dispatchEvent(new Event("change"));
+      segClick("proj-blendmode-seg", "blendmode", state.blendMode);
+      setFieldVal("proj-blend-res", state.blendRes);
+      document.getElementById("proj-blend-res").dispatchEvent(new Event("change"));
+      setFieldVal("proj-blend-w", state.blendW); setFieldVal("proj-blend-h", state.blendH);
+      setFieldVal("proj-proj-ratio", state.projRatio);
+      segClick("proj-sizemode-seg", "sizemode", state.sizeMode);
+      setFieldVal("proj-proj-diag", state.projDiag); setFieldVal("proj-proj-w", state.projW); setFieldVal("proj-proj-h", state.projH);
+      setFieldVal("proj-proj-dist", state.projDist); setFieldVal("proj-proj-tmin", state.projTmin); setFieldVal("proj-proj-tmax", state.projTmax);
+
+      setFieldVal("proj-dsm-count", state.dsmCount);
+      setFieldVal("proj-dsm-res", state.dsmRes);
+      document.getElementById("proj-dsm-res").dispatchEvent(new Event("change"));
+      setFieldVal("proj-dsm-w", state.dsmW); setFieldVal("proj-dsm-h", state.dsmH);
+      setFieldVal("proj-delay-count", state.delayCount);
+      setFieldVal("proj-delay-res", state.delayRes);
+      document.getElementById("proj-delay-res").dispatchEvent(new Event("change"));
+      setFieldVal("proj-delay-w", state.delayW); setFieldVal("proj-delay-h", state.delayH);
+      setFieldVal("proj-refresh", state.refresh);
+      setFieldVal("proj-colordepth", state.colordepth);
+
+      selectedSwitcherKeys = new Set(state.selectedSwitchers || []);
+      selectedLedProcKeys = new Set(state.selectedLedProcs || []);
+
+      calcProjeto();
+      e.target.value = "";
+    };
+    reader.readAsText(file);
+  });
+
+  document.querySelectorAll("button.copy[data-target]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var el = document.getElementById(btn.dataset.target);
+      var text = el.innerText;
+      var done = function () {
+        var orig = btn.textContent;
+        btn.textContent = "Copiado ✓";
+        setTimeout(function () { btn.textContent = orig; }, 1500);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done).catch(function () { fallbackSelect(el, btn); });
+      } else {
+        fallbackSelect(el, btn);
+      }
+    });
+  });
+  function fallbackSelect(el, btn) {
+    var range = document.createRange();
+    range.selectNodeContents(el);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    var orig = btn.textContent;
+    btn.textContent = "Seleccionado — Ctrl+C";
+    setTimeout(function () { btn.textContent = orig; }, 2000);
+  }
+
+
+  function fmtDatePT(iso) {
+    if (!iso) return "";
+    var parts = iso.split("-");
+    if (parts.length !== 3) return iso;
+    return parts[2] + "/" + parts[1] + "/" + parts[0];
+  }
+
+  function fmtRes(res) {
+    return res ? res.rx + "×" + res.ry : "—";
+  }
+
+  function effectiveProjRes(proj, mode) {
+    if (!proj) return null;
+    if (mode === "native" && proj.resolucaoNativa) return proj.resolucaoNativa;
+    return proj.resolucao;
+  }
+
+  function fmtResWithNote(proj, mode) {
+    if (!proj || !proj.resolucao) return "—";
+    var res = effectiveProjRes(proj, mode);
+    var base = fmtRes(res);
+    if (proj.resolucaoNativa) base += mode === "native" ? " (nativo)" : " (declarado — pixel-shift)";
+    return proj.resolucaoNota ? base + " (" + proj.resolucaoNota + ")" : base;
+  }
+
+  function cvtRb2ClockMHz(hActive, vActive, fps) {
+    var hPeriodEstUs = (1000000 / fps - 460) / vActive;
+    var vbiLinesNeeded = Math.floor(460 / hPeriodEstUs) + 1;
+    var vBlankLines = Math.max(vbiLinesNeeded, 15);
+    var totalV = vActive + vBlankLines;
+    var totalH = hActive + 80;
+    return fps * totalV * totalH / 1e6;
+  }
+
+  function connectorForClock(mhz) {
+    if (mhz <= 165) return "DVI-D Single Link (até 165MHz) — HDMI 1.3/1.4 ou DisplayPort também servem, com folga";
+    if (mhz <= 300) return "DisplayPort 1.1a ou DVI-D Dual Link (até 300–330MHz)";
+    if (mhz <= 340) return "HDMI 1.3/1.4 (até 340MHz)";
+    if (mhz <= 600) return "HDMI 2.0 ou DisplayPort 1.2 (até 600MHz)";
+    return "Acima de 600MHz — precisa de DisplayPort 1.4 com DSC, ou dividir o sinal por várias saídas";
+  }
+
+  var CHROMA_LABELS = { "3": "RGB/YCbCr 4:4:4", "2": "YCbCr 4:2:2", "1.5": "YCbCr 4:2:0" };
+
+  function calcSinal() {
+    var h = val("sg-h"), v = val("sg-v"), fps = val("sg-fps");
+    var bits = parseInt(document.getElementById("sg-bits").value, 10);
+    var samplesPerPx = parseFloat(document.getElementById("sg-chroma").value);
+    var totalPx = h * v;
+    var dataRateGbps = (bits * samplesPerPx * fps * totalPx) / 1e9;
+    var clockMHz = cvtRb2ClockMHz(h, v, fps);
+
+    document.getElementById("sg-out-px").innerHTML = fmtInt(totalPx) + "<small>px</small>";
+    document.getElementById("sg-out-datarate").innerHTML = fmt(dataRateGbps, 2) + "<small>Gbit/s</small>";
+    document.getElementById("sg-out-clock").innerHTML = fmt(clockMHz, 1) + "<small>MHz</small>";
+    document.getElementById("sg-out-connector").textContent = connectorForClock(clockMHz);
+
+    var chromaLabel = CHROMA_LABELS[document.getElementById("sg-chroma").value] || "RGB/YCbCr 4:4:4";
+    document.getElementById("sg-chroma-hint").textContent = "Pixel clock calculado com blanking real (VESA CVT-RB2), não uma percentagem fixa — não muda com a amostragem de cor, só o data rate muda. A ligação mínima recomendada abaixo é baseada só no pixel clock (timing); confirma sempre também se o link aguenta o data rate a " + chromaLabel + ".";
+
+    var bpp = bits * samplesPerPx;
+    var dpHint = document.getElementById("sg-dp-hint");
+    dpHint.style.display = "block";
+    dpHint.textContent = "DisplayPort não define um limite único de pixel clock (é um link empacotado) — a " + fmt(bpp,1) + "bpp (" + bits + "-bit " + chromaLabel + "), o máximo teórico é ≈" + fmtInt(360 * (24 / bpp)) + "MHz em DP1.1a, ≈" + fmtInt(720 * (24 / bpp)) + "MHz em DP1.2, ≈" + fmtInt(1080 * (24 / bpp)) + "MHz em DP1.4 (valores derivados do débito, não publicados pela VESA em MHz).";
+
+    var switchers = (PROCESSORS_DATA.switchers || []).filter(function (s) { return s.maxPixelClockMHz; })
+      .map(function (s) { return { s: s, fits: s.maxPixelClockMHz >= clockMHz - 0.1 }; })
+      .filter(function (x) { return x.fits; })
+      .sort(function (a, b) { return a.s.maxPixelClockMHz - b.s.maxPixelClockMHz; });
+
+    document.getElementById("sg-switcher-list").innerHTML = switchers.length
+      ? switchers.map(function (x) {
+          return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.s.maxPixelClockMHz, 1) + ' MHz (' + x.s.maxPixelClockSource + ')</span></div>';
+        }).join("")
+      : '<div class="lm-item"><span>Nenhum com dados de pixel clock suficientes para este sinal</span></div>';
+  }
+
+  var tvModelSel = document.getElementById("tv-model");
+  var projDsmTvModelSel = document.getElementById("proj-dsm-tvmodel");
+  var projDelayTvModelSel = document.getElementById("proj-delay-tvmodel");
+  var vTvModelSel = document.getElementById("v-tvmodel");
+
+  tvModelSel.addEventListener("change", function () {
+    if (tvModelSel.value === "custom") return;
+    var tv = TVS_DATA[parseInt(tvModelSel.value, 10)];
+    document.getElementById("tv-diag").value = tv.diag;
+    document.getElementById("tv-ratio").value = tv.ratio;
+    calcTV();
+  });
+  ["tv-diag", "tv-ratio"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () {
+      tvModelSel.value = "custom";
+      updateSelectStockColor(tvModelSel);
+    });
+    document.getElementById(id).addEventListener("change", function () {
+      tvModelSel.value = "custom";
+      updateSelectStockColor(tvModelSel);
+    });
+  });
+  document.querySelectorAll('.panel[data-mode="tv"] input, .panel[data-mode="tv"] select').forEach(function (el) {
+    el.addEventListener("input", calcTV);
+    el.addEventListener("change", calcTV);
+  });
+
+  function calcTV() {
+    var diagIn = val("tv-diag");
+    var ratioVal = document.getElementById("tv-ratio").value;
+    var parts = ratioVal.split(":");
+    var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+    var r = rw / rh;
+    var diagM = diagIn * 0.0254;
+    var h = diagM / Math.sqrt(r * r + 1);
+    var w = h * r;
+
+    updateSourceHint(tvModelSel, TVS_DATA, "tv-model-source", true);
+    document.getElementById("tv-out-w").innerHTML = fmt(w, 2) + "<small>m</small>";
+    document.getElementById("tv-out-h").innerHTML = fmt(h, 2) + "<small>m</small>";
+
+    var tv = tvModelSel.value !== "custom" ? TVS_DATA[parseInt(tvModelSel.value, 10)] : null;
+    var resLabel = tv && tv.resolucao ? fmtRes(tv.resolucao) : "não confirmada";
+    if (tv && tv.resolucaoNota) resLabel += " (" + tv.resolucaoNota + ")";
+    document.getElementById("tv-out-res").textContent = resLabel;
+
+    var range = viewingDistanceRange(w, h);
+    document.getElementById("tv-out-dmin").innerHTML = fmt(range.min, 2) + "<small>m</small>";
+    document.getElementById("tv-out-dmax").innerHTML = fmt(range.max, 2) + "<small>m</small>";
+    document.getElementById("tv-viewrule-note").textContent = "Regra: " + viewRuleDescription();
+
+    document.getElementById("tv-sum").textContent =
+      "TV: " + (tv ? tv.modelo : "Personalizado") + " — " + fmt(diagIn, 0) + '" (' + rw + ":" + rh + ") — " + fmt(w, 2) + " x " + fmt(h, 2) + " m\n" +
+      "Resolução: " + resLabel + "\n" +
+      "Standard: " + viewRuleDescription() + "\n" +
+      "Distância de visualização ideal: " + fmt(range.min, 2) + " – " + fmt(range.max, 2) + " m";
+  }
+
+  projDsmTvModelSel.addEventListener("change", function () {
+    if (projDsmTvModelSel.value === "custom") return;
+    var tv = TVS_DATA[parseInt(projDsmTvModelSel.value, 10)];
+    document.getElementById("proj-dsm-res").value = "custom";
+    document.getElementById("proj-dsm-custom-res").style.display = "grid";
+    if (tv.resolucao) {
+      document.getElementById("proj-dsm-w").value = tv.resolucao.rx;
+      document.getElementById("proj-dsm-h").value = tv.resolucao.ry;
+    }
+  });
+  projDelayTvModelSel.addEventListener("change", function () {
+    if (projDelayTvModelSel.value === "custom") return;
+    var tv = TVS_DATA[parseInt(projDelayTvModelSel.value, 10)];
+    document.getElementById("proj-delay-res").value = "custom";
+    document.getElementById("proj-delay-custom-res").style.display = "grid";
+    if (tv.resolucao) {
+      document.getElementById("proj-delay-w").value = tv.resolucao.rx;
+      document.getElementById("proj-delay-h").value = tv.resolucao.ry;
+    }
+  });
+
+  vTvModelSel.addEventListener("change", function () {
+    if (vTvModelSel.value === "custom") return;
+    var tv = TVS_DATA[parseInt(vTvModelSel.value, 10)];
+    document.getElementById("v-ratio").value = tv.ratio;
+    document.getElementById("v-ratio").dispatchEvent(new Event("change"));
+    segClick("v-sizemode-seg", "sizemode", "diag");
+    document.getElementById("v-diag").value = tv.diag;
+    calcVisualizacao();
+  });
+
+  Promise.all([
+    fetch("data/projectors.json").then(function (r) { return r.json(); }),
+    fetch("data/led-tiles.json").then(function (r) { return r.json(); }),
+    fetch("data/lenses.json").then(function (r) { return r.json(); }),
+    fetch("data/processors.json").then(function (r) { return r.json(); }),
+    fetch("data/tvs.json").then(function (r) { return r.json(); })
+  ]).then(function (results) {
+    var projectors = results[0], ledTiles = results[1], lenses = results[2], processors = results[3], tvs = results[4];
+    PROJECTORS_DATA = projectors;
+    LED_TILES_DATA = ledTiles;
+    PROCESSORS_DATA = processors;
+    TVS_DATA = tvs;
+
+    var defaultProj = projectors.find(function (p) { return p.default; }) || projectors[0];
+    var projOrder = stockFirstIndices(projectors);
+    [projModelSel, blendProjModelSel].forEach(function (sel) {
+      projOrder.forEach(function (i) {
+        var p = projectors[i];
+        addOption(sel, p.lumens, p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj, i);
+      });
+    });
+    if (defaultProj) {
+      document.getElementById("p-lumens").value = defaultProj.lumens;
+      document.getElementById("b-lumens").value = defaultProj.lumens;
+    }
+    projOrder.forEach(function (i) {
+      var p = projectors[i];
+      addOption(projProjModelSel, String(i), p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj);
+    });
+
+    var defaultTile = ledTiles.find(function (t) { return t.default; }) || ledTiles[0];
+    var tileOrder = stockFirstIndices(ledTiles);
+    [ledModelSel, projLedModelSel].forEach(function (sel) {
+      tileOrder.forEach(function (i) {
+        var t = ledTiles[i];
+        addOption(sel, String(i), t.modelo + " — " + t.label, t === defaultTile);
+      });
+    });
+    if (defaultTile) {
+      document.getElementById("l-mw").value = defaultTile.mw;
+      document.getElementById("l-mh").value = defaultTile.mh;
+      document.getElementById("l-rx").value = defaultTile.rx;
+      document.getElementById("l-ry").value = defaultTile.ry;
+      document.getElementById("l-weight").value = defaultTile.weight == null ? "" : defaultTile.weight;
+      document.getElementById("l-amp").value = defaultTile.amp;
+      document.getElementById("l-nits").value = defaultTile.nitsMax == null ? "" : defaultTile.nitsMax;
+    }
+
+    var tvOrder = stockFirstIndices(tvs);
+    [tvModelSel, projDsmTvModelSel, projDelayTvModelSel, vTvModelSel].forEach(function (sel) {
+      tvOrder.forEach(function (i) {
+        var t = tvs[i];
+        addOption(sel, String(i), t.modelo + ' — ' + t.diag + '"' + (t.touchscreen ? " touchscreen" : ""), false, i);
+      });
+      wireStockColor(sel);
+      updateSelectStockColor(sel);
+    });
+
+    lenses.sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
+    LENTES_DATA = lenses;
+    renderLenses(lenses);
+    populateLensModelSelect(lnLensModelSel, document.getElementById("ln-brand").value);
+    populateLensModelSelect(pLensModelSel, pSelectedProjBrand());
+    populateLensModelSelect(projProjLensModelSel, projProjSelectedBrand());
+    var brandSel = document.getElementById("ln-brand");
+    Array.from(new Set(lenses.map(function (l) { return l.marca; })))
+      .sort(function (a, b) { return a.localeCompare(b); })
+      .forEach(function (marca) {
+        var opt = document.createElement("option");
+        opt.value = marca;
+        opt.textContent = marca;
+        brandSel.appendChild(opt);
+      });
+
+    [projModelSel, blendProjModelSel, projProjModelSel, ledModelSel, projLedModelSel].forEach(function (sel) {
+      wireStockColor(sel);
+      updateSelectStockColor(sel);
+    });
+
+    [projModelSel, blendProjModelSel, projProjModelSel, ledModelSel, projLedModelSel,
+     tvModelSel, projDsmTvModelSel, projDelayTvModelSel, vTvModelSel].forEach(lzAttachModelSearch);
+
+    calcProjecao();
+    calcVisualizacao();
+    calcLed();
+    lzRestoreFromStorage();
+    calcBlend();
+    calcLentes();
+    calcProjeto();
+    calcSinal();
+    calcTV();
+  }).catch(function (err) {
+    console.error("Falha a carregar dados de data/*.json:", err);
+    calcProjecao();
+    calcVisualizacao();
+    calcLed();
+    lzRestoreFromStorage();
+    calcBlend();
+    calcLentes();
+    calcSinal();
+    calcTV();
+  });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").then(function (reg) {
+        reg.update();
+        document.addEventListener("visibilitychange", function () {
+          if (document.visibilityState === "visible") reg.update();
+        });
+      }).catch(function (err) {
+        console.error("Falha a registar service worker:", err);
+      });
+
+      var refreshedOnce = false;
+      navigator.serviceWorker.addEventListener("controllerchange", function () {
+        if (refreshedOnce) return;
+        refreshedOnce = true;
+        window.location.reload();
+      });
+    });
+  }
+
+  (function () {
+    var DISMISS_KEY = "calc-install-dismissed";
+    var banner = document.getElementById("install-banner");
+    var textEl = document.getElementById("install-banner-text");
+    var btn = document.getElementById("install-banner-btn");
+    var dismissBtn = document.getElementById("install-banner-dismiss");
+    var deferredPrompt = null;
+
+    function isStandalone() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+    function isDismissed() {
+      try { return localStorage.getItem(DISMISS_KEY) === "1"; } catch (e) { return false; }
+    }
+    function setDismissed() {
+      try { localStorage.setItem(DISMISS_KEY, "1"); } catch (e) {}
+    }
+    function hideBanner() {
+      banner.style.display = "none";
+    }
+    function showBanner() {
+      if (isStandalone() || isDismissed()) return;
+      banner.style.display = "flex";
+    }
+
+    dismissBtn.addEventListener("click", function () {
+      setDismissed();
+      hideBanner();
+    });
+
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    var isAndroid = /android/i.test(navigator.userAgent);
+
+    if (isIOS && !isStandalone() && !isDismissed()) {
+      textEl.innerHTML = "<strong>Instala esta app</strong> — toca em Partilhar <span style=\"font-size:15px;\">⬆️</span> e depois em \"Adicionar ao Ecrã Principal\".";
+      showBanner();
+    }
+
+    if (isAndroid && !isStandalone() && !isDismissed()) {
+      // Mostra logo à entrada, sem esperar pelo beforeinstallprompt — esse
+      // evento é só do Chrome/Edge e nem sempre dispara (Firefox não tem
+      // a API, e o Chrome também pode não oferecer consoante o dispositivo).
+      // Se o prompt nativo chegar entretanto, o listener abaixo troca para
+      // o botão de um toque.
+      textEl.innerHTML = "<strong>Instala esta app</strong> — no menu ⋮ do browser, procura \"Instalar aplicação\" ou \"Adicionar ao ecrã principal\".";
+      showBanner();
+    }
+
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      btn.style.display = "inline-block";
+      textEl.innerHTML = "<strong>Instala esta app</strong> — acesso direto no ecrã principal, sem andares à procura do link.";
+      showBanner();
+    });
+
+    btn.addEventListener("click", function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.finally(function () {
+        deferredPrompt = null;
+        hideBanner();
+      });
+    });
+
+    window.addEventListener("appinstalled", function () {
+      setDismissed();
+      hideBanner();
+    });
+  })();
+</script>
