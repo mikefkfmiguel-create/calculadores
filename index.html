@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.96</span>
+    <span class="mark">v1.97</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1251,14 +1251,17 @@
       </details>
 
       <details class="card sinal-block">
-        <summary>Switchers disponíveis e ligações a usar</summary>
+        <summary>Switchers/processos compatíveis (entrada)</summary>
         <div class="sinal-block-body">
-          <h2>Switchers/processos compatíveis (entrada)</h2>
           <div class="hint">Comparado ao pixel clock da porta de entrada de maior largura de banda de cada aparelho. Onde a marca não publica MHz, o valor é derivado da resolução máxima publicada pela própria marca (indicado em cada linha) — nunca inventado.</div>
           <div class="lensmatch-list" id="sg-switcher-list"></div>
+        </div>
+      </details>
 
-          <h2 style="margin-top:18px;">Switchers de show — capacidade total (MP)</h2>
-          <div class="hint">Total de píxeis acima (não o pixel clock de um único sinal) comparado à capacidade em megapíxeis de cada switcher — a mesma conta usada na aba Projeto para o total do ecrã + DSM + delay. Mostra o nº de entradas/saídas do aparelho quando a marca o publica. "Usar X de Y saídas" é o nº de ligações de saída realmente necessárias para repartir este canvas (calculado a partir do pixel clock máximo do aparelho, assumindo que a saída aguenta o mesmo limite que a entrada — a maioria não publica um valor separado para a saída); ordenado pela opção que precisa de menos ligações primeiro.</div>
+      <details class="card sinal-block">
+        <summary>Switchers de show — capacidade e ligações a usar</summary>
+        <div class="sinal-block-body">
+          <div class="hint">Total de píxeis acima (não o pixel clock de um único sinal) comparado à capacidade em megapíxeis de cada switcher — a mesma conta usada na aba Projeto para o total do ecrã + DSM + delay. Mostra o nº de entradas/saídas do aparelho quando a marca o publica. "Usar X de Y saídas" é o nº de ligações de saída realmente necessárias para repartir este canvas — calculado a partir do pixel clock máximo do aparelho quando publicado; quando a marca só publica a capacidade total (não o pixel clock), o valor vem marcado com "~" e é estimado a dividir essa capacidade pelo nº de saídas do aparelho, por não haver dado mais fino. Ordenado pela opção que precisa de menos ligações primeiro.</div>
           <div class="lensmatch-list" id="sg-switcher-mp-list"></div>
         </div>
       </details>
@@ -3306,8 +3309,16 @@
       if (linked) mode += ", " + s.unitsOwned + " unidades ligadas";
       var pxPerOutput = s.maxPixelClockMHz ? maxPixelsPerOutput(s.maxPixelClockMHz, fps, h, v) : 0;
       var connsNeeded = pxPerOutput ? Math.ceil(totalPx / pxPerOutput) : null;
+      var connsEstimated = false;
+      if (connsNeeded == null && s.outputs && capPgm) {
+        // Sem pixel clock publicado — única estimativa possível é repartir a
+        // capacidade total em MP igualmente pelas saídas do aparelho (não é
+        // tão fino como a conta por pixel clock, por isso fica marcado com "~").
+        connsNeeded = Math.ceil(totalMP / (capPgm / s.outputs));
+        connsEstimated = true;
+      }
       var outputsEnough = connsNeeded == null || !s.outputs ? null : connsNeeded <= s.outputs;
-      return { s: s, fits: fits, mode: mode, cap: capPgm, connsNeeded: connsNeeded, outputsEnough: outputsEnough };
+      return { s: s, fits: fits, mode: mode, cap: capPgm, connsNeeded: connsNeeded, connsEstimated: connsEstimated, outputsEnough: outputsEnough };
     }).filter(function (x) { return x.fits && x.cap; })
       .sort(function (a, b) { return (a.connsNeeded || 999) - (b.connsNeeded || 999) || a.cap - b.cap; });
 
@@ -3317,7 +3328,8 @@
           var parts = [];
           if (x.s.inputs) parts.push(fmtInt(x.s.inputs) + " entradas");
           if (x.connsNeeded != null) {
-            parts.push("usar " + fmtInt(x.connsNeeded) + (x.s.outputs ? " de " + fmtInt(x.s.outputs) + " saídas" : " ligações (nº de saídas não publicado)") +
+            parts.push((x.connsEstimated ? "usar ~" : "usar ") + fmtInt(x.connsNeeded) + (x.s.outputs ? " de " + fmtInt(x.s.outputs) + " saídas" : " ligações (nº de saídas não publicado)") +
+              (x.connsEstimated ? " (estimado por capacidade total, sem pixel clock publicado)" : "") +
               (x.outputsEnough === false ? " — ⚠ precisa de mais saídas do que este aparelho tem sozinho" : ""));
           } else if (x.s.outputs) {
             parts.push(fmtInt(x.s.outputs) + " saídas");
