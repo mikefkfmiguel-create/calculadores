@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.99</span>
+    <span class="mark">v1.100</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1287,9 +1287,25 @@
           </div>
           <details class="hint-collapse">
             <summary>Como é calculado</summary>
-            <div class="hint">Só relevante se o sinal acima for para um ecrã LED. Portas Ethernet/fibra de cada processo de LED, com a capacidade em píxeis (e em tiles do modelo escolhido acima) por porta, calculada com a largura de banda utilizável (930 Mbps/porta) ao refresh rate e profundidade de cor indicados acima, e o nº exato de portas a ligar para o total de píxeis acima — igual à conta da aba Projeto.</div>
+            <div class="hint">Só relevante se o sinal acima for para um ecrã LED. Portas Ethernet/fibra de cada processo de LED, com a capacidade em píxeis (e em tiles do modelo escolhido acima) por porta, calculada com a largura de banda utilizável (930 Mbps/porta) ao refresh rate e profundidade de cor indicados acima, e o nº exato de portas a ligar para o total de píxeis acima — igual à conta da aba Projeto. Marca a caixa para incluir no relatório final.</div>
           </details>
           <div class="lensmatch-list" id="sg-ledproc-list"></div>
+        </div>
+      </details>
+
+      <details class="card sinal-block" open>
+        <summary>Relatório</summary>
+        <div class="sinal-block-body">
+          <div class="hint">Junta o sinal, o(s) switcher(s) e o processo de LED escolhidos acima num texto só, pronto a copiar para a ficha técnica.</div>
+          <div class="summary">
+            <div class="summary-head">
+              <span class="k">Resumo do setup</span>
+              <div class="summary-actions">
+                <button class="copy" data-target="sg-sum">Copiar resumo</button>
+              </div>
+            </div>
+            <pre class="sumbox" id="sg-sum"></pre>
+          </div>
         </div>
       </details>
     </div>
@@ -2520,6 +2536,7 @@
   var selectedSwitcherKeys = new Set();
   var selectedLedProcKeys = new Set();
   var selectedSinalSwitcherKeys = new Set();
+  var selectedSinalLedProcKeys = new Set();
   function itemKey(marca, modelo) { return marca + "|" + modelo; }
 
   var projLedModelSel = document.getElementById("proj-led-model");
@@ -3390,17 +3407,54 @@
       var portsAvailable = numUnits * p.ports;
       var portsUsed = Math.min(portsAvailable, Math.ceil(totalPx / portCapacity));
       var tilesPerPort = refTilePx ? Math.floor(portCapacity / refTilePx) : null;
-      return { p: p, unitCapacity: unitCapacity, numUnits: numUnits, portsUsed: portsUsed, portsAvailable: portsAvailable, tilesPerPort: tilesPerPort };
+      var pct = fmt((totalPx / (numUnits * unitCapacity)) * 100, 0);
+      return { p: p, key: itemKey(p.marca, p.modelo), unitCapacity: unitCapacity, numUnits: numUnits, portsUsed: portsUsed, portsAvailable: portsAvailable, tilesPerPort: tilesPerPort, pct: pct };
     }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports; });
 
     document.getElementById("sg-ledproc-list").innerHTML = ledProcOk.length
       ? ledProcOk.map(function (x) {
-          var pct = fmt((totalPx / (x.numUnits * x.unitCapacity)) * 100, 0);
+          var checked = selectedSinalLedProcKeys.has(x.key) ? " checked" : "";
           var tilesInfo = x.tilesPerPort != null ? " (≈" + fmtInt(x.tilesPerPort) + " tiles/porta, " + (refTile.modelo) + ")" : "";
-          var note = x.p.nota ? '<div class="lm-note">' + x.p.nota + '</div>' : '';
-          return '<div class="lm-item"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.p.ports) + ' portas, ' + fmtInt(x.unitCapacity) + ' px/unidade) — usar ' + fmtInt(x.portsUsed) + ' de ' + fmtInt(x.portsAvailable) + ' portas (' + pct + '%)' + tilesInfo + '</span>' + note + '</div>';
+          return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.p.ports) + ' portas, ' + fmtInt(x.unitCapacity) + ' px/unidade) — usar ' + fmtInt(x.portsUsed) + ' de ' + fmtInt(x.portsAvailable) + ' portas (' + x.pct + '%)' + tilesInfo + '</span></span></label>';
         }).join("")
       : '<div class="lm-item"><span>Sem processos de LED na base de dados</span></div>';
+
+    document.getElementById("sg-ledproc-list").querySelectorAll(".lm-check").forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        if (cb.checked) selectedSinalLedProcKeys.add(cb.dataset.key); else selectedSinalLedProcKeys.delete(cb.dataset.key);
+        calcSinal();
+      });
+    });
+
+    var ledProcChosen = ledProcOk.filter(function (x) { return selectedSinalLedProcKeys.has(x.key); });
+
+    // Relatório final — só texto, junta o sinal, os switchers e o processo de LED escolhidos.
+    var switchersLines = switchersChosen.length
+      ? switchersChosen.map(function (x) {
+          var entradaTxt = x.s.maxPixelClockMHz
+            ? (fmt(clockMHz, 1) + " de " + fmt(x.s.maxPixelClockMHz, 1) + " MHz máx. (" + (x.clockFits ? "cabe" : "excede") + ")")
+            : "sem dados de pixel clock";
+          var saidaTxt = x.connsNeeded != null
+            ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.s.outputs ? " de " + fmtInt(x.s.outputs) + " saídas" : " ligações")
+            : (x.s.outputs ? fmtInt(x.s.outputs) + " saídas (sem dados para calcular quantas usar)" : "sem dados de saídas");
+          return "  " + x.s.marca + " " + x.s.modelo + " — entrada: " + entradaTxt + " — saída: " + saidaTxt + " — capacidade: " + fmt(x.cap, 1) + " MP (" + x.pct + "%)";
+        }).join("\n")
+      : "  nenhum escolhido";
+    var ledProcLines = ledProcChosen.length
+      ? ledProcChosen.map(function (x) {
+          return "  " + fmtInt(x.numUnits) + "× " + x.p.marca + " " + x.p.modelo + " — usar " + fmtInt(x.portsUsed) + " de " + fmtInt(x.portsAvailable) + " portas (" + x.pct + "%)" + (x.tilesPerPort != null ? ", ≈" + fmtInt(x.tilesPerPort) + " tiles/porta (" + refTile.modelo + ")" : "");
+        }).join("\n")
+      : "  nenhum escolhido";
+
+    document.getElementById("sg-sum").textContent =
+      "SINAL & DATA RATE\n" +
+      "Resolução: " + fmtInt(h) + "×" + fmtInt(v) + "px @ " + fmt(fps, 0) + "Hz, " + bits + "-bit, " + chromaLabel + "\n" +
+      "Total de píxeis: " + fmtInt(totalPx) + " px\n" +
+      "Data rate: " + fmt(dataRateGbps, 2) + " Gbit/s\n" +
+      "Pixel clock (CVT-RB2): " + fmt(clockMHz, 1) + " MHz\n" +
+      "Ligação mínima recomendada: " + connectorForClock(clockMHz) + "\n\n" +
+      "Switchers escolhidos:\n" + switchersLines + "\n\n" +
+      "Processo de LED escolhido:\n" + ledProcLines;
   }
 
   var tvModelSel = document.getElementById("tv-model");
