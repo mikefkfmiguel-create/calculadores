@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.100</span>
+    <span class="mark">v1.101</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1293,7 +1293,7 @@
         </div>
       </details>
 
-      <details class="card sinal-block" open>
+      <details class="card sinal-block">
         <summary>Relatório</summary>
         <div class="sinal-block-body">
           <div class="hint">Junta o sinal, o(s) switcher(s) e o processo de LED escolhidos acima num texto só, pronto a copiar para a ficha técnica.</div>
@@ -2536,6 +2536,7 @@
   var selectedSwitcherKeys = new Set();
   var selectedLedProcKeys = new Set();
   var selectedSinalSwitcherKeys = new Set();
+  var selectedSinalOutputMode = new Map();
   var selectedSinalLedProcKeys = new Set();
   function itemKey(marca, modelo) { return marca + "|" + modelo; }
 
@@ -3345,19 +3346,22 @@
       var fits = totalMP <= capPgm;
       var mode = totalMP <= capSwitcher ? "PGM + Preview" : "só PGM (sem Preview)";
       if (linked) mode += ", " + s.unitsOwned + " unidades ligadas";
+      var key = itemKey(s.marca, s.modelo);
+      var modeIdx = s.outputModes ? (selectedSinalOutputMode.get(key) || 0) : null;
+      var effectiveOutputs = s.outputModes ? s.outputModes[modeIdx].outputs : s.outputs;
       var pxPerOutput = s.maxPixelClockMHz ? maxPixelsPerOutput(s.maxPixelClockMHz, fps, h, v) : 0;
       var connsNeeded = pxPerOutput ? Math.ceil(totalPx / pxPerOutput) : null;
       var connsEstimated = false;
-      if (connsNeeded == null && s.outputs && capPgm) {
+      if (connsNeeded == null && effectiveOutputs && capPgm) {
         // Sem pixel clock publicado — única estimativa possível é repartir a
         // capacidade total em MP igualmente pelas saídas do aparelho (não é
         // tão fino como a conta por pixel clock, por isso fica marcado com "~").
-        connsNeeded = Math.ceil(totalMP / (capPgm / s.outputs));
+        connsNeeded = Math.ceil(totalMP / (capPgm / effectiveOutputs));
         connsEstimated = true;
       }
-      var outputsEnough = connsNeeded == null || !s.outputs ? null : connsNeeded <= s.outputs;
+      var outputsEnough = connsNeeded == null || !effectiveOutputs ? null : connsNeeded <= effectiveOutputs;
       var clockFits = s.maxPixelClockMHz ? (s.maxPixelClockMHz >= clockMHz - 0.1) : null;
-      return { s: s, key: itemKey(s.marca, s.modelo), fits: fits, mode: mode, cap: capPgm, pct: fmt((totalMP / capPgm) * 100, 0), connsNeeded: connsNeeded, connsEstimated: connsEstimated, outputsEnough: outputsEnough, clockFits: clockFits };
+      return { s: s, key: key, fits: fits, mode: mode, cap: capPgm, pct: fmt((totalMP / capPgm) * 100, 0), connsNeeded: connsNeeded, connsEstimated: connsEstimated, outputsEnough: outputsEnough, clockFits: clockFits, modeIdx: modeIdx, effectiveOutputs: effectiveOutputs };
     }).filter(function (x) { return x.fits && x.cap; })
       .sort(function (a, b) { return (a.connsNeeded || 999) - (b.connsNeeded || 999) || a.cap - b.cap; });
 
@@ -3384,17 +3388,29 @@
         ? (fmt(clockMHz, 1) + " MHz de " + fmt(x.s.maxPixelClockMHz, 1) + " MHz máx. — " + (x.clockFits ? "cabe numa entrada" : "⚠ excede a entrada de maior largura de banda"))
         : "Marca não publica pixel clock — sem dados para confirmar a entrada";
       var saidaVal = x.connsNeeded != null
-        ? (x.connsEstimated ? "usar ~" : "usar ") + fmtInt(x.connsNeeded) + (x.s.outputs ? " de " + fmtInt(x.s.outputs) + " saídas" : " ligações (nº de saídas não publicado)") +
+        ? (x.connsEstimated ? "usar ~" : "usar ") + fmtInt(x.connsNeeded) + (x.effectiveOutputs ? " de " + fmtInt(x.effectiveOutputs) + " saídas" : " ligações (nº de saídas não publicado)") +
           (x.connsEstimated ? " (estimado, sem pixel clock publicado)" : "") +
           (x.outputsEnough === false ? " — ⚠ insuficiente sozinho" : "")
-        : (x.s.outputs ? fmtInt(x.s.outputs) + " saídas (sem dados para calcular quantas usar)" : "Sem dados de saídas publicados");
+        : (x.effectiveOutputs ? fmtInt(x.effectiveOutputs) + " saídas (sem dados para calcular quantas usar)" : "Sem dados de saídas publicados");
+      var modeSelect = x.s.outputModes
+        ? '<select class="plain sinal-mode-select" data-key="' + x.key + '" style="margin-top:4px;">' +
+            x.s.outputModes.map(function (m, i) { return '<option value="' + i + '"' + (i === x.modeIdx ? ' selected' : '') + '>' + m.label + '</option>'; }).join('') +
+          '</select>'
+        : '';
       var note = x.s.nota ? '<div class="lm-note">' + x.s.nota + '</div>' : '';
       return '<div class="sinal-detail-card"><h3>' + x.s.marca + ' ' + x.s.modelo + ' ' + srcLinkHtml(x.s.fonte) + '</h3>' +
         '<div class="sinal-detail-row"><span class="k">Entrada (este sinal)</span><span class="v">' + entradaVal + '</span></div>' +
-        '<div class="sinal-detail-row"><span class="k">Saída (para o canvas)</span><span class="v">' + saidaVal + '</span></div>' +
+        '<div class="sinal-detail-row"><span class="k">Saída (para o canvas)</span><span class="v">' + saidaVal + modeSelect + '</span></div>' +
         '<div class="sinal-detail-row"><span class="k">Capacidade total</span><span class="v">' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%</span></div>' +
         note + '</div>';
     }).join("");
+
+    document.getElementById("sg-switcher-detail").querySelectorAll(".sinal-mode-select").forEach(function (sel) {
+      sel.addEventListener("change", function () {
+        selectedSinalOutputMode.set(sel.dataset.key, parseInt(sel.value, 10));
+        calcSinal();
+      });
+    });
 
     var portCapacity = Math.floor(USABLE_BPS / ((BITS_PER_PIXEL[String(bits)] || 24) * fps));
     var refTileIdx = parseInt(sgLedTileSel.value, 10);
@@ -3435,9 +3451,10 @@
             ? (fmt(clockMHz, 1) + " de " + fmt(x.s.maxPixelClockMHz, 1) + " MHz máx. (" + (x.clockFits ? "cabe" : "excede") + ")")
             : "sem dados de pixel clock";
           var saidaTxt = x.connsNeeded != null
-            ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.s.outputs ? " de " + fmtInt(x.s.outputs) + " saídas" : " ligações")
-            : (x.s.outputs ? fmtInt(x.s.outputs) + " saídas (sem dados para calcular quantas usar)" : "sem dados de saídas");
-          return "  " + x.s.marca + " " + x.s.modelo + " — entrada: " + entradaTxt + " — saída: " + saidaTxt + " — capacidade: " + fmt(x.cap, 1) + " MP (" + x.pct + "%)";
+            ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.effectiveOutputs ? " de " + fmtInt(x.effectiveOutputs) + " saídas" : " ligações")
+            : (x.effectiveOutputs ? fmtInt(x.effectiveOutputs) + " saídas (sem dados para calcular quantas usar)" : "sem dados de saídas");
+          var modeTxt = x.s.outputModes ? " [" + x.s.outputModes[x.modeIdx].label + "]" : "";
+          return "  " + x.s.marca + " " + x.s.modelo + modeTxt + " — entrada: " + entradaTxt + " — saída: " + saidaTxt + " — capacidade: " + fmt(x.cap, 1) + " MP (" + x.pct + "%)";
         }).join("\n")
       : "  nenhum escolhido";
     var ledProcLines = ledProcChosen.length
