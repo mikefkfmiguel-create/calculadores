@@ -1,0 +1,835 @@
+  :root {
+    --paper: #EEF1F5;
+    --paper-raised: #FFFFFF;
+    --ink: #10181F;
+    --ink-soft: #536270;
+    --ink-faint: #7C8894;
+    --line: #C7CFD6;
+    --line-soft: #DDE3E8;
+
+    --amber-600: #A0600A;
+    --amber-500: #C97F0F;
+    --amber-200: #F4D9A8;
+    --amber-100: #FBEDD6;
+
+    --teal-600: #0B7A6E;
+    --teal-500: #128C7E;
+    --teal-200: #BFE7E1;
+    --teal-100: #E1F5F1;
+
+    --violet-600: #5A4FB8;
+    --violet-500: #6C5DD3;
+    --violet-200: #DEDAF6;
+    --violet-100: #ECE9FA;
+
+    --blue-600: #1D5FA8;
+    --blue-500: #2E7BC6;
+    --blue-200: #CFE3F5;
+    --blue-100: #E6F1FA;
+
+    --green-600: #1C7A42;
+    --green-500: #279653;
+    --green-200: #C8E9D3;
+    --green-100: #E3F5E8;
+
+    --rose-600: #B23D63;
+    --rose-500: #D14D78;
+    --rose-200: #F5CEDC;
+    --rose-100: #FAE6ED;
+
+    --cyan-600: #0C7A94;
+    --cyan-500: #1592AE;
+    --cyan-200: #C4E6EE;
+    --cyan-100: #E0F3F7;
+
+    --orange-600: #B8500A;
+    --orange-500: #D96A1A;
+    --orange-200: #F5D2AE;
+    --orange-100: #FBE9D6;
+
+    --danger-600: #A83226;
+    --danger-100: #FBE7E5;
+
+    --focus: #2454C7;
+    --shadow: 0 1px 2px rgba(16, 24, 31, 0.06), 0 8px 24px -12px rgba(16, 24, 31, 0.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E1418;
+      --paper-raised: #161E24;
+      --ink: #E7EDF2;
+      --ink-soft: #9FADB8;
+      --ink-faint: #6B7986;
+      --line: #2A343D;
+      --line-soft: #202932;
+
+      --amber-600: #E3A550;
+      --amber-500: #D99530;
+      --amber-200: #4A3618;
+      --amber-100: #322612;
+
+      --teal-600: #5FCFC3;
+      --teal-500: #45BBAE;
+      --teal-200: #15423C;
+      --teal-100: #102E2A;
+
+      --violet-600: #B3A6F2;
+      --violet-500: #9683E8;
+      --violet-200: #332B5C;
+      --violet-100: #241E42;
+
+      --blue-600: #7BB6EA;
+      --blue-500: #5AA0DE;
+      --blue-200: #17334A;
+      --blue-100: #102536;
+
+      --green-600: #6FD08B;
+      --green-500: #4FBE73;
+      --green-200: #1B4A2C;
+      --green-100: #12331F;
+
+      --rose-600: #EC93AF;
+      --rose-500: #E17398;
+      --rose-200: #4A1E2C;
+      --rose-100: #33141D;
+
+      --cyan-600: #6BD2E8;
+      --cyan-500: #4ABDD6;
+      --cyan-200: #123943;
+      --cyan-100: #0C282E;
+
+      --orange-600: #F0A868;
+      --orange-500: #E8934A;
+      --orange-200: #4A2E14;
+      --orange-100: #32200E;
+
+      --danger-600: #E38178;
+      --danger-100: #3A1613;
+
+      --focus: #6C9BFF;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0E1418;
+    --paper-raised: #161E24;
+    --ink: #E7EDF2;
+    --ink-soft: #9FADB8;
+    --ink-faint: #6B7986;
+    --line: #2A343D;
+    --line-soft: #202932;
+
+    --amber-600: #E3A550;
+    --amber-500: #D99530;
+    --amber-200: #4A3618;
+    --amber-100: #322612;
+
+    --teal-600: #5FCFC3;
+    --teal-500: #45BBAE;
+    --teal-200: #15423C;
+    --teal-100: #102E2A;
+
+    --violet-600: #B3A6F2;
+    --violet-500: #9683E8;
+    --violet-200: #332B5C;
+    --violet-100: #241E42;
+
+    --blue-600: #7BB6EA;
+    --blue-500: #5AA0DE;
+    --blue-200: #17334A;
+    --blue-100: #102536;
+
+    --green-600: #6FD08B;
+    --green-500: #4FBE73;
+    --green-200: #1B4A2C;
+    --green-100: #12331F;
+
+    --rose-600: #EC93AF;
+    --rose-500: #E17398;
+    --rose-200: #4A1E2C;
+    --rose-100: #33141D;
+
+    --cyan-600: #6BD2E8;
+    --cyan-500: #4ABDD6;
+    --cyan-200: #123943;
+    --cyan-100: #0C282E;
+
+    --orange-600: #F0A868;
+    --orange-500: #E8934A;
+    --orange-200: #4A2E14;
+    --orange-100: #32200E;
+
+    --danger-600: #E38178;
+    --danger-100: #3A1613;
+
+    --focus: #6C9BFF;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+  /* overflow-x sozinho no html e no body (sem overflow-y explícito) faz o
+     browser assumir overflow-y:auto nos dois — cria 2 scroll containers
+     encavalados e parte o "position: sticky" lá dentro (o scroll "real" da
+     página deixa de coincidir com o container que o sticky usa como
+     referência). Só o html precisa disto. */
+  html { margin: 0; padding: 0; overflow-x: hidden; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+  h1, h2, h3 { text-wrap: balance; }
+
+  /* Header */
+  .top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .brand .mark {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--ink-faint);
+    letter-spacing: 0.08em;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .sub {
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    margin: 4px 0 18px;
+    max-width: 60ch;
+  }
+
+
+  .install-banner {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid var(--green-500);
+    background: var(--green-100);
+    color: var(--green-600);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13.5px;
+    margin-bottom: 22px;
+  }
+  .install-banner-text { flex: 1; }
+  .install-banner-text strong { color: inherit; }
+  .install-dot {
+    flex: none;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green-500);
+  }
+  .install-btn {
+    flex: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--green-500);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+  .install-btn:hover { background: var(--green-600); }
+  .install-dismiss {
+    flex: none;
+    font-family: inherit;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--green-600);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .install-dismiss:hover { opacity: 0.7; }
+
+  /* Como usar (por aba) */
+  .howto {
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    margin-bottom: 22px;
+    background: var(--paper-raised);
+  }
+  .howto summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .howto summary::-webkit-details-marker { display: none; }
+  .howto summary::before {
+    content: "?";
+    flex: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--line-soft);
+    color: var(--ink-soft);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .howto summary::after {
+    content: "▾";
+    margin-left: auto;
+    color: var(--ink-faint);
+    font-size: 11px;
+  }
+  .howto[open] summary::after { content: "▴"; }
+  .howto[open] summary { border-bottom: 1px solid var(--line-soft); }
+  .howto-body { padding: 12px 16px 14px; }
+  .howto-body p { margin: 0 0 8px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; }
+  .howto-body p:last-child { margin-bottom: 0; }
+  .howto-body strong { color: var(--ink); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 26px;
+  }
+  .tab {
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    padding: 10px 4px;
+    margin-bottom: -1px;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  @media (max-width: 759px) {
+    .tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .tab {
+      flex: none;
+      white-space: nowrap;
+      padding: 10px 8px;
+    }
+  }
+  .tab .swatch {
+    width: 9px; height: 9px;
+    border-radius: 2px;
+  }
+  .tab[data-mode="projecao"] .swatch { background: var(--amber-500); }
+  .tab[data-mode="visualizacao"] .swatch { background: var(--cyan-500); }
+  .tab[data-mode="led"] .swatch { background: var(--teal-500); }
+  .tab[data-mode="zonas"] .swatch { background: var(--teal-500); }
+  .tab[data-mode="blend"] .swatch { background: var(--violet-500); }
+  .tab[data-mode="lentes"] .swatch { background: var(--blue-500); }
+  .tab[data-mode="projeto"] .swatch { background: var(--green-500); }
+  .tab[data-mode="sinal"] .swatch { background: var(--rose-500); }
+  .tab[data-mode="tv"] .swatch { background: var(--orange-500); }
+  .tab[data-mode="ajuda"] .swatch { background: var(--ink-faint); }
+  .tab[aria-selected="true"] { color: var(--ink); }
+  .tab[data-mode="projecao"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
+  .tab[data-mode="visualizacao"][aria-selected="true"] { border-bottom-color: var(--cyan-500); }
+  .tab[data-mode="led"][aria-selected="true"] { border-bottom-color: var(--teal-500); }
+  .tab[data-mode="zonas"][aria-selected="true"] { border-bottom-color: var(--teal-500); }
+  .tab[data-mode="blend"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
+  .tab[data-mode="lentes"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
+  .tab[data-mode="tv"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
+  .tab[data-mode="ajuda"][aria-selected="true"] { border-bottom-color: var(--ink-faint); }
+  .tab[data-mode="projeto"][aria-selected="true"] { border-bottom-color: var(--green-500); }
+  .tab[data-mode="sinal"][aria-selected="true"] { border-bottom-color: var(--rose-500); }
+  .tab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+  @media (prefers-reduced-motion: no-preference) {
+    .panel.active { animation: rise 0.22s ease both; }
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* Layout: form + results */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  @media (min-width: 760px) {
+    .grid { grid-template-columns: 1.05fr 1fr; align-items: start; }
+  }
+
+  .card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 20px 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-faint);
+    margin: 0 0 16px;
+    font-weight: 600;
+  }
+  .card + .card { margin-top: 16px; }
+  @keyframes lz-flash-anim {
+    0%, 100% { box-shadow: var(--shadow); }
+    30% { box-shadow: 0 0 0 3px var(--teal-500), var(--shadow); }
+  }
+  .lz-flash { animation: lz-flash-anim 0.9s ease; }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+  }
+  .field .hint {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .inputgroup input[type="date"] { min-width: 0; }
+  @media (max-width: 480px) {
+    .dates-row { grid-template-columns: 1fr; }
+  }
+
+  .inputgroup {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .inputgroup:focus-within { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .inputgroup input, .inputgroup select {
+    border: none;
+    background: none;
+    color: var(--ink);
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 16px;
+    padding: 9px 10px;
+    width: 100%;
+    min-width: 0;
+  }
+  .inputgroup select { font-family: "IBM Plex Sans", sans-serif; font-size: 16px; }
+  .inputgroup input:focus, .inputgroup select:focus { outline: none; }
+  .inputgroup input:read-only { color: var(--ink-soft); }
+  .inputgroup:has(input:read-only) { background: var(--line-soft); }
+  .inputgroup .unit {
+    flex: none;
+    display: flex;
+    align-items: center;
+    padding: 0 11px;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    background: var(--line-soft);
+    border-left: 1px solid var(--line);
+  }
+
+  select.plain {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 16px;
+    padding: 9px 10px;
+  }
+  select.plain:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+  /* Campo de pesquisa por cima de cada select de modelo — filtra as opções
+     ao escrever. Quando não há nenhuma correspondência, mostra um link para
+     pesquisar o termo no Google numa nova aba (não traz resultados para
+     dentro da app — só um atalho externo, tal como as fichas técnicas). */
+  .model-search-wrap { margin-bottom: 6px; }
+  .model-search {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 7px 10px;
+  }
+  .model-search:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .model-search-noresult { margin-top: 6px; font-size: 12.5px; color: var(--ink-faint); }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink-faint);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 20px 0 14px;
+  }
+  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
+
+  /* Segmented toggle */
+  .seg {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 3px;
+    background: var(--paper);
+    gap: 3px;
+  }
+  .seg-btn {
+    flex: 1;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 8px;
+    cursor: pointer;
+  }
+  .seg-btn.active { background: var(--paper-raised); color: var(--ink); box-shadow: var(--shadow); }
+  .seg-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  .lensmatch-list { font-size: 13.5px; }
+  .lensmatch-list .lm-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .lensmatch-list .lm-item:last-child { border-bottom: none; }
+  .lensmatch-list .lm-model { color: var(--ink-soft); }
+  .lensmatch-list .lm-empty { color: var(--ink-faint); font-style: italic; }
+  .lensmatch-list .lm-checkitem { align-items: center; cursor: pointer; }
+  .lensmatch-list .lm-checkitem input[type="checkbox"] { flex-shrink: 0; margin: 0 10px 0 0; width: 16px; height: 16px; accent-color: var(--green-500); cursor: pointer; }
+  .lensmatch-list .lm-row { display: flex; justify-content: space-between; gap: 10px; flex: 1; }
+
+  /* Results */
+  .results { position: sticky; top: 16px; }
+  /* No Ecrã Complexo, o diagrama é o que se está sempre a precisar de ver
+     enquanto se edita a lista de zonas — fica num card próprio, à parte e
+     por cima da grelha lista/totais, para ocupar a largura toda (mais
+     visível com muitas zonas) e "colar" ao topo ao descer a lista. Só ele
+     fica "colado" — o card de totais ao lado da lista herdava o mesmo
+     "position: sticky" da classe .results e ambos tentavam colar-se ao
+     mesmo sítio ao descer a página, sobrepondo-se. */
+  #lz-totals-card { position: static; }
+  @media (max-width: 759px) {
+    #lz-diagram-card { position: static; }
+    #lz-totals-card { order: -1; margin-bottom: 4px; }
+  }
+  /* Barra fixa com o resultado essencial (resolução do canvas + tiles),
+     sempre visível por cima do teclado/conteúdo enquanto se edita a lista
+     de zonas em ecrãs estreitos — não depende de "position: sticky" (que
+     tem comportamento inconsistente em grids em alguns browsers móveis),
+     por isso garante-se sempre visível mesmo que o sticky do resultado
+     completo falhe nalgum aparelho. */
+  #lz-preview-bar {
+    display: none;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    margin: 10px 0 4px;
+    background: var(--paper-raised);
+    border: 1px solid var(--teal-500);
+    border-radius: 10px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+  }
+  #lz-preview-bar .lz-preview-bar-cta { color: var(--teal-600); font-weight: 600; white-space: nowrap; }
+  /* Coluna de detalhes ao lado do diagrama — a identificação de cada zona
+     fica curta e dentro/perto da própria forma no desenho; o resto das
+     características (tamanho, posição) fica aqui, fora do desenho, para
+     não colidir com zonas vizinhas apertadas. */
+  .lz-detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .lz-detail-row:hover { background: var(--paper); }
+  .lz-detail-dot { width: 10px; height: 10px; border-radius: 3px; flex: none; margin-top: 4px; }
+  .lz-detail-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .lz-detail-meta { font-size: 12px; color: var(--ink-faint); margin-top: 1px; }
+  @media (max-width: 759px) {
+    #lz-preview-bar.lz-has-zones {
+      display: flex;
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      z-index: 40;
+      box-shadow: var(--shadow);
+    }
+  }
+  /* Notificação leve para avisos/erros simples (em vez do alert() nativo do
+     browser, que sai feio e sem estilo nenhum, ex: caixa do Windows). */
+  #app-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(12px);
+    max-width: min(92vw, 480px);
+    background: var(--paper-raised);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: var(--shadow);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+  }
+  #app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+
+  .stripe { height: 3px; border-radius: 3px 3px 0 0; margin: -20px -20px 18px; }
+  .panel[data-mode="projecao"] .stripe, [data-accent="projecao"] .stripe { background: var(--amber-500); }
+  .panel[data-mode="visualizacao"] .stripe, [data-accent="visualizacao"] .stripe { background: var(--cyan-500); }
+  .panel[data-mode="led"] .stripe, [data-accent="led"] .stripe { background: var(--teal-500); }
+  .panel[data-mode="zonas"] .stripe, [data-accent="zonas"] .stripe { background: var(--teal-500); }
+  .panel[data-mode="blend"] .stripe, [data-accent="blend"] .stripe { background: var(--violet-500); }
+  .panel[data-mode="lentes"] .stripe, [data-accent="lentes"] .stripe { background: var(--blue-500); }
+  .panel[data-mode="projeto"] .stripe, [data-accent="projeto"] .stripe { background: var(--green-500); }
+  .panel[data-mode="sinal"] .stripe, [data-accent="sinal"] .stripe { background: var(--rose-500); }
+  .panel[data-mode="tv"] .stripe, [data-accent="tv"] .stripe { background: var(--orange-500); }
+
+  .readout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
+  .readout .item {
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 12px 13px;
+  }
+  .readout .item .k {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 5px;
+  }
+  .readout .item .v {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .readout .item .v small { font-size: 12px; font-weight: 500; color: var(--ink-faint); margin-left: 3px; }
+  .readout .item.wide { grid-column: 1 / -1; }
+  [data-accent="projecao"] .readout .item .v { color: var(--amber-600); }
+  [data-accent="led"] .readout .item .v { color: var(--teal-600); }
+  [data-accent="zonas"] .readout .item .v { color: var(--teal-600); }
+  [data-accent="blend"] .readout .item .v { color: var(--violet-600); }
+  [data-accent="lentes"] .readout .item .v { color: var(--blue-600); }
+  [data-accent="projeto"] .readout .item .v { color: var(--green-600); }
+
+  .lenstable-wrap { overflow-x: auto; }
+  table.lenstable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.lenstable th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  table.lenstable td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line-soft);
+    white-space: nowrap;
+  }
+  table.lenstable td.ratio {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  table.lenstable tr.match td { background: var(--blue-100); }
+  table.lenstable tr.match td:first-child { border-left: 2px solid var(--blue-500); }
+  .badge-match {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue-600);
+    background: var(--blue-100);
+    border-radius: 5px;
+    padding: 2px 7px;
+  }
+
+  .note {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+  .warn {
+    font-size: 12.5px;
+    color: var(--danger-600);
+    background: var(--danger-100);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-top: 10px;
+  }
+  .crosslink {
+    font-size: 13px;
+    color: var(--ink-soft);
+    background: var(--cyan-100);
+    border: 1px solid var(--cyan-200);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 26px;
+    line-height: 1.5;
+  }
+  .crosslink button {
+    font: inherit;
+    font-weight: 600;
+    color: var(--cyan-600);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  a.srclink {
+    display: inline-block;
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--ink-faint);
+  }
+  a.srclink:hover { color: var(--ink); border-bottom-color: var(--ink-soft); }
+  .field .srclink-wrap { margin-top: 6px; }
+  .lm-item .srclink { margin-left: 8px; }
+
+  .summary {
+    margin-top: 16px;
+    border-top: 1px solid var(--line-soft);
+    padding-top: 14px;
+  }
+  .summary-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .summary-head .k { font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+  pre.sumbox {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 9px;
+    padding: 12px 13px;
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    color: var(--ink-soft);
+  }
+  .summary-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .addproject {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .addproject input[type="checkbox"] {
+    width: 15px; height: 15px;
+    accent-color: var(--green-500);
+    cursor: pointer;
+  }
+  .projitem { margin-bottom: 14px; }
+  .projitem:last-child { margin-bottom: 0; }
+  .projitem h3 {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 6px;
+  }
+  button.copy {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  button.copy:hover { color: var(--ink); border-color: var(--ink-faint); }
+  button.copy:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  footer {
+    margin-top: 40px;
+    color: var(--ink-faint);
+    font-size: 12px;
+    text-align: center;
+  }
