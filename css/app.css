@@ -350,6 +350,12 @@
       white-space: nowrap;
       padding: 10px 8px;
     }
+    /* O traço da aba ativa acompanha o padding-box (inclui o padding
+       lateral) — na 1ª aba isso fazia o traço começar antes do ícone,
+       dentro da margem vazia contra a borda do ecrã. Sem padding à
+       esquerda só nesta, o traço e o ícone alinham-se com a margem da
+       página. */
+    .tab:first-child { padding-left: 0; }
   }
   .tab .swatch {
     width: 9px; height: 9px;
