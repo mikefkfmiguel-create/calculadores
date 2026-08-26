@@ -557,11 +557,43 @@
   /* No Ecrã Complexo, o diagrama é o que se está sempre a precisar de ver
      enquanto se edita a lista de zonas — fica num card próprio, à parte e
      por cima da grelha lista/totais, para ocupar a largura toda (mais
-     visível com muitas zonas) e "colar" ao topo ao descer a lista. Só ele
-     fica "colado" — o card de totais ao lado da lista herdava o mesmo
-     "position: sticky" da classe .results e ambos tentavam colar-se ao
-     mesmo sítio ao descer a página, sobrepondo-se. */
+     visível com muitas zonas). Só ele fica fixo — o card de totais ao
+     lado da lista herdava o mesmo "position: sticky" da classe .results e
+     ambos tentavam colar-se ao mesmo sítio ao descer a página,
+     sobrepondo-se. */
   #lz-totals-card { position: static; }
+  @media (min-width: 760px) {
+    /* O diagrama passa a ser o primeiro elemento visível ao abrir a aba —
+       reordenado só visualmente com "order" (sem mexer na ordem no HTML,
+       por isso o telemóvel não é afetado) — para "colar" ao topo
+       (position: sticky, herdado de .results) quase de imediato, sem a
+       sensação de "andar" com o scroll antes de fixar. Por ser sticky (e
+       não "fixed", que tentámos e cobria o cabeçalho/abas por cima —
+       posição fixa não sabe o que está por baixo dela), nunca tapa o
+       cabeçalho/abas. */
+    .panel.active[data-mode="zonas"] { display: flex; flex-direction: column; }
+    #lz-diagram-card { order: -1; }
+    /* Com uma lista comprida, um "sticky" simples deixa de bastar: uma
+       vez colado, os cards do fim acabam por passar por baixo dele à
+       mesma ao scrollar a página toda (o mesmo aconteceria com qualquer
+       painel fixo sobre uma lista mais alta do que ele). Por isso a
+       lista ganha scroll próprio, numa altura limitada — os cards nunca
+       chegam a entrar na faixa do diagrama, e os botões "Adicionar zona"
+       (topo e fundo) ficam sempre à vista, fora dessa área com scroll. */
+    #lz-list {
+      max-height: 58vh;
+      overflow-y: auto;
+      padding: 4px 6px 4px 2px;
+      margin: 0 -6px 0 -2px;
+    }
+    /* "scrollIntoView" (usado ao clicar numa zona no diagrama/coluna de
+       detalhes, ver lzJumpToZoneCard em js/zonas.js) não sabe, por si só,
+       que o diagrama sticky tapa visualmente o topo do ecrã — sem esta
+       margem, um card podia acabar "visível" só tecnicamente, escondido
+       por baixo dele. O valor é atualizado em JS consoante a altura real
+       do diagrama. */
+    #lz-list > .card { scroll-margin-top: var(--lz-diagram-offset, 16px); }
+  }
   @media (max-width: 759px) {
     #lz-diagram-card { position: static; }
     #lz-totals-card { order: -1; margin-bottom: 4px; }
