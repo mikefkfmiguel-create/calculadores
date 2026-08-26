@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.93</span>
+    <span class="mark">v1.94</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1258,7 +1258,7 @@
           <div class="lensmatch-list" id="sg-switcher-list"></div>
 
           <h2 style="margin-top:18px;">Switchers de show — capacidade total (MP)</h2>
-          <div class="hint">Total de píxeis acima (não o pixel clock de um único sinal) comparado à capacidade em megapíxeis de cada switcher — a mesma conta usada na aba Projeto para o total do ecrã + DSM + delay. Nº de entradas/saídas do aparelho mostrado quando a marca o publica.</div>
+          <div class="hint">Total de píxeis acima (não o pixel clock de um único sinal) comparado à capacidade em megapíxeis de cada switcher — a mesma conta usada na aba Projeto para o total do ecrã + DSM + delay. "Usar X de Y saídas" é o nº de ligações de saída realmente necessárias para repartir este canvas (calculado a partir do pixel clock máximo do aparelho, assumindo que a saída aguenta o mesmo limite que a entrada — a maioria não publica um valor separado para a saída); ordenado pela opção que precisa de menos ligações primeiro.</div>
           <div class="lensmatch-list" id="sg-switcher-mp-list"></div>
 
           <h2 style="margin-top:18px;">Portas de saída necessárias — processo de LED</h2>
@@ -3242,6 +3242,24 @@
 
   var CHROMA_LABELS = { "3": "RGB/YCbCr 4:4:4", "2": "YCbCr 4:2:2", "1.5": "YCbCr 4:2:0" };
 
+  // Maior nº de píxeis (com a mesma proporção do sinal h:v) que cabem numa
+  // única saída, dado o limite de pixel clock dessa saída — usado para saber
+  // em quantas ligações é preciso repartir um canvas grande. Procura binária
+  // sobre cvtRb2ClockMHz (mesma função já usada para a ligação de entrada),
+  // assumindo que a saída aguenta o mesmo pixel clock máximo publicado para
+  // a entrada do aparelho (a maioria destes switchers/processos não publica
+  // um limite separado para as saídas).
+  function maxPixelsPerOutput(maxMHz, fps, aspectH, aspectV) {
+    var loH = 16, hiH = 40000;
+    for (var i = 0; i < 50; i++) {
+      var midH = (loH + hiH) / 2;
+      var midV = midH * (aspectV / aspectH);
+      if (cvtRb2ClockMHz(midH, midV, fps) <= maxMHz) loH = midH; else hiH = midH;
+    }
+    var finalV = loH * (aspectV / aspectH);
+    return Math.floor(loH) * Math.floor(finalV);
+  }
+
   function calcSinal() {
     var h = val("sg-h"), v = val("sg-v"), fps = val("sg-fps");
     var bits = parseInt(document.getElementById("sg-bits").value, 10);
@@ -3282,14 +3300,21 @@
       var fits = totalMP <= capPgm;
       var mode = totalMP <= capSwitcher ? "PGM + Preview" : "só PGM (sem Preview)";
       if (linked) mode += ", " + s.unitsOwned + " unidades ligadas";
-      return { s: s, fits: fits, mode: mode, cap: capPgm };
-    }).filter(function (x) { return x.fits && x.cap; }).sort(function (a, b) { return a.cap - b.cap; });
+      var pxPerOutput = s.maxPixelClockMHz ? maxPixelsPerOutput(s.maxPixelClockMHz, fps, h, v) : 0;
+      var connsNeeded = pxPerOutput ? Math.ceil(totalPx / pxPerOutput) : null;
+      var outputsEnough = connsNeeded == null || !s.outputs ? null : connsNeeded <= s.outputs;
+      return { s: s, fits: fits, mode: mode, cap: capPgm, connsNeeded: connsNeeded, outputsEnough: outputsEnough };
+    }).filter(function (x) { return x.fits && x.cap; })
+      .sort(function (a, b) { return (a.connsNeeded || 999) - (b.connsNeeded || 999) || a.cap - b.cap; });
 
     document.getElementById("sg-switcher-mp-list").innerHTML = switchersMP.length
       ? switchersMP.map(function (x) {
           var pct = fmt((totalMP / x.cap) * 100, 0);
-          var io = (x.s.inputs || x.s.outputs) ? " · " + (x.s.inputs ? fmtInt(x.s.inputs) + " entradas" : "") + (x.s.inputs && x.s.outputs ? " / " : "") + (x.s.outputs ? fmtInt(x.s.outputs) + " saídas" : "") : "";
-          return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + pct + '%' + io + '</span></div>';
+          var conns = x.connsNeeded == null
+            ? ""
+            : " · usar " + fmtInt(x.connsNeeded) + (x.s.outputs ? " de " + fmtInt(x.s.outputs) + " saídas" : " ligações (nº de saídas não publicado)") +
+              (x.outputsEnough === false ? " — ⚠ precisa de mais saídas do que este aparelho tem sozinho" : "");
+          return '<div class="lm-item"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + pct + '%' + conns + '</span></div>';
         }).join("")
       : '<div class="lm-item"><span>Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>';
 
