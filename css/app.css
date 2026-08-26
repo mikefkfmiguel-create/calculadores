@@ -416,7 +416,7 @@
      com os 3 blocos (sinal, resultado, switchers/portas) como <details>
      colapsáveis — a aba tem um resultado longo (várias listas de
      switchers/processos) que não precisa de estar sempre expandido. */
-  .sinal-col { max-width: 640px; margin: 0 auto; }
+  .sinal-col { max-width: 1000px; margin: 0 auto; }
   .sinal-block summary {
     cursor: pointer;
     list-style: none;
