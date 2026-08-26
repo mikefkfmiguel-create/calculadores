@@ -743,7 +743,8 @@
     cursor: pointer;
     text-align: left;
   }
-  #lz-preview-bar .lz-preview-bar-cta { color: var(--teal-600); font-weight: 600; white-space: nowrap; }
+  #lz-preview-bar-text { min-width: 0; }
+  #lz-preview-bar .lz-preview-bar-cta { flex: none; color: var(--teal-600); font-weight: 600; white-space: nowrap; }
   /* Coluna de detalhes ao lado do diagrama — a identificação de cada zona
      fica curta e dentro/perto da própria forma no desenho; o resto das
      características (tamanho, posição) fica aqui, fora do desenho, para
@@ -766,6 +767,11 @@
       position: fixed;
       left: 12px;
       right: 12px;
+      /* left+right sozinhos deixam um botão flex em fit-content (o texto
+         longo força-o a crescer para lá do "right", ignorando-o) — max-width
+         força o limite mesmo que o conteúdo "prefira" mais espaço, o texto
+         (com min-width:0) parte em vez de empurrar o botão para fora. */
+      max-width: calc(100vw - 24px);
       bottom: calc(12px + env(safe-area-inset-bottom, 0px));
       z-index: 40;
       box-shadow: var(--shadow);
