@@ -46,20 +46,6 @@
   </div>
   <p class="sub">Construtor de ecrãs LED com várias zonas/pitches — as zonas ficam guardadas no aparelho e também aparecem na aba "Ecrã Complexo" dos Calculadores.</p>
 
-  <details class="howto">
-    <summary>Como usar esta calculadora</summary>
-    <div class="howto-body">
-      <p>Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição.</p>
-      <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama acima à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão. O desenho mostra só o nome de cada zona; o tamanho e o ponto de início/fim em metros ficam na coluna de detalhes ao lado. A lista de cards ordena-se sozinha pela posição (mais à esquerda primeiro) para ser mais fácil encontrar o card certo. Clicar numa zona no desenho ou na coluna de detalhes salta logo para o card dela na lista.</p>
-      <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas. Se depois precisares de mudar o modelo/tamanho dessas cópias, edita só a zona original e usa <strong>"Atualizar réplicas"</strong> — aplica a alteração às outras com o mesmo nome-base sem criar novas nem mexer nas posições de cada uma.</p>
-      <p>Para abrir espaço a uma zona nova (ex: adicionar um ecrã à esquerda de tudo o resto): marca a caixa <strong>"Sel."</strong> nas zonas que já lá estão (ou usa "Selecionar todas"), indica quanto deslocar em X/Y no bloco acima da lista e carrega em <strong>"Mover selecionadas"</strong> — soma esse deslocamento à posição de todas as marcadas de uma vez, sem teres de editar zona a zona.</p>
-      <p>Zonas com o mesmo nome-base (ex: "Lateral", "Lateral 2", "Lateral 3") ficam marcadas automaticamente com a mesma cor no diagrama, no mapa de píxeis exportado e num pontinho junto ao nome de cada zona — só para ajudar a distinguir grupos à vista, não afeta os cálculos.</p>
-      <p>Desmarca a caixa <strong>"Vis."</strong> numa zona para a esconder — sai do diagrama, dos totais e do mapa de píxeis exportado, mas fica guardada (não é apagada). Útil para testar cenários sem uma zona ou para preparar uma zona que ainda não está confirmada.</p>
-      <p>As zonas ficam guardadas automaticamente neste aparelho (mesmo que atualizes a página ou feches esta app) — e são as mesmas zonas que aparecem na aba "Ecrã Complexo" dos Calculadores, dos dois lados.</p>
-      <p>Em ecrãs largos (computador), o diagrama fica mesmo fixo no topo da página e só o resto (esta explicação incluída) desce — fácil de ver mesmo em projetos com muitas zonas. Em telemóvel/tablet mantém-se a barra fixa condensada em baixo.</p>
-      <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
-    </div>
-  </details>
   <button type="button" id="lz-preview-bar">
     <span id="lz-preview-bar-text">—</span>
     <span class="lz-preview-bar-cta">ver resultado ▾</span>
@@ -69,19 +55,29 @@
 
   <div class="grid">
     <div>
-      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:14px; padding:10px 12px; border:1px solid var(--line-soft); border-radius:10px; background:var(--paper);">
-        <div class="field" style="margin-bottom:0;">
-          <label>Deslocar X selecionadas</label>
-          <div class="inputgroup"><input id="lz-bulk-dx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div>
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          <label>Deslocar Y selecionadas</label>
-          <div class="inputgroup"><input id="lz-bulk-dy" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div>
-        </div>
-        <button type="button" class="copy" id="lz-bulk-move" title="Soma o deslocamento X/Y às zonas com a caixa 'Sel.' marcada — útil para abrir espaço para uma zona nova">Mover selecionadas</button>
-        <button type="button" class="copy" id="lz-select-all">Selecionar todas</button>
-        <button type="button" class="copy" id="lz-select-none">Limpar seleção</button>
-        <span class="hint" id="lz-bulk-count" style="margin:0 0 8px;">0 selecionadas</span>
+      <div class="lz-bulk-toolbar">
+        <span class="lz-bulk-label">Deslocar X (m)</span>
+        <div class="inputgroup lz-bulk-input"><input id="lz-bulk-dx" type="number" inputmode="decimal" value="0" step="0.01"></div>
+        <span class="lz-bulk-label">Y (m)</span>
+        <div class="inputgroup lz-bulk-input"><input id="lz-bulk-dy" type="number" inputmode="decimal" value="0" step="0.01"></div>
+        <button type="button" class="copy" id="lz-bulk-move" title="Soma o deslocamento X/Y às zonas com a caixa 'Sel.' marcada — útil para abrir espaço para uma zona nova">Mover</button>
+        <button type="button" class="copy" id="lz-select-all" title="Selecionar todas">Todas</button>
+        <button type="button" class="copy" id="lz-select-none" title="Limpar seleção">Limpar</button>
+        <span class="hint" id="lz-bulk-count">0 selecionadas</span>
+        <details class="howto howto-compact">
+          <summary>Como usar esta calculadora</summary>
+          <div class="howto-body">
+            <p>Para setups com várias secções de LED (ex: central + laterais + tiras espalhadas), possivelmente com pitches diferentes. Adiciona uma zona por secção — cada uma com o seu modelo, nº de tiles e posição.</p>
+            <p>A posição (<strong>X</strong> = horizontal, <strong>Y</strong> = vertical, ambas em metros a partir do canto superior esquerdo do conjunto) desenha o diagrama acima à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última, mas a posição é sempre editável à mão. O desenho mostra só o nome de cada zona; o tamanho e o ponto de início/fim em metros ficam na coluna de detalhes ao lado. A lista de cards ordena-se sozinha pela posição (mais à esquerda primeiro) para ser mais fácil encontrar o card certo. Clicar numa zona no desenho ou na coluna de detalhes salta logo para o card dela na lista.</p>
+            <p>Usa <strong>"Aplicar réplicas"</strong> numa zona para criar várias cópias iguais em fila de uma vez, com o gap e direção (horizontal/vertical) que definires — o caso direto de várias tiras repetidas. Se depois precisares de mudar o modelo/tamanho dessas cópias, edita só a zona original e usa <strong>"Atualizar réplicas"</strong> — aplica a alteração às outras com o mesmo nome-base sem criar novas nem mexer nas posições de cada uma.</p>
+            <p>Para abrir espaço a uma zona nova (ex: adicionar um ecrã à esquerda de tudo o resto): marca a caixa <strong>"Sel."</strong> nas zonas que já lá estão (ou usa "Todas"), indica quanto deslocar em X/Y aqui ao lado e carrega em <strong>"Mover"</strong> — soma esse deslocamento à posição de todas as marcadas de uma vez, sem teres de editar zona a zona.</p>
+            <p>Zonas com o mesmo nome-base (ex: "Lateral", "Lateral 2", "Lateral 3") ficam marcadas automaticamente com a mesma cor no diagrama, no mapa de píxeis exportado e num pontinho junto ao nome de cada zona — só para ajudar a distinguir grupos à vista, não afeta os cálculos.</p>
+            <p>Desmarca a caixa <strong>"Vis."</strong> numa zona para a esconder — sai do diagrama, dos totais e do mapa de píxeis exportado, mas fica guardada (não é apagada). Útil para testar cenários sem uma zona ou para preparar uma zona que ainda não está confirmada.</p>
+            <p>As zonas ficam guardadas automaticamente neste aparelho (mesmo que atualizes a página ou feches esta app) — e são as mesmas zonas que aparecem na aba "Ecrã Complexo" dos Calculadores, dos dois lados.</p>
+            <p>Em ecrãs largos (computador), o diagrama fica mesmo fixo no topo da página e só o resto desce — fácil de ver mesmo em projetos com muitas zonas. Em telemóvel/tablet mantém-se a barra fixa condensada em baixo.</p>
+            <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
+          </div>
+        </details>
       </div>
       <div id="lz-list"></div>
       <button type="button" class="copy" id="lz-add">+ Adicionar zona</button>

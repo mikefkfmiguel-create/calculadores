@@ -687,6 +687,57 @@
       box-shadow: var(--shadow);
     }
   }
+  /* Barra de deslocar/selecionar em massa das zonas — numa só linha (com
+     wrap como salvaguarda em ecrãs estreitos) para sobrar mais altura à
+     lista de cards abaixo. */
+  .lz-bulk-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+    padding: 8px 10px;
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    background: var(--paper);
+  }
+  .lz-bulk-label { font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
+  .lz-bulk-input { width: 64px; flex: none; }
+  .lz-bulk-input input { padding: 6px 8px; font-size: 14px; text-align: right; }
+  .lz-bulk-toolbar .copy { padding: 7px 10px; font-size: 13px; }
+  .lz-bulk-toolbar #lz-bulk-count { white-space: nowrap; }
+  /* Versão compacta do "Como usar esta calculadora" — só o ícone "?",
+     para caber ao lado dos outros controlos em vez de ocupar uma barra
+     inteira à parte. O conteúdo abre num popover flutuante por cima do
+     resto, em vez de empurrar o layout para baixo. */
+  .howto-compact {
+    border: none;
+    background: none;
+    margin: 0;
+    position: relative;
+    flex: none;
+  }
+  .howto-compact summary {
+    padding: 4px;
+    font-size: 0;
+    gap: 0;
+  }
+  .howto-compact summary::after { display: none; }
+  .howto-compact[open] summary { border-bottom: none; }
+  .howto-compact .howto-body {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: min(420px, 88vw);
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    z-index: 50;
+    padding: 12px 16px 14px;
+  }
   /* Notificação leve para avisos/erros simples (em vez do alert() nativo do
      browser, que sai feio e sem estilo nenhum, ex: caixa do Windows). */
   #app-toast {
