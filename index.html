@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.118</span>
+    <span class="mark">v1.119</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3107,16 +3107,38 @@
     useSinalRes(projLastRes.x, projLastRes.y, projLastRes.label);
   });
   document.getElementById("sg-use-projtile").addEventListener("click", function () {
-    if (projLedModelSel.value === "custom") {
-      showToast("O tile configurado na aba Projeto é personalizado — sem correspondência na lista de referência aqui.");
+    // Quando o projeto vem do Ecrã Complexo ("Usar total das zonas"), o
+    // "proj-led-model" nunca é preenchido — um projeto de zonas pode ter
+    // vários tiles diferentes, sem um único "o tile do projeto". Usa-se
+    // antes o tile da zona que já serve de referência de pitch ao canvas
+    // combinado (lzComputePixelMap) — é o mesmo critério já usado em todo
+    // o resto da app para representar um setup de pitches misturados
+    // como um só tile.
+    var usingZones = document.getElementById("proj-led-usezones").checked;
+    var modelValue;
+    if (usingZones) {
+      var pm = typeof lzLastTotals !== "undefined" && lzLastTotals ? lzLastTotals.pixelMap : null;
+      if (!pm) {
+        showToast("Ainda não há zonas com canvas calculado na aba Ecrã Complexo.");
+        return;
+      }
+      var refCard = Array.from(document.querySelectorAll("#lz-list .card")).find(function (c) {
+        return c.querySelector(".lz-name").value.trim() === pm.refName;
+      });
+      modelValue = refCard ? refCard.querySelector(".lz-model").value : null;
+    } else {
+      modelValue = projLedModelSel.value;
+    }
+    if (modelValue === "custom") {
+      showToast("O tile de referência do projeto é personalizado — sem correspondência na lista de referência aqui.");
       return;
     }
-    var hasOpt = !!sgLedTileSel.querySelector('option[value="' + projLedModelSel.value + '"]');
+    var hasOpt = modelValue != null && !!sgLedTileSel.querySelector('option[value="' + modelValue + '"]');
     if (!hasOpt) {
       showToast("Ainda não há um tile configurado na aba Projeto.");
       return;
     }
-    sgLedTileSel.value = projLedModelSel.value;
+    sgLedTileSel.value = modelValue;
     calcSinal();
   });
 
