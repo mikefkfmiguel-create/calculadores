@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.126</span>
+    <span class="mark">v1.127</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1166,8 +1166,9 @@
               <div class="item wide"><div class="k">Pixel usage total (ecrã + DSM + delay)</div><div class="v" id="proj-out-pxtotal">—</div></div>
             </div>
             <div class="field" style="margin-top:12px;">
-              <label>Opções de switcher de show (cobrem o total)</label>
-              <div class="hint">Marca a(s) opção(ões) escolhida(s) para o relatório sair limpo — sem marcar nenhuma, entram todas as compatíveis.</div>
+              <label>Opções de switcher de show (cobrem o total, com 10% de margem)</label>
+              <div class="hint">Marca a(s) opção(ões) escolhida(s) para o relatório sair limpo — sem marcar nenhuma, entram todas as compatíveis. Nunca mostra nada acima de 90% da capacidade publicada.</div>
+              <label class="addproject"><input type="checkbox" id="proj-switcher-advanced">Modo avançado (configurações por confirmar — unidades ligadas, placas alternativas não montadas)</label>
               <button type="button" class="copy" id="proj-use-sinal-switcher" style="margin-bottom:8px;" title="Marca aqui o(s) mesmo(s) switcher(s) já escolhido(s) na aba Sinal & Data Rate">↙ Trazer escolha do Sinal</button>
               <div class="lensmatch-list" id="proj-switcher-list">—</div>
             </div>
@@ -1280,6 +1281,8 @@
       <details class="card sinal-block">
         <summary>Switchers de show — capacidade e ligações a usar</summary>
         <div class="sinal-block-body">
+          <div class="hint">Lista já com 10% de margem de segurança — nunca mostra nada acima de 90% da capacidade publicada.</div>
+          <label class="addproject"><input type="checkbox" id="sg-switcher-advanced">Modo avançado (configurações por confirmar — unidades ligadas, placas alternativas não montadas)</label>
           <div class="lensmatch-list" id="sg-switcher-mp-list"></div>
 
           <div id="sg-switcher-detail-wrap" style="display:none; margin-top:18px;">
@@ -2621,6 +2624,23 @@
   var sinalLedProcListExpanded = false;
   function itemKey(marca, modelo) { return marca + "|" + modelo; }
 
+  // Margem de segurança para o total de píxeis nunca passar de 90% da
+  // capacidade publicada de um switcher — nunca mostrar algo "no limite".
+  var SWITCHER_SAFETY_MARGIN = 0.9;
+
+  // Capacidade "modo avançado" de um switcher — configurações que existem
+  // mas precisam de confirmação antes de assumir disponíveis (unidades
+  // extra fisicamente ligadas, placas de saída alternativas não montadas,
+  // etc.). Usa os campos "*Linked" já existentes (unidades no inventário
+  // ligadas entre si) como fallback dos novos "*Advanced" (qualquer outra
+  // configuração avançada, ex: placa de fibra que não está em stock).
+  function switcherAdvancedCap(s) {
+    var swVal = s.maxMPSwitcherAdvanced != null ? s.maxMPSwitcherAdvanced : ((s.unitsOwned >= 2) ? s.maxMPSwitcherLinked : null);
+    if (swVal == null) return null;
+    var pgmVal = s.maxMPPgmOnlyAdvanced != null ? s.maxMPPgmOnlyAdvanced : ((s.unitsOwned >= 2) ? s.maxMPPgmOnlyLinked : null);
+    return { switcher: swVal, pgm: pgmVal || swVal, nota: s.avancadoNota || null };
+  }
+
   var projLedModelSel = document.getElementById("proj-led-model");
   var sgLedTileSel = document.getElementById("sg-led-tile");
   var projProjModelSel = document.getElementById("proj-proj-model");
@@ -3055,17 +3075,20 @@
 
     document.getElementById("proj-out-pxtotal").innerHTML = fmtInt(totalPixels) + "<small>px</small> (" + fmt(totalMP, 2) + "<small>MP</small>)";
 
+    var projSwitcherAdvanced = document.getElementById("proj-switcher-advanced").checked;
     var switcherOk = (PROCESSORS_DATA.switchers || []).map(function (s) {
       // Capacidade sempre pela unidade única (config. mínima/base), nunca
       // pelos valores "*Linked" (várias unidades ligadas) — mesmo possuindo
       // 2+ unidades, ligá-las é uma configuração avançada que não se pode
       // assumir disponível/montada para qualquer job só por estarem no
-      // inventário.
-      var capSwitcher = s.maxMPSwitcher || 0;
-      var capPgm = s.maxMPPgmOnly || capSwitcher;
-      var fits = totalMP <= capPgm;
-      var mode = totalMP <= capSwitcher ? "PGM + Preview" : "só PGM (sem Preview)";
-      return { s: s, fits: fits, mode: mode, cap: capPgm };
+      // inventário. Só entra com "Modo avançado" ligado (ver switcherAdvancedCap).
+      var adv = projSwitcherAdvanced ? switcherAdvancedCap(s) : null;
+      var capSwitcher = (adv ? adv.switcher : s.maxMPSwitcher) || 0;
+      var capPgm = (adv ? adv.pgm : s.maxMPPgmOnly) || capSwitcher;
+      var fits = totalMP <= capPgm * SWITCHER_SAFETY_MARGIN;
+      var mode = totalMP <= capSwitcher * SWITCHER_SAFETY_MARGIN ? "PGM + Preview" : "só PGM (sem Preview)";
+      if (adv) mode += " — modo avançado";
+      return { s: s, fits: fits, mode: mode, cap: capPgm, advancedNota: adv ? adv.nota : null };
     }).filter(function (x) { return x.fits; }).sort(function (a, b) { return a.cap - b.cap; });
 
     switcherOk.forEach(function (x) { x.key = itemKey(x.s.marca, x.s.modelo); x.pct = fmt((totalMP / x.cap) * 100, 0); });
@@ -3527,14 +3550,18 @@
     dpHint.textContent = "DisplayPort não define um limite único de pixel clock (é um link empacotado) — a " + fmt(bpp,1) + "bpp (" + bits + "-bit " + chromaLabel + "), o máximo teórico é ≈" + fmtInt(360 * (24 / bpp)) + "MHz em DP1.1a, ≈" + fmtInt(720 * (24 / bpp)) + "MHz em DP1.2, ≈" + fmtInt(1080 * (24 / bpp)) + "MHz em DP1.4 (valores derivados do débito, não publicados pela VESA em MHz).";
 
     var totalMP = totalPx / 1e6;
+    var sinalSwitcherAdvanced = document.getElementById("sg-switcher-advanced").checked;
     var switchersMP = (PROCESSORS_DATA.switchers || []).map(function (s) {
       // Capacidade sempre pela unidade única (config. mínima/base), nunca
       // pelos valores "*Linked" (várias unidades ligadas) — ver nota igual
-      // em calcProjeto().
-      var capSwitcher = s.maxMPSwitcher || 0;
-      var capPgm = s.maxMPPgmOnly || capSwitcher;
-      var fits = totalMP <= capPgm;
-      var mode = totalMP <= capSwitcher ? "PGM + Preview" : "só PGM (sem Preview)";
+      // em calcProjeto(). Só entra com "Modo avançado" ligado.
+      var adv = sinalSwitcherAdvanced ? switcherAdvancedCap(s) : null;
+      var capSwitcher = (adv ? adv.switcher : s.maxMPSwitcher) || 0;
+      var capPgm = (adv ? adv.pgm : s.maxMPPgmOnly) || capSwitcher;
+      var fits = totalMP <= capPgm * SWITCHER_SAFETY_MARGIN;
+      var mode = totalMP <= capSwitcher * SWITCHER_SAFETY_MARGIN ? "PGM + Preview" : "só PGM (sem Preview)";
+      if (adv) mode += " — modo avançado";
+      var advancedNota = adv ? adv.nota : null;
       var key = itemKey(s.marca, s.modelo);
       var modeIdx = s.outputModes ? (selectedSinalOutputMode.get(key) || 0) : null;
       var effectiveOutputs = s.outputModes ? s.outputModes[modeIdx].outputs : s.outputs;
@@ -3557,7 +3584,7 @@
       // resolução por ligação são o mesmo cálculo, só comparado ao nº de
       // entradas físicas em vez de saídas.
       var inputsEnough = connsNeeded == null || !s.inputs ? null : connsNeeded <= s.inputs;
-      return { s: s, key: key, fits: fits, mode: mode, cap: capPgm, pct: fmt((totalMP / capPgm) * 100, 0), connsNeeded: connsNeeded, connsEstimated: connsEstimated, perConnRes: split, outputsEnough: outputsEnough, inputsEnough: inputsEnough, clockFits: clockFits, modeIdx: modeIdx, effectiveOutputs: effectiveOutputs };
+      return { s: s, key: key, fits: fits, mode: mode, cap: capPgm, pct: fmt((totalMP / capPgm) * 100, 0), connsNeeded: connsNeeded, connsEstimated: connsEstimated, perConnRes: split, outputsEnough: outputsEnough, inputsEnough: inputsEnough, clockFits: clockFits, modeIdx: modeIdx, effectiveOutputs: effectiveOutputs, advancedNota: advancedNota };
     }).filter(function (x) { return x.fits && x.cap; })
       .sort(function (a, b) { return (a.connsNeeded || 999) - (b.connsNeeded || 999) || a.cap - b.cap; });
 
@@ -3607,10 +3634,12 @@
             x.s.outputModes.map(function (m, i) { return '<option value="' + i + '"' + (i === x.modeIdx ? ' selected' : '') + '>' + m.label + '</option>'; }).join('') +
           '</select>'
         : '';
+      var advancedWarn = x.advancedNota ? '<div class="warn">⚠ Modo avançado: ' + x.advancedNota + '</div>' : '';
       return '<div class="sinal-detail-card"><h3>' + x.s.marca + ' ' + x.s.modelo + ' ' + srcLinkHtml(x.s.fonte) + '</h3>' +
         '<div class="sinal-detail-row"><span class="k">Entrada</span><span class="v">' + entradaVal + '</span></div>' +
         '<div class="sinal-detail-row"><span class="k">Saída</span><span class="v">' + saidaVal + modeSelect + '</span></div>' +
         '<div class="sinal-detail-row"><span class="k">Capacidade</span><span class="v">' + fmt(x.cap, 1) + ' MP — ' + x.pct + '%</span></div>' +
+        advancedWarn +
         '</div>';
     }).join("");
 
@@ -3678,6 +3707,7 @@
           if (x.perConnRes) line += "\n    resolução a aplicar em cada ligação: " + fmtInt(x.perConnRes.w) + "×" + fmtInt(x.perConnRes.h) + "px" + (x.connsEstimated ? " (estimado por capacidade em MP — a marca não publica o pixel clock máximo deste aparelho, por isso não é tão fino como a conta por pixel clock)" : "");
           else if (x.connsEstimated) line += "\n    resolução exata por ligação não calculável.";
           if (x.inputsEnough === false) line += "\n    ⚠ precisa de mais ligações de entrada do que este switcher tem fisicamente — o sinal não cabe todo, mesmo repartido.";
+          if (x.advancedNota) line += "\n    ⚠ modo avançado: " + x.advancedNota;
           if (x.s.nota) line += "\n    " + x.s.nota;
           return line;
         }).join("\n")
