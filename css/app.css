@@ -394,6 +394,37 @@
   .tab[data-mode="sinal"][aria-selected="true"] { border-bottom-color: var(--rose-500); }
   .tab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
 
+  /* Atalho fixo de "Adicionar ao projeto" — evita ter de descer até ao
+     resumo (que em calculadoras longas fica bem abaixo do ecrã) só para
+     marcar. Só uma calculadora de cada vez tem isto (JS troca o texto/
+     estado ao mudar de aba); nas abas sem checkbox próprio fica escondido. */
+  .addproject-fixed {
+    position: fixed;
+    top: 54px;
+    right: 8px;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--paper-raised);
+    border: 1px solid var(--green-500);
+    border-radius: 20px;
+    padding: 6px 12px 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+  }
+  .addproject-fixed input[type="checkbox"] {
+    width: 15px; height: 15px;
+    accent-color: var(--green-500);
+    cursor: pointer;
+  }
+  @media (min-width: 760px) {
+    .addproject-fixed { top: 64px; right: 16px; font-size: 13px; padding: 7px 14px 7px 11px; }
+  }
+
   .panel { display: none; }
   .panel.active { display: block; }
   @media (prefers-reduced-motion: no-preference) {
@@ -663,7 +694,7 @@
   @media (min-width: 760px) {
     #lz-add-top {
       position: fixed;
-      top: 78px;
+      top: 116px;
       right: 16px;
       z-index: 40;
       box-shadow: var(--shadow);
