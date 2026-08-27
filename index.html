@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.131</span>
+    <span class="mark">v1.132</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1445,7 +1445,7 @@
   function val(id) { return parseFloat(document.getElementById(id).value); }
   function srcLinkHtml(fonte, label) {
     if (!fonte) return "";
-    return '<a class="srclink" href="' + fonte + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + (label || "Ficha técnica do fabricante") + ' ↗</a>';
+    return '<a class="srclink" href="' + fonte + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + (label || "Referenciado") + ' ↗</a>';
   }
   function selectedDataIdx(sel) {
     var opt = sel.options[sel.selectedIndex];
@@ -2642,18 +2642,17 @@
 
   // Selo em linguagem simples (para quem não mexe nisto no dia a dia): a
   // melhor opção de uma lista já ordenada da mais folgada para a mais
-  // apertada fica "Recomendado"; as restantes só têm uma cor/palavra a
-  // dizer se estão folgadas, moderadas ou apertadas — sem percentagens
-  // nem códigos para decifrar.
+  // apertada fica "Recomendado"; as restantes só dizem "Possível" ou
+  // "Não aconselhado" — sem percentagens nem códigos para decifrar.
   function markBestOption(list) {
     if (list.length) list[0].isBest = true;
   }
   function priorityBadgeHtml(x) {
-    if (x.isBest) return '<span class="lm-priority lm-priority-best">✓ Recomendado</span>';
+    if (x.isBest) return '<span class="lm-priority lm-priority-best">Recomendado</span>';
     var p = parseFloat(x.pct);
     if (isNaN(p)) return '';
-    var cls = p <= 40 ? 'lm-priority-room' : (p <= 70 ? 'lm-priority-mid' : 'lm-priority-tight');
-    var label = p <= 40 ? 'Folgado' : (p <= 70 ? 'Moderado' : 'Apertado');
+    var cls = p <= 70 ? 'lm-priority-mid' : 'lm-priority-tight';
+    var label = p <= 70 ? 'Possível' : 'Não aconselhado';
     return '<span class="lm-priority ' + cls + '">' + label + '</span>';
   }
 
