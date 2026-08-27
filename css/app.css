@@ -692,13 +692,15 @@
     height: 20px;
     padding: 0 6px;
     border-radius: 10px;
-    background: var(--teal-500);
     color: #fff;
     font-size: 11px;
     font-weight: 700;
     flex: none;
     margin-right: 8px;
   }
+  .lm-priority-3 { background: var(--green-500); }
+  .lm-priority-2 { background: var(--teal-500); }
+  .lm-priority-1 { background: var(--blue-500); }
 
   /* Results */
   .results { position: sticky; top: 16px; }
