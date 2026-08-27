@@ -688,19 +688,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 20px;
     height: 20px;
-    padding: 0 6px;
+    padding: 0 8px;
     border-radius: 10px;
     color: #fff;
     font-size: 11px;
     font-weight: 700;
+    white-space: nowrap;
     flex: none;
     margin-right: 8px;
   }
-  .lm-priority-3 { background: var(--green-500); }
-  .lm-priority-2 { background: var(--teal-500); }
-  .lm-priority-1 { background: var(--blue-500); }
+  .lm-priority-best { background: var(--green-500); }
+  .lm-priority-room { background: var(--green-500); }
+  .lm-priority-mid { background: var(--amber-500); }
+  .lm-priority-tight { background: var(--rose-500); }
 
   /* Results */
   .results { position: sticky; top: 16px; }

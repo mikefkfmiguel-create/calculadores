@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.130</span>
+    <span class="mark">v1.131</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2640,14 +2640,21 @@
     return { switcher: swVal, pgm: pgmVal || swVal, nota: s.avancadoNota || null };
   }
 
-  // Selo "Prioridade 3/2/1" nos 3 primeiros de uma lista de compatibilidade
-  // já ordenada da melhor para a pior opção — 3 = a melhor (mais folga),
-  // a contar para baixo até 1 (a 3ª melhor).
-  function markTop3Priority(list) {
-    list.forEach(function (x, i) { if (i < 3) x.priority = 3 - i; });
+  // Selo em linguagem simples (para quem não mexe nisto no dia a dia): a
+  // melhor opção de uma lista já ordenada da mais folgada para a mais
+  // apertada fica "Recomendado"; as restantes só têm uma cor/palavra a
+  // dizer se estão folgadas, moderadas ou apertadas — sem percentagens
+  // nem códigos para decifrar.
+  function markBestOption(list) {
+    if (list.length) list[0].isBest = true;
   }
   function priorityBadgeHtml(x) {
-    return x.priority ? '<span class="lm-priority lm-priority-' + x.priority + '" title="Prioridade ' + x.priority + ' — das 3 melhores opções, mais folga de capacidade">P' + x.priority + '</span>' : '';
+    if (x.isBest) return '<span class="lm-priority lm-priority-best">✓ Recomendado</span>';
+    var p = parseFloat(x.pct);
+    if (isNaN(p)) return '';
+    var cls = p <= 40 ? 'lm-priority-room' : (p <= 70 ? 'lm-priority-mid' : 'lm-priority-tight');
+    var label = p <= 40 ? 'Folgado' : (p <= 70 ? 'Moderado' : 'Apertado');
+    return '<span class="lm-priority ' + cls + '">' + label + '</span>';
   }
 
   var projLedModelSel = document.getElementById("proj-led-model");
@@ -3102,7 +3109,7 @@
       // um total fixo, é o mesmo que % de utilização ascendente): a 1ª
       // opção é sempre a mais folgada, não a mais pequena que ainda cabe.
     }).filter(function (x) { return x.fits; }).sort(function (a, b) { return b.cap - a.cap; });
-    markTop3Priority(switcherOk);
+    markBestOption(switcherOk);
 
     switcherOk.forEach(function (x) { x.key = itemKey(x.s.marca, x.s.modelo); x.pct = fmt((totalMP / x.cap) * 100, 0); });
 
@@ -3146,7 +3153,7 @@
         // Nº de unidades continua a ser o critério principal (menos caixas
         // a alugar/transportar); folga (% de utilização) só desempata.
       }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports || a.pctRaw - b.pctRaw; });
-      markTop3Priority(ledProcOk);
+      markBestOption(ledProcOk);
 
       ledProcOk.forEach(function (x) { x.key = itemKey(x.p.marca, x.p.modelo); x.pct = fmt(x.pctRaw, 0); });
 
@@ -3608,7 +3615,7 @@
       // prioridade pior só por precisar de mais um cabo.
     }).filter(function (x) { return x.fits && x.cap; })
       .sort(function (a, b) { return b.cap - a.cap; });
-    markTop3Priority(switchersMP);
+    markBestOption(switchersMP);
 
     var switchersChosen = switchersMP.filter(function (x) { return selectedSinalSwitcherKeys.has(x.key); });
     var switchersShown = (switchersChosen.length && !sinalSwitcherListExpanded) ? switchersChosen : switchersMP;
@@ -3686,7 +3693,7 @@
       var pctRaw = (totalPx / (numUnits * unitCapacity)) * 100;
       return { p: p, key: itemKey(p.marca, p.modelo), unitCapacity: unitCapacity, numUnits: numUnits, portsUsed: portsUsed, portsAvailable: portsAvailable, tilesPerPort: tilesPerPort, pct: fmt(pctRaw, 0), pctRaw: pctRaw };
     }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports || a.pctRaw - b.pctRaw; });
-    markTop3Priority(ledProcOk);
+    markBestOption(ledProcOk);
 
     var ledProcChosen = ledProcOk.filter(function (x) { return selectedSinalLedProcKeys.has(x.key); });
     var ledProcShown = (ledProcChosen.length && !sinalLedProcListExpanded) ? ledProcChosen : ledProcOk;
