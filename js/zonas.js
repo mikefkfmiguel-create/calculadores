@@ -114,7 +114,8 @@
     };
   }
 
-  function lzAddZone(name, opts) {
+  function lzAddZone(name, opts, startOpen) {
+    if (startOpen == null) startOpen = true;
     var id = "z" + (lzNextId++);
     var defaultPos = lzNextDefaultPos();
     var card = document.createElement("div");
@@ -166,42 +167,44 @@
           '<button type="button" class="copy lz-remove">Remover</button>' +
         '</div>' +
       '</div>' +
-      '<div class="row2 lz-position-inputs">' +
-        '<div class="field"><label>Posição X (horizontal)</label><div class="inputgroup"><input class="lz-posx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
-        '<div class="field"><label>Posição Y (vertical)</label><div class="inputgroup"><input class="lz-posy" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
-      '</div>' +
-      '<div class="field">' +
-        '<label>Modelo de tile</label>' +
-        '<select class="lz-model plain">' + lzZoneModelOptionsHtml() + '</select>' +
-      '</div>' +
-      '<div class="field">' +
-        '<label>Como queres indicar o tamanho desta zona?</label>' +
-        '<div class="seg lz-sizemode-seg">' +
-          '<button type="button" class="seg-btn active" data-sizemode="tiles">Nº de tiles</button>' +
-          '<button type="button" class="seg-btn" data-sizemode="meters">Medida da zona (m)</button>' +
+      '<details class="lz-details"' + (startOpen ? ' open' : '') + '>' +
+        '<summary class="hint lz-readout">—</summary>' +
+        '<div class="row2 lz-position-inputs">' +
+          '<div class="field"><label>Posição X (horizontal)</label><div class="inputgroup"><input class="lz-posx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
+          '<div class="field"><label>Posição Y (vertical)</label><div class="inputgroup"><input class="lz-posy" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
         '</div>' +
-      '</div>' +
-      '<div class="row2 lz-tiles-inputs">' +
-        '<div class="field"><label>Tiles na horizontal</label><div class="inputgroup"><input class="lz-mx" type="number" value="4" min="1" step="1"></div></div>' +
-        '<div class="field"><label>Tiles na vertical</label><div class="inputgroup"><input class="lz-my" type="number" value="3" min="1" step="1"></div></div>' +
-      '</div>' +
-      '<div class="row2 lz-meters-inputs" style="display:none;">' +
-        '<div class="field"><label>Largura desejada</label><div class="inputgroup"><input class="lz-target-w" type="number" inputmode="decimal" value="2.0" min="0.1" step="0.1"><span class="unit">m</span></div></div>' +
-        '<div class="field"><label>Altura desejada</label><div class="inputgroup"><input class="lz-target-h" type="number" inputmode="decimal" value="1.5" min="0.1" step="0.1"><span class="unit">m</span></div></div>' +
-      '</div>' +
-      '<div class="row2 lz-custom-fields" style="display:none;">' +
-        '<div class="field"><label>Largura módulo</label><div class="inputgroup"><input class="lz-mw" type="number" value="500" min="1" step="1"><span class="unit">mm</span></div></div>' +
-        '<div class="field"><label>Altura módulo</label><div class="inputgroup"><input class="lz-mh" type="number" value="500" min="1" step="1"><span class="unit">mm</span></div></div>' +
-      '</div>' +
-      '<div class="row2 lz-custom-fields" style="display:none;">' +
-        '<div class="field"><label>Píxeis (horizontal)</label><div class="inputgroup"><input class="lz-rx" type="number" value="128" min="1" step="1"><span class="unit">px</span></div></div>' +
-        '<div class="field"><label>Píxeis (vertical)</label><div class="inputgroup"><input class="lz-ry" type="number" value="128" min="1" step="1"><span class="unit">px</span></div></div>' +
-      '</div>' +
-      '<div class="row2 lz-custom-fields" style="display:none;">' +
-        '<div class="field"><label>Peso por tile</label><div class="inputgroup"><input class="lz-weight" type="number" inputmode="decimal" value="6.0" min="0" step="0.1"><span class="unit">kg</span></div></div>' +
-        '<div class="field"><label>Amp máx. por tile</label><div class="inputgroup"><input class="lz-amp" type="number" inputmode="decimal" value="0.52" min="0" step="0.01"><span class="unit">A</span></div></div>' +
-      '</div>' +
-      '<p class="hint lz-readout">—</p>';
+        '<div class="field">' +
+          '<label>Modelo de tile</label>' +
+          '<select class="lz-model plain">' + lzZoneModelOptionsHtml() + '</select>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Como queres indicar o tamanho desta zona?</label>' +
+          '<div class="seg lz-sizemode-seg">' +
+            '<button type="button" class="seg-btn active" data-sizemode="tiles">Nº de tiles</button>' +
+            '<button type="button" class="seg-btn" data-sizemode="meters">Medida da zona (m)</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="row2 lz-tiles-inputs">' +
+          '<div class="field"><label>Tiles na horizontal</label><div class="inputgroup"><input class="lz-mx" type="number" value="4" min="1" step="1"></div></div>' +
+          '<div class="field"><label>Tiles na vertical</label><div class="inputgroup"><input class="lz-my" type="number" value="3" min="1" step="1"></div></div>' +
+        '</div>' +
+        '<div class="row2 lz-meters-inputs" style="display:none;">' +
+          '<div class="field"><label>Largura desejada</label><div class="inputgroup"><input class="lz-target-w" type="number" inputmode="decimal" value="2.0" min="0.1" step="0.1"><span class="unit">m</span></div></div>' +
+          '<div class="field"><label>Altura desejada</label><div class="inputgroup"><input class="lz-target-h" type="number" inputmode="decimal" value="1.5" min="0.1" step="0.1"><span class="unit">m</span></div></div>' +
+        '</div>' +
+        '<div class="row2 lz-custom-fields" style="display:none;">' +
+          '<div class="field"><label>Largura módulo</label><div class="inputgroup"><input class="lz-mw" type="number" value="500" min="1" step="1"><span class="unit">mm</span></div></div>' +
+          '<div class="field"><label>Altura módulo</label><div class="inputgroup"><input class="lz-mh" type="number" value="500" min="1" step="1"><span class="unit">mm</span></div></div>' +
+        '</div>' +
+        '<div class="row2 lz-custom-fields" style="display:none;">' +
+          '<div class="field"><label>Píxeis (horizontal)</label><div class="inputgroup"><input class="lz-rx" type="number" value="128" min="1" step="1"><span class="unit">px</span></div></div>' +
+          '<div class="field"><label>Píxeis (vertical)</label><div class="inputgroup"><input class="lz-ry" type="number" value="128" min="1" step="1"><span class="unit">px</span></div></div>' +
+        '</div>' +
+        '<div class="row2 lz-custom-fields" style="display:none;">' +
+          '<div class="field"><label>Peso por tile</label><div class="inputgroup"><input class="lz-weight" type="number" inputmode="decimal" value="6.0" min="0" step="0.1"><span class="unit">kg</span></div></div>' +
+          '<div class="field"><label>Amp máx. por tile</label><div class="inputgroup"><input class="lz-amp" type="number" inputmode="decimal" value="0.52" min="0" step="0.01"><span class="unit">A</span></div></div>' +
+        '</div>' +
+      '</details>';
     lzList.appendChild(card);
     lzPopulateModelSelect(card.querySelector(".lz-model"));
     lzApplyOptsToCard(card, opts);
@@ -328,6 +331,8 @@
   function lzJumpToZoneCard(zoneId) {
     var card = lzList.querySelector('.card[data-zone-id="' + zoneId + '"]');
     if (!card) return;
+    var details = card.querySelector(".lz-details");
+    if (details) details.open = true;
     card.scrollIntoView({ behavior: "smooth", block: "start" });
     card.classList.remove("lz-flash");
     void card.offsetWidth;
@@ -398,7 +403,7 @@
         var step = (i + 1) * ((dupDir === "v" ? srcWH.h : srcWH.w) + dupGap);
         opts.posX = dupDir === "v" ? srcPosX : srcPosX + step;
         opts.posY = dupDir === "v" ? srcPosY + step : srcPosY;
-        lzAddZone(root + " " + (nextIdx + i), opts);
+        lzAddZone(root + " " + (nextIdx + i), opts, false);
       }
       return;
     }
@@ -795,7 +800,7 @@
     var data;
     try { data = JSON.parse(raw); } catch (e) { return; }
     if (!Array.isArray(data) || !data.length) return;
-    data.forEach(function (opts) { lzAddZone(opts.name, opts); });
+    data.forEach(function (opts) { lzAddZone(opts.name, opts, false); });
   }
 
   function calcLedZones() {
@@ -860,7 +865,7 @@
       if ([mw,mh,rx,ry,mx,my].some(isNaN) || mx < 1 || my < 1) {
         readout.textContent = "Preenche os campos desta zona.";
       } else {
-        readout.innerHTML = fmtInt(totalPx) + "×" + fmtInt(totalPy) + " px — " + fmt(wM,2) + " x " + fmt(hM,2) + " m (" + fmt(zoneArea,2) + " m²) — " + fmtInt(numTiles) + " tiles" + (isNaN(weight) ? "" : " — " + fmt(zoneWeight,1) + " kg") + (isNaN(amp) ? "" : " — " + fmt(zoneAmp,2) + " A");
+        readout.innerHTML = modelLabel + " — " + fmtInt(totalPx) + "×" + fmtInt(totalPy) + " px — " + fmt(wM,2) + " x " + fmt(hM,2) + " m (" + fmt(zoneArea,2) + " m²) — " + fmtInt(numTiles) + " tiles" + (isNaN(weight) ? "" : " — " + fmt(zoneWeight,1) + " kg") + (isNaN(amp) ? "" : " — " + fmt(zoneAmp,2) + " A");
       }
 
       var visible = card.querySelector(".lz-visible").checked;
