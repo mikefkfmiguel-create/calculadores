@@ -129,7 +129,7 @@
         '<div class="field" style="width:34px; margin-bottom:0;">' +
           '<label style="text-align:center;">Ref.</label>' +
           '<div style="display:flex; align-items:center; justify-content:center; height:35px;">' +
-            '<input type="checkbox" class="lz-ref" title="Usar o pitch desta zona como referência do canvas combinado (posições/tamanhos das outras zonas convertidos para este pitch). Sem nenhuma marcada, usa-se a zona com maior área em m² — que pode mudar sozinha ao adicionar/remover zonas.">' +
+            '<input type="checkbox" class="lz-ref" title="Usar o pitch desta zona como referência do canvas combinado (posições/tamanhos das outras zonas convertidos para este pitch). Sem nenhuma marcada, usa-se a zona mais alta (m) — que pode mudar sozinha ao adicionar/remover zonas.">' +
           '</div>' +
         '</div>' +
         '<div class="field" style="flex:1; min-width:160px; margin-bottom:0;">' +
@@ -575,10 +575,11 @@
   // media server. Pitches diferentes entre zonas não têm conversão exata
   // (um metro físico corresponde a nº de píxeis diferente consoante o
   // pitch) — usa-se a zona marcada como "Ref." como referência; sem
-  // nenhuma marcada, cai para a zona com maior área (comportamento antigo).
+  // nenhuma marcada, cai para a zona mais alta em metros (desempate pela
+  // maior área, se houver empate na altura).
   // Importante marcar manualmente num setup com pitches misturados: a
-  // referência automática por área muda sozinha ao adicionar/remover
-  // zonas, o que recalcula (e desalinha) os píxeis de todas as outras.
+  // referência automática muda sozinha ao adicionar/remover zonas, o que
+  // recalcula (e desalinha) os píxeis de todas as outras.
   function lzComputePixelMap(zones) {
     var valid = zones.filter(function (z) {
       return isFinite(z.posX) && isFinite(z.posY) && z.w > 0 && z.h > 0 && z.totalPx > 0 && z.totalPy > 0;
@@ -589,7 +590,10 @@
       z.pitchY = (z.h * 1000) / z.totalPy;
     });
     var pinnedRef = valid.filter(function (z) { return z.isRef; })[0];
-    var ref = pinnedRef || valid.reduce(function (a, b) { return (b.w * b.h) > (a.w * a.h) ? b : a; });
+    var ref = pinnedRef || valid.reduce(function (a, b) {
+      if (b.h !== a.h) return b.h > a.h ? b : a;
+      return (b.w * b.h) > (a.w * a.h) ? b : a;
+    });
     var refPitch = (ref.pitchX + ref.pitchY) / 2;
     var mixedPitch = valid.some(function (z) { return Math.abs((z.pitchX + z.pitchY) / 2 - refPitch) > 0.05; });
 
@@ -664,7 +668,7 @@
     var maxLevel = labels.reduce(function (m, l) { return Math.max(m, l.level); }, 0);
 
     var canvasResLabel = "Canvas: " + pm.canvasW + "×" + pm.canvasH + "px" +
-      " — pitch de referência: " + fmt(pm.refPitch, 2) + "mm (\"" + pm.refName + "\"" + (pm.refPinned ? ", marcada" : ", automática — maior área em m²") + ")" +
+      " — pitch de referência: " + fmt(pm.refPitch, 2) + "mm (\"" + pm.refName + "\"" + (pm.refPinned ? ", marcada" : ", automática — mais alta") + ")" +
       (pm.mixedPitch ? " — pitches diferentes, aproximado" : "") +
       (scale < 1 ? " — imagem reduzida " + fmt(scale * 100, 0) + "%, valores nas legendas são os reais" : "");
 
@@ -894,7 +898,7 @@
       return z.name + " (X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A";
     }).join("\n") + (hiddenCount ? "\n\n(" + hiddenCount + " zona(s) escondida(s), fora destas contas)" : "") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos de cada zona), " + fmt(totalArea,2) + " m² (soma das zonas), " + fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A máx. (" + fmt(totalAmp/3,2) + " A/fase)" +
       (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "") +
-      (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, maior área em m²") + ")" : "") : "");
+      (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, zona mais alta") + ")" : "") : "");
 
     lzLastTotals = { zones: visibleZones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm, colorMap: colorMap };
     lzSortCardsByPosition();
