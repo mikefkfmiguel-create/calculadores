@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.112</span>
+    <span class="mark">v1.113</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3303,6 +3303,21 @@
     return null;
   }
 
+  // Mesma ideia que splitCanvasForClock, mas para aparelhos que não publicam
+  // pixel clock (ex: PixelHUE) — usa o orçamento de píxeis por ligação
+  // derivado da capacidade total publicada em MP a dividir pelo nº de
+  // ligações do aparelho (dado real da ficha técnica, não inventado),
+  // subindo N até a resolução de cada ligação caber nesse orçamento.
+  function splitCanvasForCapacity(h, v, pxBudget) {
+    var splitWidth = h >= v;
+    for (var n = 1; n <= 64; n++) {
+      var pw = splitWidth ? Math.ceil(h / n) : h;
+      var ph = splitWidth ? v : Math.ceil(v / n);
+      if (pw * ph <= pxBudget) return { n: n, w: pw, h: ph };
+    }
+    return null;
+  }
+
   function calcSinal() {
     var h = val("sg-h"), v = val("sg-v"), fps = val("sg-fps");
     var bits = parseInt(document.getElementById("sg-bits").value, 10);
@@ -3339,11 +3354,12 @@
       var connsNeeded = split ? split.n : null;
       var connsEstimated = false;
       if (connsNeeded == null && effectiveOutputs && capPgm) {
-        // Sem pixel clock publicado — única estimativa possível é repartir a
-        // capacidade total em MP igualmente pelas saídas do aparelho (não é
-        // tão fino como a conta por pixel clock, por isso fica marcado com "~").
-        // Não dá para saber a resolução exata por ligação sem o pixel clock.
-        connsNeeded = Math.ceil(totalMP / (capPgm / effectiveOutputs));
+        // Sem pixel clock publicado — usa o orçamento de píxeis por ligação
+        // (capacidade total em MP a dividir pelas saídas, dado real da
+        // ficha) em vez do pixel clock. Menos fino que a conta por pixel
+        // clock (não sabe o blanking real), por isso fica marcado com "~".
+        split = splitCanvasForCapacity(h, v, (capPgm * 1e6) / effectiveOutputs);
+        connsNeeded = split ? split.n : Math.ceil(totalMP / (capPgm / effectiveOutputs));
         connsEstimated = true;
       }
       var outputsEnough = connsNeeded == null || !effectiveOutputs ? null : connsNeeded <= effectiveOutputs;
@@ -3388,8 +3404,8 @@
     detailWrap.style.display = switchersChosen.length ? "block" : "none";
     document.getElementById("sg-switcher-detail").innerHTML = switchersChosen.map(function (x) {
       var resTxt = x.perConnRes
-        ? " — cada uma a " + fmtInt(x.perConnRes.w) + "×" + fmtInt(x.perConnRes.h) + "px"
-        : (x.connsEstimated ? " (resolução por ligação não calculável — marca não publica pixel clock)" : "");
+        ? " — cada uma a " + fmtInt(x.perConnRes.w) + "×" + fmtInt(x.perConnRes.h) + "px" + (x.connsEstimated ? " (estimado por capacidade, sem pixel clock publicado)" : "")
+        : (x.connsEstimated ? " (resolução por ligação não calculável)" : "");
       var entradaVal = x.connsNeeded != null
         ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.s.inputs ? " de " + fmtInt(x.s.inputs) + " entradas" : " ligações") + resTxt +
           (x.inputsEnough === false ? " — ⚠ insuficiente" : "")
@@ -3471,8 +3487,8 @@
             : (x.effectiveOutputs ? fmtInt(x.effectiveOutputs) + " saídas (sem dados para calcular quantas usar)" : "sem dados de saídas");
           var modeTxt = x.s.outputModes ? " [" + x.s.outputModes[x.modeIdx].label + "]" : "";
           var line = "  " + x.s.marca + " " + x.s.modelo + modeTxt + " — entrada: " + entradaTxt + " — saída: " + saidaTxt + " — capacidade: " + fmt(x.cap, 1) + " MP (" + x.pct + "%)";
-          if (x.perConnRes) line += "\n    resolução a aplicar em cada ligação: " + fmtInt(x.perConnRes.w) + "×" + fmtInt(x.perConnRes.h) + "px";
-          else if (x.connsEstimated) line += "\n    resolução exata por ligação não calculável — a marca não publica o pixel clock máximo deste aparelho.";
+          if (x.perConnRes) line += "\n    resolução a aplicar em cada ligação: " + fmtInt(x.perConnRes.w) + "×" + fmtInt(x.perConnRes.h) + "px" + (x.connsEstimated ? " (estimado por capacidade em MP — a marca não publica o pixel clock máximo deste aparelho, por isso não é tão fino como a conta por pixel clock)" : "");
+          else if (x.connsEstimated) line += "\n    resolução exata por ligação não calculável.";
           if (x.inputsEnough === false) line += "\n    ⚠ precisa de mais ligações de entrada do que este switcher tem fisicamente — o sinal não cabe todo, mesmo repartido.";
           if (x.s.nota) line += "\n    " + x.s.nota;
           return line;
