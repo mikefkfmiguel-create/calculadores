@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.129</span>
+    <span class="mark">v1.130</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3602,11 +3602,12 @@
       // entradas físicas em vez de saídas.
       var inputsEnough = connsNeeded == null || !s.inputs ? null : connsNeeded <= s.inputs;
       return { s: s, key: key, fits: fits, mode: mode, cap: capPgm, pct: fmt((totalMP / capPgm) * 100, 0), connsNeeded: connsNeeded, connsEstimated: connsEstimated, perConnRes: split, outputsEnough: outputsEnough, inputsEnough: inputsEnough, clockFits: clockFits, modeIdx: modeIdx, effectiveOutputs: effectiveOutputs, advancedNota: advancedNota };
-      // Menos ligações físicas continua a ser o critério principal; folga
-      // (capacidade descendente) só desempata entre opções com o mesmo nº
-      // de ligações.
+      // Folga de capacidade (descendente) é sempre o critério de
+      // ordenação/prioridade — nº de ligações deixou de desempatar antes
+      // disso, senão um switcher com muito mais folga podia ficar com
+      // prioridade pior só por precisar de mais um cabo.
     }).filter(function (x) { return x.fits && x.cap; })
-      .sort(function (a, b) { return (a.connsNeeded || 999) - (b.connsNeeded || 999) || b.cap - a.cap; });
+      .sort(function (a, b) { return b.cap - a.cap; });
     markTop3Priority(switchersMP);
 
     var switchersChosen = switchersMP.filter(function (x) { return selectedSinalSwitcherKeys.has(x.key); });
