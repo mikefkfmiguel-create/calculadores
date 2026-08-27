@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.124</span>
+    <span class="mark">v1.125</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2612,6 +2612,8 @@
 
   var selectedSwitcherKeys = new Set();
   var selectedLedProcKeys = new Set();
+  var projSwitcherListExpanded = false;
+  var projLedProcListExpanded = false;
   var selectedSinalSwitcherKeys = new Set();
   var selectedSinalOutputMode = new Map();
   var selectedSinalLedProcKeys = new Set();
@@ -3065,21 +3067,31 @@
 
     switcherOk.forEach(function (x) { x.key = itemKey(x.s.marca, x.s.modelo); x.pct = fmt((totalMP / x.cap) * 100, 0); });
 
+    var switcherChosen = switcherOk.filter(function (x) { return selectedSwitcherKeys.has(x.key); });
+    var switcherShown = (switcherChosen.length && !projSwitcherListExpanded) ? switcherChosen : switcherOk;
+
     var switcherListEl = document.getElementById("proj-switcher-list");
-    if (!switcherOk.length) {
-      switcherListEl.innerHTML = '<div class="lm-empty">Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP).</div>';
-    } else {
-      switcherListEl.innerHTML = switcherOk.map(function (x) {
-        var checked = selectedSwitcherKeys.has(x.key) ? " checked" : "";
-        return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%</span></span></label>';
-      }).join("");
-      switcherListEl.querySelectorAll(".lm-check").forEach(function (cb) {
-        cb.addEventListener("change", function () {
-          if (cb.checked) selectedSwitcherKeys.add(cb.dataset.key); else selectedSwitcherKeys.delete(cb.dataset.key);
-          calcProjeto();
-        });
+    switcherListEl.innerHTML = (switcherShown.length
+      ? switcherShown.map(function (x) {
+          var checked = selectedSwitcherKeys.has(x.key) ? " checked" : "";
+          return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%</span></span></label>';
+        }).join("")
+      : '<div class="lm-item"><span>Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>') +
+      (switcherChosen.length
+        ? '<button type="button" class="copy" id="proj-switcher-showmore" style="margin-top:8px;">' + (projSwitcherListExpanded ? "Mostrar só escolhido(s)" : "+ Escolher outro switcher") + '</button>'
+        : '');
+    switcherListEl.querySelectorAll(".lm-check").forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        if (cb.checked) selectedSwitcherKeys.add(cb.dataset.key); else selectedSwitcherKeys.delete(cb.dataset.key);
+        projSwitcherListExpanded = false;
+        calcProjeto();
       });
-    }
+    });
+    var switcherShowMoreBtn = document.getElementById("proj-switcher-showmore");
+    if (switcherShowMoreBtn) switcherShowMoreBtn.addEventListener("click", function () {
+      projSwitcherListExpanded = !projSwitcherListExpanded;
+      calcProjeto();
+    });
 
     var ledProcWrap = document.getElementById("proj-ledproc-wrap");
     var procSumText = "";
@@ -3095,26 +3107,38 @@
 
       ledProcOk.forEach(function (x) { x.key = itemKey(x.p.marca, x.p.modelo); x.pct = fmt((canvasPixels / (x.numUnits * x.unitCapacity)) * 100, 0); });
 
+      var ledProcChosen = ledProcOk.filter(function (x) { return selectedLedProcKeys.has(x.key); });
+      var ledProcShown = (ledProcChosen.length && !projLedProcListExpanded) ? ledProcChosen : ledProcOk;
+
       var ledProcListEl = document.getElementById("proj-ledproc-list");
-      ledProcListEl.innerHTML = ledProcOk.map(function (x) {
-        var checked = selectedLedProcKeys.has(x.key) ? " checked" : "";
-        return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.unitCapacity) + ' px/unidade) — ' + x.pct + '%</span></span></label>';
-      }).join("");
+      ledProcListEl.innerHTML = (ledProcShown.length
+        ? ledProcShown.map(function (x) {
+            var checked = selectedLedProcKeys.has(x.key) ? " checked" : "";
+            return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span><strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.unitCapacity) + ' px/unidade) — ' + x.pct + '%</span></span></label>';
+          }).join("")
+        : '<div class="lm-item"><span>Sem processos de LED na base de dados</span></div>') +
+        (ledProcChosen.length
+          ? '<button type="button" class="copy" id="proj-ledproc-showmore" style="margin-top:8px;">' + (projLedProcListExpanded ? "Mostrar só escolhido(s)" : "+ Escolher outro processo") + '</button>'
+          : '');
       ledProcListEl.querySelectorAll(".lm-check").forEach(function (cb) {
         cb.addEventListener("change", function () {
           if (cb.checked) selectedLedProcKeys.add(cb.dataset.key); else selectedLedProcKeys.delete(cb.dataset.key);
+          projLedProcListExpanded = false;
           calcProjeto();
         });
       });
+      var ledProcShowMoreBtn = document.getElementById("proj-ledproc-showmore");
+      if (ledProcShowMoreBtn) ledProcShowMoreBtn.addEventListener("click", function () {
+        projLedProcListExpanded = !projLedProcListExpanded;
+        calcProjeto();
+      });
 
-      var ledProcChosen = ledProcOk.filter(function (x) { return selectedLedProcKeys.has(x.key); });
       var ledProcForReport = ledProcChosen.length ? ledProcChosen : ledProcOk;
       procSumText = "\nProcesso de LED: " + ledProcForReport.map(function (x) { return fmtInt(x.numUnits) + "× " + x.p.marca + " " + x.p.modelo + " (" + x.pct + "%)"; }).join(", ");
     } else {
       ledProcWrap.style.display = "none";
     }
 
-    var switcherChosen = switcherOk.filter(function (x) { return selectedSwitcherKeys.has(x.key); });
     var switcherForReport = switcherChosen.length ? switcherChosen : switcherOk;
 
     var dsmLine = dsmCount > 0 ? "DSM: " + fmtInt(dsmCount) + "× " + fmtInt(dsmRes[0]) + "×" + fmtInt(dsmRes[1]) + " (" + fmtInt(dsmPixels) + " px)\n" : "";
@@ -3208,6 +3232,7 @@
       return;
     }
     selectedSwitcherKeys = new Set(selectedSinalSwitcherKeys);
+    projSwitcherListExpanded = false;
     calcProjeto();
   });
   document.getElementById("proj-use-sinal-ledproc").addEventListener("click", function () {
@@ -3216,6 +3241,7 @@
       return;
     }
     selectedLedProcKeys = new Set(selectedSinalLedProcKeys);
+    projLedProcListExpanded = false;
     calcProjeto();
   });
 
@@ -3346,6 +3372,8 @@
 
       selectedSwitcherKeys = new Set(state.selectedSwitchers || []);
       selectedLedProcKeys = new Set(state.selectedLedProcs || []);
+      projSwitcherListExpanded = false;
+      projLedProcListExpanded = false;
 
       calcProjeto();
       e.target.value = "";
