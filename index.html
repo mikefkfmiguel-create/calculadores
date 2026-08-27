@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.119</span>
+    <span class="mark">v1.120</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -40,9 +40,9 @@
     <button class="tab" data-mode="visualizacao" role="tab" aria-selected="false"><span class="swatch"></span>Distância de Visualização</button>
     <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
     <button class="tab" data-mode="zonas" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã Complexo</button>
-    <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
-    <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
     <button class="tab" data-mode="sinal" role="tab" aria-selected="false"><span class="swatch"></span>Sinal &amp; Data Rate</button>
+    <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
+    <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
     <button class="tab" data-mode="tv" role="tab" aria-selected="false"><span class="swatch"></span>TVs</button>
     <button class="tab" data-mode="ajuda" role="tab" aria-selected="false"><span class="swatch"></span>Ajuda</button>
   </div>
@@ -1286,10 +1286,12 @@
             <div class="summary-head">
               <span class="k">Resumo do setup</span>
               <div class="summary-actions">
+                <label class="addproject"><input type="checkbox" id="sg-addproject">Adicionar ao projeto</label>
                 <button class="copy" data-target="sg-sum">Copiar resumo</button>
               </div>
             </div>
             <pre class="sumbox" id="sg-sum"></pre>
+            <div class="warn" id="sg-proj-conflict" style="display:none;"></div>
           </div>
         </div>
       </details>
@@ -1473,15 +1475,35 @@
     return std.label + " — " + AVIXA_CONTENT[vAvixaContentKey].label;
   }
 
-  // Checklist "Itens do projeto" — hoje só a Distância de Visualização não
-  // tem campos próprios na aba Projeto (o standard usado é global, não por
-  // projeto), por isso fica aqui como referência rápida. Projeção, LED e
-  // Blending preenchem os campos da aba Projeto diretamente (ver
-  // syncProjecaoToProject/syncLedToProject/syncBlendToProject abaixo),
-  // para o relatório do projeto não repetir o que a calculadora já mostra.
+  // Checklist "Itens do projeto" — fontes que se juntam ao projeto sem
+  // substituir os campos próprios da aba Projeto (que são só um por vez:
+  // Projeção, LED, Blending ou Ecrã Complexo — ver
+  // syncProjecaoToProject/syncLedToProject/syncBlendToProject/syncZonesToProject
+  // abaixo). Distância de Visualização e Sinal & Data Rate não têm "tipo de
+  // ecrã" próprio, por isso só se somam ao relatório final; o Sinal define a
+  // própria resolução à parte da do ecrã, por isso tem um "conflict" que
+  // avisa se as duas divergirem em vez de assumir que estão alinhadas.
   var PROJECT_SOURCES = [
-    { key: "visualizacao", label: "Distância de Visualização", sumId: "v-sum", checkboxId: "v-addproject" }
+    { key: "visualizacao", label: "Distância de Visualização", sumId: "v-sum", checkboxId: "v-addproject" },
+    { key: "sinal", label: "Sinal & Data Rate", sumId: "sg-sum", checkboxId: "sg-addproject", conflict: sinalProjectConflict }
   ];
+
+  function sinalProjectConflict() {
+    if (!projLastRes) return null;
+    var sh = Math.round(val("sg-h")), sv = Math.round(val("sg-v"));
+    var ph = Math.round(projLastRes.x), pv = Math.round(projLastRes.y);
+    if (sh === ph && sv === pv) return null;
+    return "⚠ A resolução do Sinal (" + fmtInt(sh) + "×" + fmtInt(sv) + "px) não corresponde à resolução do ecrã do projeto — " + projLastRes.label + " (" + fmtInt(ph) + "×" + fmtInt(pv) + "px). Confirma se é este o ecrã a alimentar, ou usa \"↙ Projeto\" na aba Sinal para igualar.";
+  }
+
+  function updateSinalProjConflictBox() {
+    var box = document.getElementById("sg-proj-conflict");
+    if (!box) return;
+    var sgCb = document.getElementById("sg-addproject");
+    var msg = (sgCb && sgCb.checked) ? sinalProjectConflict() : null;
+    box.style.display = msg ? "block" : "none";
+    box.textContent = msg || "";
+  }
 
   function renderProjectItems() {
     var listEl = document.getElementById("proj-items-list");
@@ -1497,6 +1519,7 @@
     if (!included.length) {
       listEl.innerHTML = '<div class="lm-empty">Nenhum item adicionado ainda.</div>';
       summaryWrap.style.display = "none";
+      updateSinalProjConflictBox();
       return;
     }
 
@@ -1507,16 +1530,24 @@
       item.className = "projitem";
       var h3 = document.createElement("h3");
       h3.textContent = s.label;
+      item.appendChild(h3);
+      var conflictMsg = s.conflict ? s.conflict() : null;
+      if (conflictMsg) {
+        var warn = document.createElement("div");
+        warn.className = "warn";
+        warn.textContent = conflictMsg;
+        item.appendChild(warn);
+      }
       var pre = document.createElement("pre");
       pre.className = "sumbox";
       pre.textContent = text;
-      item.appendChild(h3);
       item.appendChild(pre);
       listEl.appendChild(item);
-      summaryParts.push("== " + s.label + " ==\n" + text);
+      summaryParts.push("== " + s.label + " ==" + (conflictMsg ? "\n" + conflictMsg : "") + "\n" + text);
     });
     summaryWrap.style.display = "block";
     document.getElementById("proj-items-sum").textContent = summaryParts.join("\n\n");
+    updateSinalProjConflictBox();
   }
 
   PROJECT_SOURCES.forEach(function (s) {
@@ -1665,7 +1696,7 @@
   // Atalho fixo de "Adicionar ao projeto" — espelha o checkbox real da
   // calculadora ativa (só uma tem de cada vez), para não ser preciso
   // descer até ao resumo em calculadoras longas só para marcar.
-  var ADDPROJECT_BY_MODE = { projecao: "p-addproject", visualizacao: "v-addproject", led: "l-addproject", zonas: "z-addproject", blend: "b-addproject" };
+  var ADDPROJECT_BY_MODE = { projecao: "p-addproject", visualizacao: "v-addproject", led: "l-addproject", zonas: "z-addproject", blend: "b-addproject", sinal: "sg-addproject" };
   var addprojectFixed = document.getElementById("addproject-fixed");
   var addprojectFixedCb = document.getElementById("addproject-fixed-cb");
   function syncAddProjectFixed(mode) {
@@ -2729,6 +2760,7 @@
           zonesHint.textContent = "Ainda não há zonas — adiciona pelo menos uma na aba Ecrã Complexo.";
           document.getElementById("proj-zones-breakdown-wrap").style.display = "none";
           projLastRes = null;
+          renderProjectItems();
           return;
         }
         zonesHint.style.display = "block";
@@ -3074,6 +3106,8 @@
       "Pixel usage total (" + canvasLabel.toLowerCase() + " + DSM + delay): " + fmtInt(totalPixels) + " px (" + fmt(totalMP, 2) + " MP)\n" +
       "Switchers de show compatíveis: " + (switcherForReport.length ? switcherForReport.map(function (x) { return x.s.marca + " " + x.s.modelo + " (" + x.mode + ") — " + x.pct + "%"; }).join(", ") : "nenhum") +
       procSumText;
+
+    renderProjectItems();
   }
 
   document.querySelectorAll('.panel[data-mode="projeto"] input, .panel[data-mode="projeto"] select').forEach(function (el) {
@@ -3589,6 +3623,8 @@
       "Ligação mínima recomendada: " + connectorForClock(clockMHz) + "\n\n" +
       "Switchers escolhidos:\n" + switchersLines + "\n\n" +
       "Processo de LED escolhido:\n" + ledProcLines;
+
+    renderProjectItems();
   }
 
   var tvModelSel = document.getElementById("tv-model");
