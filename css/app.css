@@ -699,7 +699,6 @@
     margin-right: 8px;
   }
   .lm-priority-best { background: var(--green-500); }
-  .lm-priority-room { background: var(--green-500); }
   .lm-priority-mid { background: var(--amber-500); }
   .lm-priority-tight { background: var(--rose-500); }
 
