@@ -42,14 +42,23 @@
     return { w: (mx * mw) / 1000, h: (my * mh) / 1000 };
   }
 
+  // Y por omissão = o Y mínimo já usado (o topo real do conjunto), não 0
+  // fixo — se já houver zonas deslocadas verticalmente (ex: alinhadas ao
+  // centro, cada uma com uma altura diferente), uma zona nova em Y=0
+  // não fica encostada ao topo visualmente, só coincide com esse valor
+  // por acaso. Sem zonas ainda, cai em 0.
   function lzNextDefaultPos() {
     var maxRight = 0;
+    var minY = null;
     document.querySelectorAll("#lz-list .card").forEach(function (card) {
       var posX = parseFloat(card.querySelector(".lz-posx").value) || 0;
+      var posY = parseFloat(card.querySelector(".lz-posy").value);
+      if (isNaN(posY)) posY = 0;
       var wh = lzCardWH(card);
       if (!isNaN(wh.w)) maxRight = Math.max(maxRight, posX + wh.w);
+      minY = minY === null ? posY : Math.min(minY, posY);
     });
-    return { x: maxRight > 0 ? Math.round((maxRight + 0.1) * 100) / 100 : 0, y: 0 };
+    return { x: maxRight > 0 ? Math.round((maxRight + 0.1) * 100) / 100 : 0, y: minY === null ? 0 : minY };
   }
 
   // Aplica modelo/tamanho (mas nunca posição — cada zona mantém a sua) a um
