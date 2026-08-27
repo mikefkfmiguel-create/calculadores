@@ -126,6 +126,12 @@
             '<input type="checkbox" class="lz-visible" checked title="Incluir esta zona no desenho, nas contas do conjunto e nos PNG exportados — desmarca para a esconder sem apagar">' +
           '</div>' +
         '</div>' +
+        '<div class="field" style="width:34px; margin-bottom:0;">' +
+          '<label style="text-align:center;">Ref.</label>' +
+          '<div style="display:flex; align-items:center; justify-content:center; height:35px;">' +
+            '<input type="checkbox" class="lz-ref" title="Usar o pitch desta zona como referência do canvas combinado (posições/tamanhos das outras zonas convertidos para este pitch). Sem nenhuma marcada, usa-se a zona com maior área — que pode mudar sozinha ao adicionar/remover zonas.">' +
+          '</div>' +
+        '</div>' +
         '<div class="field" style="flex:1; min-width:160px; margin-bottom:0;">' +
           '<label>Nome da zona</label>' +
           '<div class="inputgroup"><input type="text" class="lz-name" value="' + (name || ("Zona " + (lzNextId - 1))) + '"></div>' +
@@ -192,6 +198,11 @@
     lzApplyOptsToCard(card, opts);
     card.querySelector(".lz-posx").value = (opts && opts.posX != null) ? opts.posX : defaultPos.x;
     card.querySelector(".lz-posy").value = (opts && opts.posY != null) ? opts.posY : defaultPos.y;
+    // "ref" fica de fora de lzOptsFromCard/lzApplyOptsToCard de propósito —
+    // só se aplica ao restaurar do localStorage, nunca a duplicar ("Aplicar
+    // réplicas") ou a "Atualizar réplicas" (essas usam essas duas funções),
+    // senão duplicar a zona de referência criava várias a competir.
+    if (opts && opts.ref) card.querySelector(".lz-ref").checked = true;
     calcLedZones();
     return card;
   }
@@ -421,6 +432,11 @@
       lzApplyModel(e.target.closest(".card"));
       updateSelectStockColor(e.target);
     }
+    // Só uma zona pode ser a referência de pitch de cada vez (como um
+    // radio) — marcar uma desmarca as outras.
+    if (e.target.classList.contains("lz-ref") && e.target.checked) {
+      lzList.querySelectorAll(".lz-ref").forEach(function (cb) { if (cb !== e.target) cb.checked = false; });
+    }
     calcLedZones();
   });
   lzList.addEventListener("input", calcLedZones);
@@ -558,8 +574,11 @@
   // próprio pitch) para um único canvas em píxeis, para exportar para
   // media server. Pitches diferentes entre zonas não têm conversão exata
   // (um metro físico corresponde a nº de píxeis diferente consoante o
-  // pitch) — usa-se o pitch da zona com maior área como referência para
-  // posicionar tudo num canvas comum.
+  // pitch) — usa-se a zona marcada como "Ref." como referência; sem
+  // nenhuma marcada, cai para a zona com maior área (comportamento antigo).
+  // Importante marcar manualmente num setup com pitches misturados: a
+  // referência automática por área muda sozinha ao adicionar/remover
+  // zonas, o que recalcula (e desalinha) os píxeis de todas as outras.
   function lzComputePixelMap(zones) {
     var valid = zones.filter(function (z) {
       return isFinite(z.posX) && isFinite(z.posY) && z.w > 0 && z.h > 0 && z.totalPx > 0 && z.totalPy > 0;
@@ -569,7 +588,8 @@
       z.pitchX = (z.w * 1000) / z.totalPx;
       z.pitchY = (z.h * 1000) / z.totalPy;
     });
-    var ref = valid.reduce(function (a, b) { return (b.w * b.h) > (a.w * a.h) ? b : a; });
+    var pinnedRef = valid.filter(function (z) { return z.isRef; })[0];
+    var ref = pinnedRef || valid.reduce(function (a, b) { return (b.w * b.h) > (a.w * a.h) ? b : a; });
     var refPitch = (ref.pitchX + ref.pitchY) / 2;
     var mixedPitch = valid.some(function (z) { return Math.abs((z.pitchX + z.pitchY) / 2 - refPitch) > 0.05; });
 
@@ -583,7 +603,7 @@
     });
     var canvasW = Math.max.apply(null, valid.map(function (z) { return z.pxX + z.pxW; }));
     var canvasH = Math.max.apply(null, valid.map(function (z) { return z.pxY + z.pxH; }));
-    return { zones: valid, canvasW: canvasW, canvasH: canvasH, refPitch: refPitch, refName: ref.name, mixedPitch: mixedPitch };
+    return { zones: valid, canvasW: canvasW, canvasH: canvasH, refPitch: refPitch, refName: ref.name, mixedPitch: mixedPitch, refPinned: !!pinnedRef };
   }
 
   function lzCanvasScale(pm) {
@@ -644,7 +664,7 @@
     var maxLevel = labels.reduce(function (m, l) { return Math.max(m, l.level); }, 0);
 
     var canvasResLabel = "Canvas: " + pm.canvasW + "×" + pm.canvasH + "px" +
-      " — pitch de referência: " + fmt(pm.refPitch, 2) + "mm (\"" + pm.refName + "\")" +
+      " — pitch de referência: " + fmt(pm.refPitch, 2) + "mm (\"" + pm.refName + "\"" + (pm.refPinned ? ", marcada" : ", automática — maior área") + ")" +
       (pm.mixedPitch ? " — pitches diferentes, aproximado" : "") +
       (scale < 1 ? " — imagem reduzida " + fmt(scale * 100, 0) + "%, valores nas legendas são os reais" : "");
 
@@ -744,6 +764,7 @@
       opts.name = card.querySelector(".lz-name").value;
       opts.posX = card.querySelector(".lz-posx").value;
       opts.posY = card.querySelector(".lz-posy").value;
+      opts.ref = card.querySelector(".lz-ref").checked;
       return opts;
     });
   }
@@ -831,7 +852,8 @@
 
       var visible = card.querySelector(".lz-visible").checked;
       card.style.opacity = visible ? "" : "0.5";
-      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible });
+      var isRef = card.querySelector(".lz-ref").checked;
+      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do
@@ -863,7 +885,7 @@
 
     var canvasResText = pm ? (fmtInt(pm.canvasW) + " x " + fmtInt(pm.canvasH) + " px") : "—";
     document.getElementById("lz-out-canvasres").innerHTML = pm
-      ? (fmtInt(pm.canvasW) + "×" + fmtInt(pm.canvasH) + "<small>px</small>" + (pm.mixedPitch ? " <small>(pitches diferentes — aproximado, ref. \"" + escapeXml(pm.refName) + "\")</small>" : ""))
+      ? (fmtInt(pm.canvasW) + "×" + fmtInt(pm.canvasH) + "<small>px</small>" + (pm.mixedPitch ? " <small>(pitches diferentes — aproximado, ref. \"" + escapeXml(pm.refName) + "\"" + (pm.refPinned ? ", marcada" : ", automática") + ")</small>" : ""))
       : "—";
     var hiddenCount = zones.length - visibleZones.length;
     document.getElementById("lz-preview-bar-text").textContent = (pm ? canvasResText : "—") + " · " + fmtInt(totalTiles) + " tiles · " + visibleZones.length + " zona(s)" + (hiddenCount ? " (" + hiddenCount + " escondida(s))" : "");
@@ -872,7 +894,7 @@
       return z.name + " (X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A";
     }).join("\n") + (hiddenCount ? "\n\n(" + hiddenCount + " zona(s) escondida(s), fora destas contas)" : "") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos de cada zona), " + fmt(totalArea,2) + " m² (soma das zonas), " + fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A máx. (" + fmt(totalAmp/3,2) + " A/fase)" +
       (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "") +
-      (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência" : "") : "");
+      (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, maior área") + ")" : "") : "");
 
     lzLastTotals = { zones: visibleZones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm, colorMap: colorMap };
     lzSortCardsByPosition();
