@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.122</span>
+    <span class="mark">v1.123</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -837,18 +837,27 @@
         <p>No fim, usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir depois com <strong>"Abrir projeto…"</strong>.</p>
       </div>
     </details>
-    <div class="card results" data-accent="projeto" style="margin-bottom:16px;">
-      <div class="stripe"></div>
-      <h2>Itens do projeto</h2>
-      <div class="hint">Marca "Adicionar ao projeto" no resumo de Distância de Projeção, Ecrã LED ou Blending para preencher automaticamente os campos correspondentes abaixo — não precisas de copiar nada à mão, e o relatório do projeto não repete o que essa calculadora já mostra. Só a Distância de Visualização (sem campos próprios aqui) fica registada nesta checklist.</div>
-      <div id="proj-items-list" style="margin-top:12px;"></div>
-      <div class="summary" id="proj-items-summary-wrap" style="display:none;">
-        <div class="summary-head">
-          <span class="k">Checklist do projeto</span>
-          <button class="copy" data-target="proj-items-sum">Copiar checklist</button>
+    <div style="margin-bottom:16px;" data-accent="projeto">
+      <details class="card sinal-block" open>
+        <summary>Itens do projeto</summary>
+        <div class="sinal-block-body">
+          <div class="hint">Marca "Adicionar ao projeto" no resumo de Distância de Projeção, Ecrã LED ou Blending para preencher automaticamente os campos correspondentes abaixo — não precisas de copiar nada à mão, e o relatório do projeto não repete o que essa calculadora já mostra. Distância de Visualização e Sinal & Data Rate (sem "tipo de ecrã" próprio aqui) ficam registados nesta checklist, à parte.</div>
+          <div id="proj-items-list" style="margin-top:12px;"></div>
         </div>
-        <pre class="sumbox" id="proj-items-sum"></pre>
-      </div>
+      </details>
+
+      <details class="card sinal-block" id="proj-items-summary-wrap" style="display:none;">
+        <summary>Checklist do projeto</summary>
+        <div class="sinal-block-body">
+          <div class="summary">
+            <div class="summary-head">
+              <span class="k">Texto combinado</span>
+              <button class="copy" data-target="proj-items-sum">Copiar checklist</button>
+            </div>
+            <pre class="sumbox" id="proj-items-sum"></pre>
+          </div>
+        </div>
+      </details>
     </div>
 
     <div class="grid">
