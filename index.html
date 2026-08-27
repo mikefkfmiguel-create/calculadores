@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.123</span>
+    <span class="mark">v1.124</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1168,11 +1168,13 @@
             <div class="field" style="margin-top:12px;">
               <label>Opções de switcher de show (cobrem o total)</label>
               <div class="hint">Marca a(s) opção(ões) escolhida(s) para o relatório sair limpo — sem marcar nenhuma, entram todas as compatíveis.</div>
+              <button type="button" class="copy" id="proj-use-sinal-switcher" style="margin-bottom:8px;" title="Marca aqui o(s) mesmo(s) switcher(s) já escolhido(s) na aba Sinal & Data Rate">↙ Trazer escolha do Sinal</button>
               <div class="lensmatch-list" id="proj-switcher-list">—</div>
             </div>
             <div class="field" style="margin-top:12px;" id="proj-ledproc-wrap">
               <label>Opções de processo de LED (só o ecrã LED, a este refresh/cor)</label>
               <div class="hint">Marca a(s) opção(ões) escolhida(s) para o relatório sair limpo — sem marcar nenhuma, entram todas as compatíveis.</div>
+              <button type="button" class="copy" id="proj-use-sinal-ledproc" style="margin-bottom:8px;" title="Marca aqui o(s) mesmo(s) processo(s) de LED já escolhido(s) na aba Sinal & Data Rate">↙ Trazer escolha do Sinal</button>
               <div class="lensmatch-list" id="proj-ledproc-list">—</div>
             </div>
           </div>
@@ -3196,6 +3198,26 @@
     calcSinal();
   });
 
+  // O Projeto tem a própria lista de switchers/processos de LED compatíveis
+  // (calculada pelo total de píxeis do PRÓPRIO ecrã, com DSM/delay) — sem
+  // isto, marcar um switcher/processo no Sinal não aparecia marcado aqui,
+  // mesmo sendo o mesmo aparelho e a mesma conta na prática.
+  document.getElementById("proj-use-sinal-switcher").addEventListener("click", function () {
+    if (!selectedSinalSwitcherKeys.size) {
+      showToast("Ainda não escolheste nenhum switcher na aba Sinal & Data Rate.");
+      return;
+    }
+    selectedSwitcherKeys = new Set(selectedSinalSwitcherKeys);
+    calcProjeto();
+  });
+  document.getElementById("proj-use-sinal-ledproc").addEventListener("click", function () {
+    if (!selectedSinalLedProcKeys.size) {
+      showToast("Ainda não escolheste nenhum processo de LED na aba Sinal & Data Rate.");
+      return;
+    }
+    selectedLedProcKeys = new Set(selectedSinalLedProcKeys);
+    calcProjeto();
+  });
 
   document.getElementById("proj-download").addEventListener("click", function () {
     var nome = document.getElementById("proj-nome").value.trim() || "projeto";
