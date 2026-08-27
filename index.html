@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.109</span>
+    <span class="mark">v1.110</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3331,7 +3331,12 @@
       }
       var outputsEnough = connsNeeded == null || !effectiveOutputs ? null : connsNeeded <= effectiveOutputs;
       var clockFits = s.maxPixelClockMHz ? (s.maxPixelClockMHz >= clockMHz - 0.1) : null;
-      return { s: s, key: key, fits: fits, mode: mode, cap: capPgm, pct: fmt((totalMP / capPgm) * 100, 0), connsNeeded: connsNeeded, connsEstimated: connsEstimated, outputsEnough: outputsEnough, clockFits: clockFits, modeIdx: modeIdx, effectiveOutputs: effectiveOutputs };
+      // Entrada usa o mesmo pixel clock máx. por ligação que a saída (a ficha só
+      // publica 1 valor de MHz para o aparelho) — por isso o nº de ligações de
+      // entrada necessárias para caber o canvas todo é o mesmo cálculo, só
+      // comparado ao nº de entradas físicas em vez de saídas.
+      var inputsEnough = connsNeeded == null || !s.inputs ? null : connsNeeded <= s.inputs;
+      return { s: s, key: key, fits: fits, mode: mode, cap: capPgm, pct: fmt((totalMP / capPgm) * 100, 0), connsNeeded: connsNeeded, connsEstimated: connsEstimated, outputsEnough: outputsEnough, inputsEnough: inputsEnough, clockFits: clockFits, modeIdx: modeIdx, effectiveOutputs: effectiveOutputs };
     }).filter(function (x) { return x.fits && x.cap; })
       .sort(function (a, b) { return (a.connsNeeded || 999) - (b.connsNeeded || 999) || a.cap - b.cap; });
 
@@ -3365,9 +3370,10 @@
     var detailWrap = document.getElementById("sg-switcher-detail-wrap");
     detailWrap.style.display = switchersChosen.length ? "block" : "none";
     document.getElementById("sg-switcher-detail").innerHTML = switchersChosen.map(function (x) {
-      var entradaVal = x.s.maxPixelClockMHz
-        ? (fmt(clockMHz, 1) + " MHz de " + fmt(x.s.maxPixelClockMHz, 1) + " MHz máx. — " + (x.clockFits ? "cabe numa entrada" : "⚠ excede a entrada"))
-        : "sem dados de pixel clock";
+      var entradaVal = x.connsNeeded != null
+        ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.s.inputs ? " de " + fmtInt(x.s.inputs) + " entradas" : " ligações") +
+          (x.inputsEnough === false ? " — ⚠ insuficiente" : "")
+        : (x.s.inputs ? fmtInt(x.s.inputs) + " entradas (sem pixel clock publicado para calcular quantas usar)" : "sem dados de entrada");
       var saidaVal = x.connsNeeded != null
         ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.effectiveOutputs ? " de " + fmtInt(x.effectiveOutputs) + " saídas" : " ligações") +
           (x.outputsEnough === false ? " — ⚠ insuficiente" : "")
@@ -3437,15 +3443,15 @@
     // com toda a explicação/notas que já não aparecem nos cards interativos.
     var switchersLines = switchersChosen.length
       ? switchersChosen.map(function (x) {
-          var entradaTxt = x.s.maxPixelClockMHz
-            ? (fmt(clockMHz, 1) + " de " + fmt(x.s.maxPixelClockMHz, 1) + " MHz máx. (" + (x.clockFits ? "cabe" : "excede") + ")")
-            : "sem dados de pixel clock";
+          var entradaTxt = x.connsNeeded != null
+            ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.s.inputs ? " de " + fmtInt(x.s.inputs) + " entradas" : " ligações")
+            : (x.s.inputs ? fmtInt(x.s.inputs) + " entradas (sem dados para calcular quantas usar)" : "sem dados de entrada");
           var saidaTxt = x.connsNeeded != null
             ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.effectiveOutputs ? " de " + fmtInt(x.effectiveOutputs) + " saídas" : " ligações")
             : (x.effectiveOutputs ? fmtInt(x.effectiveOutputs) + " saídas (sem dados para calcular quantas usar)" : "sem dados de saídas");
           var modeTxt = x.s.outputModes ? " [" + x.s.outputModes[x.modeIdx].label + "]" : "";
           var line = "  " + x.s.marca + " " + x.s.modelo + modeTxt + " — entrada: " + entradaTxt + " — saída: " + saidaTxt + " — capacidade: " + fmt(x.cap, 1) + " MP (" + x.pct + "%)";
-          if (x.s.maxPixelClockMHz && !x.clockFits) line += "\n    ⚠ este sinal não cabe numa ligação de entrada, seja qual for o cabo — teria de ser repartido por várias entradas antes de chegar a este switcher.";
+          if (x.inputsEnough === false) line += "\n    ⚠ precisa de mais ligações de entrada do que este switcher tem fisicamente — o sinal não cabe todo, mesmo repartido.";
           if (x.s.nota) line += "\n    " + x.s.nota;
           return line;
         }).join("\n")
