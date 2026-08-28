@@ -318,18 +318,25 @@
   /* Tabs */
   /* Sticky para nunca ser preciso voltar ao topo da página só para trocar
      de calculadora — fica sempre alcançável enquanto se rola dentro de
-     qualquer aba, em telemóvel e em desktop. z-index baixo (20) para ficar
-     sempre por baixo dos elementos fixos específicos de cada aba (ex:
-     #lz-add-top a 40), nunca a tapá-los. */
-  .tabs {
-    display: flex;
-    gap: 6px;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 26px;
+     qualquer aba, em telemóvel e em desktop. Junta as abas + a barra
+     "Adicionar ao projeto" (ver .addproject-fixed) num único bloco sticky
+     — antes a barra flutuava solta num canto por cima do conteúdo
+     (position:fixed independente), o que parecia bug com cards a rolar
+     por baixo dela; agora fica presa mesmo por baixo das abas, como teto
+     fixo do cabeçalho. z-index baixo (20) para ficar sempre por baixo dos
+     elementos fixos específicos de cada aba (ex: #lz-add-top a 40), nunca
+     a tapá-los. */
+  .tabs-wrap {
     position: sticky;
     top: 0;
     z-index: 20;
     background: var(--paper);
+    margin-bottom: 26px;
+  }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    border-bottom: 1px solid var(--line);
     padding-top: 8px;
   }
   .tab {
@@ -397,32 +404,34 @@
   /* Atalho fixo de "Adicionar ao projeto" — evita ter de descer até ao
      resumo (que em calculadoras longas fica bem abaixo do ecrã) só para
      marcar. Só uma calculadora de cada vez tem isto (JS troca o texto/
-     estado ao mudar de aba); nas abas sem checkbox próprio fica escondido. */
+     estado ao mudar de aba); nas abas sem checkbox próprio fica escondido.
+     Faixa a toda a largura dentro do .tabs-wrap sticky (ver acima), não um
+     botão flutuante solto — fica sempre encostada por baixo das abas,
+     nunca com conteúdo a rolar por baixo dela. */
   .addproject-fixed {
-    position: fixed;
-    top: 54px;
-    right: 8px;
-    z-index: 30;
     display: flex;
+    width: 100%;
+    justify-content: center;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     background: var(--paper-raised);
-    border: 1px solid var(--green-500);
-    border-radius: 20px;
-    padding: 6px 12px 6px 10px;
-    font-size: 12px;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    padding: 10px 12px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--ink);
-    box-shadow: var(--shadow);
     cursor: pointer;
+  }
+  .addproject-fixed:has(input:checked) {
+    background: var(--green-100);
+    border-bottom-color: var(--green-500);
+    color: var(--green-600);
   }
   .addproject-fixed input[type="checkbox"] {
-    width: 15px; height: 15px;
+    width: 16px; height: 16px;
     accent-color: var(--green-500);
     cursor: pointer;
-  }
-  @media (min-width: 760px) {
-    .addproject-fixed { top: 64px; right: 16px; font-size: 13px; padding: 7px 14px 7px 11px; }
   }
 
   .panel { display: none; }
@@ -754,7 +763,12 @@
   @media (min-width: 760px) {
     #lz-add-top {
       position: fixed;
-      top: 116px;
+      /* Altura real do .tabs-wrap sticky (abas + barra "Adicionar ao
+         projeto", quando visível) + folga — medida em JS via
+         ResizeObserver (ver index.html), porque a barra pode aparecer/
+         desaparecer consoante a aba. 116px é só o valor de recurso caso o
+         JS ainda não tenha corrido. */
+      top: calc(var(--tabswrap-h, 108px) + 12px);
       right: 16px;
       z-index: 40;
       box-shadow: var(--shadow);
