@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.144</span>
+    <span class="mark">v1.145</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1815,8 +1815,12 @@
       if (activeIdx === -1) return;
       var nextIdx = activeIdx + (dx < 0 ? 1 : -1);
       if (nextIdx < 0 || nextIdx >= tabsArr.length) return;
+      // Sem scrollTo(top:0) aqui de propósito — ao contrário dos botões
+      // "jumptab", o swipe troca de aba a meio da leitura; saltar para o
+      // topo (mostrando de novo o cabeçalho "AVK Calculadores" e a
+      // explicação) desorienta, parece a página a recarregar. Mantém-se a
+      // posição de scroll atual — a aba nova aparece ao mesmo nível.
       tabsArr[nextIdx].click();
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }, { passive: true });
   })();
 
