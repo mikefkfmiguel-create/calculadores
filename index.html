@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.141</span>
+    <span class="mark">v1.142</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3112,7 +3112,7 @@
       // Ordenado da maior folga para a menor (capacidade descendente — para
       // um total fixo, é o mesmo que % de utilização ascendente): a 1ª
       // opção é sempre a mais folgada, não a mais pequena que ainda cabe.
-    }).filter(function (x) { return x.fits; }).sort(function (a, b) { return b.cap - a.cap; });
+    }).filter(function (x) { return x.fits; }).sort(function (a, b) { return (a.s.mercado ? 1 : 0) - (b.s.mercado ? 1 : 0) || b.cap - a.cap; });
     markBestOption(switcherOk);
 
     switcherOk.forEach(function (x) { x.key = itemKey(x.s.marca, x.s.modelo); x.pct = fmt((totalMP / x.cap) * 100, 0); });
@@ -3159,7 +3159,7 @@
         return { p: p, unitCapacity: unitCapacity, numUnits: numUnits, pctRaw: pctRaw };
         // Nº de unidades continua a ser o critério principal (menos caixas
         // a alugar/transportar); folga (% de utilização) só desempata.
-      }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports || a.pctRaw - b.pctRaw; });
+      }).sort(function (a, b) { return (a.p.mercado ? 1 : 0) - (b.p.mercado ? 1 : 0) || a.numUnits - b.numUnits || a.p.ports - b.p.ports || a.pctRaw - b.pctRaw; });
       markBestOption(ledProcOk);
 
       ledProcOk.forEach(function (x) { x.key = itemKey(x.p.marca, x.p.modelo); x.pct = fmt(x.pctRaw, 0); });
@@ -3621,7 +3621,7 @@
       // disso, senão um switcher com muito mais folga podia ficar com
       // prioridade pior só por precisar de mais um cabo.
     }).filter(function (x) { return x.fits && x.cap; })
-      .sort(function (a, b) { return b.cap - a.cap; });
+      .sort(function (a, b) { return (a.s.mercado ? 1 : 0) - (b.s.mercado ? 1 : 0) || b.cap - a.cap; });
     markBestOption(switchersMP);
 
     var switchersChosen = switchersMP.filter(function (x) { return selectedSinalSwitcherKeys.has(x.key); });
@@ -3702,7 +3702,7 @@
       var tilesPerPort = refTilePx ? Math.floor(pPortCapacity / refTilePx) : null;
       var pctRaw = (totalPx / (numUnits * unitCapacity)) * 100;
       return { p: p, key: itemKey(p.marca, p.modelo), unitCapacity: unitCapacity, numUnits: numUnits, portsUsed: portsUsed, portsAvailable: portsAvailable, tilesPerPort: tilesPerPort, pct: fmt(pctRaw, 0), pctRaw: pctRaw };
-    }).sort(function (a, b) { return a.numUnits - b.numUnits || a.p.ports - b.p.ports || a.pctRaw - b.pctRaw; });
+    }).sort(function (a, b) { return (a.p.mercado ? 1 : 0) - (b.p.mercado ? 1 : 0) || a.numUnits - b.numUnits || a.p.ports - b.p.ports || a.pctRaw - b.pctRaw; });
     markBestOption(ledProcOk);
 
     var ledProcChosen = ledProcOk.filter(function (x) { return selectedSinalLedProcKeys.has(x.key); });
