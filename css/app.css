@@ -333,6 +333,22 @@
     background: var(--paper);
     margin-bottom: 26px;
   }
+  /* Nome da calculadora atual — sempre centrado, nunca cortado nas pontas
+     (ao contrário da tira de abas por baixo, que em telemóvel tem scroll
+     horizontal próprio e mostra sempre um bocado da aba vizinha cortada a
+     meio, o que parecia confuso/bug). É a resposta direta a "onde estou",
+     sem depender de ler qual aba está sublinhada na tira scrollável. */
+  .tabs-current {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+  }
   .tabs {
     display: flex;
     gap: 6px;
@@ -374,20 +390,21 @@
        página. */
     .tab:first-child { padding-left: 0; }
   }
-  .tab .swatch {
+  .tab .swatch, .tabs-current .swatch {
     width: 9px; height: 9px;
     border-radius: 2px;
+    flex: none;
   }
-  .tab[data-mode="projecao"] .swatch { background: var(--amber-500); }
-  .tab[data-mode="visualizacao"] .swatch { background: var(--cyan-500); }
-  .tab[data-mode="led"] .swatch { background: var(--teal-500); }
-  .tab[data-mode="zonas"] .swatch { background: var(--teal-500); }
-  .tab[data-mode="blend"] .swatch { background: var(--violet-500); }
-  .tab[data-mode="lentes"] .swatch { background: var(--blue-500); }
-  .tab[data-mode="projeto"] .swatch { background: var(--green-500); }
-  .tab[data-mode="sinal"] .swatch { background: var(--rose-500); }
-  .tab[data-mode="tv"] .swatch { background: var(--orange-500); }
-  .tab[data-mode="ajuda"] .swatch { background: var(--ink-faint); }
+  .tab[data-mode="projecao"] .swatch, .tabs-current[data-mode="projecao"] .swatch { background: var(--amber-500); }
+  .tab[data-mode="visualizacao"] .swatch, .tabs-current[data-mode="visualizacao"] .swatch { background: var(--cyan-500); }
+  .tab[data-mode="led"] .swatch, .tabs-current[data-mode="led"] .swatch { background: var(--teal-500); }
+  .tab[data-mode="zonas"] .swatch, .tabs-current[data-mode="zonas"] .swatch { background: var(--teal-500); }
+  .tab[data-mode="blend"] .swatch, .tabs-current[data-mode="blend"] .swatch { background: var(--violet-500); }
+  .tab[data-mode="lentes"] .swatch, .tabs-current[data-mode="lentes"] .swatch { background: var(--blue-500); }
+  .tab[data-mode="projeto"] .swatch, .tabs-current[data-mode="projeto"] .swatch { background: var(--green-500); }
+  .tab[data-mode="sinal"] .swatch, .tabs-current[data-mode="sinal"] .swatch { background: var(--rose-500); }
+  .tab[data-mode="tv"] .swatch, .tabs-current[data-mode="tv"] .swatch { background: var(--orange-500); }
+  .tab[data-mode="ajuda"] .swatch, .tabs-current[data-mode="ajuda"] .swatch { background: var(--ink-faint); }
   .tab[aria-selected="true"] { color: var(--ink); }
   .tab[data-mode="projecao"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
   .tab[data-mode="visualizacao"][aria-selected="true"] { border-bottom-color: var(--cyan-500); }

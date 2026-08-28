@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.146</span>
+    <span class="mark">v1.147</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -35,6 +35,7 @@
   <div id="app-toast" role="status" aria-live="polite"></div>
 
   <div class="tabs-wrap" id="tabs-wrap">
+    <div class="tabs-current" id="tabs-current"></div>
     <div class="tabs" role="tablist">
       <button class="tab" data-mode="projecao" role="tab" aria-selected="true"><span class="swatch"></span>Distância de Projeção</button>
       <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
@@ -1796,8 +1797,15 @@
       document.querySelector('.panel[data-mode="' + tab.dataset.mode + '"]').classList.add("active");
       tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
       syncAddProjectFixed(tab.dataset.mode);
+      updateTabsCurrent(tab);
     });
   });
+  var tabsCurrentEl = document.getElementById("tabs-current");
+  function updateTabsCurrent(tab) {
+    tabsCurrentEl.dataset.mode = tab.dataset.mode;
+    tabsCurrentEl.innerHTML = '<span class="swatch"></span>' + tab.textContent.trim();
+  }
+  updateTabsCurrent(document.querySelector('.tab[aria-selected="true"]'));
 
   // Altura real do cabeçalho sticky (abas + barra "Adicionar ao projeto",
   // quando visível) para outros elementos fixos (ex: #lz-add-top na aba
