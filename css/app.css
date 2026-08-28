@@ -691,16 +691,15 @@
     height: 20px;
     padding: 0 8px;
     border-radius: 10px;
-    color: #fff;
     font-size: 11px;
     font-weight: 700;
     white-space: nowrap;
     flex: none;
     margin-right: 8px;
   }
-  .lm-priority-best { background: var(--green-500); }
-  .lm-priority-mid { background: var(--amber-500); }
-  .lm-priority-tight { background: var(--rose-500); }
+  .lm-priority-best { background: var(--green-100); color: var(--green-600); }
+  .lm-priority-mid { background: var(--amber-100); color: var(--amber-600); }
+  .lm-priority-tight { background: var(--rose-100); color: var(--rose-600); }
 
   .lm-market {
     display: inline-flex;
@@ -709,8 +708,8 @@
     height: 20px;
     padding: 0 8px;
     border-radius: 10px;
-    background: var(--blue-600);
-    color: #fff;
+    background: var(--blue-100);
+    color: var(--blue-600);
     font-size: 11px;
     font-weight: 700;
     white-space: nowrap;
