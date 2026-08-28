@@ -282,7 +282,9 @@
     btn.addEventListener("click", function () { lzAddZone(); });
   });
   document.getElementById("lz-preview-bar").addEventListener("click", function () {
-    document.getElementById("lz-totals-card").scrollIntoView({ behavior: "smooth", block: "start" });
+    var totalsCard = document.getElementById("lz-totals-card");
+    totalsCard.open = true;
+    totalsCard.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   // Na página "Ecrã Complexo" à parte, o diagrama é mesmo o topo da
