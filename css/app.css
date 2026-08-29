@@ -403,6 +403,7 @@
   .tab[data-mode="lentes"] .swatch, .tabs-current[data-mode="lentes"] .swatch { background: var(--blue-500); }
   .tab[data-mode="projeto"] .swatch, .tabs-current[data-mode="projeto"] .swatch { background: var(--green-500); }
   .tab[data-mode="sinal"] .swatch, .tabs-current[data-mode="sinal"] .swatch { background: var(--rose-500); }
+  .tab[data-mode="mediaserver"] .swatch, .tabs-current[data-mode="mediaserver"] .swatch { background: var(--cyan-500); }
   .tab[data-mode="tv"] .swatch, .tabs-current[data-mode="tv"] .swatch { background: var(--orange-500); }
   .tab[data-mode="ajuda"] .swatch, .tabs-current[data-mode="ajuda"] .swatch { background: var(--ink-faint); }
   .tab[aria-selected="true"] { color: var(--ink); }
@@ -416,6 +417,7 @@
   .tab[data-mode="ajuda"][aria-selected="true"] { border-bottom-color: var(--ink-faint); }
   .tab[data-mode="projeto"][aria-selected="true"] { border-bottom-color: var(--green-500); }
   .tab[data-mode="sinal"][aria-selected="true"] { border-bottom-color: var(--rose-500); }
+  .tab[data-mode="mediaserver"][aria-selected="true"] { border-bottom-color: var(--cyan-500); }
   .tab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
 
   /* Atalho fixo de "Adicionar ao projeto" — evita ter de descer até ao
