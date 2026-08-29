@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.147</span>
+    <span class="mark">v1.148</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -43,6 +43,7 @@
       <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
       <button class="tab" data-mode="zonas" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã Complexo</button>
       <button class="tab" data-mode="sinal" role="tab" aria-selected="false"><span class="swatch"></span>Sinal &amp; Data Rate</button>
+      <button class="tab" data-mode="mediaserver" role="tab" aria-selected="false"><span class="swatch"></span>Media Server</button>
       <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
       <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
       <button class="tab" data-mode="tv" role="tab" aria-selected="false"><span class="swatch"></span>TVs</button>
@@ -1356,6 +1357,54 @@
             <pre class="sumbox" id="sg-sum"></pre>
             <div class="warn" id="sg-proj-conflict" style="display:none;"></div>
           </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- MEDIA SERVER -->
+  <section class="panel" data-mode="mediaserver">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Indica a resolução total de saída necessária (o canvas final, já com todos os ecrãs/zonas combinados) e o frame rate — a lista mostra os media servers cuja capacidade de saída cobre esse total.</p>
+        <p>Usa os atalhos "Usar resolução de" para preencher automaticamente a partir de outra aba já calculada, em vez de copiar à mão.</p>
+      </div>
+    </details>
+    <div class="sinal-col">
+      <details class="card sinal-block">
+        <summary>Necessidade de saída</summary>
+        <div class="sinal-block-body">
+          <div class="row2">
+            <div class="field">
+              <label for="ms-h">Resolução horizontal</label>
+              <div class="inputgroup"><input id="ms-h" type="number" value="3840" min="1" step="1"><span class="unit">px</span></div>
+            </div>
+            <div class="field">
+              <label for="ms-v">Resolução vertical</label>
+              <div class="inputgroup"><input id="ms-v" type="number" value="2160" min="1" step="1"><span class="unit">px</span></div>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:14px;">
+            <label>Usar resolução de</label>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+              <button type="button" class="copy" id="ms-use-zones" title="Preenche a resolução acima com o canvas final (com gaps) da aba Ecrã Complexo">↙ Ecrã Complexo</button>
+              <button type="button" class="copy" id="ms-use-proj" title="Preenche a resolução acima com o ecrã atual da aba Projeto">↙ Projeto</button>
+              <button type="button" class="copy" id="ms-use-sinal" title="Preenche a resolução acima com a da aba Sinal & Data Rate">↙ Sinal &amp; Data Rate</button>
+            </div>
+            <div class="hint" id="ms-use-hint"></div>
+          </div>
+          <div class="field">
+            <label for="ms-fps">Frame rate</label>
+            <div class="inputgroup"><input id="ms-fps" type="number" value="60" min="1" step="1"><span class="unit">Hz</span></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="card sinal-block">
+        <summary>Media servers compatíveis</summary>
+        <div class="sinal-block-body">
+          <div class="lensmatch-list" id="ms-server-list"></div>
         </div>
       </details>
     </div>
@@ -3343,6 +3392,52 @@
     }
     useSinalRes(projLastRes.x, projLastRes.y, projLastRes.label);
   });
+  document.querySelectorAll('.panel[data-mode="mediaserver"] input').forEach(function (el) {
+    el.addEventListener("input", calcMediaServer);
+    el.addEventListener("change", calcMediaServer);
+  });
+  function useMsRes(x, y, label) {
+    document.getElementById("ms-h").value = Math.round(x);
+    document.getElementById("ms-v").value = Math.round(y);
+    document.getElementById("ms-use-hint").textContent = label + ": " + fmtInt(Math.round(x)) + "×" + fmtInt(Math.round(y)) + "px.";
+    calcMediaServer();
+  }
+  document.getElementById("ms-use-zones").addEventListener("click", function () {
+    if (!lzLastTotals || !lzLastTotals.pixelMap) {
+      showToast("Ainda não há zonas com canvas calculado na aba Ecrã Complexo.");
+      return;
+    }
+    useMsRes(lzLastTotals.pixelMap.canvasW, lzLastTotals.pixelMap.canvasH, "Ecrã Complexo");
+  });
+  document.getElementById("ms-use-proj").addEventListener("click", function () {
+    if (!projLastRes) {
+      showToast("Ainda não há uma resolução calculada na aba Projeto.");
+      return;
+    }
+    useMsRes(projLastRes.x, projLastRes.y, projLastRes.label);
+  });
+  document.getElementById("ms-use-sinal").addEventListener("click", function () {
+    useMsRes(val("sg-h"), val("sg-v"), "Sinal & Data Rate");
+  });
+  function calcMediaServer() {
+    var h = val("ms-h"), v = val("ms-v");
+    var totalMP = (h * v) / 1e6;
+    var serversOk = (PROCESSORS_DATA.mediaServers || []).map(function (s) {
+      var cap = s.maxMP || 0;
+      var fits = totalMP <= cap * SWITCHER_SAFETY_MARGIN;
+      return { s: s, key: itemKey(s.marca, s.modelo), cap: cap, fits: fits, pct: fmt((totalMP / cap) * 100, 0) };
+    }).filter(function (x) { return x.fits && x.cap; })
+      .sort(function (a, b) { return (a.s.mercado ? 1 : 0) - (b.s.mercado ? 1 : 0) || b.cap - a.cap; });
+    markBestOption(serversOk);
+
+    document.getElementById("ms-server-list").innerHTML = serversOk.length
+      ? serversOk.map(function (x) {
+          var io = x.s.maxOutputs ? " · " + fmtInt(x.s.maxOutputs) + " saídas" : "";
+          return '<div class="lm-item"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP — ' + x.pct + '%' + io + '</span></div>';
+        }).join("")
+      : '<div class="lm-item"><span>Nenhum media server da base cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>';
+  }
+
   document.getElementById("sg-use-projtile").addEventListener("click", function () {
     // Quando o projeto vem do Ecrã Complexo ("Usar total das zonas"), o
     // "proj-led-model" nunca é preenchido — um projeto de zonas pode ter
@@ -4050,6 +4145,7 @@
     calcLentes();
     calcProjeto();
     calcSinal();
+    calcMediaServer();
     calcTV();
   }).catch(function (err) {
     console.error("Falha a carregar dados de data/*.json:", err);
@@ -4060,6 +4156,7 @@
     calcBlend();
     calcLentes();
     calcSinal();
+    calcMediaServer();
     calcTV();
   });
 

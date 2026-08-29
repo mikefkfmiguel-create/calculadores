@@ -54,5 +54,6 @@
     { "marca": "NovaStar", "modelo": "VX16s", "mercado": true, "ports": 16, "maxPixelsHardCap": 10400000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série VX (\"tudo-em-um\"). 16 saídas Ethernet standard (tier \"1G\"). Processamento até 4K×2K@60Hz. Ficha técnica oficial da NovaStar não localizada diretamente — fonte é uma página de revendedor, tratar com alguma reserva.", "fonte": "https://www.stagelightingstore.com/NovaStar-VX16s-LED-Display-Video-Processor-All-In-One-LED-Controller" },
     { "marca": "NovaStar", "modelo": "TU20 Pro", "mercado": true, "ports": 6, "maxPixelsHardCap": 3900000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série TU (\"tudo-em-um\" com media player integrado — processador + sending card + player, 3 entradas HDMI). 6 saídas Ethernet standard (tier \"1G\").", "fonte": "https://oss.novastar.tech/uploads/2023/06/TU20-Pro-LED-Playback-Control-Processor-Specifications-V1.0.1.pdf" },
     { "marca": "NovaStar", "modelo": "TU4K Pro", "mercado": true, "ports": 20, "maxPixelsHardCap": 13000000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série TU (\"tudo-em-um\" com media player integrado). 20 saídas Ethernet standard (tier \"1G\") + 2 saídas óticas 10G (tratadas como porta GigE padrão por segurança). Entrada até HDMI2.0 4K@60Hz.", "fonte": "https://oss.novastar.tech/uploads/2025/11/TU4K-Pro-LED-Playback-Control-Processor-Specifications-V1.2.0.pdf" }
-  ]
+  ],
+  "mediaServers": []
 }
