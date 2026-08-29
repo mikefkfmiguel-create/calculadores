@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.157</span>
+    <span class="mark">v1.158</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -217,11 +217,14 @@
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="p-addproject">Adicionar ao projeto</label>
-              <button class="copy" id="p-share" title="Partilhar diretamente (WhatsApp, Email, Mensagens...)">↗ Partilhar</button>
+              <select class="copy" id="p-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                <option value="" selected>↗ Partilhar/Guardar</option>
+                <option value="text">Como texto (mensagem)</option>
+                <option value="txt">Como ficheiro .txt</option>
+                <option value="csv">Como ficheiro .csv (Excel)</option>
+                <option value="pdf">Como PDF</option>
+              </select>
               <button class="copy" data-target="p-sum">Copiar resumo</button>
-              <button class="copy" id="p-download" title="Guardar ou partilhar em .txt">.txt</button>
-              <button class="copy" id="p-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
-              <button class="copy" id="p-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="p-sum"></pre>
@@ -343,11 +346,14 @@
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="v-addproject">Adicionar ao projeto</label>
-              <button class="copy" id="v-share" title="Partilhar diretamente (WhatsApp, Email, Mensagens...)">↗ Partilhar</button>
+              <select class="copy" id="v-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                <option value="" selected>↗ Partilhar/Guardar</option>
+                <option value="text">Como texto (mensagem)</option>
+                <option value="txt">Como ficheiro .txt</option>
+                <option value="csv">Como ficheiro .csv (Excel)</option>
+                <option value="pdf">Como PDF</option>
+              </select>
               <button class="copy" data-target="v-sum">Copiar resumo</button>
-              <button class="copy" id="v-download" title="Guardar ou partilhar em .txt">.txt</button>
-              <button class="copy" id="v-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
-              <button class="copy" id="v-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="v-sum"></pre>
@@ -528,11 +534,14 @@
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="l-addproject">Adicionar ao projeto</label>
-              <button class="copy" id="l-share" title="Partilhar diretamente (WhatsApp, Email, Mensagens...)">↗ Partilhar</button>
+              <select class="copy" id="l-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                <option value="" selected>↗ Partilhar/Guardar</option>
+                <option value="text">Como texto (mensagem)</option>
+                <option value="txt">Como ficheiro .txt</option>
+                <option value="csv">Como ficheiro .csv (Excel)</option>
+                <option value="pdf">Como PDF</option>
+              </select>
               <button class="copy" data-target="l-sum">Copiar resumo</button>
-              <button class="copy" id="l-download" title="Guardar ou partilhar em .txt">.txt</button>
-              <button class="copy" id="l-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
-              <button class="copy" id="l-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="l-sum"></pre>
@@ -670,11 +679,14 @@
             <span class="k">Resumo por zona</span>
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="z-addproject">Adicionar ao projeto</label>
-              <button class="copy" id="lz-share" title="Partilhar diretamente (WhatsApp, Email, Mensagens...)">↗ Partilhar</button>
+              <select class="copy" id="lz-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                <option value="" selected>↗ Partilhar/Guardar</option>
+                <option value="text">Como texto (mensagem)</option>
+                <option value="txt">Como ficheiro .txt</option>
+                <option value="csv">Como ficheiro .csv (Excel)</option>
+                <option value="pdf">Como PDF</option>
+              </select>
               <button class="copy" data-target="lz-sum">Copiar resumo</button>
-              <button class="copy" id="lz-download" title="Guardar ou partilhar em .txt">.txt</button>
-              <button class="copy" id="lz-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
-              <button class="copy" id="lz-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="lz-sum"></pre>
@@ -804,11 +816,14 @@
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="b-addproject">Adicionar ao projeto</label>
-              <button class="copy" id="b-share" title="Partilhar diretamente (WhatsApp, Email, Mensagens...)">↗ Partilhar</button>
+              <select class="copy" id="b-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                <option value="" selected>↗ Partilhar/Guardar</option>
+                <option value="text">Como texto (mensagem)</option>
+                <option value="txt">Como ficheiro .txt</option>
+                <option value="csv">Como ficheiro .csv (Excel)</option>
+                <option value="pdf">Como PDF</option>
+              </select>
               <button class="copy" data-target="b-sum">Copiar resumo</button>
-              <button class="copy" id="b-download" title="Guardar ou partilhar em .txt">.txt</button>
-              <button class="copy" id="b-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
-              <button class="copy" id="b-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="b-sum"></pre>
@@ -1248,11 +1263,14 @@
               <div class="summary-head">
                 <span class="k">Resumo do projeto</span>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <button class="copy" id="proj-share" title="Partilhar diretamente (WhatsApp, Email, Mensagens...)">↗ Partilhar</button>
+                  <select class="copy" id="proj-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                    <option value="" selected>↗ Partilhar/Guardar</option>
+                    <option value="text">Como texto (mensagem)</option>
+                    <option value="txt">Como ficheiro .txt</option>
+                    <option value="csv">Como ficheiro .csv (Excel)</option>
+                    <option value="pdf">Como PDF</option>
+                  </select>
                   <button class="copy" data-target="proj-sum">Copiar relatório</button>
-                  <button class="copy" id="proj-download">Descarregar (.txt)</button>
-                  <button class="copy" id="proj-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
-                  <button class="copy" id="proj-pdf" title="Guardar em PDF (impressão)">PDF</button>
                   <button class="copy" id="proj-save">Guardar projeto</button>
                   <button class="copy" id="proj-open">Abrir projeto…</button>
                   <input type="file" id="proj-open-file" accept="application/json,.json" style="display:none;">
@@ -1374,11 +1392,14 @@
               <span class="k">Resumo do setup</span>
               <div class="summary-actions">
                 <label class="addproject"><input type="checkbox" id="sg-addproject">Adicionar ao projeto</label>
-                <button class="copy" id="sg-share" title="Partilhar diretamente (WhatsApp, Email, Mensagens...)">↗ Partilhar</button>
+                <select class="copy" id="sg-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                  <option value="" selected>↗ Partilhar/Guardar</option>
+                  <option value="text">Como texto (mensagem)</option>
+                  <option value="txt">Como ficheiro .txt</option>
+                  <option value="csv">Como ficheiro .csv (Excel)</option>
+                  <option value="pdf">Como PDF</option>
+                </select>
                 <button class="copy" data-target="sg-sum">Copiar resumo</button>
-                <button class="copy" id="sg-download" title="Guardar ou partilhar em .txt">.txt</button>
-                <button class="copy" id="sg-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
-                <button class="copy" id="sg-pdf" title="Guardar em PDF (impressão)">PDF</button>
               </div>
             </div>
             <pre class="sumbox" id="sg-sum"></pre>
@@ -1438,11 +1459,14 @@
               <span class="k">Resumo para ficha técnica</span>
               <div class="summary-actions">
                 <label class="addproject"><input type="checkbox" id="ms-addproject">Adicionar ao projeto</label>
-                <button class="copy" id="ms-share" title="Partilhar diretamente (WhatsApp, Email, Mensagens...)">↗ Partilhar</button>
+                <select class="copy" id="ms-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                  <option value="" selected>↗ Partilhar/Guardar</option>
+                  <option value="text">Como texto (mensagem)</option>
+                  <option value="txt">Como ficheiro .txt</option>
+                  <option value="csv">Como ficheiro .csv (Excel)</option>
+                  <option value="pdf">Como PDF</option>
+                </select>
                 <button class="copy" data-target="ms-sum">Copiar resumo</button>
-                <button class="copy" id="ms-download" title="Guardar ou partilhar em .txt">.txt</button>
-                <button class="copy" id="ms-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
-                <button class="copy" id="ms-pdf" title="Guardar em PDF (impressão)">PDF</button>
               </div>
             </div>
             <pre class="sumbox" id="ms-sum"></pre>
@@ -1508,11 +1532,14 @@
           <div class="summary-head">
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
-              <button class="copy" id="tv-share" title="Partilhar diretamente (WhatsApp, Email, Mensagens...)">↗ Partilhar</button>
+              <select class="copy" id="tv-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                <option value="" selected>↗ Partilhar/Guardar</option>
+                <option value="text">Como texto (mensagem)</option>
+                <option value="txt">Como ficheiro .txt</option>
+                <option value="csv">Como ficheiro .csv (Excel)</option>
+                <option value="pdf">Como PDF</option>
+              </select>
               <button class="copy" data-target="tv-sum">Copiar resumo</button>
-              <button class="copy" id="tv-download" title="Guardar ou partilhar em .txt">.txt</button>
-              <button class="copy" id="tv-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
-              <button class="copy" id="tv-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="tv-sum"></pre>
@@ -3612,51 +3639,41 @@
     }).join("");
     return stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
   }
-  document.getElementById("proj-share").addEventListener("click", function () {
+  document.getElementById("proj-share").addEventListener("change", function () {
+    var fmt = this.value;
+    this.value = "";
     var text = document.getElementById("proj-sum").textContent;
     var title = document.getElementById("proj-nome").value.trim() || "Projeto";
-    shareSummaryText(document.getElementById("proj-share"), title, text);
-  });
-  document.getElementById("proj-download").addEventListener("click", function () {
-    var text = document.getElementById("proj-sum").textContent;
-    saveOrShareFile(projSlug() + ".txt", text, "text/plain;charset=utf-8");
-  });
-  document.getElementById("proj-csv").addEventListener("click", function () {
-    var text = document.getElementById("proj-sum").textContent;
-    saveOrShareFile(projSlug() + ".csv", textSummaryToCsv(text), "text/csv;charset=utf-8");
-  });
-  document.getElementById("proj-pdf").addEventListener("click", function () {
-    printSummaryText(document.getElementById("proj-nome").value.trim() || "Projeto", document.getElementById("proj-sum").textContent);
+    if (fmt === "text") shareSummaryText(title, text);
+    else if (fmt === "txt") saveOrShareFile(projSlug() + ".txt", text, "text/plain;charset=utf-8");
+    else if (fmt === "csv") saveOrShareFile(projSlug() + ".csv", textSummaryToCsv(text), "text/csv;charset=utf-8");
+    else if (fmt === "pdf") printSummaryText(title, text);
   });
 
-  // Exportação (.txt / .csv / PDF) dos resumos das restantes calculadoras —
-  // todas seguem o mesmo botão "Copiar resumo" já existente, por isso um
-  // único ciclo genérico substitui 8 blocos de listeners quase idênticos.
+  // Partilhar/Guardar (texto / .txt / .csv / PDF) dos resumos das restantes
+  // calculadoras — um só select por resumo já escolhe o formato e dispara o
+  // envio (nativo, quando o navegador suporta), por isso um único ciclo
+  // genérico substitui 8 blocos de listeners quase idênticos.
   [
-    { sum: "p-sum", share: "p-share", dl: "p-download", csv: "p-csv", pdf: "p-pdf", title: "Distância de Projeção", slug: "distancia-projecao" },
-    { sum: "v-sum", share: "v-share", dl: "v-download", csv: "v-csv", pdf: "v-pdf", title: "Distância de Visualização", slug: "distancia-visualizacao" },
-    { sum: "l-sum", share: "l-share", dl: "l-download", csv: "l-csv", pdf: "l-pdf", title: "Ecrã LED & Pixel Pitch", slug: "ecra-led" },
-    { sum: "lz-sum", share: "lz-share", dl: "lz-download", csv: "lz-csv", pdf: "lz-pdf", title: "Ecrã Complexo", slug: "ecra-complexo" },
-    { sum: "b-sum", share: "b-share", dl: "b-download", csv: "b-csv", pdf: "b-pdf", title: "Blending Multi-Projetor", slug: "blending" },
-    { sum: "sg-sum", share: "sg-share", dl: "sg-download", csv: "sg-csv", pdf: "sg-pdf", title: "Sinal & Data Rate", slug: "sinal-data-rate" },
-    { sum: "ms-sum", share: "ms-share", dl: "ms-download", csv: "ms-csv", pdf: "ms-pdf", title: "Media Server", slug: "media-server" },
-    { sum: "tv-sum", share: "tv-share", dl: "tv-download", csv: "tv-csv", pdf: "tv-pdf", title: "TVs", slug: "tv" }
+    { sum: "p-sum", share: "p-share", title: "Distância de Projeção", slug: "distancia-projecao" },
+    { sum: "v-sum", share: "v-share", title: "Distância de Visualização", slug: "distancia-visualizacao" },
+    { sum: "l-sum", share: "l-share", title: "Ecrã LED & Pixel Pitch", slug: "ecra-led" },
+    { sum: "lz-sum", share: "lz-share", title: "Ecrã Complexo", slug: "ecra-complexo" },
+    { sum: "b-sum", share: "b-share", title: "Blending Multi-Projetor", slug: "blending" },
+    { sum: "sg-sum", share: "sg-share", title: "Sinal & Data Rate", slug: "sinal-data-rate" },
+    { sum: "ms-sum", share: "ms-share", title: "Media Server", slug: "media-server" },
+    { sum: "tv-sum", share: "tv-share", title: "TVs", slug: "tv" }
   ].forEach(function (cfg) {
-    var shareBtn = document.getElementById(cfg.share);
-    if (shareBtn) shareBtn.addEventListener("click", function () {
-      shareSummaryText(shareBtn, cfg.title, document.getElementById(cfg.sum).textContent);
-    });
-    var dlBtn = document.getElementById(cfg.dl);
-    if (dlBtn) dlBtn.addEventListener("click", function () {
-      saveOrShareFile(cfg.slug + ".txt", document.getElementById(cfg.sum).textContent, "text/plain;charset=utf-8");
-    });
-    var csvBtn = document.getElementById(cfg.csv);
-    if (csvBtn) csvBtn.addEventListener("click", function () {
-      saveOrShareFile(cfg.slug + ".csv", textSummaryToCsv(document.getElementById(cfg.sum).textContent), "text/csv;charset=utf-8");
-    });
-    var pdfBtn = document.getElementById(cfg.pdf);
-    if (pdfBtn) pdfBtn.addEventListener("click", function () {
-      printSummaryText(cfg.title, document.getElementById(cfg.sum).textContent);
+    var shareSel = document.getElementById(cfg.share);
+    if (!shareSel) return;
+    shareSel.addEventListener("change", function () {
+      var fmt = shareSel.value;
+      shareSel.value = "";
+      var text = document.getElementById(cfg.sum).textContent;
+      if (fmt === "text") shareSummaryText(cfg.title, text);
+      else if (fmt === "txt") saveOrShareFile(cfg.slug + ".txt", text, "text/plain;charset=utf-8");
+      else if (fmt === "csv") saveOrShareFile(cfg.slug + ".csv", textSummaryToCsv(text), "text/csv;charset=utf-8");
+      else if (fmt === "pdf") printSummaryText(cfg.title, text);
     });
   });
 
