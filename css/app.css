@@ -759,6 +759,15 @@
     flex: none;
     margin-right: 8px;
   }
+  /* Em ecrãs estreitos, as duas colunas do .lm-row (nome+badges | capacidade)
+     ficam demasiado apertadas lado a lado — cada uma parte o texto em 3-4
+     linhas mesmo sem haver overflow horizontal. Empilhar as duas dá largura
+     total a cada uma, reduzindo para 1-2 linhas e tornando a lista legível. */
+  @media (max-width: 480px) {
+    .lensmatch-list .lm-checkitem { align-items: flex-start; }
+    .lensmatch-list .lm-row { flex-direction: column; align-items: flex-start; gap: 3px; }
+    .lensmatch-list .lm-row > span:last-child { color: var(--ink-soft); font-size: 12.5px; }
+  }
 
   /* Results */
   .results { position: sticky; top: 16px; }
