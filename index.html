@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.150</span>
+    <span class="mark">v1.151</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3428,9 +3428,16 @@
     var totalMP = (h * v) / 1e6;
     var serversOk = (PROCESSORS_DATA.mediaServers || []).map(function (s) {
       var cap = s.maxMP || 0;
-      var fits = totalMP <= cap * SWITCHER_SAFETY_MARGIN;
-      return { s: s, key: itemKey(s.marca, s.modelo), cap: cap, fits: fits, pct: fmt((totalMP / cap) * 100, 0) };
-    }).filter(function (x) { return x.fits && x.cap; })
+      var fits = cap ? totalMP <= cap * SWITCHER_SAFETY_MARGIN : null;
+      var pct = cap ? fmt((totalMP / cap) * 100, 0) : null;
+      return { s: s, key: itemKey(s.marca, s.modelo), cap: cap, fits: fits, pct: pct };
+      // Equipamento próprio (sem "mercado") fica sempre na lista, mesmo
+      // sem caber ou sem capacidade publicada (ex: Mitti/Millumin, só
+      // software sem nº de saídas fixo) — a regra da casa é ver sempre o
+      // que já se tem, mesmo que não aconselhado. Mercado só entra se
+      // couber e tiver capacidade conhecida, para não encher a lista de
+      // sugestões irrelevantes.
+    }).filter(function (x) { return !x.s.mercado || (x.fits && x.cap); })
       // Próprio antes de mercado, depois capacidade com spec real de
       // hardware antes de capacidade estimada/dependente de config (ex:
       // Resolume — nº de saídas depende da GPU da máquina, não é um teto
@@ -3438,12 +3445,16 @@
       // um valor estimado mais otimista podia ganhar "Recomendado" à
       // frente de equipamento com capacidade garantida.
       .sort(function (a, b) { return (a.s.mercado ? 1 : 0) - (b.s.mercado ? 1 : 0) || (a.s.estimated ? 1 : 0) - (b.s.estimated ? 1 : 0) || b.cap - a.cap; });
-    markBestOption(serversOk);
+    // "Recomendado" só pode cair num que realmente cabe — nunca num
+    // próprio mostrado só pela regra "sempre visível" acima, nem num sem
+    // capacidade publicada.
+    markBestOption(serversOk.filter(function (x) { return x.fits; }));
 
     document.getElementById("ms-server-list").innerHTML = serversOk.length
       ? serversOk.map(function (x) {
           var io = x.s.maxOutputs ? " · " + fmtInt(x.s.maxOutputs) + " saídas" : "";
-          return '<div class="lm-item"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + estimatedBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP — ' + x.pct + '%' + io + '</span></div>';
+          var capTxt = x.cap ? (fmt(x.cap, 1) + ' MP — ' + x.pct + '%' + io) : 'Sem capacidade máxima publicada' + io;
+          return '<div class="lm-item"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + estimatedBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + capTxt + '</span></div>';
         }).join("")
       : '<div class="lm-item"><span>Nenhum media server da base cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>';
   }
