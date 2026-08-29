@@ -165,28 +165,18 @@ function saveOrShareFile(filename, content, mimeType) {
 
 // Partilha de texto (não ficheiro) — usa a partilha nativa (WhatsApp, Email,
 // Mensagens...) quando disponível. Suporte de texto no Web Share API é muito
-// mais alargado do que o de ficheiros, por isso este botão funciona em mais
-// telemóveis do que os de .txt/.csv acima. Sem partilha nativa, copia o
-// texto (mesmo feedback do botão "Copiar resumo") para não ficar sem ação.
-function shareSummaryText(btn, title, text) {
+// mais alargado do que o de ficheiros, por isso esta opção funciona em mais
+// telemóveis do que as de .txt/.csv. Sem partilha nativa (ex: desktop), cai
+// para a área de transferência em silêncio — "Copiar resumo" ao lado já dá
+// feedback visual para esse caso.
+function shareSummaryText(title, text) {
   if (navigator.share) {
     navigator.share({ title: title, text: text }).catch(function (err) {
       if (err && err.name === "AbortError") return;
-      shareFallbackCopy(btn, text);
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).catch(function () {});
     });
-  } else {
-    shareFallbackCopy(btn, text);
-  }
-}
-
-function shareFallbackCopy(btn, text) {
-  var done = function () {
-    var orig = btn.textContent;
-    btn.textContent = "Copiado ✓";
-    setTimeout(function () { btn.textContent = orig; }, 1500);
-  };
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(done).catch(function () {});
+  } else if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).catch(function () {});
   }
 }
 
