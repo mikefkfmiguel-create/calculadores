@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.154</span>
+    <span class="mark">v1.155</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -218,6 +218,9 @@
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="p-addproject">Adicionar ao projeto</label>
               <button class="copy" data-target="p-sum">Copiar resumo</button>
+              <button class="copy" id="p-download" title="Guardar ou partilhar em .txt">.txt</button>
+              <button class="copy" id="p-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
+              <button class="copy" id="p-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="p-sum"></pre>
@@ -340,6 +343,9 @@
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="v-addproject">Adicionar ao projeto</label>
               <button class="copy" data-target="v-sum">Copiar resumo</button>
+              <button class="copy" id="v-download" title="Guardar ou partilhar em .txt">.txt</button>
+              <button class="copy" id="v-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
+              <button class="copy" id="v-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="v-sum"></pre>
@@ -521,6 +527,9 @@
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="l-addproject">Adicionar ao projeto</label>
               <button class="copy" data-target="l-sum">Copiar resumo</button>
+              <button class="copy" id="l-download" title="Guardar ou partilhar em .txt">.txt</button>
+              <button class="copy" id="l-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
+              <button class="copy" id="l-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="l-sum"></pre>
@@ -659,6 +668,9 @@
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="z-addproject">Adicionar ao projeto</label>
               <button class="copy" data-target="lz-sum">Copiar resumo</button>
+              <button class="copy" id="lz-download" title="Guardar ou partilhar em .txt">.txt</button>
+              <button class="copy" id="lz-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
+              <button class="copy" id="lz-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="lz-sum"></pre>
@@ -789,6 +801,9 @@
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="b-addproject">Adicionar ao projeto</label>
               <button class="copy" data-target="b-sum">Copiar resumo</button>
+              <button class="copy" id="b-download" title="Guardar ou partilhar em .txt">.txt</button>
+              <button class="copy" id="b-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
+              <button class="copy" id="b-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="b-sum"></pre>
@@ -1230,6 +1245,8 @@
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                   <button class="copy" data-target="proj-sum">Copiar relatório</button>
                   <button class="copy" id="proj-download">Descarregar (.txt)</button>
+                  <button class="copy" id="proj-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
+                  <button class="copy" id="proj-pdf" title="Guardar em PDF (impressão)">PDF</button>
                   <button class="copy" id="proj-save">Guardar projeto</button>
                   <button class="copy" id="proj-open">Abrir projeto…</button>
                   <input type="file" id="proj-open-file" accept="application/json,.json" style="display:none;">
@@ -1352,6 +1369,9 @@
               <div class="summary-actions">
                 <label class="addproject"><input type="checkbox" id="sg-addproject">Adicionar ao projeto</label>
                 <button class="copy" data-target="sg-sum">Copiar resumo</button>
+                <button class="copy" id="sg-download" title="Guardar ou partilhar em .txt">.txt</button>
+                <button class="copy" id="sg-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
+                <button class="copy" id="sg-pdf" title="Guardar em PDF (impressão)">PDF</button>
               </div>
             </div>
             <pre class="sumbox" id="sg-sum"></pre>
@@ -1412,6 +1432,9 @@
               <div class="summary-actions">
                 <label class="addproject"><input type="checkbox" id="ms-addproject">Adicionar ao projeto</label>
                 <button class="copy" data-target="ms-sum">Copiar resumo</button>
+                <button class="copy" id="ms-download" title="Guardar ou partilhar em .txt">.txt</button>
+                <button class="copy" id="ms-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
+                <button class="copy" id="ms-pdf" title="Guardar em PDF (impressão)">PDF</button>
               </div>
             </div>
             <pre class="sumbox" id="ms-sum"></pre>
@@ -1478,6 +1501,9 @@
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
               <button class="copy" data-target="tv-sum">Copiar resumo</button>
+              <button class="copy" id="tv-download" title="Guardar ou partilhar em .txt">.txt</button>
+              <button class="copy" id="tv-csv" title="Guardar ou partilhar em .csv (Excel)">.csv</button>
+              <button class="copy" id="tv-pdf" title="Guardar em PDF (impressão)">PDF</button>
             </div>
           </div>
           <pre class="sumbox" id="tv-sum"></pre>
@@ -1531,6 +1557,8 @@
 
   <footer>Calculadores — ferramenta interna, valores para conferência antes de envio ao cliente.</footer>
 </div>
+
+<div id="print-area"></div>
 
 <script src="js/utils.js"></script>
 <script src="js/zonas.js"></script>
@@ -3567,15 +3595,51 @@
     calcProjeto();
   });
 
-  document.getElementById("proj-download").addEventListener("click", function () {
+  function projSlug() {
     var nome = document.getElementById("proj-nome").value.trim() || "projeto";
     var stripped = Array.from(nome.normalize("NFD")).filter(function (ch) {
       var code = ch.codePointAt(0);
       return code < 768 || code > 879;
     }).join("");
-    var slug = stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
+    return stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
+  }
+  document.getElementById("proj-download").addEventListener("click", function () {
     var text = document.getElementById("proj-sum").textContent;
-    saveOrShareFile(slug + ".txt", text, "text/plain;charset=utf-8");
+    saveOrShareFile(projSlug() + ".txt", text, "text/plain;charset=utf-8");
+  });
+  document.getElementById("proj-csv").addEventListener("click", function () {
+    var text = document.getElementById("proj-sum").textContent;
+    saveOrShareFile(projSlug() + ".csv", textSummaryToCsv(text), "text/csv;charset=utf-8");
+  });
+  document.getElementById("proj-pdf").addEventListener("click", function () {
+    printSummaryText(document.getElementById("proj-nome").value.trim() || "Projeto", document.getElementById("proj-sum").textContent);
+  });
+
+  // Exportação (.txt / .csv / PDF) dos resumos das restantes calculadoras —
+  // todas seguem o mesmo botão "Copiar resumo" já existente, por isso um
+  // único ciclo genérico substitui 8 blocos de listeners quase idênticos.
+  [
+    { sum: "p-sum", dl: "p-download", csv: "p-csv", pdf: "p-pdf", title: "Distância de Projeção", slug: "distancia-projecao" },
+    { sum: "v-sum", dl: "v-download", csv: "v-csv", pdf: "v-pdf", title: "Distância de Visualização", slug: "distancia-visualizacao" },
+    { sum: "l-sum", dl: "l-download", csv: "l-csv", pdf: "l-pdf", title: "Ecrã LED & Pixel Pitch", slug: "ecra-led" },
+    { sum: "lz-sum", dl: "lz-download", csv: "lz-csv", pdf: "lz-pdf", title: "Ecrã Complexo", slug: "ecra-complexo" },
+    { sum: "b-sum", dl: "b-download", csv: "b-csv", pdf: "b-pdf", title: "Blending Multi-Projetor", slug: "blending" },
+    { sum: "sg-sum", dl: "sg-download", csv: "sg-csv", pdf: "sg-pdf", title: "Sinal & Data Rate", slug: "sinal-data-rate" },
+    { sum: "ms-sum", dl: "ms-download", csv: "ms-csv", pdf: "ms-pdf", title: "Media Server", slug: "media-server" },
+    { sum: "tv-sum", dl: "tv-download", csv: "tv-csv", pdf: "tv-pdf", title: "TVs", slug: "tv" }
+  ].forEach(function (cfg) {
+    var dlBtn = document.getElementById(cfg.dl);
+    if (dlBtn) dlBtn.addEventListener("click", function () {
+      saveOrShareFile(cfg.slug + ".txt", document.getElementById(cfg.sum).textContent, "text/plain;charset=utf-8");
+    });
+    var csvBtn = document.getElementById(cfg.csv);
+    if (csvBtn) csvBtn.addEventListener("click", function () {
+      saveOrShareFile(cfg.slug + ".csv", textSummaryToCsv(document.getElementById(cfg.sum).textContent), "text/csv;charset=utf-8");
+    });
+    var pdfBtn = document.getElementById(cfg.pdf);
+    if (pdfBtn) pdfBtn.addEventListener("click", function () {
+      printSummaryText(cfg.title, document.getElementById(cfg.sum).textContent);
+    });
   });
 
   function segActive(containerId) {

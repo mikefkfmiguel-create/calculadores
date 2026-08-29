@@ -162,3 +162,35 @@ function saveOrShareBlob(filename, blob) {
 function saveOrShareFile(filename, content, mimeType) {
   saveOrShareBlob(filename, new Blob([content], { type: mimeType }));
 }
+
+function csvEscapeField(field) {
+  var s = String(field == null ? "" : field);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+// Converte um resumo em texto ("Campo: valor" por linha, tal como já é
+// gerado para "Copiar resumo") numa tabela de 2 colunas — sem reescrever
+// cada calculadora para gerar dados estruturados à parte. Linhas sem
+// ":" no início (notas, texto indentado) ficam só na coluna de valor.
+// BOM no início do ficheiro para o Excel abrir acentos (ç, ã, é) bem.
+function textSummaryToCsv(text) {
+  var rows = [["Campo", "Valor"]];
+  text.split("\n").forEach(function (line) {
+    if (!line.trim()) return;
+    var m = line.match(/^([^\s:][^:]*):\s?(.*)$/);
+    if (m) rows.push([m[1].trim(), m[2].trim()]);
+    else rows.push(["", line.trim()]);
+  });
+  return "﻿" + rows.map(function (r) { return r.map(csvEscapeField).join(","); }).join("\r\n");
+}
+
+// Imprime um resumo isolado (título + texto pré-formatado) — usa-se a
+// impressão nativa do browser para "Guardar como PDF" sem precisar de
+// nenhuma biblioteca de geração de PDF. #print-area é escondido em ecrã
+// e só ele fica visível no modo de impressão (ver css/app.css).
+function printSummaryText(title, text) {
+  var area = document.getElementById("print-area");
+  if (!area) return;
+  area.innerHTML = "<h1>" + escapeXml(title) + "</h1><pre>" + escapeXml(text) + "</pre>";
+  window.print();
+}

@@ -1213,3 +1213,24 @@
     font-size: 12px;
     text-align: center;
   }
+
+  /* "Guardar PDF" — impressão nativa do browser, sem nenhuma biblioteca de
+     geração de PDF. #print-area fica sempre escondido em ecrã; ao imprimir,
+     é a única coisa visível (o resto usa visibility:hidden, não display:
+     none, para não estragar o layout calculado antes do print arrancar). */
+  #print-area { display: none; }
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      color: #000;
+      background: #fff;
+    }
+    #print-area h1 { font-size: 16px; margin: 0 0 12px; }
+    #print-area pre { white-space: pre-wrap; font-family: inherit; font-size: 11px; line-height: 1.5; }
+  }
