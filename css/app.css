@@ -744,6 +744,21 @@
     flex: none;
     margin-right: 8px;
   }
+  .lm-estimated {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 10px;
+    background: var(--violet-100);
+    color: var(--violet-600);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex: none;
+    margin-right: 8px;
+  }
 
   /* Results */
   .results { position: sticky; top: 16px; }

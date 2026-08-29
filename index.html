@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.149</span>
+    <span class="mark">v1.150</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2809,6 +2809,10 @@
     var item = x.s || x.p;
     return item && item.mercado ? '<span class="lm-market" title="Não é equipamento da AVK — mostrado só como referência de mercado">Mercado</span>' : '';
   }
+  function estimatedBadgeHtml(x) {
+    var item = x.s || x.p;
+    return item && item.estimated ? '<span class="lm-estimated" title="Capacidade estimada, não é um teto de hardware fixo publicado pelo fabricante — depende da configuração real (ex: GPU da máquina). Ver nota.">Estimado</span>' : '';
+  }
 
   var projLedModelSel = document.getElementById("proj-led-model");
   var sgLedTileSel = document.getElementById("sg-led-tile");
@@ -3427,13 +3431,19 @@
       var fits = totalMP <= cap * SWITCHER_SAFETY_MARGIN;
       return { s: s, key: itemKey(s.marca, s.modelo), cap: cap, fits: fits, pct: fmt((totalMP / cap) * 100, 0) };
     }).filter(function (x) { return x.fits && x.cap; })
-      .sort(function (a, b) { return (a.s.mercado ? 1 : 0) - (b.s.mercado ? 1 : 0) || b.cap - a.cap; });
+      // Próprio antes de mercado, depois capacidade com spec real de
+      // hardware antes de capacidade estimada/dependente de config (ex:
+      // Resolume — nº de saídas depende da GPU da máquina, não é um teto
+      // fixo do fabricante) — só depois é que a folga desempata. Sem isto,
+      // um valor estimado mais otimista podia ganhar "Recomendado" à
+      // frente de equipamento com capacidade garantida.
+      .sort(function (a, b) { return (a.s.mercado ? 1 : 0) - (b.s.mercado ? 1 : 0) || (a.s.estimated ? 1 : 0) - (b.s.estimated ? 1 : 0) || b.cap - a.cap; });
     markBestOption(serversOk);
 
     document.getElementById("ms-server-list").innerHTML = serversOk.length
       ? serversOk.map(function (x) {
           var io = x.s.maxOutputs ? " · " + fmtInt(x.s.maxOutputs) + " saídas" : "";
-          return '<div class="lm-item"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP — ' + x.pct + '%' + io + '</span></div>';
+          return '<div class="lm-item"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + estimatedBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP — ' + x.pct + '%' + io + '</span></div>';
         }).join("")
       : '<div class="lm-item"><span>Nenhum media server da base cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>';
   }
