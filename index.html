@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.152</span>
+    <span class="mark">v1.153</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1405,6 +1405,17 @@
         <summary>Media servers compatíveis</summary>
         <div class="sinal-block-body">
           <div class="lensmatch-list" id="ms-server-list"></div>
+
+          <div class="summary">
+            <div class="summary-head">
+              <span class="k">Resumo para ficha técnica</span>
+              <div class="summary-actions">
+                <label class="addproject"><input type="checkbox" id="ms-addproject">Adicionar ao projeto</label>
+                <button class="copy" data-target="ms-sum">Copiar resumo</button>
+              </div>
+            </div>
+            <pre class="sumbox" id="ms-sum"></pre>
+          </div>
         </div>
       </details>
     </div>
@@ -1601,7 +1612,8 @@
   // avisa se as duas divergirem em vez de assumir que estão alinhadas.
   var PROJECT_SOURCES = [
     { key: "visualizacao", label: "Distância de Visualização", sumId: "v-sum", checkboxId: "v-addproject" },
-    { key: "sinal", label: "Sinal & Data Rate", sumId: "sg-sum", checkboxId: "sg-addproject", conflict: sinalProjectConflict }
+    { key: "sinal", label: "Sinal & Data Rate", sumId: "sg-sum", checkboxId: "sg-addproject", conflict: sinalProjectConflict },
+    { key: "mediaserver", label: "Media Server", sumId: "ms-sum", checkboxId: "ms-addproject" }
   ];
 
   function sinalProjectConflict() {
@@ -1812,7 +1824,7 @@
   // Atalho fixo de "Adicionar ao projeto" — espelha o checkbox real da
   // calculadora ativa (só uma tem de cada vez), para não ser preciso
   // descer até ao resumo em calculadoras longas só para marcar.
-  var ADDPROJECT_BY_MODE = { projecao: "p-addproject", visualizacao: "v-addproject", led: "l-addproject", zonas: "z-addproject", blend: "b-addproject", sinal: "sg-addproject" };
+  var ADDPROJECT_BY_MODE = { projecao: "p-addproject", visualizacao: "v-addproject", led: "l-addproject", zonas: "z-addproject", blend: "b-addproject", sinal: "sg-addproject", mediaserver: "ms-addproject" };
   var addprojectFixed = document.getElementById("addproject-fixed");
   var addprojectFixedCb = document.getElementById("addproject-fixed-cb");
   function syncAddProjectFixed(mode) {
@@ -2770,6 +2782,8 @@
   var selectedSinalLedProcKeys = new Set();
   var sinalSwitcherListExpanded = false;
   var sinalLedProcListExpanded = false;
+  var selectedMsKeys = new Set();
+  var msListExpanded = false;
   function itemKey(marca, modelo) { return marca + "|" + modelo; }
 
   // Margem de segurança para o total de píxeis nunca passar de 90% da
@@ -3450,13 +3464,48 @@
     // capacidade publicada.
     markBestOption(serversOk.filter(function (x) { return x.fits; }));
 
-    document.getElementById("ms-server-list").innerHTML = serversOk.length
-      ? serversOk.map(function (x) {
+    var msChosen = serversOk.filter(function (x) { return selectedMsKeys.has(x.key); });
+    var msShown = (msChosen.length && !msListExpanded) ? msChosen : serversOk;
+
+    document.getElementById("ms-server-list").innerHTML = (msShown.length
+      ? msShown.map(function (x) {
+          var checked = selectedMsKeys.has(x.key) ? " checked" : "";
           var io = x.s.maxOutputs ? " · " + fmtInt(x.s.maxOutputs) + " saídas" : "";
           var capTxt = x.cap ? (fmt(x.cap, 1) + ' MP — ' + x.pct + '%' + io) : 'Sem capacidade máxima publicada' + io;
-          return '<div class="lm-item"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + estimatedBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + capTxt + '</span></div>';
+          return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + estimatedBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + capTxt + '</span></span></label>';
         }).join("")
-      : '<div class="lm-item"><span>Nenhum media server da base cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>';
+      : '<div class="lm-item"><span>Nenhum media server da base cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>') +
+      (msChosen.length
+        ? '<button type="button" class="copy" id="ms-showmore" style="margin-top:8px;">' + (msListExpanded ? "Mostrar só escolhido(s)" : "+ Escolher outro media server") + '</button>'
+        : '');
+
+    document.getElementById("ms-server-list").querySelectorAll(".lm-check").forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        if (cb.checked) selectedMsKeys.add(cb.dataset.key); else selectedMsKeys.delete(cb.dataset.key);
+        msListExpanded = false;
+        calcMediaServer();
+      });
+    });
+    var msShowMoreBtn = document.getElementById("ms-showmore");
+    if (msShowMoreBtn) msShowMoreBtn.addEventListener("click", function () {
+      msListExpanded = !msListExpanded;
+      calcMediaServer();
+    });
+
+    var msLines = msChosen.length
+      ? msChosen.map(function (x) {
+          var capTxt = x.cap ? (fmt(x.cap, 1) + " MP — " + x.pct + "%") : "sem capacidade máxima publicada";
+          var line = "  " + x.s.marca + " " + x.s.modelo + " — " + capTxt;
+          if (x.s.nota) line += "\n    " + x.s.nota;
+          return line;
+        }).join("\n")
+      : "  nenhum escolhido";
+    document.getElementById("ms-sum").textContent =
+      "MEDIA SERVER\n" +
+      "Resolução de saída: " + fmtInt(h) + "×" + fmtInt(v) + "px @ " + fmtInt(val("ms-fps")) + "Hz (" + fmt(totalMP, 1) + " MP)\n\n" +
+      "Media servers escolhidos:\n" + msLines;
+
+    renderProjectItems();
   }
 
   document.getElementById("sg-use-projtile").addEventListener("click", function () {
