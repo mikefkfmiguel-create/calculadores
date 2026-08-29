@@ -21,7 +21,7 @@
       <img id="brand-logo" src="icons/avk-logo.png" alt="AVK" style="height:28px; width:auto; display:none;" onload="this.style.display='inline-block'" onerror="this.style.display='none'">
       <h1>AVK Calculadores</h1>
     </div>
-    <span class="mark">v1.151</span>
+    <span class="mark">v1.152</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2800,8 +2800,8 @@
     if (x.isBest) return '<span class="lm-priority lm-priority-best">Recomendado</span>';
     var p = parseFloat(x.pct);
     if (isNaN(p)) return '';
-    var cls = p <= 70 ? 'lm-priority-mid' : 'lm-priority-tight';
-    var label = p <= 70 ? 'Possível' : 'Não aconselhado';
+    var cls = p <= 80 ? 'lm-priority-mid' : 'lm-priority-tight';
+    var label = p <= 80 ? 'Possível' : 'Não aconselhado';
     return '<span class="lm-priority ' + cls + '">' + label + '</span>';
   }
 
