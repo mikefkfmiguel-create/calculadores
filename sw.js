@@ -1,4 +1,4 @@
-const CACHE = "calculadores-v193";
+const CACHE = "calculadores-v194";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const APP_SHELL = [
   "./css/app.css",
   "./js/utils.js",
   "./js/zonas.js",
+  "./js/i18n.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png"
