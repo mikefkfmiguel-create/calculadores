@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.159</span>
+    <span class="mark">v1.160</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2153,6 +2153,12 @@
     populateProjectorSelect(blendProjModelSel, null, curOpt ? curOpt.dataset.idx : undefined);
     if (blendProjModelSel.value === "custom") return;
     document.getElementById("b-lumens").value = blendProjModelSel.value;
+    var selOpt = blendProjModelSel.options[blendProjModelSel.selectedIndex];
+    var selP = selOpt && selOpt.dataset.idx !== undefined ? PROJECTORS_DATA[selOpt.dataset.idx] : null;
+    if (selP && selP.resolucao) {
+      document.getElementById("b-hpx").value = selP.resolucao.rx;
+      document.getElementById("b-vpx").value = selP.resolucao.ry;
+    }
     calcBlend();
   });
   document.getElementById("b-lumens").addEventListener("input", function () {
