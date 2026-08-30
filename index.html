@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.160</span>
+    <span class="mark">v1.161</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -946,7 +946,9 @@
           <div class="seg" id="proj-type-seg">
             <button type="button" class="seg-btn active" data-projtype="led">Ecrã LED</button>
             <button type="button" class="seg-btn" data-projtype="projecao">Projeção</button>
+            <button type="button" class="seg-btn" data-projtype="misto">Misto</button>
           </div>
+          <div class="hint">Um projeto misto mostra os dois tipos de ecrã ao mesmo tempo e soma os píxeis dos dois para o switcher de show — as portas de processo de LED continuam a contar só o ecrã LED.</div>
         </div>
         <div class="field">
           <label for="proj-nome">Nome do projeto</label>
@@ -1754,16 +1756,26 @@
 
   // "Adicionar ao projeto" em Projeção, LED e Blending: envia os valores
   // dessa calculadora para os campos correspondentes na aba Projeto (em vez
-  // de duplicar o resumo). Um projeto só tem um tipo (LED ou Projeção) e,
-  // dentro de Projeção, só um modo (único ou blend) — por isso marcar uma
-  // destas três desmarca as outras duas automaticamente.
-  var PROJTYPE_ADDPROJECT_IDS = ["p-addproject", "l-addproject", "b-addproject", "z-addproject"];
+  // de duplicar o resumo). Dentro de cada família (LED: único/zonas;
+  // Projeção: único/blend) só um modo de cada vez — marcar um desmarca o
+  // outro da mesma família. As duas famílias já podem coexistir (projeto
+  // misto), por isso não se desmarcam uma à outra.
+  var PROJTYPE_LED_ADDPROJECT_IDS = ["l-addproject", "z-addproject"];
+  var PROJTYPE_PROJ_ADDPROJECT_IDS = ["p-addproject", "b-addproject"];
   function setExclusiveAddProject(activeId) {
-    PROJTYPE_ADDPROJECT_IDS.forEach(function (id) {
+    var group = PROJTYPE_LED_ADDPROJECT_IDS.indexOf(activeId) !== -1 ? PROJTYPE_LED_ADDPROJECT_IDS : PROJTYPE_PROJ_ADDPROJECT_IDS;
+    group.forEach(function (id) {
       if (id === activeId) return;
       var cb = document.getElementById(id);
       if (cb) cb.checked = false;
     });
+  }
+  function updateProjTypeFromAddProject() {
+    var ledOn = PROJTYPE_LED_ADDPROJECT_IDS.some(function (id) { var cb = document.getElementById(id); return cb && cb.checked; });
+    var projOn = PROJTYPE_PROJ_ADDPROJECT_IDS.some(function (id) { var cb = document.getElementById(id); return cb && cb.checked; });
+    if (ledOn && projOn) segClick("proj-type-seg", "projtype", "misto");
+    else if (projOn) segClick("proj-type-seg", "projtype", "projecao");
+    else if (ledOn) segClick("proj-type-seg", "projtype", "led");
   }
 
   function computeScreenWH(ratioVal, sizeMode, diagVal, widthFixedVal, heightFixedVal) {
@@ -1790,7 +1802,7 @@
   }
 
   function syncProjecaoToProject() {
-    segClick("proj-type-seg", "projtype", "projecao");
+    updateProjTypeFromAddProject();
     segClick("proj-blendmode-seg", "blendmode", "single");
     syncModelSelectByIdx(projModelSel, projProjModelSel);
     if (pResMode === "native") segClick("proj-proj-resmode-seg", "resmode", "native");
@@ -1828,7 +1840,7 @@
   }
 
   function syncLedToProject() {
-    segClick("proj-type-seg", "projtype", "led");
+    updateProjTypeFromAddProject();
     syncModelSelectByIdx(ledModelSel, document.getElementById("proj-led-model"));
     segClick("proj-led-sizemode-seg", "sizemode", lSizeMode);
     if (lSizeMode === "meters") {
@@ -1842,13 +1854,13 @@
   }
 
   function syncZonesToProject() {
-    segClick("proj-type-seg", "projtype", "led");
+    updateProjTypeFromAddProject();
     document.getElementById("proj-led-usezones").checked = true;
     calcProjeto();
   }
 
   function syncBlendToProject() {
-    segClick("proj-type-seg", "projtype", "projecao");
+    updateProjTypeFromAddProject();
     segClick("proj-blendmode-seg", "blendmode", "blend");
     syncModelSelectByIdx(blendProjModelSel, projProjModelSel);
     setFieldVal("proj-blend-res", "custom");
@@ -1862,6 +1874,7 @@
 
   document.getElementById("p-addproject").addEventListener("change", function () {
     if (this.checked) { setExclusiveAddProject("p-addproject"); syncProjecaoToProject(); }
+    else { updateProjTypeFromAddProject(); calcProjeto(); }
   });
   document.getElementById("l-addproject").addEventListener("change", function () {
     if (this.checked) {
@@ -1871,13 +1884,15 @@
       // voltar a apagar a escolha de zonas se o utilizador a reativar depois.
       document.getElementById("proj-led-usezones").checked = false;
       syncLedToProject();
-    }
+    } else { updateProjTypeFromAddProject(); calcProjeto(); }
   });
   document.getElementById("b-addproject").addEventListener("change", function () {
     if (this.checked) { setExclusiveAddProject("b-addproject"); syncBlendToProject(); }
+    else { updateProjTypeFromAddProject(); calcProjeto(); }
   });
   document.getElementById("z-addproject").addEventListener("change", function () {
     if (this.checked) { setExclusiveAddProject("z-addproject"); syncZonesToProject(); }
+    else { updateProjTypeFromAddProject(); calcProjeto(); }
   });
 
   var LENTES_DATA = [];
@@ -2985,11 +3000,11 @@
       document.querySelectorAll("#proj-type-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
       btn.classList.add("active");
       projType = btn.dataset.projtype;
-      var isProjecao = projType === "projecao";
-      projLedFields.style.display = isProjecao ? "none" : "block";
-      projProjecaoFields.style.display = isProjecao ? "block" : "none";
-      projReportLed.style.display = isProjecao ? "none" : "block";
-      projReportProjecao.style.display = isProjecao ? "block" : "none";
+      var showLedFields = projType !== "projecao", showProjFields = projType !== "led";
+      projLedFields.style.display = showLedFields ? "block" : "none";
+      projProjecaoFields.style.display = showProjFields ? "block" : "none";
+      projReportLed.style.display = showLedFields ? "block" : "none";
+      projReportProjecao.style.display = showProjFields ? "block" : "none";
       calcProjeto();
     });
   });
@@ -3054,8 +3069,11 @@
       datesLine = "Datas: " + (dataInicio ? fmtDatePT(dataInicio) : "?") + " – " + (dataFim ? fmtDatePT(dataFim) : "?") + "\n";
     }
     var canvasPixels = 0, canvasLabel = "Ecrã", mainSumText = "";
+    var showLed = projType !== "projecao", showProj = projType !== "led";
+    var ledPixels = 0, ledLabel = "Ecrã LED", ledSumText = "";
+    var projPixels = 0, projLabel = "Ecrã (projeção)", projSumText = "";
 
-    if (projType === "led") {
+    if (showLed) {
       var useZones = document.getElementById("proj-led-usezones").checked;
       document.getElementById("proj-led-single-fields").style.display = useZones ? "none" : "block";
       var zonesHint = document.getElementById("proj-led-zones-hint");
@@ -3065,10 +3083,9 @@
           zonesHint.style.display = "block";
           zonesHint.textContent = "Ainda não há zonas — adiciona pelo menos uma na aba Ecrã Complexo.";
           document.getElementById("proj-zones-breakdown-wrap").style.display = "none";
-          projLastRes = null;
-          renderProjectItems();
-          return;
-        }
+          if (!showProj) { projLastRes = null; renderProjectItems(); return; }
+          showLed = false;
+        } else {
         zonesHint.style.display = "block";
         zonesHint.textContent = lzLastTotals.zones.length + " zona(s) somadas: " + lzLastTotals.zones.map(function (z) { return z.name; }).join(", ") + ".";
 
@@ -3091,14 +3108,11 @@
         document.getElementById("proj-out-area").innerHTML = fmt(lzLastTotals.totalArea, 2) + "<small>m²</small>";
         document.getElementById("proj-out-boxes-wrap").style.display = "none";
 
-        canvasPixels = lzLastTotals.totalPixels;
-        canvasLabel = "Ecrã LED (múltiplas zonas)";
+        ledPixels = lzLastTotals.totalPixels;
+        ledLabel = "Ecrã LED (múltiplas zonas)";
         projLastRes = lzLastTotals.pixelMap ? { x: lzLastTotals.pixelMap.canvasW, y: lzLastTotals.pixelMap.canvasH, label: "Projeto — Ecrã LED (múltiplas zonas)" } : null;
 
-        mainSumText =
-          "PROJETO: " + nome + "\n" +
-          datesLine +
-          "Tipo: Ecrã LED (múltiplas zonas)\n" +
+        ledSumText =
           lzLastTotals.zones.map(function (z) {
             return "  " + z.name + ": " + z.model + " — " + z.mx + "x" + z.my + " tiles, " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²)";
           }).join("\n") + "\n" +
@@ -3108,10 +3122,12 @@
           "Peso total: " + fmt(totalWeight, 1) + " kg\n" +
           "Amp total (máx.): " + fmt(totalAmp, 2) + " A  —  " + fmt(ampPhaseZ, 2) + " A por fase (trifásica)\n" +
           "Área total (uso interno): " + fmt(lzLastTotals.totalArea, 2) + " m²";
+      }
       } else {
       zonesHint.style.display = "none";
       document.getElementById("proj-zones-breakdown-wrap").style.display = "none";
-      if (!LED_TILES_DATA.length) return;
+      if (!LED_TILES_DATA.length) { if (!showProj) return; showLed = false; }
+      else {
       updateSourceHint(projLedModelSel, LED_TILES_DATA, "proj-led-model-source", true);
       var tileIdx = parseInt(projLedModelSel.value, 10);
       var tile = LED_TILES_DATA[isNaN(tileIdx) ? 0 : tileIdx];
@@ -3152,14 +3168,11 @@
         boxesWrap.style.display = "none";
       }
 
-      canvasPixels = totalPx * totalPy;
-      canvasLabel = "Ecrã LED";
+      ledPixels = totalPx * totalPy;
+      ledLabel = "Ecrã LED";
       projLastRes = { x: totalPx, y: totalPy, label: "Projeto — Ecrã LED" };
 
-      mainSumText =
-        "PROJETO: " + nome + "\n" +
-        datesLine +
-        "Tipo: Ecrã LED\n" +
+      ledSumText =
         "Modelo de tile: " + tile.modelo + "\n" +
         "Tiles: " + mx + " x " + my + " (" + fmtInt(numTiles) + " no total)\n" +
         boxesLine +
@@ -3170,8 +3183,11 @@
         "Amp total (máx.): " + (ampTotal == null ? "não disponível" : fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)") + "\n" +
         "Área total (uso interno): " + fmt(areaTotal, 2) + " m²";
       }
-    } else {
-      if (!PROJECTORS_DATA.length) return;
+      }
+    }
+    if (showProj) {
+      if (!PROJECTORS_DATA.length) { if (!showLed) return; showProj = false; }
+      else {
       updateSourceHint(projProjModelSel, PROJECTORS_DATA, "proj-proj-model-source", true);
       var projIdx = parseInt(projProjModelSel.value, 10);
       var proj = PROJECTORS_DATA[isNaN(projIdx) ? 0 : projIdx];
@@ -3296,16 +3312,13 @@
         }).join("");
       }
 
-      canvasLabel = isBlend ? "Ecrã (blend)" : "Ecrã (projeção)";
-      canvasPixels = isBlend ? totalPxCount : (projRes ? projRes.rx * projRes.ry : 0);
+      projLabel = isBlend ? "Ecrã (blend)" : "Ecrã (projeção)";
+      projPixels = isBlend ? totalPxCount : (projRes ? projRes.rx * projRes.ry : 0);
       projLastRes = isBlend
         ? { x: totalPxW, y: totalPxH, label: "Projeto — Ecrã (blend)" }
         : (projRes ? { x: projRes.rx, y: projRes.ry, label: "Projeto — Ecrã (projeção)" } : null);
 
-      mainSumText =
-        "PROJETO: " + nome + "\n" +
-        datesLine +
-        "Tipo: Projeção" + (isBlend ? " (blend)" : "") + "\n" +
+      projSumText =
         "Projetor: " + proj.modelo + " (" + fmtInt(lumens) + " lm cada)\n" +
         (isBlend ? "" : "Resolução: " + projResEl.textContent + (proj.resolucaoNota ? " (" + proj.resolucaoNota + ")" : "") + "\n") +
         "Ecrã: " + screenLabel + "\n" +
@@ -3318,6 +3331,28 @@
         ratioLine +
         "Lentes compatíveis a essa distância" + (isBlend ? " (por projetor)" : "") + ": " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") + (matches.length > 1 ? " — melhor: " + matches[0].marca + " " + matches[0].modelo : "") : "nenhuma na base") + "\n" +
         "Luminosidade útil: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(lux) + " lux no ecrã";
+      }
+    }
+
+    if (projType === "misto") {
+      canvasPixels = ledPixels + projPixels;
+      canvasLabel = "Ecrã LED + Projeção";
+      projLastRes = null;
+      mainSumText =
+        "PROJETO: " + nome + "\n" +
+        datesLine +
+        "Tipo: Misto (Ecrã LED + Projeção)\n\n" +
+        "— ECRÃ LED —\n" + (ledSumText || "(por preencher)") + "\n\n" +
+        "— PROJEÇÃO —\n" + (projSumText || "(por preencher)") + "\n\n" +
+        "Total de píxeis (LED + projeção): " + fmtInt(canvasPixels) + " px";
+    } else if (projType === "led") {
+      canvasPixels = ledPixels;
+      canvasLabel = ledLabel;
+      mainSumText = "PROJETO: " + nome + "\n" + datesLine + "Tipo: " + ledLabel + "\n" + ledSumText;
+    } else {
+      canvasPixels = projPixels;
+      canvasLabel = projLabel;
+      mainSumText = "PROJETO: " + nome + "\n" + datesLine + "Tipo: Projeção" + (projBlendMode === "blend" ? " (blend)" : "") + "\n" + projSumText;
     }
 
     document.getElementById("proj-out-pxled-label").textContent = canvasLabel;
@@ -3387,7 +3422,7 @@
 
     var ledProcWrap = document.getElementById("proj-ledproc-wrap");
     var procSumText = "";
-    if (projType === "led") {
+    if (showLed && ledPixels > 0) {
       ledProcWrap.style.display = "block";
       var portCapacity = Math.floor(USABLE_BPS / (bpp * refresh));
       var ledProcOk = (PROCESSORS_DATA.ledProcessors || []).map(function (p) {
@@ -3396,8 +3431,10 @@
         var pPortCapacity = p.portGbpsUsable ? Math.floor((p.portGbpsUsable * 1e9) / (bpp * refresh)) : portCapacity;
         var unitCapacity = pPortCapacity * p.ports;
         if (p.maxPixelsHardCap) unitCapacity = Math.min(unitCapacity, p.maxPixelsHardCap);
-        var numUnits = Math.ceil(canvasPixels / unitCapacity);
-        var pctRaw = (canvasPixels / (numUnits * unitCapacity)) * 100;
+        // Só o ecrã LED entra na conta dos processadores de LED — num
+        // projeto misto, a projeção não passa por aqui.
+        var numUnits = Math.ceil(ledPixels / unitCapacity);
+        var pctRaw = (ledPixels / (numUnits * unitCapacity)) * 100;
         return { p: p, unitCapacity: unitCapacity, numUnits: numUnits, pctRaw: pctRaw };
         // Nº de unidades continua a ser o critério principal (menos caixas
         // a alugar/transportar); folga (% de utilização) só desempata.
