@@ -1263,3 +1263,118 @@
     #print-area h1 { font-size: 16px; margin: 0 0 12px; }
     #print-area pre { white-space: pre-wrap; font-family: inherit; font-size: 11px; line-height: 1.5; }
   }
+
+  /* Calculadora simples anexada aos campos numéricos (js/calc-widget.js) */
+  .calcw-btn {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    color: var(--ink-faint);
+    background: var(--line-soft);
+    border: none;
+    border-left: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .calcw-btn:hover { color: var(--ink); background: var(--line); }
+  .calcw-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  .inputgroup:has(input:read-only) .calcw-btn { display: none; }
+
+  #calcw-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 14, 18, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 200;
+  }
+  /* [hidden] tem de vencer o display:flex acima — sem isto o overlay
+     invisível continua a intercetar cliques em toda a página. */
+  #calcw-overlay[hidden] { display: none; }
+  #calcw-popup {
+    width: 100%;
+    max-width: 300px;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 14px;
+  }
+  .calcw-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .calcw-expr {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--ink-faint);
+    min-height: 16px;
+  }
+  .calcw-close {
+    flex: none;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--ink-faint);
+    background: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .calcw-close:hover { color: var(--ink); background: var(--line-soft); }
+  .calcw-display {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: right;
+    padding: 10px 6px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--line-soft);
+    overflow-wrap: break-word;
+    word-break: break-all;
+  }
+  .calcw-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .calcw-key {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 9px;
+    padding: 13px 0;
+    cursor: pointer;
+  }
+  .calcw-key:hover { background: var(--line-soft); }
+  .calcw-key:active { background: var(--line); }
+  .calcw-key-fn { color: var(--ink-soft); font-size: 14px; }
+  .calcw-key-op { color: var(--cyan-600); }
+  .calcw-key-eq { background: var(--green-500); border-color: var(--green-500); color: #fff; }
+  .calcw-key-eq:hover { background: var(--green-600); }
+  .calcw-apply {
+    width: 100%;
+    margin-top: 10px;
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--cyan-500);
+    border: none;
+    border-radius: 9px;
+    padding: 12px 0;
+    cursor: pointer;
+  }
+  .calcw-apply:hover { background: var(--cyan-600); }
