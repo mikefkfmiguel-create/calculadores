@@ -488,6 +488,10 @@
     font-weight: 600;
   }
   .card + .card { margin-top: 16px; }
+  .card-alert {
+    border-color: var(--danger-600);
+    box-shadow: 0 0 0 1px var(--danger-600);
+  }
 
   /* Sinal & Data Rate: coluna única central em vez do .grid de 2 colunas,
      com os 3 blocos (sinal, resultado, switchers/portas) como <details>
