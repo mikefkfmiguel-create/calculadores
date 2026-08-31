@@ -535,6 +535,12 @@
     // ---- Fonte / dados ----
     "Fonte": "Source",
 
+    // ---- Calculadora simples (js/calc-widget.js) ----
+    "Calculadora": "Calculator",
+    "Fechar": "Close",
+    "Aplicar": "Apply",
+    "Calculadora — soma, subtrai, multiplica ou divide e aplica o resultado aqui": "Calculator — add, subtract, multiply or divide and apply the result here",
+
     // ---- Resolução declarada/nativa (usado nos resumos gerados) ----
     " (nativo)": " (native)",
     " (declarado — pixel-shift)": " (declared — pixel-shift)",
@@ -802,31 +808,25 @@
     while ((n = walker.nextNode())) nodes.push(n);
     nodes.forEach(translateNode);
     var c2 = currentDict();
-    if (node.hasAttribute && node.hasAttribute("placeholder")) {
-      var p = node.getAttribute("placeholder");
-      var tp = translateString(p, c2.dict, c2.keys);
-      if (tp !== p) node.setAttribute("placeholder", tp);
-    }
-    if (node.hasAttribute && node.hasAttribute("title")) {
-      var ti = node.getAttribute("title");
-      var tt = translateString(ti, c2.dict, c2.keys);
-      if (tt !== ti) node.setAttribute("title", tt);
-    }
+    translateAttrs(node, c2);
     if (node.querySelectorAll) {
-      node.querySelectorAll("[placeholder], [title]").forEach(function (el) {
+      node.querySelectorAll(I18N_ATTR_SELECTOR).forEach(function (el) {
         if (shouldSkip(el)) return;
-        if (el.hasAttribute("placeholder")) {
-          var ep = el.getAttribute("placeholder");
-          var etp = translateString(ep, c2.dict, c2.keys);
-          if (etp !== ep) el.setAttribute("placeholder", etp);
-        }
-        if (el.hasAttribute("title")) {
-          var eti = el.getAttribute("title");
-          var etti = translateString(eti, c2.dict, c2.keys);
-          if (etti !== eti) el.setAttribute("title", etti);
-        }
+        translateAttrs(el, c2);
       });
     }
+  }
+
+  var I18N_ATTRS = ["placeholder", "title", "aria-label"];
+  var I18N_ATTR_SELECTOR = I18N_ATTRS.map(function (a) { return "[" + a + "]"; }).join(", ");
+  function translateAttrs(el, c2) {
+    if (!el.hasAttribute) return;
+    I18N_ATTRS.forEach(function (attr) {
+      if (!el.hasAttribute(attr)) return;
+      var v = el.getAttribute(attr);
+      var t = translateString(v, c2.dict, c2.keys);
+      if (t !== v) el.setAttribute(attr, t);
+    });
   }
 
   function applyAll(root) {
@@ -843,14 +843,14 @@
           translateNode(m.target);
         } else if (m.type === "childList") {
           m.addedNodes.forEach(translateNode);
-        } else if (m.type === "attributes" && (m.attributeName === "placeholder" || m.attributeName === "title")) {
+        } else if (m.type === "attributes" && I18N_ATTRS.indexOf(m.attributeName) !== -1) {
           translateNode(m.target);
         }
       });
       applying = false;
     });
     var root = document.querySelector(".wrap") || document.body;
-    observer.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["placeholder", "title"] });
+    observer.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: I18N_ATTRS });
   }
 
   function updateToggleUI() {
