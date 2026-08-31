@@ -128,7 +128,7 @@
     "Personalizado…": "Custom…",
     "Nenhum / não sei ainda": "None / not sure yet",
     "Nenhum / preencher à mão": "None / fill in by hand",
-    "Nenhuma / não sei ainda": "None / not sure yet",
+    "Nenhuma / não sei ainda": "None yet / not sure",
     "Nenhuma — só calcular o ratio necessário": "None — just calculate the needed ratio",
     "Modelo": "Model",
     "Marca": "Brand",
