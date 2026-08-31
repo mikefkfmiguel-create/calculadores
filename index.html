@@ -1566,7 +1566,7 @@
       </div>
     </details>
     <div class="grid">
-      <details class="card sinal-block" open>
+      <details class="card sinal-block">
         <summary>Ecrã &amp; DPI</summary>
         <div class="sinal-block-body">
           <div class="field">
@@ -1589,7 +1589,7 @@
         </div>
       </details>
 
-      <details class="card results sinal-block" data-accent="tv" open>
+      <details class="card results sinal-block" data-accent="tv">
         <div class="stripe"></div>
         <summary>Tamanho físico do ecrã</summary>
         <div class="sinal-block-body">
@@ -1618,6 +1618,13 @@
             <div class="summary-head">
               <span class="k">Resumo para grafismo</span>
               <div class="summary-actions">
+                <select class="copy" id="gfx-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                  <option value="" selected>↗ Partilhar/Guardar</option>
+                  <option value="text">Como texto (mensagem)</option>
+                  <option value="txt">Como ficheiro .txt</option>
+                  <option value="csv">Como ficheiro .csv (Excel)</option>
+                  <option value="pdf">Como PDF</option>
+                </select>
                 <button class="copy" data-target="gfx-sum">Copiar resumo</button>
               </div>
             </div>
@@ -3784,7 +3791,8 @@
     { sum: "b-sum", share: "b-share", title: "Blending Multi-Projetor", slug: "blending" },
     { sum: "sg-sum", share: "sg-share", title: "Sinal & Data Rate", slug: "sinal-data-rate" },
     { sum: "ms-sum", share: "ms-share", title: "Media Server", slug: "media-server" },
-    { sum: "tv-sum", share: "tv-share", title: "TVs", slug: "tv" }
+    { sum: "tv-sum", share: "tv-share", title: "TVs", slug: "tv" },
+    { sum: "gfx-sum", share: "gfx-share", title: "Grafismo px↔cm", slug: "grafismo" }
   ].forEach(function (cfg) {
     var shareSel = document.getElementById(cfg.share);
     if (!shareSel) return;

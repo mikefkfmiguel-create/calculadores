@@ -405,6 +405,7 @@
   .tab[data-mode="sinal"] .swatch, .tabs-current[data-mode="sinal"] .swatch { background: var(--rose-500); }
   .tab[data-mode="mediaserver"] .swatch, .tabs-current[data-mode="mediaserver"] .swatch { background: var(--cyan-500); }
   .tab[data-mode="tv"] .swatch, .tabs-current[data-mode="tv"] .swatch { background: var(--orange-500); }
+  .tab[data-mode="grafismo"] .swatch, .tabs-current[data-mode="grafismo"] .swatch { background: var(--orange-500); }
   .tab[data-mode="ajuda"] .swatch, .tabs-current[data-mode="ajuda"] .swatch { background: var(--ink-faint); }
   .tab[aria-selected="true"] { color: var(--ink); }
   .tab[data-mode="projecao"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
@@ -414,6 +415,7 @@
   .tab[data-mode="blend"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
   .tab[data-mode="lentes"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
   .tab[data-mode="tv"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
+  .tab[data-mode="grafismo"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
   .tab[data-mode="ajuda"][aria-selected="true"] { border-bottom-color: var(--ink-faint); }
   .tab[data-mode="projeto"][aria-selected="true"] { border-bottom-color: var(--green-500); }
   .tab[data-mode="sinal"][aria-selected="true"] { border-bottom-color: var(--rose-500); }
