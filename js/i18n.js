@@ -502,6 +502,12 @@
     " in / ": " in / ",
     " cm) — vais precisar de reduzir a escala do grafismo ou dividi-lo em várias peças.": " cm) — you'll need to reduce the graphic's scale or split it into multiple pieces.",
     "Fonte: Microsoft Support": "Source: Microsoft Support",
+    "Tamanho a definir no PowerPoint (96 DPI fixo): ": "Size to set in PowerPoint (fixed 96 DPI): ",
+    "Tamanho a definir no PowerPoint": "Size to set in PowerPoint",
+    "O PowerPoint usa sempre 96 DPI fixo para converter resolução (px) ↔ polegadas nos slides e na exportação de imagem — independentemente do DPI real do ecrã acima. É este o valor a escrever no tamanho do slide para exportares exatamente esta resolução. ": "PowerPoint always uses a fixed 96 DPI to convert resolution (px) ↔ inches in slides and when exporting as an image — regardless of the screen's real DPI above. This is the value to enter as the slide size to export exactly this resolution. ",
+    "Fonte: Microsoft Learn ↗": "Source: Microsoft Learn ↗",
+    "⚠ O tamanho a definir no PowerPoint (a 96 DPI fixo — ": "⚠ The size to set in PowerPoint (at fixed 96 DPI — ",
+    " in) também ultrapassa esse limite.": " in) also exceeds that limit.",
 
     "Modelo de tile": "Tile model",
     "Escolhe o projetor (ou personaliza os lumens — se souberes o light output mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã. A app calcula os dois sentidos ao mesmo tempo: se souberes a": "Choose the projector (or customize the lumens — if you know the light output but not the model, the list filters itself down to matching ones) and the screen size. The app calculates both directions at once: if you know the",
