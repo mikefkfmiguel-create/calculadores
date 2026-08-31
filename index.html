@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.167</span>
+    <span class="mark">v1.168</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1567,7 +1567,7 @@
       </div>
     </details>
     <div class="grid">
-      <details class="card sinal-block">
+      <details class="card sinal-block" id="gfx-input-card">
         <summary>Ecrã &amp; DPI</summary>
         <div class="sinal-block-body">
           <div class="field">
@@ -4518,6 +4518,7 @@
         });
         document.getElementById("gfx-sum").textContent = "";
         document.getElementById("gfx-ppt-warn").style.display = "none";
+        document.getElementById("gfx-input-card").classList.remove("card-alert");
         return;
       }
 
@@ -4566,12 +4567,16 @@
         : "";
 
       var pptWarnEl = document.getElementById("gfx-ppt-warn");
-      if (realWarnLine || ppt96WarnLine) {
+      var pptExceeds = !!(realWarnLine || ppt96WarnLine);
+      if (pptExceeds) {
         pptWarnEl.innerHTML = [realWarnLine, ppt96WarnLine].filter(Boolean).join(" ") + " " + srcLinkHtml(PPT_MAX_SLIDE_SOURCE, "Fonte: Microsoft Support");
         pptWarnEl.style.display = "block";
       } else {
         pptWarnEl.style.display = "none";
       }
+      // Marca o card de entrada com borda vermelha mesmo fechado, para
+      // obrigar a abrir e ver o aviso mais abaixo no resultado.
+      document.getElementById("gfx-input-card").classList.toggle("card-alert", pptExceeds);
 
       document.getElementById("gfx-sum").textContent =
         "Resolução: " + Math.round(wpx) + " × " + Math.round(hpx) + " px  |  " + fmt(dpi, 2) + " DPI\n" +
