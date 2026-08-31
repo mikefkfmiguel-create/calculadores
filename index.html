@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.161</span>
+    <span class="mark">v1.162</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -51,6 +51,7 @@
       <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
       <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
       <button class="tab" data-mode="tv" role="tab" aria-selected="false"><span class="swatch"></span>TVs</button>
+      <button class="tab" data-mode="grafismo" role="tab" aria-selected="false"><span class="swatch"></span>Grafismo px↔cm</button>
       <button class="tab" data-mode="ajuda" role="tab" aria-selected="false"><span class="swatch"></span>Ajuda</button>
     </div>
 
@@ -1555,6 +1556,85 @@
     </div>
   </section>
 
+  <!-- GRAFISMO -->
+  <section class="panel" data-mode="grafismo">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Introduz a resolução do ecrã (largura × altura em píxeis) e o DPI/PPI do ecrã. Se não souberes o DPI, preenche a diagonal em polegadas e a app calcula-o automaticamente.</p>
+        <p>O resultado dá-te o tamanho físico real do ecrã em centímetros e polegadas, e as referências de conversão para criares apresentações e grafismos à medida exata desse ecrã.</p>
+      </div>
+    </details>
+    <div class="grid">
+      <details class="card sinal-block">
+        <summary>Ecrã &amp; DPI</summary>
+        <div class="sinal-block-body">
+          <div class="field">
+            <label for="gfx-w">Largura (px)</label>
+            <div class="inputgroup"><input id="gfx-w" type="number" inputmode="decimal" value="1920" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="gfx-h">Altura (px)</label>
+            <div class="inputgroup"><input id="gfx-h" type="number" inputmode="decimal" value="1080" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field">
+            <label for="gfx-diag">Diagonal do ecrã <small style="font-weight:400;">(opcional — preenche para calcular DPI)</small></label>
+            <div class="inputgroup"><input id="gfx-diag" type="number" inputmode="decimal" placeholder="ex: 55" min="1" step="0.1"><span class="unit">polegadas</span></div>
+          </div>
+          <div class="field">
+            <label for="gfx-dpi">DPI / PPI</label>
+            <div class="inputgroup"><input id="gfx-dpi" type="number" inputmode="decimal" value="96" min="1" step="1"><span class="unit">dpi</span></div>
+            <div class="hint" id="gfx-dpi-hint"></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="card results sinal-block" data-accent="tv">
+        <div class="stripe"></div>
+        <summary>Tamanho físico do ecrã</summary>
+        <div class="sinal-block-body">
+          <div class="readout">
+            <div class="item"><div class="k">Largura</div><div class="v" id="gfx-out-w">—</div></div>
+            <div class="item"><div class="k">Altura</div><div class="v" id="gfx-out-h">—</div></div>
+          </div>
+          <h2 style="margin-top:18px;">Referências de conversão</h2>
+          <div class="readout">
+            <div class="item"><div class="k">1 cm =</div><div class="v" id="gfx-out-cmpx">—</div></div>
+            <div class="item"><div class="k">1 in =</div><div class="v" id="gfx-out-inpx">—</div></div>
+            <div class="item wide"><div class="k">1 px =</div><div class="v" id="gfx-out-pxmm">—</div></div>
+          </div>
+          <h2 style="margin-top:18px;">Conversor rápido</h2>
+          <div class="field">
+            <label for="gfx-conv-cm">Centímetros → píxeis</label>
+            <div class="inputgroup"><input id="gfx-conv-cm" type="number" inputmode="decimal" placeholder="ex: 5" min="0" step="0.1"><span class="unit">cm</span></div>
+            <div class="hint" id="gfx-conv-cm-out"></div>
+          </div>
+          <div class="field">
+            <label for="gfx-conv-px">Píxeis → centímetros</label>
+            <div class="inputgroup"><input id="gfx-conv-px" type="number" inputmode="decimal" placeholder="ex: 100" min="0" step="1"><span class="unit">px</span></div>
+            <div class="hint" id="gfx-conv-px-out"></div>
+          </div>
+          <div class="summary" id="gfx-summary-wrap">
+            <div class="summary-head">
+              <span class="k">Resumo para grafismo</span>
+              <div class="summary-actions">
+                <select class="copy" id="gfx-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                  <option value="" selected>↗ Partilhar/Guardar</option>
+                  <option value="text">Como texto (mensagem)</option>
+                  <option value="txt">Como ficheiro .txt</option>
+                  <option value="csv">Como ficheiro .csv (Excel)</option>
+                  <option value="pdf">Como PDF</option>
+                </select>
+                <button class="copy" data-target="gfx-sum">Copiar resumo</button>
+              </div>
+            </div>
+            <pre class="sumbox" id="gfx-sum"></pre>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
   <!-- AJUDA -->
   <section class="panel" data-mode="ajuda">
     <div class="card">
@@ -1570,6 +1650,7 @@
         <li><strong>Projeto</strong> — junta tudo numa ficha técnica única para um evento.</li>
         <li><strong>Sinal &amp; Data Rate</strong> — largura de banda e ligação mínima para um sinal de vídeo.</li>
         <li><strong>TVs</strong> — lista de TVs/monitores da empresa com diagonal, resolução (quando confirmada) e distância de visualização ideal; serve também de atalho para preencher DSM/delay na aba Projeto.</li>
+        <li><strong>Grafismo px↔cm</strong> — referência física para criação de grafismo: dada a resolução e o DPI do ecrã, converte píxeis ↔ centímetros para criar apresentações e layouts à medida real do ecrã.</li>
       </ul>
     </div>
 
@@ -3710,7 +3791,8 @@
     { sum: "b-sum", share: "b-share", title: "Blending Multi-Projetor", slug: "blending" },
     { sum: "sg-sum", share: "sg-share", title: "Sinal & Data Rate", slug: "sinal-data-rate" },
     { sum: "ms-sum", share: "ms-share", title: "Media Server", slug: "media-server" },
-    { sum: "tv-sum", share: "tv-share", title: "TVs", slug: "tv" }
+    { sum: "tv-sum", share: "tv-share", title: "TVs", slug: "tv" },
+    { sum: "gfx-sum", share: "gfx-share", title: "Grafismo px↔cm", slug: "grafismo" }
   ].forEach(function (cfg) {
     var shareSel = document.getElementById(cfg.share);
     if (!shareSel) return;
@@ -4376,6 +4458,100 @@
     calcMediaServer();
     calcTV();
   });
+
+  // ── GRAFISMO px ↔ cm ────────────────────────────────────────────────────
+  (function () {
+    var gfxInputIds = ["gfx-w", "gfx-h", "gfx-diag"];
+
+    function calcGfx() {
+      var wpx = val("gfx-w");
+      var hpx = val("gfx-h");
+      var dpi = val("gfx-dpi");
+      var diagIn = val("gfx-diag");
+
+      // Auto-calc DPI from diagonal + resolution
+      if (!isNaN(diagIn) && diagIn > 0 && !isNaN(wpx) && wpx > 0 && !isNaN(hpx) && hpx > 0) {
+        var calcDpi = Math.sqrt(wpx * wpx + hpx * hpx) / diagIn;
+        document.getElementById("gfx-dpi").value = calcDpi.toFixed(2);
+        document.getElementById("gfx-dpi-hint").textContent = "DPI calculado a partir da diagonal e da resolução.";
+        dpi = calcDpi;
+      } else {
+        document.getElementById("gfx-dpi-hint").textContent = "";
+      }
+
+      if (isNaN(wpx) || wpx <= 0 || isNaN(hpx) || hpx <= 0 || isNaN(dpi) || dpi <= 0) {
+        ["gfx-out-w","gfx-out-h","gfx-out-cmpx","gfx-out-inpx","gfx-out-pxmm"].forEach(function (id) {
+          document.getElementById(id).textContent = "—";
+        });
+        document.getElementById("gfx-sum").textContent = "";
+        return;
+      }
+
+      var wIn = wpx / dpi;
+      var hIn = hpx / dpi;
+      var wCm = wIn * 2.54;
+      var hCm = hIn * 2.54;
+      var pxPerCm = dpi / 2.54;
+      var pxPerIn = dpi;
+      var mmPerPx = 25.4 / dpi;
+
+      document.getElementById("gfx-out-w").innerHTML =
+        fmt(wCm, 2) + "<small>cm</small> / " + fmt(wIn, 2) + "<small>in</small>";
+      document.getElementById("gfx-out-h").innerHTML =
+        fmt(hCm, 2) + "<small>cm</small> / " + fmt(hIn, 2) + "<small>in</small>";
+      document.getElementById("gfx-out-cmpx").innerHTML =
+        fmt(pxPerCm, 4) + "<small>px</small>";
+      document.getElementById("gfx-out-inpx").innerHTML =
+        fmt(pxPerIn, 4) + "<small>px</small>";
+      document.getElementById("gfx-out-pxmm").innerHTML =
+        fmt(mmPerPx, 6) + "<small>mm</small>";
+
+      updateConv(pxPerCm);
+
+      document.getElementById("gfx-sum").textContent =
+        "Resolução: " + Math.round(wpx) + " × " + Math.round(hpx) + " px  |  " + fmt(dpi, 2) + " DPI\n" +
+        "Tamanho físico: " + fmt(wCm, 2) + " × " + fmt(hCm, 2) + " cm  (" + fmt(wIn, 2) + " × " + fmt(hIn, 2) + " in)\n" +
+        "1 cm = " + fmt(pxPerCm, 4) + " px\n" +
+        "1 in = " + fmt(pxPerIn, 4) + " px\n" +
+        "1 px = " + fmt(mmPerPx, 6) + " mm";
+    }
+
+    function updateConv(pxPerCm) {
+      var cmVal = parseFloat(document.getElementById("gfx-conv-cm").value);
+      if (!isNaN(cmVal) && cmVal > 0) {
+        document.getElementById("gfx-conv-cm-out").textContent =
+          fmt(cmVal, 2) + " cm = " + fmt(cmVal * pxPerCm, 2) + " px";
+      } else {
+        document.getElementById("gfx-conv-cm-out").textContent = "";
+      }
+      var pxVal = parseFloat(document.getElementById("gfx-conv-px").value);
+      if (!isNaN(pxVal) && pxVal > 0) {
+        document.getElementById("gfx-conv-px-out").textContent =
+          fmt(pxVal, 0) + " px = " + fmt(pxVal / pxPerCm, 4) + " cm";
+      } else {
+        document.getElementById("gfx-conv-px-out").textContent = "";
+      }
+    }
+
+    gfxInputIds.forEach(function (id) {
+      var el = document.getElementById(id);
+      el.addEventListener("input", calcGfx);
+      el.addEventListener("change", calcGfx);
+    });
+
+    // When DPI is edited manually, clear diagonal so auto-calc is suppressed
+    document.getElementById("gfx-dpi").addEventListener("input", function () {
+      document.getElementById("gfx-diag").value = "";
+      document.getElementById("gfx-dpi-hint").textContent = "";
+      calcGfx();
+    });
+    document.getElementById("gfx-dpi").addEventListener("change", calcGfx);
+
+    document.getElementById("gfx-conv-cm").addEventListener("input", calcGfx);
+    document.getElementById("gfx-conv-px").addEventListener("input", calcGfx);
+
+    calcGfx();
+  }());
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
