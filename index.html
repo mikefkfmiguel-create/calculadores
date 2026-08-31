@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.166</span>
+    <span class="mark">v1.167</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1598,6 +1598,12 @@
             <div class="item"><div class="k">Largura</div><div class="v" id="gfx-out-w">—</div></div>
             <div class="item"><div class="k">Altura</div><div class="v" id="gfx-out-h">—</div></div>
           </div>
+          <h2 style="margin-top:18px;">Tamanho a definir no PowerPoint</h2>
+          <div class="readout">
+            <div class="item"><div class="k">Largura</div><div class="v" id="gfx-out-pptw">—</div></div>
+            <div class="item"><div class="k">Altura</div><div class="v" id="gfx-out-ppth">—</div></div>
+          </div>
+          <div class="hint">O PowerPoint usa sempre 96 DPI fixo para converter resolução (px) ↔ polegadas nos slides e na exportação de imagem — independentemente do DPI real do ecrã acima. É este o valor a escrever no tamanho do slide para exportares exatamente esta resolução. <a class="srclink" href="https://learn.microsoft.com/en-us/troubleshoot/microsoft-365-apps/powerpoint/change-export-slide-resolution" target="_blank" rel="noopener" onclick="event.stopPropagation()">Fonte: Microsoft Learn ↗</a></div>
           <div class="warn" id="gfx-ppt-warn" style="display:none;"></div>
           <h2 style="margin-top:18px;">Referências de conversão</h2>
           <div class="readout">
@@ -4483,6 +4489,12 @@
     // of your PowerPoint slides".
     var PPT_MAX_SLIDE_IN = 56;
     var PPT_MAX_SLIDE_SOURCE = "https://support.microsoft.com/en-us/office/change-the-size-of-your-powerpoint-slides-040a811c-be43-40b9-8d04-0de5ed79987e";
+    // O PowerPoint usa sempre 96 DPI fixo para converter resolução (px) ↔
+    // polegadas nos slides e na exportação de imagem — independentemente do
+    // DPI real do ecrã. Fonte: Microsoft Learn, "How to export high-resolution
+    // (high-dpi) slides from PowerPoint" ("By default, the export resolution
+    // of a PowerPoint slide that you want to save as a picture is 96 dpi").
+    var PPT_FIXED_DPI = 96;
 
     function calcGfx() {
       var wpx = val("gfx-w");
@@ -4501,7 +4513,7 @@
       }
 
       if (isNaN(wpx) || wpx <= 0 || isNaN(hpx) || hpx <= 0 || isNaN(dpi) || dpi <= 0) {
-        ["gfx-out-w","gfx-out-h","gfx-out-cmpx","gfx-out-inpx","gfx-out-pxmm"].forEach(function (id) {
+        ["gfx-out-w","gfx-out-h","gfx-out-pptw","gfx-out-ppth","gfx-out-cmpx","gfx-out-inpx","gfx-out-pxmm"].forEach(function (id) {
           document.getElementById(id).textContent = "—";
         });
         document.getElementById("gfx-sum").textContent = "";
@@ -4530,13 +4542,32 @@
 
       updateConv(pxPerCm);
 
+      // PowerPoint converte resolução ↔ polegadas a 96 DPI fixo (slide size e
+      // exportação de imagem), seja qual for o DPI real do ecrã configurado
+      // acima — é este o valor a escrever no tamanho do slide para exportar
+      // exatamente esta resolução.
+      var wIn96 = wpx / PPT_FIXED_DPI, hIn96 = hpx / PPT_FIXED_DPI;
+      var wCm96 = wIn96 * 2.54, hCm96 = hIn96 * 2.54;
+      document.getElementById("gfx-out-pptw").innerHTML =
+        fmt(wCm96, 2) + "<small>cm</small> / " + fmt(wIn96, 2) + "<small>in</small>";
+      document.getElementById("gfx-out-ppth").innerHTML =
+        fmt(hCm96, 2) + "<small>cm</small> / " + fmt(hIn96, 2) + "<small>in</small>";
+
+      var pptMaxCm = fmt(PPT_MAX_SLIDE_IN * 2.54, 1);
+      var exceedsReal = wIn > PPT_MAX_SLIDE_IN || hIn > PPT_MAX_SLIDE_IN;
+      var realWarnLine = exceedsReal
+        ? "⚠ Este tamanho ultrapassa o limite máximo de slide personalizado do PowerPoint (" + PPT_MAX_SLIDE_IN + "×" + PPT_MAX_SLIDE_IN + " in / " + pptMaxCm + "×" + pptMaxCm + " cm) — vais precisar de reduzir a escala do grafismo ou dividi-lo em várias peças."
+        : "";
+
+      var sameAs96 = Math.abs(wIn - wIn96) < 0.005 && Math.abs(hIn - hIn96) < 0.005;
+      var exceeds96 = wIn96 > PPT_MAX_SLIDE_IN || hIn96 > PPT_MAX_SLIDE_IN;
+      var ppt96WarnLine = (exceeds96 && !sameAs96)
+        ? "⚠ O tamanho a definir no PowerPoint (a 96 DPI fixo — " + fmt(wCm96, 2) + "×" + fmt(hCm96, 2) + " cm / " + fmt(wIn96, 2) + "×" + fmt(hIn96, 2) + " in) também ultrapassa esse limite."
+        : "";
+
       var pptWarnEl = document.getElementById("gfx-ppt-warn");
-      var exceedsPpt = wIn > PPT_MAX_SLIDE_IN || hIn > PPT_MAX_SLIDE_IN;
-      var pptWarnLine = "";
-      if (exceedsPpt) {
-        var pptMaxCm = fmt(PPT_MAX_SLIDE_IN * 2.54, 1);
-        pptWarnLine = "⚠ Este tamanho ultrapassa o limite máximo de slide personalizado do PowerPoint (" + PPT_MAX_SLIDE_IN + "×" + PPT_MAX_SLIDE_IN + " in / " + pptMaxCm + "×" + pptMaxCm + " cm) — vais precisar de reduzir a escala do grafismo ou dividi-lo em várias peças.";
-        pptWarnEl.innerHTML = pptWarnLine + " " + srcLinkHtml(PPT_MAX_SLIDE_SOURCE, "Fonte: Microsoft Support");
+      if (realWarnLine || ppt96WarnLine) {
+        pptWarnEl.innerHTML = [realWarnLine, ppt96WarnLine].filter(Boolean).join(" ") + " " + srcLinkHtml(PPT_MAX_SLIDE_SOURCE, "Fonte: Microsoft Support");
         pptWarnEl.style.display = "block";
       } else {
         pptWarnEl.style.display = "none";
@@ -4545,10 +4576,11 @@
       document.getElementById("gfx-sum").textContent =
         "Resolução: " + Math.round(wpx) + " × " + Math.round(hpx) + " px  |  " + fmt(dpi, 2) + " DPI\n" +
         "Tamanho físico: " + fmt(wCm, 2) + " × " + fmt(hCm, 2) + " cm  (" + fmt(wIn, 2) + " × " + fmt(hIn, 2) + " in)\n" +
+        "Tamanho a definir no PowerPoint (96 DPI fixo): " + fmt(wCm96, 2) + " × " + fmt(hCm96, 2) + " cm  (" + fmt(wIn96, 2) + " × " + fmt(hIn96, 2) + " in)\n" +
         "1 cm = " + fmt(pxPerCm, 4) + " px\n" +
         "1 in = " + fmt(pxPerIn, 4) + " px\n" +
         "1 px = " + fmt(mmPerPx, 6) + " mm" +
-        (exceedsPpt ? "\n\n" + pptWarnLine : "");
+        ((realWarnLine || ppt96WarnLine) ? "\n\n" + [realWarnLine, ppt96WarnLine].filter(Boolean).join(" ") : "");
     }
 
     function updateConv(pxPerCm) {
