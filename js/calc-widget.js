@@ -18,6 +18,10 @@
     '<circle cx="14" cy="14.3" r="0.9" fill="currentColor" stroke="none"></circle>' +
     '</svg>';
 
+  // Em touch, refazer foco no campo após aplicar abre o teclado do sistema
+  // e faz a página saltar — só interessa em desktop (conveniência de teclado).
+  var IS_TOUCH = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
+
   var targetInput = null;
   var display = "0";
   var accumulator = 0;
@@ -143,7 +147,7 @@
     targetInput.dispatchEvent(new Event("change", { bubbles: true }));
     var t = targetInput;
     close();
-    t.focus();
+    if (!IS_TOUCH) t.focus();
   }
 
   function buildPopup() {
