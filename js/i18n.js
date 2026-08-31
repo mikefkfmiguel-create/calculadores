@@ -497,6 +497,11 @@
     "Tamanho físico: ": "Physical size: ",
     " DPI\n": " DPI\n",
     "polegadas": "inches",
+    "Se o tamanho físico ultrapassar o limite máximo de slide personalizado do PowerPoint (56×56 polegadas / 142,2×142,2 cm), aparece um aviso — nesse caso é preciso reduzir a escala ou dividir o grafismo em várias peças.": "If the physical size exceeds PowerPoint's maximum custom slide size (56×56 inches / 142.2×142.2 cm), a warning appears — in that case you'll need to reduce the scale or split the graphic into multiple pieces.",
+    "⚠ Este tamanho ultrapassa o limite máximo de slide personalizado do PowerPoint (": "⚠ This size exceeds PowerPoint's maximum custom slide size (",
+    " in / ": " in / ",
+    " cm) — vais precisar de reduzir a escala do grafismo ou dividi-lo em várias peças.": " cm) — you'll need to reduce the graphic's scale or split it into multiple pieces.",
+    "Fonte: Microsoft Support": "Source: Microsoft Support",
 
     "Modelo de tile": "Tile model",
     "Escolhe o projetor (ou personaliza os lumens — se souberes o light output mas não o modelo, a lista filtra-se sozinha para os que correspondem) e o tamanho do ecrã. A app calcula os dois sentidos ao mesmo tempo: se souberes a": "Choose the projector (or customize the lumens — if you know the light output but not the model, the list filters itself down to matching ones) and the screen size. The app calculates both directions at once: if you know the",
