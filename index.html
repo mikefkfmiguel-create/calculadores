@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.168</span>
+    <span class="mark">v1.169</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1577,6 +1577,16 @@
           <div class="field">
             <label for="gfx-h">Altura (px)</label>
             <div class="inputgroup"><input id="gfx-h" type="number" inputmode="decimal" value="1080" min="1" step="1"><span class="unit">px</span></div>
+          </div>
+          <div class="field" style="margin-bottom:14px;">
+            <label>Usar resolução de</label>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+              <button type="button" class="copy" id="gfx-use-zones" title="Preenche a resolução acima com o canvas final (com gaps) da aba Ecrã Complexo">↙ Ecrã Complexo</button>
+              <button type="button" class="copy" id="gfx-use-proj" title="Preenche a resolução acima com o ecrã atual da aba Projeto">↙ Projeto</button>
+              <button type="button" class="copy" id="gfx-use-sinal" title="Preenche a resolução acima com a da aba Sinal & Data Rate">↙ Sinal &amp; Data Rate</button>
+              <button type="button" class="copy" id="gfx-use-ms" title="Preenche a resolução acima com a da aba Media Server">↙ Media Server</button>
+            </div>
+            <div class="hint" id="gfx-use-hint"></div>
           </div>
           <div class="field">
             <label for="gfx-diag">Diagonal do ecrã <small style="font-weight:400;">(opcional — preenche para calcular DPI)</small></label>
@@ -4621,6 +4631,33 @@
 
     document.getElementById("gfx-conv-cm").addEventListener("input", calcGfx);
     document.getElementById("gfx-conv-px").addEventListener("input", calcGfx);
+
+    function useGfxRes(x, y, label) {
+      document.getElementById("gfx-w").value = Math.round(x);
+      document.getElementById("gfx-h").value = Math.round(y);
+      document.getElementById("gfx-use-hint").textContent = label + ": " + fmtInt(Math.round(x)) + "×" + fmtInt(Math.round(y)) + "px.";
+      calcGfx();
+    }
+    document.getElementById("gfx-use-zones").addEventListener("click", function () {
+      if (!lzLastTotals || !lzLastTotals.pixelMap) {
+        showToast("Ainda não há zonas com canvas calculado na aba Ecrã Complexo.");
+        return;
+      }
+      useGfxRes(lzLastTotals.pixelMap.canvasW, lzLastTotals.pixelMap.canvasH, "Ecrã Complexo");
+    });
+    document.getElementById("gfx-use-proj").addEventListener("click", function () {
+      if (!projLastRes) {
+        showToast("Ainda não há uma resolução calculada na aba Projeto.");
+        return;
+      }
+      useGfxRes(projLastRes.x, projLastRes.y, projLastRes.label);
+    });
+    document.getElementById("gfx-use-sinal").addEventListener("click", function () {
+      useGfxRes(val("sg-h"), val("sg-v"), "Sinal & Data Rate");
+    });
+    document.getElementById("gfx-use-ms").addEventListener("click", function () {
+      useGfxRes(val("ms-h"), val("ms-v"), "Media Server");
+    });
 
     calcGfx();
   }());

@@ -386,6 +386,8 @@
     "Preenche a resolução acima com a da aba Sinal & Data Rate": "Fills in the resolution above with the one from the Signal & Data Rate tab",
     "Preenche a resolução acima com o canvas final (com gaps) da aba Ecrã Complexo": "Fills in the resolution above with the final canvas (with gaps) from the Multi-Zone Screen tab",
     "Preenche a resolução acima com o ecrã atual da aba Projeto": "Fills in the resolution above with the current screen from the Project tab",
+    "Preenche a resolução acima com a da aba Media Server": "Fills in the resolution above with the one from the Media Server tab",
+    "↙ Media Server": "↙ Media Server",
 
     // ---- Projeto ----
     "Como criar um projeto": "How to create a project",
