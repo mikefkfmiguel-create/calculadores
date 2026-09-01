@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.171</span>
+    <span class="mark">v1.172</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1369,6 +1369,21 @@
       <details class="card sinal-block">
         <summary>Switchers de show — capacidade e ligações a usar</summary>
         <div class="sinal-block-body">
+          <label class="addproject"><input type="checkbox" id="sg-preswitch-toggle">Tenho um pré-switch antes do switcher principal (ex: para juntar/selecionar só algumas fontes antes de entrarem no switcher principal)</label>
+          <div id="sg-preswitch-block" style="display:none; margin-bottom:16px;">
+            <div class="row2">
+              <div class="field">
+                <label for="sg-preswitch-h">Resolução horizontal (pré-switch)</label>
+                <div class="inputgroup"><input id="sg-preswitch-h" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+              </div>
+              <div class="field">
+                <label for="sg-preswitch-v">Resolução vertical (pré-switch)</label>
+                <div class="inputgroup"><input id="sg-preswitch-v" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+              </div>
+            </div>
+            <div class="hint">Só a resolução que passa pelo pré-switch (ex: as fontes que ele seleciona/junta antes do switcher principal), não o total do ecrã final.</div>
+            <div class="lensmatch-list" id="sg-preswitch-mp-list" style="margin-top:10px;"></div>
+          </div>
           <label class="addproject"><input type="checkbox" id="sg-switcher-advanced">Modo avançado (configurações por confirmar — unidades ligadas, placas alternativas não montadas)</label>
           <div class="lensmatch-list" id="sg-switcher-mp-list"></div>
 
@@ -2973,6 +2988,8 @@
   var selectedSinalLedProcKeys = new Set();
   var sinalSwitcherListExpanded = false;
   var sinalLedProcListExpanded = false;
+  var selectedPreSwitchKeys = new Set();
+  var preSwitchListExpanded = false;
   var selectedMsKeys = new Set();
   var msListExpanded = false;
   function itemKey(marca, modelo) { return marca + "|" + modelo; }
@@ -4108,6 +4125,64 @@
     dpHint.textContent = "DisplayPort não define um limite único de pixel clock (é um link empacotado) — a " + fmt(bpp,1) + "bpp (" + bits + "-bit " + chromaLabel + "), o máximo teórico é ≈" + fmtInt(360 * (24 / bpp)) + "MHz em DP1.1a, ≈" + fmtInt(720 * (24 / bpp)) + "MHz em DP1.2, ≈" + fmtInt(1080 * (24 / bpp)) + "MHz em DP1.4 (valores derivados do débito, não publicados pela VESA em MHz).";
 
     var totalMP = totalPx / 1e6;
+
+    // Pré-switch — dispositivo mais pequeno que fica ANTES do switcher
+    // principal na cadeia de sinal (ex: para juntar/selecionar só algumas
+    // fontes num único feed que depois entra no switcher principal). A
+    // capacidade dele é avaliada contra a resolução própria que passa por
+    // ele, não o total do ecrã final — por isso é um cálculo à parte,
+    // simples (só capacidade em MP, sem o detalhe de ligações do switcher
+    // principal abaixo).
+    var preSwitchEnabled = document.getElementById("sg-preswitch-toggle").checked;
+    document.getElementById("sg-preswitch-block").style.display = preSwitchEnabled ? "block" : "none";
+    var preSwitchLines = "  nenhum (sem pré-switch)";
+    var psH = 0, psV = 0;
+    if (preSwitchEnabled) {
+      psH = val("sg-preswitch-h");
+      psV = val("sg-preswitch-v");
+      var psTotalMP = (isNaN(psH) || isNaN(psV)) ? 0 : (psH * psV) / 1e6;
+      var preSwitchOk = (PROCESSORS_DATA.switchers || []).map(function (s) {
+        var cap = s.maxMPPgmOnly || s.maxMPSwitcher || 0;
+        var fits = cap ? psTotalMP <= cap * SWITCHER_SAFETY_MARGIN : null;
+        var pct = cap ? fmt((psTotalMP / cap) * 100, 0) : null;
+        return { s: s, key: itemKey(s.marca, s.modelo), cap: cap, fits: fits, pct: pct };
+      }).filter(function (x) { return x.fits && x.cap; })
+        .sort(function (a, b) { return (a.s.mercado ? 1 : 0) - (b.s.mercado ? 1 : 0) || b.cap - a.cap; });
+      markBestOption(preSwitchOk);
+
+      var preSwitchChosen = preSwitchOk.filter(function (x) { return selectedPreSwitchKeys.has(x.key); });
+      var preSwitchShown = (preSwitchChosen.length && !preSwitchListExpanded) ? preSwitchChosen : preSwitchOk;
+
+      document.getElementById("sg-preswitch-mp-list").innerHTML = (preSwitchShown.length
+        ? preSwitchShown.map(function (x) {
+            var checked = selectedPreSwitchKeys.has(x.key) ? " checked" : "";
+            return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP — ' + x.pct + '%</span></span></label>';
+          }).join("")
+        : '<div class="lm-item"><span>Nenhum switcher da casa cobre este total (' + fmt(psTotalMP, 1) + ' MP)</span></div>') +
+        (preSwitchChosen.length
+          ? '<button type="button" class="copy" id="sg-preswitch-showmore" style="margin-top:8px;">' + (preSwitchListExpanded ? "Mostrar só escolhido(s)" : "+ Escolher outro pré-switch") + '</button>'
+          : '');
+
+      document.getElementById("sg-preswitch-mp-list").querySelectorAll(".lm-check").forEach(function (cb) {
+        cb.addEventListener("change", function () {
+          if (cb.checked) selectedPreSwitchKeys.add(cb.dataset.key); else selectedPreSwitchKeys.delete(cb.dataset.key);
+          preSwitchListExpanded = false;
+          calcSinal();
+        });
+      });
+      var preSwitchShowMoreBtn = document.getElementById("sg-preswitch-showmore");
+      if (preSwitchShowMoreBtn) preSwitchShowMoreBtn.addEventListener("click", function () {
+        preSwitchListExpanded = !preSwitchListExpanded;
+        calcSinal();
+      });
+
+      preSwitchLines = preSwitchChosen.length
+        ? preSwitchChosen.map(function (x) {
+            return "  " + x.s.marca + " " + x.s.modelo + " — " + fmt(x.cap, 1) + " MP (" + x.pct + "%)" + (x.s.nota ? "\n    " + x.s.nota : "");
+          }).join("\n")
+        : "  nenhum escolhido";
+    }
+
     var sinalSwitcherAdvanced = document.getElementById("sg-switcher-advanced").checked;
     var switchersMP = (PROCESSORS_DATA.switchers || []).map(function (s) {
       // Capacidade sempre pela unidade única (config. mínima/base), nunca
@@ -4292,6 +4367,7 @@
       "Data rate: " + fmt(dataRateGbps, 2) + " Gbit/s\n" +
       "Pixel clock (CVT-RB2): " + fmt(clockMHz, 1) + " MHz\n" +
       "Ligação mínima recomendada: " + connectorForClock(clockMHz) + "\n\n" +
+      (preSwitchEnabled ? "Pré-switch (" + fmtInt(psH) + "×" + fmtInt(psV) + "px):\n" + preSwitchLines + "\n\n" : "") +
       "Switchers escolhidos:\n" + switchersLines + "\n\n" +
       "Processo de LED escolhido:\n" + ledProcLines;
 
