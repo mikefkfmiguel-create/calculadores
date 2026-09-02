@@ -391,7 +391,7 @@
   }
   document.getElementById("lz-diagram").addEventListener("click", function (e) {
     if (lzJustDragged) { lzJustDragged = false; return; }
-    var rect = e.target.closest("rect[data-zone-id]");
+    var rect = e.target.closest("[data-zone-id]");
     if (rect && rect.dataset.zoneId) lzJumpToZoneCard(rect.dataset.zoneId);
   });
 
@@ -418,7 +418,7 @@
 
   document.getElementById("lz-diagram").addEventListener("pointerdown", function (e) {
     if (e.button != null && e.button !== 0) return; // só botão esquerdo/toque/caneta principal
-    var rect = e.target.closest("rect[data-zone-id]");
+    var rect = e.target.closest("[data-zone-id]");
     if (!rect || !rect.dataset.zoneId) return;
     var card = lzList.querySelector('.card[data-zone-id="' + rect.dataset.zoneId + '"]');
     if (!card) return;
@@ -657,6 +657,32 @@
   // uma noção visual do conjunto e devolve a caixa (bounding box) que as
   // envolve — usada para "dimensão do conjunto" (já com os gaps incluídos,
   // ao contrário da área total que é só a soma das áreas de cada zona).
+  // Pontos (não escalados, largura de tile = 1) da "espinha" de uma zona
+  // curva — um arco de círculo aproximado por n cordas iguais (um ponto por
+  // junta entre tiles), centrado em X e com o desvio em Y (a "barriga" da
+  // curva) medido a partir da corda entre as duas pontas — mesma geometria
+  // de calcCurvature (js/utils.js), só que aqui devolve os pontos em vez de
+  // só as medidas agregadas, para desenhar o esquema no diagrama.
+  function lzCurveSpinePoints(n, angleDeg, convex) {
+    var count = Math.max(1, Math.round(n) || 1);
+    if (!(angleDeg > 1e-6)) {
+      var flat = [];
+      for (var i = 0; i <= count; i++) flat.push({ x: i - count / 2, y: 0 });
+      return flat;
+    }
+    var thetaRad = angleDeg * Math.PI / 180;
+    var radius = 1 / (2 * Math.sin(thetaRad / 2));
+    var halfTotalRad = (thetaRad * count) / 2;
+    var cosHalf = Math.cos(halfTotalRad);
+    var sign = convex ? 1 : -1;
+    var pts = [];
+    for (var j = 0; j <= count; j++) {
+      var a = -halfTotalRad + j * thetaRad;
+      pts.push({ x: radius * Math.sin(a), y: sign * radius * (Math.cos(a) - cosHalf) });
+    }
+    return pts;
+  }
+
   function lzRenderDiagram(zones, colorMap, pm) {
     var wrap = document.getElementById("lz-diagram-wrap");
     var svg = document.getElementById("lz-diagram");
@@ -743,11 +769,38 @@
     // distingue de imediato o que é pixel do que é só espaço vazio, e
     // agrupa visualmente zonas relacionadas (ex: as várias tiras).
     var parts = ['<rect x="' + padSide + '" y="' + padTop + '" width="' + totalW + '" height="' + totalH + '" fill="' + rose + '" fill-opacity="0.12" stroke="' + rose + '" stroke-width="' + strokeW + '" stroke-dasharray="' + (strokeW * 2.5) + ' ' + (strokeW * 2.5) + '"/>'];
+    var zoneTitle = "Clicar para saltar para esta zona na lista, ou arrastar para mover (os campos Posição X/Y ficam para o ajuste fino)";
     labels.forEach(function (l) {
       var z = l.z;
       var x = z.posX - minX + padSide, y = z.posY - minY + padTop;
       var color = lzZoneColor(z, colorMap, zones);
-      parts.push('<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '" style="cursor:grab;"><title>Clicar para saltar para esta zona na lista, ou arrastar para mover (os campos Posição X/Y ficam para o ajuste fino)</title></rect>');
+      if (z.curve) {
+        // Zona curva: em vez de um retângulo reto, desenha a "espinha" da
+        // zona (uma curva de círculo por n cordas, uma por tile) como uma
+        // fita grossa — dá uma ideia visual da curvatura sem mexer no
+        // resto da geometria (posição/tamanho dos vizinhos continuam a
+        // usar a largura "desenvolvida" normal, como se fosse reto).
+        var spine = lzCurveSpinePoints(z.curve.n, z.curve.angleDeg, z.curve.convex);
+        var spineMinX = Math.min.apply(null, spine.map(function (p) { return p.x; }));
+        var spineMaxX = Math.max.apply(null, spine.map(function (p) { return p.x; }));
+        var spineSpan = (spineMaxX - spineMinX) || 1;
+        var scale = z.w / spineSpan;
+        var cx = x + z.w / 2, cy = y + z.h / 2;
+        var d = spine.map(function (p, i) {
+          return (i === 0 ? "M" : "L") + (cx + p.x * scale).toFixed(3) + "," + (cy + p.y * scale).toFixed(3);
+        }).join(" ");
+        // Recorta a fita ao retângulo normal da zona (mesmo x/y/w/h que um
+        // zona reta ocuparia) — sem isto a "barriga" da curva ultrapassava
+        // para dentro das zonas vizinhas.
+        var clipId = "lz-curve-clip-" + escapeXml(z.id || Math.random().toString(36).slice(2));
+        parts.push('<clipPath id="' + clipId + '"><rect x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '"/></clipPath>');
+        parts.push('<g clip-path="url(#' + clipId + ')">' +
+          '<path data-zone-id="' + escapeXml(z.id || "") + '" d="' + d + '" fill="none" stroke="' + color + '" stroke-opacity="0.55" stroke-width="' + z.h + '" stroke-linejoin="round" stroke-linecap="butt" style="cursor:grab;"><title>' + zoneTitle + '</title></path>' +
+          '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="' + strokeW + '" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/>' +
+          '</g>');
+      } else {
+        parts.push('<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '" style="cursor:grab;"><title>' + zoneTitle + '</title></rect>');
+      }
       parts.push('<text x="' + x + '" y="' + (y - labelGap - l.level * rowH) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
     });
 
@@ -1073,6 +1126,7 @@
 
       var curveReadout = card.querySelector(".lz-curve-readout");
       var curveText = null;
+      var curveInfo = null;
       if (curveReadout) {
         if (!card.querySelector(".lz-curve-enabled").checked) {
           curveReadout.textContent = "—";
@@ -1080,7 +1134,8 @@
           var curveModeBtnActive = card.querySelector(".lz-curve-mode-seg .seg-btn.active");
           var curveMode = curveModeBtnActive ? curveModeBtnActive.dataset.curvemode : "angle";
           var curveValue = parseFloat(card.querySelector(".lz-curve-value").value);
-          var curveDir = card.querySelector(".lz-curve-dir").value === "convex" ? "convexo" : "côncavo";
+          var curveDirValue = card.querySelector(".lz-curve-dir").value;
+          var curveDir = curveDirValue === "convex" ? "convexo" : "côncavo";
           var cZone = (isNaN(mw) || isNaN(curveValue)) ? null : resolveCurvature(curveMode, curveValue, mx, mw / 1000);
           if (!cZone) {
             curveReadout.textContent = "Esse raio é fisicamente impossível para esta largura de tile.";
@@ -1088,11 +1143,12 @@
             curveText = curveDir + ", " + fmt(cZone.angleDegPerTile,2) + "°/tile, raio " + (isFinite(cZone.radiusM) ? fmt(cZone.radiusM,2) + " m" : "∞") +
               ", arco total " + fmt(cZone.totalAngleDeg,1) + "°, corda " + fmt(cZone.chordWidthM,2) + " m, flecha " + fmt(cZone.sagittaM,2) + " m";
             curveReadout.textContent = curveText;
+            curveInfo = { n: mx, angleDeg: cZone.angleDegPerTile, convex: curveDirValue === "convex" };
           }
         }
       }
 
-      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, curveText: curveText });
+      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, curveText: curveText, curve: curveInfo });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do
