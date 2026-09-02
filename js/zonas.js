@@ -197,8 +197,16 @@
           '<button type="button" class="copy lz-remove">Remover</button>' +
         '</div>' +
       '</div>' +
-      '<details class="lz-details"' + (startOpen ? ' open' : '') + '>' +
-        '<summary class="hint lz-readout">—</summary>' +
+      '<div class="lz-readout-row">' +
+        '<div class="hint lz-readout">—</div>' +
+        '<button type="button" class="copy lz-edit-btn" title="Abre a posição, modelo, tamanho e curvatura desta zona num popup próprio">✎ Editar</button>' +
+      '</div>' +
+      '<div class="hint lz-curve-readout" style="display:none;"></div>' +
+      '<dialog class="lz-details-dialog">' +
+        '<div class="lz-dialog-head">' +
+          '<strong>Editar zona</strong>' +
+          '<button type="button" class="lz-dialog-close" aria-label="Fechar">✕</button>' +
+        '</div>' +
         '<div class="row2 lz-position-inputs">' +
           '<div class="field"><label>Posição X (horizontal)</label><div class="inputgroup"><input class="lz-posx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
           '<div class="field"><label>Posição Y (vertical)</label><div class="inputgroup"><input class="lz-posy" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
@@ -261,9 +269,8 @@
               '</select>' +
             '</div>' +
           '</div>' +
-          '<div class="hint lz-curve-readout">—</div>' +
         '</div>' +
-      '</details>';
+      '</dialog>';
     lzList.appendChild(card);
     lzPopulateModelSelect(card.querySelector(".lz-model"));
     lzApplyOptsToCard(card, opts);
@@ -276,6 +283,7 @@
     if (opts && opts.ref) card.querySelector(".lz-ref").checked = true;
     if (opts && opts.colorOverride) card.dataset.colorOverride = opts.colorOverride;
     calcLedZones();
+    if (startOpen) card.querySelector(".lz-details-dialog").showModal();
     return card;
   }
 
@@ -382,12 +390,12 @@
   function lzJumpToZoneCard(zoneId) {
     var card = lzList.querySelector('.card[data-zone-id="' + zoneId + '"]');
     if (!card) return;
-    var details = card.querySelector(".lz-details");
-    if (details) details.open = true;
     card.scrollIntoView({ behavior: "smooth", block: "start" });
     card.classList.remove("lz-flash");
     void card.offsetWidth;
     card.classList.add("lz-flash");
+    var dialog = card.querySelector(".lz-details-dialog");
+    if (dialog) dialog.showModal();
   }
   document.getElementById("lz-diagram").addEventListener("click", function (e) {
     if (lzJustDragged) { lzJustDragged = false; return; }
@@ -542,6 +550,24 @@
   });
 
   lzList.addEventListener("click", function (e) {
+    var editBtn = e.target.closest(".lz-edit-btn");
+    if (editBtn) {
+      editBtn.closest(".card").querySelector(".lz-details-dialog").showModal();
+      return;
+    }
+    var dialogCloseBtn = e.target.closest(".lz-dialog-close");
+    if (dialogCloseBtn) {
+      dialogCloseBtn.closest(".lz-details-dialog").close();
+      return;
+    }
+    if (e.target.classList.contains("lz-details-dialog")) {
+      // Clique fora do conteúdo (no próprio elemento <dialog>, que ocupa
+      // só a caixa do popup — clicar no fundo escurecido à volta conta
+      // como clicar no <dialog> em si) fecha, como clicar fora de
+      // qualquer popup costuma fazer.
+      e.target.close();
+      return;
+    }
     var colorResetBtn = e.target.closest(".lz-color-reset");
     if (colorResetBtn) {
       delete colorResetBtn.closest(".card").dataset.colorOverride;
@@ -1129,8 +1155,9 @@
       var curveInfo = null;
       if (curveReadout) {
         if (!card.querySelector(".lz-curve-enabled").checked) {
-          curveReadout.textContent = "—";
+          curveReadout.style.display = "none";
         } else {
+          curveReadout.style.display = "block";
           var curveModeBtnActive = card.querySelector(".lz-curve-mode-seg .seg-btn.active");
           var curveMode = curveModeBtnActive ? curveModeBtnActive.dataset.curvemode : "angle";
           var curveValue = parseFloat(card.querySelector(".lz-curve-value").value);

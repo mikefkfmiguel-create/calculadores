@@ -560,33 +560,57 @@
   }
   .lz-flash { animation: lz-flash-anim 0.9s ease; }
 
-  /* Corpo colapsável de cada zona (posição, modelo, tiles) no Ecrã
-     Complexo — com muitas zonas, ter tudo sempre aberto fica ilegível
-     (ver .sinal-block acima para o mesmo padrão). O resumo (lz-readout)
-     fica sempre visível como summary, mesmo fechado. O !important é
-     necessário porque alguns filhos (lz-meters-inputs, lz-custom-fields)
-     têm display definido inline por JS (grid/none consoante o modo) — sem
-     !important essa regra ganha sempre ao <details> fechado, mesmo vindo
-     de uma folha de estilo do autor com menos especificidade. */
-  .lz-details:not([open]) > *:not(summary) { display: none !important; }
-  .lz-details summary {
-    cursor: pointer;
-    list-style: none;
+  /* Card de cada zona no Ecrã Complexo: o resumo (lz-readout) fica sempre
+     visível no card, os campos de edição (posição, modelo, tamanho,
+     curvatura) ficam num popup próprio (lz-details-dialog) — com muitas
+     zonas, ter tudo sempre aberto inline ficava ilegível, e o padrão
+     anterior (<details> a expandir por baixo do card) empurrava a lista
+     toda cada vez que se editava uma zona a meio. Um popup mantém o resto
+     da lista no sítio. */
+  .lz-readout-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
     margin-top: 12px;
   }
-  .lz-details summary::-webkit-details-marker { display: none; }
-  .lz-details summary::after {
-    content: "▾ editar";
-    color: var(--ink-faint);
-    font-size: 11px;
-    flex: none;
+  .lz-readout-row .hint { margin: 0; }
+  .lz-edit-btn { flex: none; font-size: 12.5px; padding: 6px 10px; }
+  .lz-curve-readout { margin-top: 6px; }
+  .lz-details-dialog {
+    width: min(560px, 92vw);
+    max-height: 85vh;
+    overflow-y: auto;
+    background: var(--paper-raised);
+    color: var(--ink);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 20px 20px 22px;
+    box-shadow: var(--shadow);
   }
-  .lz-details[open] summary::after { content: "▴ fechar"; }
-  .lz-details[open] summary { margin-bottom: 14px; }
+  .lz-details-dialog::backdrop { background: rgba(0,0,0,0.55); }
+  .lz-dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .lz-dialog-head strong { font-size: 15px; }
+  .lz-dialog-close {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    background: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+  }
+  .lz-dialog-close:hover { color: var(--ink); border-color: var(--line); }
 
   .field { margin-bottom: 14px; }
   .field:last-child { margin-bottom: 0; }
