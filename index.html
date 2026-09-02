@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.180</span>
+    <span class="mark">v1.181</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -810,7 +810,7 @@
         <div class="divider">Ecrã físico desejado</div>
         <div class="row2">
           <div class="field">
-            <label for="b-w">Largura</label>
+            <label for="b-w" id="b-w-label">Largura</label>
             <div class="inputgroup"><input id="b-w" type="number" inputmode="decimal" value="12.9" min="0.1" step="0.1"><span class="unit">m</span></div>
           </div>
           <div class="field">
@@ -819,6 +819,22 @@
           </div>
         </div>
         <div id="b-warn" class="warn" style="display:none;"></div>
+
+        <div class="divider">Curvatura</div>
+        <div class="field">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:400;">
+            <input type="checkbox" id="b-curve-enabled" style="width:auto;">
+            Ecrã curvo
+          </label>
+        </div>
+        <div id="b-curve-fields" style="display:none;">
+          <div class="field">
+            <label for="b-curve-diameter">Diâmetro do círculo</label>
+            <div class="inputgroup"><input id="b-curve-diameter" type="number" inputmode="decimal" value="30" min="0.1" step="0.5"><span class="unit">m</span></div>
+            <div class="hint">A "Largura" acima passa a ser a corda — a distância reta entre as duas pontas do ecrã (o espaço que ocupa no local). Junto com o diâmetro do círculo, dá a largura real da superfície curva (o arco) — é essa que conta para a resolução, nº de projetores e luminosidade, não a corda.</div>
+          </div>
+          <p class="note" id="b-curve-warn" style="display:none;"></p>
+        </div>
 
         <div class="divider">Luminosidade</div>
         <div class="field">
@@ -851,6 +867,14 @@
           <div class="item"><div class="k">Área</div><div class="v" id="b-out-area">—</div></div>
           <div class="item"><div class="k">Formato</div><div class="v" id="b-out-ratio">—</div></div>
           <div class="item wide"><div class="k">Pixel size (densidade)</div><div class="v" id="b-out-pitch">—</div></div>
+        </div>
+        <div id="b-curve-results" style="display:none;">
+          <h2 style="margin-top:18px;">Curvatura</h2>
+          <div class="readout">
+            <div class="item"><div class="k">Largura da superfície (arco)</div><div class="v" id="b-out-curve-arc">—</div></div>
+            <div class="item"><div class="k">Raio</div><div class="v" id="b-out-curve-radius">—</div></div>
+            <div class="item wide"><div class="k">Largura entre as pontas (corda)</div><div class="v" id="b-out-curve-chord">—</div></div>
+          </div>
         </div>
         <h2 style="margin-top:18px;">Luminosidade combinada</h2>
         <div class="readout">
@@ -2367,6 +2391,13 @@
     document.getElementById(id).addEventListener("input", function () { bOhManualOverride = false; });
     document.getElementById(id).addEventListener("change", function () { bOhManualOverride = false; });
   });
+  document.getElementById("b-curve-enabled").addEventListener("change", function () {
+    var on = this.checked;
+    document.getElementById("b-curve-fields").style.display = on ? "block" : "none";
+    document.getElementById("b-w-label").textContent = on ? "Largura entre as pontas (corda)" : "Largura";
+    bOhManualOverride = false;
+    calcBlend();
+  });
 
   function calcProjecao() {
     var isCustom = ratioSel.value === "custom";
@@ -2942,6 +2973,22 @@
     var hpx = val("b-hpx"), vpx = val("b-vpx");
     var nh, nv, oh;
 
+    // Ecrã curvo: "wm" (o campo "Largura") passa a ser a corda — a
+    // distância reta entre as duas pontas, o espaço que o ecrã ocupa no
+    // local. "effWm" é a largura real da superfície de projeção (o arco,
+    // "desenrolado") — maior do que a corda, e é essa que conta para
+    // quantos projetores cabem, resolução, densidade de píxeis e
+    // luminosidade (a mesma luz espalha-se por mais superfície do que a
+    // corda sugere). Sem curvatura, effWm = wm (comportamento de sempre).
+    var curveEnabled = document.getElementById("b-curve-enabled").checked;
+    var effWm = wm;
+    var curveArc = null, curveRadius = null;
+    if (curveEnabled) {
+      curveRadius = val("b-curve-diameter") / 2;
+      curveArc = arcLengthFromChordRadius(wm, curveRadius);
+      if (curveArc != null) effWm = curveArc;
+    }
+
     if (bBlendMode === "auto") {
       var aspect = parseFloat(document.getElementById("b-projratio").value);
       nv = hm > 9 ? 2 : 1;
@@ -2949,15 +2996,15 @@
       var widthPerProj = hRow * aspect;
 
       if (!bOhManualOverride) {
-        nh = Math.max(1, Math.ceil(wm / widthPerProj));
-        var overlapM = nh > 1 ? (nh * widthPerProj - wm) / (nh - 1) : 0;
+        nh = Math.max(1, Math.ceil(effWm / widthPerProj));
+        var overlapM = nh > 1 ? (nh * widthPerProj - effWm) / (nh - 1) : 0;
         oh = Math.max(0, Math.round(overlapM * hpx / widthPerProj));
         bNhInput.value = nh;
         document.getElementById("b-oh").value = oh;
       } else {
         oh = val("b-oh");
         var overlapM2 = oh * widthPerProj / hpx;
-        nh = Math.max(1, Math.ceil((wm - overlapM2) / (widthPerProj - overlapM2)));
+        nh = Math.max(1, Math.ceil((effWm - overlapM2) / (widthPerProj - overlapM2)));
         bNhInput.value = nh;
       }
       bNvInput.value = nv;
@@ -2973,25 +3020,42 @@
     var totalPxH = nh * hpx - overlapTotalH;
     var totalPxV = nv * vpx - overlapTotalV;
 
-    var pitchMmH = (wm * 1000) / totalPxH;
+    var pitchMmH = (effWm * 1000) / totalPxH;
     var pitchMmV = (hm * 1000) / totalPxV;
     var pitchAvg = (pitchMmH + pitchMmV) / 2;
 
     var pctTotal = overlapTotalH / totalPxH;
     var pctProj = oh / hpx;
-    var area = wm * hm;
+    var area = effWm * hm;
 
     document.getElementById("b-out-res").innerHTML = fmtInt(totalPxH) + " x " + fmtInt(totalPxV) + "<small>px</small>";
     document.getElementById("b-out-overlap").innerHTML = fmtInt(overlapTotalH) + "<small>px</small>";
     document.getElementById("b-out-pcttotal").textContent = fmt(pctTotal * 100, 1) + "%";
     document.getElementById("b-out-pctproj").textContent = fmt(pctProj * 100, 1) + "%";
     document.getElementById("b-out-area").innerHTML = fmt(area, 2) + "<small>m²</small>";
-    document.getElementById("b-out-ratio").textContent = describeRatio(wm * 1000, hm * 1000);
+    document.getElementById("b-out-ratio").textContent = describeRatio(effWm * 1000, hm * 1000);
     document.getElementById("b-out-pitch").innerHTML = fmt(pitchAvg, 2) + "<small>mm</small>";
+
+    var curveResultsEl = document.getElementById("b-curve-results");
+    var curveWarnEl = document.getElementById("b-curve-warn");
+    if (!curveEnabled) {
+      curveResultsEl.style.display = "none";
+      curveWarnEl.style.display = "none";
+    } else if (curveArc == null) {
+      curveResultsEl.style.display = "none";
+      curveWarnEl.style.display = "block";
+      curveWarnEl.textContent = "Essa corda é fisicamente impossível para esse diâmetro (maior que o próprio círculo) — aumenta o diâmetro ou reduz a largura entre as pontas.";
+    } else {
+      curveResultsEl.style.display = "block";
+      curveWarnEl.style.display = "none";
+      document.getElementById("b-out-curve-arc").innerHTML = fmt(curveArc, 2) + "<small>m</small>";
+      document.getElementById("b-out-curve-radius").innerHTML = fmt(curveRadius, 2) + "<small>m</small>";
+      document.getElementById("b-out-curve-chord").innerHTML = fmt(wm, 2) + "<small>m</small>";
+    }
 
     var warnMsgs = [];
     if (Math.abs(pitchMmH - pitchMmV) / pitchAvg > 0.05) {
-      warnMsgs.push("A proporção física (" + fmt(wm,2) + " x " + fmt(hm,2) + " m) não bate certo com a resolução resultante — a imagem pode ficar esticada. Confirma largura/altura ou o overlap vertical.");
+      warnMsgs.push("A proporção física (" + fmt(effWm,2) + " x " + fmt(hm,2) + " m) não bate certo com a resolução resultante — a imagem pode ficar esticada. Confirma largura/altura ou o overlap vertical.");
     }
     if (nh > 1 && oh < 300) {
       warnMsgs.push("Overlap horizontal de " + fmtInt(oh) + "px está abaixo dos 300px recomendados — não aconselhável, mas possível.");
@@ -3016,11 +3080,15 @@
     document.getElementById("b-out-lumens80").innerHTML = fmtInt(lumensEach80) + "<small>lm/proj.</small>";
     document.getElementById("b-out-lux").innerHTML = fmtInt(luxTotal) + "<small>lux</small>";
 
+    var curveSummaryText = (curveEnabled && curveArc != null)
+      ? "Curvatura: corda " + fmt(wm,2) + " m, raio " + fmt(curveRadius,2) + " m, largura da superfície (arco) " + fmt(curveArc,2) + " m\n"
+      : "";
     document.getElementById("b-sum").textContent =
       "Blending: " + nh + " x " + nv + " projetores (" + hpx + "x" + vpx + " px cada)\n" +
       "Overlap: " + oh + " px horizontal, " + ov + " px vertical\n" +
       "Resolução combinada: " + fmtInt(totalPxH) + " x " + fmtInt(totalPxV) + " px  —  overlap " + fmt(pctTotal*100,1) + "% do total (" + fmt(pctProj*100,1) + "% por projetor)\n" +
-      "Ecrã físico: " + fmt(wm,2) + " x " + fmt(hm,2) + " m  (" + fmt(area,2) + " m²)  —  formato " + describeRatio(wm*1000, hm*1000) + "\n" +
+      "Ecrã físico: " + fmt(effWm,2) + " x " + fmt(hm,2) + " m  (" + fmt(area,2) + " m²)  —  formato " + describeRatio(effWm*1000, hm*1000) + "\n" +
+      curveSummaryText +
       "Pixel size: " + fmt(pitchAvg,2) + " mm\n" +
       "Luminosidade: " + nProj + " projetores x " + fmtInt(lumensEach) + " lm (100%) = " + fmtInt(lumensEach*nProj) + " lm  —  a 80%: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(luxTotal) + " lux no ecrã";
 

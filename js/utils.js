@@ -59,6 +59,20 @@ function resolveCurvature(mode, value, n, tileWidthM) {
   return (angleDeg == null) ? null : calcCurvature(n, tileWidthM, angleDeg);
 }
 
+// Ecrã de projeção curvo (sem tiles discretos, ao contrário do ledwall) —
+// arco de círculo contínuo. Dado o raio e a corda (distância reta entre as
+// duas pontas, ex: o espaço disponível no local), devolve o comprimento do
+// arco (a largura real da superfície de projeção, "desenrolada"). Devolve
+// null se a corda for maior que o diâmetro (círculo impossível para esse
+// raio).
+function arcLengthFromChordRadius(chordM, radiusM) {
+  if (!(chordM > 0) || !(radiusM > 0)) return null;
+  var ratio = chordM / (2 * radiusM);
+  if (ratio > 1) return null;
+  var thetaRad = 2 * Math.asin(ratio);
+  return radiusM * thetaRad;
+}
+
 function escapeXml(s) {
   return String(s).replace(/[&<>"']/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[c];
