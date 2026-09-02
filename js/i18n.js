@@ -357,7 +357,7 @@
     "convexo": "convex",
 
     // ---- Blending ----
-    "Sobreposição (overlap)": "Overlap",
+    "Sobreposição (overlap)": "Overlap (blending)",
     "Overlap por junção": "Overlap per join",
     "Overlap por junção — horizontal": "Overlap per join — horizontal",
     "Overlap por junção — vertical": "Overlap per join — vertical",
@@ -373,6 +373,14 @@
     "Serve para juntar vários projetores num ecrã maior do que um único projetor consegue cobrir. Escolhe": "Used to combine several projectors into a screen bigger than a single projector can cover. Choose",
     "para a app decidir o nº de projetores sozinha, ou": "to let the app decide the number of projectors on its own, or",
     "para controlares tu.": "to control it yourself.",
+    "Diâmetro do círculo": "Circle diameter",
+    "Largura entre as pontas (corda)": "Width between the ends (chord)",
+    "Largura da superfície (arco)": "Surface width (arc)",
+    "A \"Largura\" acima passa a ser a corda — a distância reta entre as duas pontas do ecrã (o espaço que ocupa no local). Junto com o diâmetro do círculo, dá a largura real da superfície curva (o arco) — é essa que conta para a resolução, nº de projetores e luminosidade, não a corda.": "The \"Width\" field above becomes the chord — the straight-line distance between the screen's two ends (the space it occupies on site). Together with the circle diameter, it gives the real width of the curved surface (the arc) — that's what counts for resolution, number of projectors, and brightness, not the chord.",
+    "Essa corda é fisicamente impossível para esse diâmetro (maior que o próprio círculo) — aumenta o diâmetro ou reduz a largura entre as pontas.": "That chord is physically impossible for that diameter (bigger than the circle itself) — increase the diameter or reduce the width between the ends.",
+    "Curvatura: corda ": "Curvature: chord ",
+    " m, raio ": " m, radius ",
+    " m, largura da superfície (arco) ": " m, surface width (arc) ",
 
     // ---- Sinal & Data Rate ----
     "Sinal de vídeo": "Video signal",
