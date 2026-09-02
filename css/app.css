@@ -847,21 +847,24 @@
   @media (max-width: 759px) {
     #lz-totals-card { order: -1; margin-bottom: 4px; }
   }
-  /* Página "Ecrã Complexo" à parte (ecra-complexo.html): já tentámos o
-     diagrama (#ecra-fixed-top) fixo no topo (position:fixed) com o resto
-     da página a ganhar uma margem-de-compensação calculada em JS
+  /* Página "Ecrã Complexo" à parte (ecra-complexo.html): o diagrama
+     (#ecra-fixed-top) já tinha sido fixo no topo (position:fixed) com o
+     resto da página a ganhar uma margem-de-compensação calculada em JS
      (ResizeObserver) do tamanho exato dele — mas a compensação ficava
      sistematicamente desactualizada sempre que o diagrama mudava de
      altura sem essa mudança ser apanhada a tempo (ex: legendas a
-     quebrarem linha ao arrastar uma zona), escondendo o cabeçalho
-     "Ecrã Complexo" e cortando o topo dos cards da lista por baixo —
-     a mesma família de bug de sobreposição já documentada abaixo para
-     #lz-diagram-card/#lz-totals-card, e pela mesma razão: preferimos
-     fluxo normal, garantidamente correto, a fixed/sticky com
-     compensação manual. O diagrama mantém o limite de altura com
-     scroll próprio (não cresce sem controlo com muitas zonas) mas já
-     não fica pousado por cima do resto — simplesmente empurra o
-     cabeçalho e a lista para baixo, como qualquer bloco normal. */
+     quebrarem linha ao arrastar uma zona), escondendo o cabeçalho "Ecrã
+     Complexo" e cortando o topo dos cards da lista por baixo. Passou por
+     isso a fluxo normal — mas o pedido era mesmo o diagrama ficar sempre
+     visível ao scrollar a lista de zonas, e o problema nunca foi "fixo"
+     em si, foi a margem calculada à mão. "position: sticky" resolve sem
+     esse cálculo: reserva o próprio espaço no fluxo automaticamente (o
+     cabeçalho por cima não fica escondido a meio da página, só quando se
+     desce a ponto de o diagrama "colar" ao topo é que passa a tapar o
+     que vem a seguir — e o "max-height" abaixo continua a garantir que
+     nunca cresce ao ponto de cortar os cards). Só em ecrãs largos — em
+     telemóvel o diagrama ocupar sempre metade do ecrã sobra pouco espaço
+     à lista, por isso mantém-se em fluxo normal aí. */
   #ecra-fixed-top {
     max-width: 1400px;
     margin: 0 auto;
@@ -869,6 +872,13 @@
     background: var(--paper);
     max-height: 52vh;
     overflow-y: auto;
+  }
+  @media (min-width: 760px) {
+    #ecra-fixed-top {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
   }
   /* Barra fixa com o resultado essencial (resolução do canvas + tiles),
      sempre visível por cima do teclado/conteúdo enquanto se edita a lista
