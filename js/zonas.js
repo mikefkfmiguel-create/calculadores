@@ -146,11 +146,11 @@
           '<label>Nome da zona</label>' +
           '<div class="inputgroup"><input type="text" class="lz-name" value="' + (name || ("Zona " + (lzNextId - 1))) + '"></div>' +
         '</div>' +
-        '<div class="field" style="width:70px; margin-bottom:0;">' +
+        '<div class="field" style="width:100px; margin-bottom:0;">' +
           '<label>Cópias</label>' +
           '<div class="inputgroup"><input type="number" class="lz-dup-count" value="1" min="1" step="1"></div>' +
         '</div>' +
-        '<div class="field" style="width:90px; margin-bottom:0;">' +
+        '<div class="field" style="width:120px; margin-bottom:0;">' +
           '<label>Gap p/ cópia</label>' +
           '<div class="inputgroup"><input type="number" class="lz-dup-gap" value="0.05" min="0" step="0.01"></div>' +
         '</div>' +
