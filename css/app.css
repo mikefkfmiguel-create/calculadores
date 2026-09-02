@@ -624,6 +624,17 @@
   }
   .inputgroup select { font-family: "IBM Plex Sans", sans-serif; font-size: 16px; }
   .inputgroup input:focus, .inputgroup select:focus { outline: none; }
+  /* Spinner nativo de type="number" removido — redundante desde que todo
+     o campo já tem o botão de calculadora ao lado (soma/subtrai/multiplica/
+     divide e aplica), e nos campos mais estreitos o spinner colidia com
+     esse botão, cortando os dígitos (ex: "Cópias"/"Gap p/ cópia" no Ecrã
+     Complexo). */
+  .inputgroup input[type="number"] { -moz-appearance: textfield; }
+  .inputgroup input[type="number"]::-webkit-inner-spin-button,
+  .inputgroup input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
   .inputgroup input:read-only { color: var(--ink-soft); }
   .inputgroup:has(input:read-only) { background: var(--line-soft); }
   .inputgroup .unit {
@@ -830,52 +841,28 @@
   @media (max-width: 759px) {
     #lz-totals-card { order: -1; margin-bottom: 4px; }
   }
-  /* Página "Ecrã Complexo" à parte (ecra-complexo.html): o diagrama
-     (#ecra-fixed-top) é mesmo o topo da página — fixo em top:0
-     (position:fixed, não sticky — sticky já causou bugs de repaint numa
-     tentativa anterior; fixed não muda de modo a meio do scroll, mais
-     previsível). O resto, cabeçalho/explicação incluídos (#ecra-preamble),
-     fica em fluxo normal logo a seguir e rola. #lz-add-top não existe
-     nesta página (o botão de adicionar zona vive dentro do próprio card
-     do diagrama). */
-  @media (min-width: 760px) {
-    #ecra-fixed-top {
-      position: fixed;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 1400px;
-      padding: 28px 20px 16px;
-      background: var(--paper);
-      z-index: 30;
-      /* Salvaguarda: com muitas zonas o nome de cada uma na legenda pode
-         ocupar várias linhas e este bloco crescer bastante — sem limite
-         podia comer o ecrã todo e não sobrar espaço nenhum para o resto.
-         Acima disto, o próprio bloco ganha scroll. */
-      max-height: 52vh;
-      overflow-y: auto;
-    }
-    /* O resto da página (cabeçalho/explicação, depois a lista/totais)
-       ganha uma margem igual à altura real do diagrama fixo MAIS uma
-       folga extra de segurança — sem essa folga, um card no topo da
-       lista podia ficar com só a base visível, cortado mesmo debaixo do
-       diagrama, ao chegar lá por scroll. */
-    #ecra-fixed-top ~ #ecra-preamble { margin-top: var(--ecra-fixed-top-h, 0px); }
-    /* Com scroll normal da página, uma lista comprida acaba sempre por
-       passar por baixo de um painel fixo mais acima (confirmado com
-       testes: a partir de um certo scroll a sobreposição volta, seja com
-       "fixed" seja com "sticky" — é como qualquer painel fixo sobre
-       conteúdo mais alto do que ele). Por isso a página em si não rola
-       até ao fim: só a lista de zonas e o card de totais, dentro do
-       espaço que sobra abaixo do diagrama, com scroll próprio — nunca
-       chegam a entrar na faixa dele. */
-    #ecra-fixed-top ~ .grid #lz-list,
-    #ecra-fixed-top ~ .grid #lz-totals-card {
-      overflow-y: auto;
-      padding: 4px 6px 4px 2px;
-      margin: 0 -6px 12px -2px;
-    }
+  /* Página "Ecrã Complexo" à parte (ecra-complexo.html): já tentámos o
+     diagrama (#ecra-fixed-top) fixo no topo (position:fixed) com o resto
+     da página a ganhar uma margem-de-compensação calculada em JS
+     (ResizeObserver) do tamanho exato dele — mas a compensação ficava
+     sistematicamente desactualizada sempre que o diagrama mudava de
+     altura sem essa mudança ser apanhada a tempo (ex: legendas a
+     quebrarem linha ao arrastar uma zona), escondendo o cabeçalho
+     "Ecrã Complexo" e cortando o topo dos cards da lista por baixo —
+     a mesma família de bug de sobreposição já documentada abaixo para
+     #lz-diagram-card/#lz-totals-card, e pela mesma razão: preferimos
+     fluxo normal, garantidamente correto, a fixed/sticky com
+     compensação manual. O diagrama mantém o limite de altura com
+     scroll próprio (não cresce sem controlo com muitas zonas) mas já
+     não fica pousado por cima do resto — simplesmente empurra o
+     cabeçalho e a lista para baixo, como qualquer bloco normal. */
+  #ecra-fixed-top {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 20px 16px;
+    background: var(--paper);
+    max-height: 52vh;
+    overflow-y: auto;
   }
   /* Barra fixa com o resultado essencial (resolução do canvas + tiles),
      sempre visível por cima do teclado/conteúdo enquanto se edita a lista

@@ -7,6 +7,13 @@
   var lzList = document.getElementById("lz-list");
   var lzNextId = 1;
   var lzLastTotals = null;
+  // Cor atribuída a cada nome-base de zona fica fixa depois de decidida uma
+  // vez (ver lzGroupColorMap) — nunca se reatribui às zonas existentes só
+  // porque a ordem das zonas mudou (ex: depois de arrastar uma zona para
+  // antes de outra na lista), senão as cores "saltavam" entre zonas sem a
+  // zona em si ter mudado.
+  var lzColorAssignments = {};
+  var lzNextColorIndex = 0;
 
   function lzZoneModelOptionsHtml() {
     return '<option value="custom">Personalizado…</option>';
@@ -125,9 +132,8 @@
       '<div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-bottom:14px; flex-wrap:wrap;">' +
         '<div class="field" style="width:32px; margin-bottom:0;">' +
           '<label style="text-align:center;">Sel.</label>' +
-          '<div style="display:flex; align-items:center; justify-content:center; gap:5px; height:35px;">' +
+          '<div style="display:flex; align-items:center; justify-content:center; height:35px;">' +
             '<input type="checkbox" class="lz-select" title="Selecionar esta zona para mover em bloco">' +
-            '<span class="lz-color-dot" style="width:10px; height:10px; border-radius:3px; flex:none;"></span>' +
           '</div>' +
         '</div>' +
         '<div class="field" style="width:34px; margin-bottom:0;">' +
@@ -140,6 +146,13 @@
           '<label style="text-align:center;">Ref.</label>' +
           '<div style="display:flex; align-items:center; justify-content:center; height:35px;">' +
             '<input type="checkbox" class="lz-ref" title="Usar o pitch desta zona como referência do canvas combinado (posições/tamanhos das outras zonas convertidos para este pitch). Sem nenhuma marcada, usa-se a zona mais alta (m) — que pode mudar sozinha ao adicionar/remover zonas.">' +
+          '</div>' +
+        '</div>' +
+        '<div class="field" style="width:44px; margin-bottom:0;">' +
+          '<label style="text-align:center;">Cor</label>' +
+          '<div style="display:flex; flex-direction:column; align-items:center; gap:2px; height:35px; justify-content:center;">' +
+            '<input type="color" class="lz-color-input" title="Cor desta zona — por omissão as zonas com o mesmo nome-base (ex: &quot;Lateral&quot;, &quot;Lateral 2&quot;) partilham cor automática; escolhe aqui para dar uma cor própria só a esta." style="width:26px; height:22px; padding:0; border:none; background:none; cursor:pointer;">' +
+            '<button type="button" class="lz-color-reset" title="Repor cor automática (por grupo)" style="font-size:9.5px; line-height:1; padding:0; border:none; background:none; color:var(--ink-faint); cursor:pointer; text-decoration:underline; visibility:hidden;">auto</button>' +
           '</div>' +
         '</div>' +
         '<div class="field" style="flex:1; min-width:160px; margin-bottom:0;">' +
@@ -215,6 +228,7 @@
     // réplicas") ou a "Atualizar réplicas" (essas usam essas duas funções),
     // senão duplicar a zona de referência criava várias a competir.
     if (opts && opts.ref) card.querySelector(".lz-ref").checked = true;
+    if (opts && opts.colorOverride) card.dataset.colorOverride = opts.colorOverride;
     calcLedZones();
     return card;
   }
@@ -228,14 +242,21 @@
   // 2"/"Lateral 3" partilham cor) — paleta categórica com boa distinção em
   // daltonismo, nas variantes escuras (a app fica sempre em tema escuro).
   var LZ_GROUP_PALETTE = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+  // Cor efetiva de uma zona — a escolhida à mão para essa zona específica
+  // (se houver), senão a automática do grupo (nome-base).
+  function lzZoneColor(z, colorMap) {
+    return z.colorOverride || colorMap[lzBaseName(z.name)];
+  }
   function lzGroupColorMap(zones) {
-    var order = [], seen = {};
+    var map = {};
     zones.forEach(function (z) {
       var base = lzBaseName(z.name);
-      if (!seen[base]) { seen[base] = true; order.push(base); }
+      if (!(base in lzColorAssignments)) {
+        lzColorAssignments[base] = LZ_GROUP_PALETTE[lzNextColorIndex % LZ_GROUP_PALETTE.length];
+        lzNextColorIndex++;
+      }
+      map[base] = lzColorAssignments[base];
     });
-    var map = {};
-    order.forEach(function (base, i) { map[base] = LZ_GROUP_PALETTE[i % LZ_GROUP_PALETTE.length]; });
     return map;
   }
   // Arruma os cards na lista pela posição das zonas (mais à esquerda
@@ -287,45 +308,14 @@
     totalsCard.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  // Na página "Ecrã Complexo" à parte, o diagrama é mesmo o topo da
-  // página, fixo (ver "#ecra-fixed-top" em css/app.css) — o resto
-  // (cabeçalho/explicação incluídos, "#ecra-preamble") precisa de um
-  // espaço reservado do tamanho exato do diagrama MAIS uma folga extra
-  // de segurança, senão um card no topo da lista pode ficar cortado mesmo
-  // debaixo dele ao chegar lá por scroll. Não existe em index.html
-  // (elementos ausentes, a função sai logo no primeiro "if").
-  (function () {
-    var preamble = document.getElementById("ecra-preamble");
-    var fixedTop = document.getElementById("ecra-fixed-top");
-    var list = document.getElementById("lz-list");
-    var totalsCard = document.getElementById("lz-totals-card");
-    if (!preamble || !fixedTop || typeof ResizeObserver === "undefined") return;
-    var SAFETY_GAP = 40;
-    var update = function () {
-      var fixedH = fixedTop.getBoundingClientRect().height;
-      document.documentElement.style.setProperty("--ecra-fixed-top-h", fixedH ? (fixedH + SAFETY_GAP) + "px" : "0px");
-      // A altura disponível é calculada a partir da posição real de cada
-      // coluna no ecrã (a da lista já reflete a barra de ações por cima)
-      // menos uma reserva para o botão "+ Adicionar zona"/rodapé. O card
-      // de totais ganha o mesmo tipo de limite — senão, sendo mais alto
-      // do que a lista, obrigava a página em si a rolar para o ver todo.
-      if (list && window.innerWidth >= 760) {
-        var listTop = list.getBoundingClientRect().top;
-        list.style.maxHeight = Math.max(140, window.innerHeight - listTop - 80) + "px";
-        if (totalsCard) {
-          var totalsTop = totalsCard.getBoundingClientRect().top;
-          totalsCard.style.maxHeight = Math.max(140, window.innerHeight - totalsTop - 80) + "px";
-          totalsCard.style.overflowY = "auto";
-        }
-      } else if (list) {
-        list.style.maxHeight = "";
-        if (totalsCard) { totalsCard.style.maxHeight = ""; totalsCard.style.overflowY = ""; }
-      }
-    };
-    new ResizeObserver(update).observe(preamble);
-    new ResizeObserver(update).observe(fixedTop);
-    window.addEventListener("resize", update);
-  })();
+  // Na página "Ecrã Complexo" à parte, o diagrama (#ecra-fixed-top) já foi
+  // fixo no topo, com o resto da página a ganhar uma margem de compensação
+  // calculada aqui via ResizeObserver — mas essa compensação ficava
+  // sistematicamente desactualizada sempre que o diagrama mudava de altura
+  // sem isso ser apanhado a tempo, escondendo o cabeçalho e cortando o
+  // topo dos cards por baixo. O diagrama passou a fluxo normal (ver
+  // "#ecra-fixed-top" em css/app.css) — sem posição fixa não há nada para
+  // compensar, por isso esta função deixou de ser precisa.
 
   // Clicar numa zona no diagrama (ou na coluna de detalhes) salta para o
   // card de edição correspondente na lista — mais rápido do que procurar
@@ -429,8 +419,38 @@
       // genuíno de saltar para outra zona.
       setTimeout(function () { lzJustDragged = false; }, 300);
       xInput.blur(); // liberta a proteção de "não reordenar" e aplica o sort final
+      lzNormalizeZonePositions();
       calcLedZones();
     }
+  }
+
+  // A posição é sempre "a partir do canto superior esquerdo do conjunto" —
+  // arrastar uma zona para lá do que hoje é o canto (X ou Y negativo) desloca
+  // TODAS as zonas pela mesma quantidade, para a mais à esquerda/acima ficar
+  // outra vez em 0 e as posições nunca ficarem negativas. É um deslocamento
+  // uniforme (a disposição relativa entre zonas mantém-se sempre igual).
+  function lzNormalizeZonePositions() {
+    var cards = Array.from(lzList.querySelectorAll(".card"));
+    if (!cards.length) return;
+    var minX = 0, minY = 0;
+    cards.forEach(function (c) {
+      var x = parseFloat(c.querySelector(".lz-posx").value);
+      var y = parseFloat(c.querySelector(".lz-posy").value);
+      if (!isNaN(x)) minX = Math.min(minX, x);
+      if (!isNaN(y)) minY = Math.min(minY, y);
+    });
+    if (minX >= 0 && minY >= 0) return;
+    cards.forEach(function (c) {
+      var xInput = c.querySelector(".lz-posx"), yInput = c.querySelector(".lz-posy");
+      if (minX < 0) {
+        var nx = (parseFloat(xInput.value) || 0) - minX;
+        xInput.value = (Math.round(nx * 100) / 100).toFixed(2);
+      }
+      if (minY < 0) {
+        var ny = (parseFloat(yInput.value) || 0) - minY;
+        yInput.value = (Math.round(ny * 100) / 100).toFixed(2);
+      }
+    });
   }
   document.addEventListener("pointerup", lzEndDrag);
   document.addEventListener("pointercancel", lzEndDrag);
@@ -463,6 +483,12 @@
   });
 
   lzList.addEventListener("click", function (e) {
+    var colorResetBtn = e.target.closest(".lz-color-reset");
+    if (colorResetBtn) {
+      delete colorResetBtn.closest(".card").dataset.colorOverride;
+      calcLedZones();
+      return;
+    }
     var removeBtn = e.target.closest(".lz-remove");
     if (removeBtn) {
       removeBtn.closest(".card").remove();
@@ -545,7 +571,12 @@
     }
     calcLedZones();
   });
-  lzList.addEventListener("input", calcLedZones);
+  lzList.addEventListener("input", function (e) {
+    if (e.target.classList.contains("lz-color-input")) {
+      e.target.closest(".card").dataset.colorOverride = e.target.value;
+    }
+    calcLedZones();
+  });
 
   // Desenha um diagrama SVG à escala das zonas (posição + tamanho), para dar
   // uma noção visual do conjunto e devolve a caixa (bounding box) que as
@@ -640,7 +671,7 @@
     labels.forEach(function (l) {
       var z = l.z;
       var x = z.posX - minX + padSide, y = z.posY - minY + padTop;
-      var color = colorMap[lzBaseName(z.name)];
+      var color = lzZoneColor(z, colorMap);
       parts.push('<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '" style="cursor:grab;"><title>Clicar para saltar para esta zona na lista, ou arrastar para mover (os campos Posição X/Y ficam para o ajuste fino)</title></rect>');
       parts.push('<text x="' + x + '" y="' + (y - labelGap - l.level * rowH) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
     });
@@ -665,10 +696,10 @@
     // desenho (tamanho e ponto de início/fim em metros).
     var details = document.getElementById("lz-diagram-details");
     details.innerHTML = valid.slice().sort(function (a, b) { return a.posX - b.posX || a.posY - b.posY; }).map(function (z) {
-      var meta = fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m — X:" + fmt(z.posX, 2) + "→" + fmt(z.posX + z.w, 2) +
+      var meta = fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m — " + fmtInt(z.totalPx) + "×" + fmtInt(z.totalPy) + "px — X:" + fmt(z.posX, 2) + "→" + fmt(z.posX + z.w, 2) +
         (z.posY ? ", Y:" + fmt(z.posY, 2) + "→" + fmt(z.posY + z.h, 2) : "") + "m";
       return '<div class="lz-detail-row" data-zone-id="' + escapeXml(z.id || "") + '">' +
-        '<span class="lz-detail-dot" style="background:' + colorMap[lzBaseName(z.name)] + ';"></span>' +
+        '<span class="lz-detail-dot" style="background:' + lzZoneColor(z, colorMap) + ';"></span>' +
         '<div><div class="lz-detail-name">' + escapeXml(z.name) + '</div><div class="lz-detail-meta">' + escapeXml(meta) + '</div></div>' +
         '</div>';
     }).join("");
@@ -819,7 +850,7 @@
     labels.forEach(function (l) {
       var z = l.z;
       var x = z.pxX * scale, y = z.pxY * scale + offsetTop, w = z.pxW * scale, h = z.pxH * scale;
-      var color = colorMap[lzBaseName(z.name)] || "#159187";
+      var color = lzZoneColor(z, colorMap) || "#159187";
       ctx.fillStyle = lzHexToRgba(color, 0.6);
       ctx.fillRect(x, y, w, h);
       ctx.strokeStyle = color;
@@ -875,6 +906,7 @@
       opts.posX = card.querySelector(".lz-posx").value;
       opts.posY = card.querySelector(".lz-posy").value;
       opts.ref = card.querySelector(".lz-ref").checked;
+      opts.colorOverride = card.dataset.colorOverride || null;
       return opts;
     });
   }
@@ -963,7 +995,7 @@
       var visible = card.querySelector(".lz-visible").checked;
       card.style.opacity = visible ? "" : "0.5";
       var isRef = card.querySelector(".lz-ref").checked;
-      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef });
+      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do
@@ -985,8 +1017,10 @@
 
     var colorMap = lzGroupColorMap(visibleZones);
     cards.forEach(function (card, i) {
-      var dot = card.querySelector(".lz-color-dot");
-      if (dot) dot.style.background = zones[i].visible ? colorMap[lzBaseName(zones[i].name)] : "var(--ink-faint)";
+      var colorInput = card.querySelector(".lz-color-input");
+      var resetBtn = card.querySelector(".lz-color-reset");
+      if (colorInput && document.activeElement !== colorInput) colorInput.value = lzZoneColor(zones[i], colorMap);
+      if (resetBtn) resetBtn.style.visibility = zones[i].colorOverride ? "visible" : "hidden";
     });
 
     var pm = lzComputePixelMap(visibleZones);
