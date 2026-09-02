@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.178</span>
+    <span class="mark">v1.179</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -466,6 +466,37 @@
           </div>
         </div>
 
+        <div class="divider">Curvatura</div>
+        <div class="field">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:400;">
+            <input type="checkbox" id="l-curve-enabled" style="width:auto;">
+            Ecrã curvo
+          </label>
+        </div>
+        <div id="l-curve-fields" style="display:none;">
+          <div class="field">
+            <label>Como queres indicar a curvatura?</label>
+            <div class="seg" id="l-curve-mode-seg">
+              <button type="button" class="seg-btn active" data-curvemode="angle">Ângulo por tile</button>
+              <button type="button" class="seg-btn" data-curvemode="radius">Raio desejado</button>
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="l-curve-value" id="l-curve-value-label">Ângulo por tile</label>
+              <div class="inputgroup"><input id="l-curve-value" type="number" inputmode="decimal" value="5" min="0" step="0.5"><span class="unit" id="l-curve-value-unit">°</span></div>
+            </div>
+            <div class="field">
+              <label for="l-curve-dir">Direção</label>
+              <select id="l-curve-dir" class="plain">
+                <option value="concave" selected>Côncavo (para o público)</option>
+                <option value="convex">Convexo (para fora)</option>
+              </select>
+            </div>
+          </div>
+          <div class="hint">A curvatura é sempre ao longo da horizontal (tiles na horizontal), assumindo hinges/locks que dobram em incrementos fixos entre tiles — cada tile fica reto, o "arco" é o conjunto deles em polígono.</div>
+        </div>
+
         <div class="divider">Resolução do módulo</div>
         <div class="row2">
           <div class="field">
@@ -517,6 +548,18 @@
           <div class="item wide"><div class="k">Brilho</div><div class="v" id="l-out-nits">—</div></div>
         </div>
         <p class="note" id="l-halftile-note" style="display:none;"></p>
+        <div id="l-curve-results" style="display:none;">
+          <h2 style="margin-top:18px;">Curvatura</h2>
+          <div class="readout">
+            <div class="item"><div class="k">Ângulo por tile</div><div class="v" id="l-out-curve-angle">—</div></div>
+            <div class="item"><div class="k">Raio</div><div class="v" id="l-out-curve-radius">—</div></div>
+            <div class="item"><div class="k">Ângulo total do arco</div><div class="v" id="l-out-curve-totalangle">—</div></div>
+            <div class="item"><div class="k">Largura de corda</div><div class="v" id="l-out-curve-chord">—</div></div>
+            <div class="item"><div class="k">Flecha (profundidade)</div><div class="v" id="l-out-curve-sagitta">—</div></div>
+            <div class="item wide"><div class="k">Largura desenvolvida (soma dos tiles)</div><div class="v" id="l-out-curve-developed">—</div></div>
+          </div>
+          <p class="note" id="l-curve-warn" style="display:none;"></p>
+        </div>
         <h2 style="margin-top:18px;">Distância de visualização</h2>
         <div class="readout">
           <div class="item"><div class="k">Mínima</div><div class="v" id="l-out-dmin">—</div></div>
@@ -2582,6 +2625,69 @@
     });
   });
 
+  var lCurveEnabled = document.getElementById("l-curve-enabled");
+  var lCurveFields = document.getElementById("l-curve-fields");
+  var lCurveMode = "angle";
+  var lCurveValueLabel = document.getElementById("l-curve-value-label");
+  var lCurveValueUnit = document.getElementById("l-curve-value-unit");
+  var lCurveValueInput = document.getElementById("l-curve-value");
+  lCurveEnabled.addEventListener("change", function () {
+    lCurveFields.style.display = lCurveEnabled.checked ? "block" : "none";
+    calcLed();
+  });
+  document.querySelectorAll("#l-curve-mode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll("#l-curve-mode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      lCurveMode = btn.dataset.curvemode;
+      if (lCurveMode === "radius") {
+        lCurveValueLabel.textContent = "Raio desejado";
+        lCurveValueUnit.textContent = "m";
+        lCurveValueInput.value = "5";
+        lCurveValueInput.step = "0.1";
+      } else {
+        lCurveValueLabel.textContent = "Ângulo por tile";
+        lCurveValueUnit.textContent = "°";
+        lCurveValueInput.value = "5";
+        lCurveValueInput.step = "0.5";
+      }
+      calcLed();
+    });
+  });
+  document.getElementById("l-curve-dir").addEventListener("change", calcLed);
+
+  // Curvatura de um ledwall retangular (não em zonas) — ver calcCurvature/
+  // curvatureAngleFromRadius em js/utils.js para a matemática partilhada
+  // com o Ecrã Complexo. mx = tiles na horizontal, mw = largura do módulo
+  // (mm) — a curvatura é sempre ao longo dessa horizontal.
+  function calcLedCurvature(mx, mw) {
+    var resultsEl = document.getElementById("l-curve-results");
+    var warnEl = document.getElementById("l-curve-warn");
+    var outIds = ["l-out-curve-angle", "l-out-curve-radius", "l-out-curve-totalangle", "l-out-curve-chord", "l-out-curve-sagitta", "l-out-curve-developed"];
+    if (!lCurveEnabled.checked) { resultsEl.style.display = "none"; return; }
+    resultsEl.style.display = "block";
+    var tileWidthM = mw / 1000;
+    var c = resolveCurvature(lCurveMode, val("l-curve-value"), mx, tileWidthM);
+    if (!c) {
+      outIds.forEach(function (id) { document.getElementById(id).textContent = "—"; });
+      warnEl.style.display = "block";
+      warnEl.textContent = "Esse raio é fisicamente impossível para esta largura de tile (o tile seria mais largo que o diâmetro) — aumenta o raio ou reduz a largura do tile.";
+      return;
+    }
+    document.getElementById("l-out-curve-angle").innerHTML = fmt(c.angleDegPerTile, 2) + "<small>°</small>";
+    document.getElementById("l-out-curve-radius").innerHTML = isFinite(c.radiusM) ? fmt(c.radiusM, 2) + "<small>m</small>" : "∞ (reto)";
+    document.getElementById("l-out-curve-totalangle").innerHTML = fmt(c.totalAngleDeg, 1) + "<small>°</small>";
+    document.getElementById("l-out-curve-chord").innerHTML = fmt(c.chordWidthM, 2) + "<small>m</small>";
+    document.getElementById("l-out-curve-sagitta").innerHTML = fmt(c.sagittaM, 2) + "<small>m</small>";
+    document.getElementById("l-out-curve-developed").innerHTML = fmt(c.developedWidthM, 2) + "<small>m</small>";
+    if (c.totalAngleDeg > 360) {
+      warnEl.style.display = "block";
+      warnEl.textContent = "Ângulo total do arco (" + fmt(c.totalAngleDeg, 1) + "°) passa de 360° — o ecrã dá mais que uma volta completa; confirma os valores.";
+    } else {
+      warnEl.style.display = "none";
+    }
+  }
+
   // Para modelos que existem em dois tamanhos de tile (ex: 100x50 e a
   // metade, 50x50), encontra a melhor combinação de tiles inteiros + no
   // máx. 1 meio-tile que cobre o alvo (targetMM) com o menor excesso.
@@ -2713,6 +2819,17 @@
       warnEl.style.display = "none";
     }
 
+    calcLedCurvature(mx, mw);
+    var curveSummaryText = "";
+    if (lCurveEnabled.checked) {
+      var cCalc = resolveCurvature(lCurveMode, val("l-curve-value"), mx, mw / 1000);
+      if (cCalc) {
+        var dirText = document.getElementById("l-curve-dir").value === "convex" ? "convexo" : "côncavo";
+        curveSummaryText = "Curvatura: " + dirText + ", " + fmt(cCalc.angleDegPerTile,2) + "°/tile, raio " + (isFinite(cCalc.radiusM) ? fmt(cCalc.radiusM,2) + " m" : "∞") +
+          ", arco total " + fmt(cCalc.totalAngleDeg,1) + "°, corda " + fmt(cCalc.chordWidthM,2) + " m, flecha " + fmt(cCalc.sagittaM,2) + " m\n";
+      }
+    }
+
     document.getElementById("l-sum").textContent =
       "Ecrã LED: " + mx + " x " + my + " tiles (" + mw + " x " + mh + " mm cada, " + fmtInt(numTiles) + " tiles)\n" +
       (halfNoteText ? halfNoteText + "\n" : "") +
@@ -2720,6 +2837,7 @@
       "Tamanho físico: " + fmt(totalWm,2) + " x " + fmt(totalHm,2) + " m  (" + fmt(area,2) + " m²)\n" +
       "Pixel pitch: " + fmt(pitchAvg,2) + " mm\n" +
       (isNaN(nits) ? "" : "Brilho: " + fmtInt(nits) + " nits\n") +
+      curveSummaryText +
       "Distância de visualização: " + fmt(dmin,1) + " – " + fmt(dmax,1) + " m (mín. – máx.)\n" +
       "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps (máx.): " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)";
 
