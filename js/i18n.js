@@ -254,7 +254,7 @@
     "Gap p/ cópia": "Gap per copy",
     "Direção cópias": "Copy direction",
     "0 selecionadas": "0 selected",
-    "Clicar para saltar para esta zona na lista": "Click to jump to this zone in the list",
+    "Clicar para saltar para esta zona na lista, ou arrastar para mover (os campos Posição X/Y ficam para o ajuste fino)": "Click to jump to this zone in the list, or drag to move it (the Position X/Y fields are still there for fine adjustment)",
     "Zonas incluídas — que ecrã é o quê": "Zones included — which screen is which",
     "Resumo por zona": "Summary per zone",
     "Total combinado": "Combined total",

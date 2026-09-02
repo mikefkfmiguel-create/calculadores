@@ -805,6 +805,9 @@
      usa a barra condensada #lz-preview-bar (ver mais abaixo), que não
      depende de sticky/fixed e já estava testada e a funcionar bem. */
   #lz-diagram-card { position: static; }
+  #lz-diagram.lz-dragging { cursor: grabbing; }
+  #lz-diagram.lz-dragging rect[data-zone-id] { cursor: grabbing; }
+  body:has(#lz-diagram.lz-dragging) { user-select: none; -webkit-user-select: none; }
   #lz-add-top { margin-bottom: 12px; }
   /* Botão pequeno e isolado — sem depender de sticky/fixed no diagrama
      (que já se mostrou pouco fiável), fica sozinho fixo no canto para
