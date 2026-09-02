@@ -470,6 +470,12 @@
   }
   @media (min-width: 760px) {
     .grid { grid-template-columns: 1.05fr 1fr; align-items: start; }
+    /* Zonas / Ecrã Complexo: a barra "Deslocar X/Y" precisa de mais
+       largura do que o resto dos formulários (vários campos + botões numa
+       só linha); o cartão "Total combinado" ao lado é só leitura e cabe
+       bem mais estreito — desequilibra a proporção só aqui, sem mexer no
+       .grid genérico usado pelas outras calculadoras. */
+    .lz-grid { grid-template-columns: 1.4fr 1fr; }
   }
 
   .card {
@@ -936,7 +942,7 @@
     background: var(--paper);
   }
   .lz-bulk-label { font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
-  .lz-bulk-input { width: 64px; flex: none; }
+  .lz-bulk-input { width: 96px; flex: none; }
   .lz-bulk-input input { padding: 6px 8px; font-size: 14px; text-align: right; }
   .lz-bulk-toolbar .copy { padding: 7px 10px; font-size: 13px; }
   .lz-bulk-toolbar #lz-bulk-count { white-space: nowrap; }

@@ -242,20 +242,33 @@
   // 2"/"Lateral 3" partilham cor) — paleta categórica com boa distinção em
   // daltonismo, nas variantes escuras (a app fica sempre em tema escuro).
   var LZ_GROUP_PALETTE = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+  // Chave de agrupamento de cor de uma zona — só agrupa pelo nome-base
+  // (ex: "Lateral 2" -> "Lateral") quando existe mesmo uma zona chamada
+  // exatamente "Lateral" (a réplica original, criada por "Aplicar
+  // réplicas"). Sem essa zona-raiz, cada zona fica com a sua própria cor —
+  // senão zonas avulsas com o nome por omissão ("Zona 1", "Zona 2", "Zona
+  // 3", nunca renomeadas) ficavam todas coladas na mesma cor, por
+  // coincidirem no mesmo nome-base sem serem réplicas de facto.
+  function lzColorKey(z, zones) {
+    var base = lzBaseName(z.name);
+    if (base === z.name) return z.name;
+    var hasRoot = zones.some(function (o) { return o.name === base; });
+    return hasRoot ? base : z.name;
+  }
   // Cor efetiva de uma zona — a escolhida à mão para essa zona específica
-  // (se houver), senão a automática do grupo (nome-base).
-  function lzZoneColor(z, colorMap) {
-    return z.colorOverride || colorMap[lzBaseName(z.name)];
+  // (se houver), senão a automática do grupo.
+  function lzZoneColor(z, colorMap, zones) {
+    return z.colorOverride || colorMap[lzColorKey(z, zones)];
   }
   function lzGroupColorMap(zones) {
     var map = {};
     zones.forEach(function (z) {
-      var base = lzBaseName(z.name);
-      if (!(base in lzColorAssignments)) {
-        lzColorAssignments[base] = LZ_GROUP_PALETTE[lzNextColorIndex % LZ_GROUP_PALETTE.length];
+      var key = lzColorKey(z, zones);
+      if (!(key in lzColorAssignments)) {
+        lzColorAssignments[key] = LZ_GROUP_PALETTE[lzNextColorIndex % LZ_GROUP_PALETTE.length];
         lzNextColorIndex++;
       }
-      map[base] = lzColorAssignments[base];
+      map[key] = lzColorAssignments[key];
     });
     return map;
   }
@@ -671,7 +684,7 @@
     labels.forEach(function (l) {
       var z = l.z;
       var x = z.posX - minX + padSide, y = z.posY - minY + padTop;
-      var color = lzZoneColor(z, colorMap);
+      var color = lzZoneColor(z, colorMap, zones);
       parts.push('<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '" style="cursor:grab;"><title>Clicar para saltar para esta zona na lista, ou arrastar para mover (os campos Posição X/Y ficam para o ajuste fino)</title></rect>');
       parts.push('<text x="' + x + '" y="' + (y - labelGap - l.level * rowH) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
     });
@@ -685,9 +698,9 @@
     svg.innerHTML = parts.join("");
 
     var groupNames = [];
-    Object.keys(colorMap).forEach(function (base) { if (valid.some(function (z) { return lzBaseName(z.name) === base; })) groupNames.push(base); });
-    legend.innerHTML = groupNames.map(function (base) {
-      return '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + colorMap[base] + '; opacity:0.75; margin-right:5px; vertical-align:-1px;"></span>' + escapeXml(base) + '</span>';
+    Object.keys(colorMap).forEach(function (key) { if (valid.some(function (z) { return lzColorKey(z, zones) === key; })) groupNames.push(key); });
+    legend.innerHTML = groupNames.map(function (key) {
+      return '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + colorMap[key] + '; opacity:0.75; margin-right:5px; vertical-align:-1px;"></span>' + escapeXml(key) + '</span>';
     }).join("") +
       '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + rose + '; opacity:0.3; border:1px dashed ' + rose + '; margin-right:5px; vertical-align:-1px;"></span>gap (sem LED)</span>';
 
@@ -699,7 +712,7 @@
       var meta = fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m — " + fmtInt(z.totalPx) + "×" + fmtInt(z.totalPy) + "px — X:" + fmt(z.posX, 2) + "→" + fmt(z.posX + z.w, 2) +
         (z.posY ? ", Y:" + fmt(z.posY, 2) + "→" + fmt(z.posY + z.h, 2) : "") + "m";
       return '<div class="lz-detail-row" data-zone-id="' + escapeXml(z.id || "") + '">' +
-        '<span class="lz-detail-dot" style="background:' + lzZoneColor(z, colorMap) + ';"></span>' +
+        '<span class="lz-detail-dot" style="background:' + lzZoneColor(z, colorMap, zones) + ';"></span>' +
         '<div><div class="lz-detail-name">' + escapeXml(z.name) + '</div><div class="lz-detail-meta">' + escapeXml(meta) + '</div></div>' +
         '</div>';
     }).join("");
@@ -850,7 +863,7 @@
     labels.forEach(function (l) {
       var z = l.z;
       var x = z.pxX * scale, y = z.pxY * scale + offsetTop, w = z.pxW * scale, h = z.pxH * scale;
-      var color = lzZoneColor(z, colorMap) || "#159187";
+      var color = lzZoneColor(z, colorMap, pm.zones) || "#159187";
       ctx.fillStyle = lzHexToRgba(color, 0.6);
       ctx.fillRect(x, y, w, h);
       ctx.strokeStyle = color;
@@ -1019,7 +1032,7 @@
     cards.forEach(function (card, i) {
       var colorInput = card.querySelector(".lz-color-input");
       var resetBtn = card.querySelector(".lz-color-reset");
-      if (colorInput && document.activeElement !== colorInput) colorInput.value = lzZoneColor(zones[i], colorMap);
+      if (colorInput && document.activeElement !== colorInput) colorInput.value = lzZoneColor(zones[i], colorMap, zones);
       if (resetBtn) resetBtn.style.visibility = zones[i].colorOverride ? "visible" : "hidden";
     });
 
