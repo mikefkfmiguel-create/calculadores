@@ -854,31 +854,29 @@
      sistematicamente desactualizada sempre que o diagrama mudava de
      altura sem essa mudança ser apanhada a tempo (ex: legendas a
      quebrarem linha ao arrastar uma zona), escondendo o cabeçalho "Ecrã
-     Complexo" e cortando o topo dos cards da lista por baixo. Passou por
-     isso a fluxo normal — mas o pedido era mesmo o diagrama ficar sempre
-     visível ao scrollar a lista de zonas, e o problema nunca foi "fixo"
-     em si, foi a margem calculada à mão. "position: sticky" resolve sem
-     esse cálculo: reserva o próprio espaço no fluxo automaticamente (o
-     cabeçalho por cima não fica escondido a meio da página, só quando se
-     desce a ponto de o diagrama "colar" ao topo é que passa a tapar o
-     que vem a seguir — e o "max-height" abaixo continua a garantir que
-     nunca cresce ao ponto de cortar os cards). Só em ecrãs largos — em
-     telemóvel o diagrama ocupar sempre metade do ecrã sobra pouco espaço
-     à lista, por isso mantém-se em fluxo normal aí. */
-  #ecra-fixed-top {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 28px 20px 16px;
-    background: var(--paper);
-    max-height: 52vh;
-    overflow-y: auto;
-  }
+     Complexo" e cortando o topo dos cards da lista por baixo. "position:
+     sticky" resolve sem esse cálculo: reserva o próprio espaço no fluxo
+     automaticamente, sem margem calculada à mão. O pedido é o diagrama E
+     o cabeçalho "Ecrã Complexo" ficarem sempre visíveis (só a barra
+     "Deslocar X/Y"/lista de zonas/totais é que scrolla por baixo) — por
+     isso os dois vivem juntos dentro de #ecra-sticky-top, que é o
+     elemento sticky; #ecra-fixed-top continua com o seu próprio limite
+     de altura e scroll interno, para o diagrama nunca crescer ao ponto
+     de cortar o resto mesmo com muitas zonas. Só em ecrãs largos — em
+     telemóvel este bloco ocupar sempre uma fatia fixa do ecrã sobra
+     pouco espaço à lista, por isso mantém-se em fluxo normal aí. */
   @media (min-width: 760px) {
-    #ecra-fixed-top {
+    #ecra-sticky-top {
       position: sticky;
       top: 0;
       z-index: 20;
+      background: var(--paper);
     }
+  }
+  #ecra-fixed-top {
+    padding: 28px 20px 16px;
+    max-height: 52vh;
+    overflow-y: auto;
   }
   /* Barra fixa com o resultado essencial (resolução do canvas + tiles),
      sempre visível por cima do teclado/conteúdo enquanto se edita a lista
