@@ -341,9 +341,99 @@
     card.classList.add("lz-flash");
   }
   document.getElementById("lz-diagram").addEventListener("click", function (e) {
+    if (lzJustDragged) { lzJustDragged = false; return; }
     var rect = e.target.closest("rect[data-zone-id]");
     if (rect && rect.dataset.zoneId) lzJumpToZoneCard(rect.dataset.zoneId);
   });
+
+  // Arrastar uma zona diretamente no diagrama — atalho visual para o
+  // posicionamento; os campos Posição X/Y continuam a ser a forma de fazer
+  // o ajuste fino (ficam sincronizados ao vivo durante o arrasto). Usa
+  // Pointer Events (rato, caneta e touch no mesmo código) com os
+  // listeners de movimento/soltar no document, não no próprio <rect> —
+  // esse elemento é destruído e recriado a cada redesenho do SVG, por
+  // isso não pode ser o alvo de um pointer capture que sobrevive ao
+  // arrasto todo.
+  var lzDrag = null;
+  var lzJustDragged = false;
+  var LZ_DRAG_CLICK_THRESHOLD_PX = 4;
+
+  function lzSvgPoint(svg, clientX, clientY) {
+    var pt = svg.createSVGPoint();
+    pt.x = clientX; pt.y = clientY;
+    var ctm = svg.getScreenCTM();
+    if (!ctm) return { x: 0, y: 0 };
+    var p = pt.matrixTransform(ctm.inverse());
+    return { x: p.x, y: p.y };
+  }
+
+  document.getElementById("lz-diagram").addEventListener("pointerdown", function (e) {
+    if (e.button != null && e.button !== 0) return; // só botão esquerdo/toque/caneta principal
+    var rect = e.target.closest("rect[data-zone-id]");
+    if (!rect || !rect.dataset.zoneId) return;
+    var card = lzList.querySelector('.card[data-zone-id="' + rect.dataset.zoneId + '"]');
+    if (!card) return;
+    var xInput = card.querySelector(".lz-posx"), yInput = card.querySelector(".lz-posy");
+    if (!xInput || !yInput) return;
+    var svg = document.getElementById("lz-diagram");
+    var start = lzSvgPoint(svg, e.clientX, e.clientY);
+    lzDrag = {
+      svg: svg, xInput: xInput, yInput: yInput,
+      startClientX: e.clientX, startClientY: e.clientY,
+      startSvgX: start.x, startSvgY: start.y,
+      startPosX: parseFloat(xInput.value) || 0, startPosY: parseFloat(yInput.value) || 0,
+      moved: false, pending: false
+    };
+    // Mantém a lista sem reordenar durante o arrasto (mesma proteção já
+    // usada quando se edita X/Y à mão) — reordena só uma vez no fim.
+    xInput.focus({ preventScroll: true });
+    svg.classList.add("lz-dragging");
+    e.preventDefault();
+  });
+
+  document.addEventListener("pointermove", function (e) {
+    if (!lzDrag) return;
+    if (!lzDrag.moved) {
+      var dClientX = e.clientX - lzDrag.startClientX, dClientY = e.clientY - lzDrag.startClientY;
+      if (Math.hypot(dClientX, dClientY) < LZ_DRAG_CLICK_THRESHOLD_PX) return;
+      lzDrag.moved = true;
+    }
+    var cur = lzSvgPoint(lzDrag.svg, e.clientX, e.clientY);
+    lzDrag.dx = cur.x - lzDrag.startSvgX;
+    lzDrag.dy = cur.y - lzDrag.startSvgY;
+    if (lzDrag.pending) return;
+    lzDrag.pending = true;
+    requestAnimationFrame(function () {
+      if (!lzDrag) return;
+      lzDrag.pending = false;
+      var newX = Math.round((lzDrag.startPosX + lzDrag.dx) * 100) / 100;
+      var newY = Math.round((lzDrag.startPosY + lzDrag.dy) * 100) / 100;
+      lzDrag.xInput.value = newX.toFixed(2);
+      lzDrag.yInput.value = newY.toFixed(2);
+      calcLedZones();
+    });
+  });
+
+  function lzEndDrag() {
+    if (!lzDrag) return;
+    var moved = lzDrag.moved;
+    var xInput = lzDrag.xInput;
+    lzDrag.svg.classList.remove("lz-dragging");
+    lzDrag = null;
+    if (moved) {
+      lzJustDragged = true;
+      // Reposição de segurança — nem todos os browsers/dispositivos disparam
+      // um "click" a seguir ao mouseup/pointerup de um arrasto (foi o caso
+      // encontrado em testes automatizados); sem isto, se esse click nunca
+      // vier, a flag ficava presa a "true" e engolia o próximo clique
+      // genuíno de saltar para outra zona.
+      setTimeout(function () { lzJustDragged = false; }, 300);
+      xInput.blur(); // liberta a proteção de "não reordenar" e aplica o sort final
+      calcLedZones();
+    }
+  }
+  document.addEventListener("pointerup", lzEndDrag);
+  document.addEventListener("pointercancel", lzEndDrag);
   document.getElementById("lz-diagram-details").addEventListener("click", function (e) {
     var row = e.target.closest(".lz-detail-row[data-zone-id]");
     if (row && row.dataset.zoneId) lzJumpToZoneCard(row.dataset.zoneId);
@@ -551,7 +641,7 @@
       var z = l.z;
       var x = z.posX - minX + padSide, y = z.posY - minY + padTop;
       var color = colorMap[lzBaseName(z.name)];
-      parts.push('<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '" style="cursor:pointer;"><title>Clicar para saltar para esta zona na lista</title></rect>');
+      parts.push('<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '" style="cursor:grab;"><title>Clicar para saltar para esta zona na lista, ou arrastar para mover (os campos Posição X/Y ficam para o ajuste fino)</title></rect>');
       parts.push('<text x="' + x + '" y="' + (y - labelGap - l.level * rowH) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
     });
 
