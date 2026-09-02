@@ -100,10 +100,23 @@
       if (opts.mx != null) card.querySelector(".lz-mx").value = opts.mx;
       if (opts.my != null) card.querySelector(".lz-my").value = opts.my;
     }
+    if (opts.curveEnabled != null) {
+      card.querySelector(".lz-curve-enabled").checked = opts.curveEnabled;
+      card.querySelector(".lz-curve-fields").style.display = opts.curveEnabled ? "block" : "none";
+    }
+    if (opts.curveMode != null) {
+      var isRadiusMode = opts.curveMode === "radius";
+      card.querySelectorAll(".lz-curve-mode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", (b.dataset.curvemode === "radius") === isRadiusMode); });
+      card.querySelector(".lz-curve-value-label").textContent = isRadiusMode ? "Raio desejado" : "Ângulo por tile";
+      card.querySelector(".lz-curve-value-unit").textContent = isRadiusMode ? "m" : "°";
+    }
+    if (opts.curveValue != null) card.querySelector(".lz-curve-value").value = opts.curveValue;
+    if (opts.curveDir != null) card.querySelector(".lz-curve-dir").value = opts.curveDir;
   }
 
   function lzOptsFromCard(card) {
     var activeSeg = card.querySelector(".lz-sizemode-seg .seg-btn.active");
+    var curveModeSeg = card.querySelector(".lz-curve-mode-seg .seg-btn.active");
     return {
       visible: card.querySelector(".lz-visible").checked,
       modelValue: card.querySelector(".lz-model").value,
@@ -117,7 +130,11 @@
       rx: card.querySelector(".lz-rx").value,
       ry: card.querySelector(".lz-ry").value,
       weight: card.querySelector(".lz-weight").value,
-      amp: card.querySelector(".lz-amp").value
+      amp: card.querySelector(".lz-amp").value,
+      curveEnabled: card.querySelector(".lz-curve-enabled").checked,
+      curveMode: curveModeSeg ? curveModeSeg.dataset.curvemode : "angle",
+      curveValue: card.querySelector(".lz-curve-value").value,
+      curveDir: card.querySelector(".lz-curve-dir").value
     };
   }
 
@@ -216,6 +233,35 @@
         '<div class="row2 lz-custom-fields" style="display:none;">' +
           '<div class="field"><label>Peso por tile</label><div class="inputgroup"><input class="lz-weight" type="number" inputmode="decimal" value="6.0" min="0" step="0.1"><span class="unit">kg</span></div></div>' +
           '<div class="field"><label>Amp máx. por tile</label><div class="inputgroup"><input class="lz-amp" type="number" inputmode="decimal" value="0.52" min="0" step="0.01"><span class="unit">A</span></div></div>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:400;">' +
+            '<input type="checkbox" class="lz-curve-enabled" style="width:auto;">' +
+            'Zona curva' +
+          '</label>' +
+        '</div>' +
+        '<div class="lz-curve-fields" style="display:none;">' +
+          '<div class="field">' +
+            '<label>Como queres indicar a curvatura?</label>' +
+            '<div class="seg lz-curve-mode-seg">' +
+              '<button type="button" class="seg-btn active" data-curvemode="angle">Ângulo por tile</button>' +
+              '<button type="button" class="seg-btn" data-curvemode="radius">Raio desejado</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="row2">' +
+            '<div class="field">' +
+              '<label class="lz-curve-value-label">Ângulo por tile</label>' +
+              '<div class="inputgroup"><input class="lz-curve-value" type="number" inputmode="decimal" value="5" min="0" step="0.5"><span class="unit lz-curve-value-unit">°</span></div>' +
+            '</div>' +
+            '<div class="field">' +
+              '<label>Direção</label>' +
+              '<select class="lz-curve-dir plain">' +
+                '<option value="concave" selected>Côncavo (para o público)</option>' +
+                '<option value="convex">Convexo (para fora)</option>' +
+              '</select>' +
+            '</div>' +
+          '</div>' +
+          '<div class="hint lz-curve-readout">—</div>' +
         '</div>' +
       '</details>';
     lzList.appendChild(card);
@@ -571,6 +617,19 @@
       card.querySelector(".lz-my").readOnly = isMeters;
       calcLedZones();
     }
+    var curveModeBtn = e.target.closest(".lz-curve-mode-seg .seg-btn");
+    if (curveModeBtn) {
+      var curveCard = curveModeBtn.closest(".card");
+      curveCard.querySelectorAll(".lz-curve-mode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+      curveModeBtn.classList.add("active");
+      var isRadius = curveModeBtn.dataset.curvemode === "radius";
+      var valueInput = curveCard.querySelector(".lz-curve-value");
+      curveCard.querySelector(".lz-curve-value-label").textContent = isRadius ? "Raio desejado" : "Ângulo por tile";
+      curveCard.querySelector(".lz-curve-value-unit").textContent = isRadius ? "m" : "°";
+      valueInput.value = isRadius ? "5" : "5";
+      valueInput.step = isRadius ? "0.1" : "0.5";
+      calcLedZones();
+    }
   });
   lzList.addEventListener("change", function (e) {
     if (e.target.classList.contains("lz-model")) {
@@ -581,6 +640,9 @@
     // radio) — marcar uma desmarca as outras.
     if (e.target.classList.contains("lz-ref") && e.target.checked) {
       lzList.querySelectorAll(".lz-ref").forEach(function (cb) { if (cb !== e.target) cb.checked = false; });
+    }
+    if (e.target.classList.contains("lz-curve-enabled")) {
+      e.target.closest(".card").querySelector(".lz-curve-fields").style.display = e.target.checked ? "block" : "none";
     }
     calcLedZones();
   });
@@ -1008,7 +1070,29 @@
       var visible = card.querySelector(".lz-visible").checked;
       card.style.opacity = visible ? "" : "0.5";
       var isRef = card.querySelector(".lz-ref").checked;
-      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null });
+
+      var curveReadout = card.querySelector(".lz-curve-readout");
+      var curveText = null;
+      if (curveReadout) {
+        if (!card.querySelector(".lz-curve-enabled").checked) {
+          curveReadout.textContent = "—";
+        } else {
+          var curveModeBtnActive = card.querySelector(".lz-curve-mode-seg .seg-btn.active");
+          var curveMode = curveModeBtnActive ? curveModeBtnActive.dataset.curvemode : "angle";
+          var curveValue = parseFloat(card.querySelector(".lz-curve-value").value);
+          var curveDir = card.querySelector(".lz-curve-dir").value === "convex" ? "convexo" : "côncavo";
+          var cZone = (isNaN(mw) || isNaN(curveValue)) ? null : resolveCurvature(curveMode, curveValue, mx, mw / 1000);
+          if (!cZone) {
+            curveReadout.textContent = "Esse raio é fisicamente impossível para esta largura de tile.";
+          } else {
+            curveText = curveDir + ", " + fmt(cZone.angleDegPerTile,2) + "°/tile, raio " + (isFinite(cZone.radiusM) ? fmt(cZone.radiusM,2) + " m" : "∞") +
+              ", arco total " + fmt(cZone.totalAngleDeg,1) + "°, corda " + fmt(cZone.chordWidthM,2) + " m, flecha " + fmt(cZone.sagittaM,2) + " m";
+            curveReadout.textContent = curveText;
+          }
+        }
+      }
+
+      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, curveText: curveText });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do
@@ -1048,7 +1132,7 @@
     document.getElementById("lz-preview-bar-text").textContent = (pm ? canvasResText : "—") + " · " + fmtInt(totalTiles) + " tiles · " + visibleZones.length + " zona(s)" + (hiddenCount ? " (" + hiddenCount + " escondida(s))" : "");
 
     document.getElementById("lz-sum").textContent = visibleZones.map(function (z) {
-      return z.name + " (X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A";
+      return z.name + " (X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A" + (z.curveText ? "\nCurvatura: " + z.curveText : "");
     }).join("\n") + (hiddenCount ? "\n\n(" + hiddenCount + " zona(s) escondida(s), fora destas contas)" : "") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos de cada zona), " + fmt(totalArea,2) + " m² (soma das zonas), " + fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A máx. (" + fmt(totalAmp/3,2) + " A/fase)" +
       (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "") +
       (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, zona mais alta") + ")" : "") : "");

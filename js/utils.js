@@ -11,6 +11,54 @@ function fmtInt(n) {
   return Math.round(n).toLocaleString("pt-PT");
 }
 
+// Curvatura de um ledwall feito de tiles/cabinets rígidos ligados por
+// hinges/locks que só dobram em incrementos fixos entre tiles — não é uma
+// curva suave, é um polígono regular que aproxima um arco de círculo: cada
+// tile é uma corda de comprimento igual à sua largura, subtendendo o mesmo
+// ângulo no centro do arco (w = 2R·sin(θ/2), com θ = ângulo entre tiles
+// consecutivos). Devolve null se os dados não derem uma curva válida.
+function calcCurvature(n, tileWidthM, angleDegPerTile) {
+  if (!(n > 0) || !(tileWidthM > 0) || !isFinite(angleDegPerTile)) return null;
+  var developedWidthM = n * tileWidthM;
+  var angleAbs = Math.abs(angleDegPerTile);
+  if (angleAbs < 1e-6) {
+    return { angleDegPerTile: 0, radiusM: Infinity, totalAngleDeg: 0, chordWidthM: developedWidthM, sagittaM: 0, developedWidthM: developedWidthM };
+  }
+  var thetaRad = angleAbs * Math.PI / 180;
+  var radiusM = tileWidthM / (2 * Math.sin(thetaRad / 2));
+  var totalAngleDeg = angleAbs * n;
+  var halfTotalRad = (thetaRad * n) / 2;
+  var chordWidthM = 2 * radiusM * Math.sin(halfTotalRad);
+  var sagittaM = radiusM * (1 - Math.cos(halfTotalRad));
+  return {
+    angleDegPerTile: angleAbs,
+    radiusM: radiusM,
+    totalAngleDeg: totalAngleDeg,
+    chordWidthM: chordWidthM,
+    sagittaM: sagittaM,
+    developedWidthM: developedWidthM
+  };
+}
+// Converte um raio desejado no ângulo que cada tile teria de dobrar para lá
+// chegar (o inverso de calcCurvature). Devolve null se o raio for
+// fisicamente impossível para essa largura de tile (corda maior que o
+// diâmetro do círculo).
+function curvatureAngleFromRadius(radiusM, tileWidthM) {
+  if (!(radiusM > 0) || !(tileWidthM > 0)) return null;
+  var ratio = tileWidthM / (2 * radiusM);
+  if (ratio > 1) return null;
+  return (2 * Math.asin(ratio)) * 180 / Math.PI;
+}
+// A partir do modo escolhido na UI ("angle" = ângulo por tile, "radius" =
+// raio desejado) e do valor introduzido, devolve o resultado de
+// calcCurvature já resolvido — ou null se o raio for impossível para essa
+// largura de tile. Partilhado entre a aba LED (index.html) e o Ecrã
+// Complexo (zonas.js).
+function resolveCurvature(mode, value, n, tileWidthM) {
+  var angleDeg = mode === "radius" ? curvatureAngleFromRadius(value, tileWidthM) : value;
+  return (angleDeg == null) ? null : calcCurvature(n, tileWidthM, angleDeg);
+}
+
 function escapeXml(s) {
   return String(s).replace(/[&<>"']/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[c];
