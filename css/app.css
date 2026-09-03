@@ -575,7 +575,18 @@
     margin-top: 12px;
   }
   .lz-readout-row .hint { margin: 0; }
-  .lz-edit-btn { flex: none; font-size: 12.5px; padding: 6px 10px; }
+  /* Cor de destaque (a mesma da aba Zonas/Ecrã Complexo) para ser o botão
+     mais visível do card — é o único acesso à posição, modelo, tamanho e
+     curvatura, por isso não pode passar despercebido como mais um botão
+     cinzento entre "Aplicar réplicas"/"Remover". */
+  .lz-edit-btn {
+    flex: none;
+    font-size: 12.5px;
+    padding: 6px 10px;
+    color: var(--teal-600);
+    border-color: var(--teal-500);
+  }
+  .lz-edit-btn:hover { color: var(--teal-600); border-color: var(--teal-600); background: var(--paper-raised); }
   .lz-curve-readout { margin-top: 6px; }
   .lz-details-dialog {
     width: min(560px, 92vw);

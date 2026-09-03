@@ -349,6 +349,8 @@
     "∞ (reto)": "∞ (straight)",
     "Esse raio é fisicamente impossível para esta largura de tile (o tile seria mais largo que o diâmetro) — aumenta o raio ou reduz a largura do tile.": "That radius is physically impossible for this tile width (the tile would be wider than the diameter) — increase the radius or reduce the tile width.",
     "Esse raio é fisicamente impossível para esta largura de tile.": "That radius is physically impossible for this tile width.",
+    "esse raio é fisicamente impossível para esta largura de tile.": "that radius is physically impossible for this tile width.",
+    "desligada": "off",
     "Ângulo total do arco (": "Total arc angle (",
     "°) passa de 360° — o ecrã dá mais que uma volta completa; confirma os valores.": "°) is over 360° — the screen wraps more than a full circle; check the values.",
     "Curvatura: ": "Curvature: ",
