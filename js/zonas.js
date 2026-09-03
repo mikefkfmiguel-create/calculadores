@@ -709,6 +709,31 @@
     return pts;
   }
 
+  // Alcance vertical real de uma zona no desenho — para uma zona reta é
+  // só o seu próprio y/h, mas para uma curva a "barriga" (flecha) pode
+  // ultrapassar bastante a altura nominal da zona (uma curvatura suave
+  // numa zona larga facilmente tem uma flecha maior do que a própria
+  // altura do painel). Sem contar com isto, tanto o recorte da zona como
+  // o viewBox do desenho todo ficavam pequenos demais e cortavam o meio
+  // da curva, só deixando ver as pontas (onde a flecha é zero). Guarda o
+  // resultado na própria zona (só muda se a zona for reprocessada).
+  function lzZoneVisualYRange(z) {
+    if (z._curveYRange) return z._curveYRange;
+    if (!z.curve) return (z._curveYRange = { top: z.posY, bottom: z.posY + z.h });
+    var spine = lzCurveSpinePoints(z.curve.n, z.curve.angleDeg, z.curve.convex);
+    var spineMinX = Math.min.apply(null, spine.map(function (p) { return p.x; }));
+    var spineMaxX = Math.max.apply(null, spine.map(function (p) { return p.x; }));
+    var spineSpan = (spineMaxX - spineMinX) || 1;
+    var scale = z.w / spineSpan;
+    var spineMinY = Math.min.apply(null, spine.map(function (p) { return p.y; }));
+    var spineMaxY = Math.max.apply(null, spine.map(function (p) { return p.y; }));
+    var cy = z.posY + z.h / 2;
+    return (z._curveYRange = {
+      top: Math.min(z.posY, cy + spineMinY * scale),
+      bottom: Math.max(z.posY + z.h, cy + spineMaxY * scale)
+    });
+  }
+
   function lzRenderDiagram(zones, colorMap, pm) {
     var wrap = document.getElementById("lz-diagram-wrap");
     var svg = document.getElementById("lz-diagram");
@@ -724,9 +749,9 @@
     }
     wrap.style.display = "block";
     var minX = Math.min.apply(null, valid.map(function (z) { return z.posX; }));
-    var minY = Math.min.apply(null, valid.map(function (z) { return z.posY; }));
+    var minY = Math.min.apply(null, valid.map(function (z) { return lzZoneVisualYRange(z).top; }));
     var maxX = Math.max.apply(null, valid.map(function (z) { return z.posX + z.w; }));
-    var maxY = Math.max.apply(null, valid.map(function (z) { return z.posY + z.h; }));
+    var maxY = Math.max.apply(null, valid.map(function (z) { return lzZoneVisualYRange(z).bottom; }));
     var totalW = maxX - minX, totalH = maxY - minY;
     var unit = Math.max(totalW, totalH) || 1;
     var fontSize = unit * 0.028;
@@ -827,18 +852,24 @@
         var d = spine.map(function (p, i) {
           return (i === 0 ? "M" : "L") + (cx + p.x * scale).toFixed(3) + "," + (cy + p.y * scale).toFixed(3);
         }).join(" ");
-        // Recorta a fita ao retângulo normal da zona (mesmo x/y/w/h que um
-        // zona reta ocuparia) — sem isto a "barriga" da curva ultrapassava
-        // para dentro das zonas vizinhas.
+        var curveStrokeW = Math.max(strokeW * 5, unit * 0.01);
+        // Recorta a fita ao retângulo da zona só na horizontal (não deixa a
+        // curva invadir os vizinhos ao lado) — na vertical usa o alcance
+        // real da curva (lzZoneVisualYRange), não a altura nominal da
+        // zona: uma curva suave numa zona larga pode ter uma flecha maior
+        // do que a própria altura do painel, e recortar pela altura
+        // nominal cortava o meio da curva, só deixando ver as pontas.
+        var yRange = lzZoneVisualYRange(z);
+        var clipY = yRange.top - minY + padTop - curveStrokeW / 2;
+        var clipH = (yRange.bottom - yRange.top) + curveStrokeW;
         var clipId = "lz-curve-clip-" + escapeXml(z.id || Math.random().toString(36).slice(2));
-        parts.push('<clipPath id="' + clipId + '"><rect x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '"/></clipPath>');
+        parts.push('<clipPath id="' + clipId + '"><rect x="' + x + '" y="' + clipY + '" width="' + z.w + '" height="' + clipH + '"/></clipPath>');
         // A fita já não usa a altura real da zona (z.h) como espessura —
         // isso fazia zonas curvas altas "engordarem" o desenho e tapar
         // vizinhos em clusters apertados (ex: cantos). Uma faixa fina e
         // constante basta para se ler a curvatura; a área clicável/de
         // arrasto continua a ser o retângulo todo da zona (mais fácil de
         // agarrar do que só a linha fina), só que invisível.
-        var curveStrokeW = Math.max(strokeW * 5, unit * 0.01);
         parts.push('<g clip-path="url(#' + clipId + ')">' +
           '<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="transparent" style="cursor:grab;"><title>' + zoneTitle + '</title></rect>' +
           '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-opacity="0.55" stroke-width="' + curveStrokeW + '" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/>' +
