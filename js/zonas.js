@@ -832,9 +832,16 @@
         // para dentro das zonas vizinhas.
         var clipId = "lz-curve-clip-" + escapeXml(z.id || Math.random().toString(36).slice(2));
         parts.push('<clipPath id="' + clipId + '"><rect x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '"/></clipPath>');
+        // A fita já não usa a altura real da zona (z.h) como espessura —
+        // isso fazia zonas curvas altas "engordarem" o desenho e tapar
+        // vizinhos em clusters apertados (ex: cantos). Uma faixa fina e
+        // constante basta para se ler a curvatura; a área clicável/de
+        // arrasto continua a ser o retângulo todo da zona (mais fácil de
+        // agarrar do que só a linha fina), só que invisível.
+        var curveStrokeW = Math.max(strokeW * 5, unit * 0.01);
         parts.push('<g clip-path="url(#' + clipId + ')">' +
-          '<path data-zone-id="' + escapeXml(z.id || "") + '" d="' + d + '" fill="none" stroke="' + color + '" stroke-opacity="0.55" stroke-width="' + z.h + '" stroke-linejoin="round" stroke-linecap="butt" style="cursor:grab;"><title>' + zoneTitle + '</title></path>' +
-          '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="' + strokeW + '" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/>' +
+          '<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="transparent" style="cursor:grab;"><title>' + zoneTitle + '</title></rect>' +
+          '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-opacity="0.55" stroke-width="' + curveStrokeW + '" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/>' +
           '</g>');
       } else {
         parts.push('<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '" style="cursor:grab;"><title>' + zoneTitle + '</title></rect>');

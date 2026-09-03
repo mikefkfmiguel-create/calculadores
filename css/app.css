@@ -910,7 +910,7 @@
   }
   #ecra-fixed-top {
     padding: 28px 20px 16px;
-    max-height: 52vh;
+    max-height: 72vh;
     overflow-y: auto;
   }
   /* Barra fixa com o resultado essencial (resolução do canvas + tiles),
