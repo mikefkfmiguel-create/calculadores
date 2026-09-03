@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.182</span>
+    <span class="mark">v1.183</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3017,8 +3017,10 @@
 
     var overlapTotalH = oh * (nh - 1);
     var overlapTotalV = ov * (nv - 1);
-    var totalPxH = nh * hpx - overlapTotalH;
-    var totalPxV = nv * vpx - overlapTotalV;
+    // A resolução final nunca deve ficar ímpar (muitos processadores/media
+    // servers exigem par) — arredonda sempre para cima ao par seguinte.
+    var totalPxH = roundUpEven(nh * hpx - overlapTotalH);
+    var totalPxV = roundUpEven(nv * vpx - overlapTotalV);
 
     var pitchMmH = (effWm * 1000) / totalPxH;
     var pitchMmV = (hm * 1000) / totalPxV;

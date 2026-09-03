@@ -10,6 +10,14 @@ function fmtInt(n) {
   if (!isFinite(n)) return "—";
   return Math.round(n).toLocaleString("pt-PT");
 }
+// Muitos processadores de vídeo/media servers exigem uma resolução final
+// par (nunca ímpar) — arredonda sempre para cima ao par seguinte (1→2,
+// 5399→5400, 5400→5400).
+function roundUpEven(n) {
+  if (!isFinite(n)) return n;
+  var r = Math.ceil(n);
+  return r % 2 === 0 ? r : r + 1;
+}
 
 // Curvatura de um ledwall feito de tiles/cabinets rígidos ligados por
 // hinges/locks que só dobram em incrementos fixos entre tiles — não é uma
