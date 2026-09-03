@@ -233,6 +233,7 @@
     // ---- Zonas / ecrã complexo ----
     "✎ Editar": "✎ Edit",
     "Editar zona": "Edit zone",
+    "Editar zona — ": "Edit zone — ",
     "Abre a posição, modelo, tamanho e curvatura desta zona num popup próprio": "Opens this zone's position, model, size and curvature in its own popup",
     "Diagrama do conjunto": "Layout diagram",
     "Dimensão do conjunto (com gaps)": "Overall size (with gaps)",

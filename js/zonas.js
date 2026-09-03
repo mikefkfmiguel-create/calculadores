@@ -204,7 +204,7 @@
       '<div class="hint lz-curve-readout">Curvatura: desligada</div>' +
       '<dialog class="lz-details-dialog">' +
         '<div class="lz-dialog-head">' +
-          '<strong>Editar zona</strong>' +
+          '<strong class="lz-dialog-title">Editar zona</strong>' +
           '<button type="button" class="lz-dialog-close" aria-label="Fechar">✕</button>' +
         '</div>' +
         '<div class="row2 lz-position-inputs">' +
@@ -1103,6 +1103,8 @@
     var zones = [];
     cards.forEach(function (card) {
       var name = card.querySelector(".lz-name").value.trim() || "Zona";
+      var dialogTitle = card.querySelector(".lz-dialog-title");
+      if (dialogTitle) dialogTitle.textContent = "Editar zona — " + name;
       var posX = parseFloat(card.querySelector(".lz-posx").value);
       var posY = parseFloat(card.querySelector(".lz-posy").value);
       if (isNaN(posX)) posX = 0;
