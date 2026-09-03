@@ -201,7 +201,7 @@
         '<div class="hint lz-readout">—</div>' +
         '<button type="button" class="copy lz-edit-btn" title="Abre a posição, modelo, tamanho e curvatura desta zona num popup próprio">✎ Editar</button>' +
       '</div>' +
-      '<div class="hint lz-curve-readout" style="display:none;"></div>' +
+      '<div class="hint lz-curve-readout">Curvatura: desligada</div>' +
       '<dialog class="lz-details-dialog">' +
         '<div class="lz-dialog-head">' +
           '<strong>Editar zona</strong>' +
@@ -1155,9 +1155,8 @@
       var curveInfo = null;
       if (curveReadout) {
         if (!card.querySelector(".lz-curve-enabled").checked) {
-          curveReadout.style.display = "none";
+          curveReadout.textContent = "Curvatura: desligada";
         } else {
-          curveReadout.style.display = "block";
           var curveModeBtnActive = card.querySelector(".lz-curve-mode-seg .seg-btn.active");
           var curveMode = curveModeBtnActive ? curveModeBtnActive.dataset.curvemode : "angle";
           var curveValue = parseFloat(card.querySelector(".lz-curve-value").value);
@@ -1165,11 +1164,11 @@
           var curveDir = curveDirValue === "convex" ? "convexo" : "côncavo";
           var cZone = (isNaN(mw) || isNaN(curveValue)) ? null : resolveCurvature(curveMode, curveValue, mx, mw / 1000);
           if (!cZone) {
-            curveReadout.textContent = "Esse raio é fisicamente impossível para esta largura de tile.";
+            curveReadout.textContent = "Curvatura: esse raio é fisicamente impossível para esta largura de tile.";
           } else {
             curveText = curveDir + ", " + fmt(cZone.angleDegPerTile,2) + "°/tile, raio " + (isFinite(cZone.radiusM) ? fmt(cZone.radiusM,2) + " m" : "∞") +
               ", arco total " + fmt(cZone.totalAngleDeg,1) + "°, corda " + fmt(cZone.chordWidthM,2) + " m, flecha " + fmt(cZone.sagittaM,2) + " m";
-            curveReadout.textContent = curveText;
+            curveReadout.textContent = "Curvatura: " + curveText;
             curveInfo = { n: mx, angleDeg: cZone.angleDegPerTile, convex: curveDirValue === "convex" };
           }
         }
