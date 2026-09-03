@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.189</span>
+    <span class="mark">v1.190</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -479,6 +479,7 @@
             <div class="seg" id="l-curve-mode-seg">
               <button type="button" class="seg-btn active" data-curvemode="angle">Ângulo por tile</button>
               <button type="button" class="seg-btn" data-curvemode="radius">Raio desejado</button>
+              <button type="button" class="seg-btn" data-curvemode="chord">Corda desejada</button>
             </div>
           </div>
           <div class="row2">
@@ -2676,6 +2677,11 @@
         lCurveValueUnit.textContent = "m";
         lCurveValueInput.value = "5";
         lCurveValueInput.step = "0.1";
+      } else if (lCurveMode === "chord") {
+        lCurveValueLabel.textContent = "Corda desejada (espaço a preencher)";
+        lCurveValueUnit.textContent = "m";
+        lCurveValueInput.value = "5";
+        lCurveValueInput.step = "0.1";
       } else {
         lCurveValueLabel.textContent = "Ângulo por tile";
         lCurveValueUnit.textContent = "°";
@@ -2702,7 +2708,9 @@
     if (!c) {
       outIds.forEach(function (id) { document.getElementById(id).textContent = "—"; });
       warnEl.style.display = "block";
-      warnEl.textContent = "Esse raio é fisicamente impossível para esta largura de tile (o tile seria mais largo que o diâmetro) — aumenta o raio ou reduz a largura do tile.";
+      warnEl.textContent = lCurveMode === "chord"
+        ? "Essa corda não é alcançável com este nº de tiles/largura de tile, mesmo dobrando até meia-volta — aumenta a corda, o nº de tiles ou reduz a largura do tile."
+        : "Esse raio é fisicamente impossível para esta largura de tile (o tile seria mais largo que o diâmetro) — aumenta o raio ou reduz a largura do tile.";
       return;
     }
     document.getElementById("l-out-curve-angle").innerHTML = fmt(c.angleDegPerTile, 2) + "<small>°</small>";

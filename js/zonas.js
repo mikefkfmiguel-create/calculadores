@@ -68,6 +68,15 @@
     return { x: maxRight > 0 ? Math.round((maxRight + 0.1) * 100) / 100 : 0, y: minY === null ? 0 : minY };
   }
 
+  // Rótulo/unidade/valor por omissão de cada modo de indicar a curvatura —
+  // partilhado entre o popup de edição (troca ao clicar no seg-btn) e a
+  // restauração a partir do localStorage (lzApplyOptsToCard).
+  function lzCurveModeMeta(mode) {
+    if (mode === "radius") return { label: "Raio desejado", unit: "m", value: "5", step: "0.1" };
+    if (mode === "chord") return { label: "Corda desejada (espaço a preencher)", unit: "m", value: "5", step: "0.1" };
+    return { label: "Ângulo por tile", unit: "°", value: "5", step: "0.5" };
+  }
+
   // Aplica modelo/tamanho (mas nunca posição — cada zona mantém a sua) a um
   // card já existente. Usada tanto para preencher um card acabado de criar
   // como para "Atualizar réplicas" nos já existentes.
@@ -105,10 +114,10 @@
       card.querySelector(".lz-curve-fields").style.display = opts.curveEnabled ? "block" : "none";
     }
     if (opts.curveMode != null) {
-      var isRadiusMode = opts.curveMode === "radius";
-      card.querySelectorAll(".lz-curve-mode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", (b.dataset.curvemode === "radius") === isRadiusMode); });
-      card.querySelector(".lz-curve-value-label").textContent = isRadiusMode ? "Raio desejado" : "Ângulo por tile";
-      card.querySelector(".lz-curve-value-unit").textContent = isRadiusMode ? "m" : "°";
+      card.querySelectorAll(".lz-curve-mode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.curvemode === opts.curveMode); });
+      var curveMeta = lzCurveModeMeta(opts.curveMode);
+      card.querySelector(".lz-curve-value-label").textContent = curveMeta.label;
+      card.querySelector(".lz-curve-value-unit").textContent = curveMeta.unit;
     }
     if (opts.curveValue != null) card.querySelector(".lz-curve-value").value = opts.curveValue;
     if (opts.curveDir != null) card.querySelector(".lz-curve-dir").value = opts.curveDir;
@@ -254,6 +263,7 @@
             '<div class="seg lz-curve-mode-seg">' +
               '<button type="button" class="seg-btn active" data-curvemode="angle">Ângulo por tile</button>' +
               '<button type="button" class="seg-btn" data-curvemode="radius">Raio desejado</button>' +
+              '<button type="button" class="seg-btn" data-curvemode="chord">Corda desejada</button>' +
             '</div>' +
           '</div>' +
           '<div class="row2">' +
@@ -652,12 +662,12 @@
       var curveCard = curveModeBtn.closest(".card");
       curveCard.querySelectorAll(".lz-curve-mode-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
       curveModeBtn.classList.add("active");
-      var isRadius = curveModeBtn.dataset.curvemode === "radius";
+      var curveMeta = lzCurveModeMeta(curveModeBtn.dataset.curvemode);
       var valueInput = curveCard.querySelector(".lz-curve-value");
-      curveCard.querySelector(".lz-curve-value-label").textContent = isRadius ? "Raio desejado" : "Ângulo por tile";
-      curveCard.querySelector(".lz-curve-value-unit").textContent = isRadius ? "m" : "°";
-      valueInput.value = isRadius ? "5" : "5";
-      valueInput.step = isRadius ? "0.1" : "0.5";
+      curveCard.querySelector(".lz-curve-value-label").textContent = curveMeta.label;
+      curveCard.querySelector(".lz-curve-value-unit").textContent = curveMeta.unit;
+      valueInput.value = curveMeta.value;
+      valueInput.step = curveMeta.step;
       calcLedZones();
     }
   });
@@ -1193,7 +1203,9 @@
           var curveDir = curveDirValue === "convex" ? "convexo" : "côncavo";
           var cZone = (isNaN(mw) || isNaN(curveValue)) ? null : resolveCurvature(curveMode, curveValue, mx, mw / 1000);
           if (!cZone) {
-            curveReadout.textContent = "Curvatura: esse raio é fisicamente impossível para esta largura de tile.";
+            curveReadout.textContent = curveMode === "chord"
+              ? "Curvatura: essa corda não é alcançável com este nº de tiles/largura de tile, mesmo dobrando até meia-volta."
+              : "Curvatura: esse raio é fisicamente impossível para esta largura de tile.";
           } else {
             curveText = curveDir + ", " + fmt(cZone.angleDegPerTile,2) + "°/tile, raio " + (isFinite(cZone.radiusM) ? fmt(cZone.radiusM,2) + " m" : "∞") +
               ", arco total " + fmt(cZone.totalAngleDeg,1) + "°, corda " + fmt(cZone.chordWidthM,2) + " m, flecha " + fmt(cZone.sagittaM,2) + " m";

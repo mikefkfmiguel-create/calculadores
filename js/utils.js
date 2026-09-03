@@ -57,13 +57,40 @@ function curvatureAngleFromRadius(radiusM, tileWidthM) {
   if (ratio > 1) return null;
   return (2 * Math.asin(ratio)) * 180 / Math.PI;
 }
+// Converte uma corda desejada (a distância reta entre as duas pontas do
+// ecrã — normalmente o espaço físico disponível no local, ex: a boca de
+// palco) no ângulo por tile que lá chega, para um dado nº de tiles e
+// largura de tile. Ao contrário do raio, não há fórmula fechada (a corda
+// depende do ângulo de forma não-linear através do raio e do seno) — vai
+// por bisseção: chordWidthM(ângulo) é sempre decrescente enquanto o arco
+// total não passar de meia-volta (180°), gama que cobre qualquer curva
+// realista de ledwall. Devolve null se a corda pedida não for alcançável
+// nessa gama (precisaria de dobrar mais do que meia-volta).
+function curvatureAngleFromChord(chordM, n, tileWidthM) {
+  if (!(chordM > 0) || !(n > 0) || !(tileWidthM > 0)) return null;
+  var developedWidthM = n * tileWidthM;
+  if (chordM >= developedWidthM) return 0;
+  var chordAt = function (angleDeg) {
+    var c = calcCurvature(n, tileWidthM, angleDeg);
+    return c ? c.chordWidthM : NaN;
+  };
+  var lo = 1e-4, hi = Math.min(179.9 / n, 179.9);
+  if (!(chordAt(hi) <= chordM)) return null;
+  for (var i = 0; i < 60; i++) {
+    var mid = (lo + hi) / 2;
+    if (chordAt(mid) > chordM) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
 // A partir do modo escolhido na UI ("angle" = ângulo por tile, "radius" =
-// raio desejado) e do valor introduzido, devolve o resultado de
-// calcCurvature já resolvido — ou null se o raio for impossível para essa
-// largura de tile. Partilhado entre a aba LED (index.html) e o Ecrã
-// Complexo (zonas.js).
+// raio desejado, "chord" = corda desejada) e do valor introduzido, devolve
+// o resultado de calcCurvature já resolvido — ou null se o valor for
+// impossível para essa largura/nº de tiles. Partilhado entre a aba LED
+// (index.html) e o Ecrã Complexo (zonas.js).
 function resolveCurvature(mode, value, n, tileWidthM) {
-  var angleDeg = mode === "radius" ? curvatureAngleFromRadius(value, tileWidthM) : value;
+  var angleDeg = mode === "radius" ? curvatureAngleFromRadius(value, tileWidthM)
+    : mode === "chord" ? curvatureAngleFromChord(value, n, tileWidthM)
+    : value;
   return (angleDeg == null) ? null : calcCurvature(n, tileWidthM, angleDeg);
 }
 
