@@ -759,6 +759,14 @@
     // tal como no mapa de píxeis exportado.
     var rowH = fontSize * 1.7;
     var gapPad = unit * 0.012;
+    // Em clusters apertados (ex: várias tiras estreitas lado a lado num
+    // canto arredondado), empilhar TODAS as legendas em conflito fazia o
+    // desenho começar com uma pilha alta e ilegível de nomes por cima do
+    // canto. A partir de 3 níveis, deixa de empilhar mais e simplesmente
+    // não desenha a legenda extra dessa zona no desenho — o nome continua
+    // sempre disponível na coluna de detalhes ao lado (e clicável lá), só
+    // deixa de repetir por cima do desenho quando já não cabe legível.
+    var maxStackLevel = 2;
     var placedBoxes = [];
     labels.slice().sort(function (a, b) { return (a.z.posX - minX) - (b.z.posX - minX); }).forEach(function (l) {
       var x0 = l.z.posX - minX, x1 = x0 + l.textW;
@@ -769,15 +777,19 @@
         var overlaps = placedBoxes.some(function (p) {
           return x0 < p.x1 + gapPad && x1 + gapPad > p.x0 && y0 < p.y1 && y1 > p.y0;
         });
-        if (!overlaps || lvl > 20) {
+        if (!overlaps) {
           l.level = lvl;
           placedBoxes.push({ x0: x0, x1: x1, y0: y0, y1: y1 });
+          break;
+        }
+        if (lvl >= maxStackLevel) {
+          l.hidden = true;
           break;
         }
         lvl++;
       }
     });
-    var maxLevel = labels.reduce(function (m, l) { return Math.max(m, l.level); }, 0);
+    var maxLevel = labels.reduce(function (m, l) { return l.hidden ? m : Math.max(m, l.level); }, 0);
     var padTop = Math.max(unit * 0.06, fontSize * 1.8) + maxLevel * rowH;
     var padBottom = fontSize * 2.4;
 
@@ -827,7 +839,9 @@
       } else {
         parts.push('<rect data-zone-id="' + escapeXml(z.id || "") + '" x="' + x + '" y="' + y + '" width="' + z.w + '" height="' + z.h + '" fill="' + color + '" fill-opacity="0.55" stroke="' + color + '" stroke-width="' + strokeW + '" rx="' + radius + '" style="cursor:grab;"><title>' + zoneTitle + '</title></rect>');
       }
-      parts.push('<text x="' + x + '" y="' + (y - labelGap - l.level * rowH) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
+      if (!l.hidden) {
+        parts.push('<text x="' + x + '" y="' + (y - labelGap - l.level * rowH) + '" font-size="' + fontSize + '" fill="' + ink + '" text-anchor="start">' + escapeXml(l.text) + '</text>');
+      }
     });
 
     // Legenda de rodapé com o tamanho total do conjunto — dá para ver de
