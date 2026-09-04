@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.202</span>
+    <span class="mark">v1.203</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -45,6 +45,13 @@
         <button type="submit" value="no" class="copy">Cancelar</button>
         <button type="submit" value="yes" class="copy app-confirm-yes">Confirmar</button>
       </form>
+    </div>
+  </dialog>
+
+  <dialog id="diagram-zoom-dialog" class="diagram-zoom-dialog" aria-label="Vista ampliada">
+    <div class="diagram-zoom-body">
+      <button type="button" class="diagram-zoom-close" id="diagram-zoom-close" aria-label="Fechar" title="Fechar">✕</button>
+      <svg id="diagram-zoom-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
   </dialog>
 
@@ -560,7 +567,7 @@
         </div>
         <p class="note" id="l-halftile-note" style="display:none;"></p>
         <div id="l-diagram-wrap" style="display:none; margin-top:18px;">
-          <h2>Vista do ecrã</h2>
+          <h2 style="display:flex; align-items:center;">Vista do ecrã<button type="button" class="diagram-zoom-btn" data-zoom-target="l-diagram" title="Ver ampliado" aria-label="Ver ampliado"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3v4M13 3h4v4M3 13v4h4M17 13v4h-4"/></svg></button></h2>
           <svg id="l-diagram" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; width:100%; max-height:min(320px, 40vh); min-height:120px;"></svg>
         </div>
         <div id="l-curve-results" style="display:none;">
@@ -574,7 +581,7 @@
             <div class="item wide"><div class="k">Largura desenvolvida (soma dos tiles)</div><div class="v" id="l-out-curve-developed">—</div></div>
           </div>
           <div id="l-diagram-top-wrap" style="display:none; margin-top:14px;">
-            <div class="k" style="margin-bottom:6px;">Vista de cima (blueprint do chão)</div>
+            <div class="k" style="margin-bottom:6px; display:flex; align-items:center;">Vista de cima (blueprint do chão)<button type="button" class="diagram-zoom-btn" data-zoom-target="l-diagram-top" title="Ver ampliado" aria-label="Ver ampliado"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3v4M13 3h4v4M3 13v4h4M17 13v4h-4"/></svg></button></div>
             <svg id="l-diagram-top" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; width:100%; max-height:min(220px, 30vh); min-height:90px;"></svg>
           </div>
           <p class="note" id="l-curve-warn" style="display:none;"></p>
@@ -892,7 +899,7 @@
           <div class="item wide"><div class="k">Pixel size (densidade)</div><div class="v" id="b-out-pitch">—</div></div>
         </div>
         <div id="b-diagram-wrap" style="display:none; margin-top:18px;">
-          <h2>Vista do ecrã</h2>
+          <h2 style="display:flex; align-items:center;">Vista do ecrã<button type="button" class="diagram-zoom-btn" data-zoom-target="b-diagram" title="Ver ampliado" aria-label="Ver ampliado"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3v4M13 3h4v4M3 13v4h4M17 13v4h-4"/></svg></button></h2>
           <svg id="b-diagram" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; width:100%; max-height:min(320px, 40vh); min-height:120px;"></svg>
           <div id="b-diagram-legend" style="display:flex; gap:16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-faint); flex-wrap:wrap;"></div>
         </div>
@@ -904,7 +911,7 @@
             <div class="item wide"><div class="k">Largura entre as pontas (corda)</div><div class="v" id="b-out-curve-chord">—</div></div>
           </div>
           <div id="b-diagram-top-wrap" style="display:none; margin-top:14px;">
-            <div class="k" style="margin-bottom:6px;">Vista de cima (blueprint do chão)</div>
+            <div class="k" style="margin-bottom:6px; display:flex; align-items:center;">Vista de cima (blueprint do chão)<button type="button" class="diagram-zoom-btn" data-zoom-target="b-diagram-top" title="Ver ampliado" aria-label="Ver ampliado"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3v4M13 3h4v4M3 13v4h4M17 13v4h-4"/></svg></button></div>
             <svg id="b-diagram-top" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; width:100%; max-height:min(220px, 30vh); min-height:90px;"></svg>
           </div>
         </div>
@@ -4098,6 +4105,27 @@
       input.dispatchEvent(new Event("change", { bubbles: true }));
     });
   });
+
+  // Vista ampliada de um diagrama (Vista do ecrã / Vista de cima) — um só
+  // <dialog> partilhado por todos os desenhos da app; abrir copia o
+  // viewBox+innerHTML do SVG pequeno que foi clicado para o SVG grande, em
+  // vez de recalcular tudo de novo — mais simples e sempre em sincronia
+  // com o que o utilizador estava a ver.
+  var diagramZoomDialog = document.getElementById("diagram-zoom-dialog");
+  var diagramZoomSvg = document.getElementById("diagram-zoom-svg");
+  function openDiagramZoom(sourceSvg) {
+    diagramZoomSvg.setAttribute("viewBox", sourceSvg.getAttribute("viewBox"));
+    diagramZoomSvg.innerHTML = sourceSvg.innerHTML;
+    diagramZoomDialog.showModal();
+  }
+  document.querySelectorAll(".diagram-zoom-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var source = document.getElementById(btn.dataset.zoomTarget);
+      if (source) openDiagramZoom(source);
+    });
+  });
+  document.getElementById("diagram-zoom-close").addEventListener("click", function () { diagramZoomDialog.close(); });
+  diagramZoomDialog.addEventListener("click", function (e) { if (e.target === diagramZoomDialog) diagramZoomDialog.close(); });
 
   document.querySelectorAll('.panel[data-mode="sinal"] input, .panel[data-mode="sinal"] select').forEach(function (el) {
     el.addEventListener("input", calcSinal);

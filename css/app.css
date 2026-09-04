@@ -1150,6 +1150,51 @@
   .app-confirm-yes { color: var(--rose-500); border-color: var(--rose-500); }
   .app-confirm-yes:hover { color: var(--rose-500); border-color: var(--rose-500); background: var(--paper); }
 
+  /* Vista ampliada de um diagrama (Vista do ecrã / Vista de cima) — um só
+     <dialog> partilhado por todos os desenhos da app, populado por
+     openDiagramZoom() com o viewBox+innerHTML do SVG pequeno que o abriu.
+     Mesma receita: padding só no wrapper, nunca no <dialog> em si. */
+  .diagram-zoom-dialog {
+    width: min(900px, 94vw);
+    background: var(--paper-raised);
+    color: var(--ink);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 0;
+    box-shadow: var(--shadow);
+  }
+  .diagram-zoom-dialog::backdrop { background: rgba(0,0,0,0.6); }
+  .diagram-zoom-body { position: relative; padding: 44px 24px 24px; }
+  .diagram-zoom-close {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border: none;
+    background: var(--line-soft);
+    color: var(--ink-soft);
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .diagram-zoom-close:hover { color: var(--ink); background: var(--line); }
+  #diagram-zoom-svg { display: block; width: 100%; max-height: 80vh; }
+  .diagram-zoom-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    margin-left: 8px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink-faint);
+    border-radius: 7px;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+  .diagram-zoom-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .diagram-zoom-btn svg { width: 14px; height: 14px; }
+
   .stripe { height: 3px; border-radius: 3px 3px 0 0; margin: -20px -20px 18px; }
   .panel[data-mode="projecao"] .stripe, [data-accent="projecao"] .stripe { background: var(--amber-500); }
   .panel[data-mode="visualizacao"] .stripe, [data-accent="visualizacao"] .stripe { background: var(--cyan-500); }

@@ -36,8 +36,15 @@ function calcCurvature(n, tileWidthM, angleDegPerTile) {
   var radiusM = tileWidthM / (2 * Math.sin(thetaRad / 2));
   var totalAngleDeg = angleAbs * n;
   var halfTotalRad = (thetaRad * n) / 2;
-  var chordWidthM = 2 * radiusM * Math.sin(halfTotalRad);
-  var sagittaM = radiusM * (1 - Math.cos(halfTotalRad));
+  // Corda (distância reta entre as pontas) e flecha só fazem sentido
+  // enquanto o arco não passar de uma volta completa (360°) — a partir daí
+  // o ecrã sobrepõe-se a si próprio e "a distância reta entre as pontas"
+  // deixa de ser um conceito físico coerente (a fórmula ainda dá um
+  // número, mas pode sair negativo, o que é sinal de que já não significa
+  // nada). Fica "—" nesse caso, em vez de mostrar um valor inventado.
+  var chordSagittaValid = totalAngleDeg <= 360;
+  var chordWidthM = chordSagittaValid ? 2 * radiusM * Math.sin(halfTotalRad) : NaN;
+  var sagittaM = chordSagittaValid ? radiusM * (1 - Math.cos(halfTotalRad)) : NaN;
   return {
     angleDegPerTile: angleAbs,
     radiusM: radiusM,

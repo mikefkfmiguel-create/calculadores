@@ -371,6 +371,8 @@
     "Convexo (para fora)": "Convex (outwards)",
     "Vista de cima (referência — não afeta o desenho do conjunto nem as contas)": "Top view (reference only — doesn't affect the combined drawing or numbers)",
     "Vista de cima (blueprint do chão)": "Top view (floor blueprint)",
+    "Ver ampliado": "View larger",
+    "Vista ampliada": "Enlarged view",
     "Footprint no chão: ": "Floor footprint: ",
     " (corda × flecha)": " (chord × sagitta)",
     "A curvatura é sempre ao longo da horizontal (tiles na horizontal), assumindo hinges/locks que dobram em incrementos fixos entre tiles — cada tile fica reto, o \"arco\" é o conjunto deles em polígono.": "The curvature always runs along the horizontal (tiles horizontally), assuming hinges/locks that bend in fixed increments between tiles — each tile stays flat, the \"arc\" is the set of them forming a polygon.",
