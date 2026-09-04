@@ -1384,22 +1384,22 @@
   .calcw-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
   .inputgroup:has(input:read-only) .calcw-btn { display: none; }
 
+  /* <dialog> nativo (showModal()) em vez de div+z-index: promove-se sozinho
+     para o "top layer" do browser, por cima de qualquer outro conteúdo —
+     incluindo outro <dialog> já aberto (ex: o popup de edição de zona, se a
+     calculadora abrir a partir de um campo lá dentro). O padding/fundo/borda
+     vivem em #calcw-popup (interior), nunca no <dialog> em si — mesmo
+     motivo do lz-dialog-body: clicar no padding do <dialog> conta como
+     "clicou fora" para o handler de fechar ao clicar no backdrop. */
   #calcw-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(10, 14, 18, 0.55);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 200;
+    width: min(300px, 92vw);
+    padding: 0;
+    border: none;
+    background: transparent;
+    z-index: 2147483647;
   }
-  /* [hidden] tem de vencer o display:flex acima — sem isto o overlay
-     invisível continua a intercetar cliques em toda a página. */
-  #calcw-overlay[hidden] { display: none; }
+  #calcw-overlay::backdrop { background: rgba(10, 14, 18, 0.55); }
   #calcw-popup {
-    width: 100%;
-    max-width: 300px;
     background: var(--paper-raised);
     border: 1px solid var(--line-soft);
     border-radius: 14px;

@@ -127,14 +127,18 @@
     pendingOp = null;
     justEvaluated = false;
     render();
-    overlay.hidden = false;
-    // Empurra para o fim do body — garante que fica por cima de qualquer
-    // outro conteúdo com stacking context próprio (cards com transform/etc.).
-    document.body.appendChild(overlay);
+    // <dialog>.showModal() promove sempre para o "top layer" do browser,
+    // por cima de qualquer outro conteúdo — incluindo outro <dialog> já
+    // aberto (ex: o popup de edição de zona, se a calculadora for aberta
+    // a partir de um campo lá dentro): cada showModal() novo fica acima
+    // do anterior e torna o resto (mesmo outro modal) inerte enquanto
+    // estiver aberto. Sem isto a calculadora ficava escondida por baixo
+    // do popup de zona, e cliques nela "passavam através" para o popup.
+    overlay.showModal();
   }
 
   function close() {
-    overlay.hidden = true;
+    overlay.close();
     targetInput = null;
   }
 
@@ -151,11 +155,11 @@
   }
 
   function buildPopup() {
-    overlay = document.createElement("div");
+    overlay = document.createElement("dialog");
     overlay.id = "calcw-overlay";
-    overlay.hidden = true;
+    overlay.setAttribute("aria-label", "Calculadora");
     overlay.innerHTML =
-      '<div id="calcw-popup" role="dialog" aria-label="Calculadora">' +
+      '<div id="calcw-popup">' +
       '  <div class="calcw-head">' +
       '    <span class="calcw-expr" id="calcw-expr"></span>' +
       '    <button type="button" class="calcw-close" id="calcw-x" aria-label="Fechar">×</button>' +
@@ -203,7 +207,7 @@
       });
     });
     document.addEventListener("keydown", function (e) {
-      if (overlay.hidden) return;
+      if (!overlay.open) return;
       if (e.key === "Escape") return close();
       if (e.key >= "0" && e.key <= "9") return pressDigit(e.key);
       if (e.key === ".") return pressDigit(".");
