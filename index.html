@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.191</span>
+    <span class="mark">v1.192</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -37,6 +37,14 @@
   </div>
 
   <div id="app-toast" role="status" aria-live="polite"></div>
+
+  <dialog id="app-confirm-dialog" class="app-confirm-dialog">
+    <p class="app-confirm-msg"></p>
+    <form method="dialog" class="app-confirm-actions">
+      <button type="submit" value="no" class="copy">Cancelar</button>
+      <button type="submit" value="yes" class="copy app-confirm-yes">Confirmar</button>
+    </form>
+  </dialog>
 
   <div class="tabs-wrap" id="tabs-wrap">
     <div class="tabs-current" id="tabs-current"></div>
@@ -660,6 +668,7 @@
         <p>Para abrir espaço a uma zona nova (ex: adicionar um ecrã à esquerda de tudo o resto): marca a caixa <strong>"Sel."</strong> nas zonas que já lá estão (ou usa "Selecionar todas"), indica quanto deslocar em X/Y no bloco acima da lista e carrega em <strong>"Mover selecionadas"</strong> — soma esse deslocamento à posição de todas as marcadas de uma vez, sem teres de editar zona a zona.</p>
         <p>Zonas com o mesmo nome-base (ex: "Lateral", "Lateral 2", "Lateral 3") ficam marcadas automaticamente com a mesma cor no diagrama, no mapa de píxeis exportado e num pontinho junto ao nome de cada zona — só para ajudar a distinguir grupos à vista, não afeta os cálculos.</p>
         <p>Desmarca a caixa <strong>"Vis."</strong> numa zona para a esconder — sai do diagrama, dos totais e do mapa de píxeis exportado, mas fica guardada (não é apagada). Útil para testar cenários sem uma zona ou para preparar uma zona que ainda não está confirmada.</p>
+        <p><strong>"Remover"</strong> numa zona apaga só essa; <strong>"Limpar zonas"</strong>, no fundo da lista, apaga todas de uma vez para recomeçar do zero — pede confirmação antes, porque não pode ser desfeito. Nenhum dos dois mexe nas outras calculadoras nem no projeto.</p>
         <p>As zonas ficam guardadas automaticamente neste aparelho (mesmo que atualizes a página ou feches a app) — não precisas de gravar nada à parte.</p>
         <p>Em ecrãs largos (computador), o diagrama fica num card à parte no topo, com a largura toda. O botão <strong>"+ Adicionar zona"</strong> fica sempre visível fixo no canto — não é preciso descer até ao fim da página com muitas zonas já criadas. Os números (total de tiles, píxeis, peso, etc.) ficam num card próprio ao lado da lista. Para o diagrama ficar mesmo fixo ao scrollar a lista, usa a <a href="ecra-complexo.html" target="_blank" rel="noopener">versão avançada</a>. Em telemóvel/tablet mantém-se a barra fixa condensada em baixo.</p>
         <p>Marca <strong>"Adicionar ao projeto"</strong> no resumo para levar o total das zonas para a aba Projeto (equivale a ativar lá "Usar total das zonas").</p>
@@ -708,6 +717,7 @@
         </div>
         <div id="lz-list"></div>
         <button type="button" class="copy" id="lz-add">+ Adicionar zona</button>
+        <button type="button" class="copy" id="lz-clear-zones" title="Remover todas as zonas desta lista — as outras calculadoras e o projeto não são afetados">Limpar zonas</button>
       </div>
 
       <details class="card results sinal-block" data-accent="zonas" style="display:none;" id="lz-totals-card">
@@ -4208,13 +4218,15 @@
     var confirmMsg = (typeof i18nGetLang === "function" && i18nGetLang() === "en")
       ? "Clear the project? This tab's fields go back to their starting state and \"Add to project\" turns off in every calculator. The calculators themselves (and the Multi-Zone Screen zones) aren't affected."
       : "Limpar o projeto? Os campos desta aba voltam ao estado inicial e \"Adicionar ao projeto\" desliga-se em todas as calculadoras. As calculadoras em si (e as zonas do Ecrã Complexo) não são afetadas.";
-    if (!confirm(confirmMsg)) return;
-    PROJ_ADDPROJECT_IDS.forEach(function (id) {
-      var cb = document.getElementById(id);
-      if (cb) cb.checked = false;
+    appConfirm(confirmMsg).then(function (ok) {
+      if (!ok) return;
+      PROJ_ADDPROJECT_IDS.forEach(function (id) {
+        var cb = document.getElementById(id);
+        if (cb) cb.checked = false;
+      });
+      applyProjState(projBlankState());
+      showToast("Projeto limpo.");
     });
-    applyProjState(projBlankState());
-    showToast("Projeto limpo.");
   });
 
   document.getElementById("proj-open").addEventListener("click", function () {

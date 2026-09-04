@@ -192,6 +192,35 @@ document.getElementById("app-toast").addEventListener("click", function () {
   clearTimeout(appToastTimer);
 });
 
+// Confirmação com o visual da app em vez da caixa nativa do browser
+// (confirm() — cada browser desenha-a à sua maneira, sem se poder
+// estilizar). Devolve uma Promise<boolean>; cai para confirm() nativo se
+// a página não tiver o <dialog> #app-confirm-dialog (ex: ecra-complexo.html,
+// que por agora não precisa disto).
+function appConfirm(message) {
+  var dialog = document.getElementById("app-confirm-dialog");
+  if (!dialog) return Promise.resolve(confirm(message));
+  dialog.querySelector(".app-confirm-msg").textContent = message;
+  dialog.returnValue = "";
+  return new Promise(function (resolve) {
+    function onClose() {
+      dialog.removeEventListener("close", onClose);
+      resolve(dialog.returnValue === "yes");
+    }
+    dialog.addEventListener("close", onClose);
+    dialog.showModal();
+  });
+}
+(function () {
+  var dialog = document.getElementById("app-confirm-dialog");
+  if (!dialog) return;
+  // Clicar fora do conteúdo (no próprio <dialog>, que ocupa só a caixa do
+  // popup) conta como cancelar — igual ao popup de edição de zona.
+  dialog.addEventListener("click", function (e) {
+    if (e.target === dialog) dialog.close("no");
+  });
+})();
+
 var STOCK_COLOR = "#5028C8";
 function addOption(select, value, text, isDefault, dataIdx, skipMarketTag) {
   var opt = document.createElement("option");

@@ -1061,6 +1061,24 @@
   }
   #app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
 
+  /* Confirmação com o visual da app — substitui confirm() nativo (caixa do
+     browser sem estilo possível, pedido explícito para deixar de usar).
+     Mesma receita visual do popup de edição de zona (lz-details-dialog). */
+  .app-confirm-dialog {
+    width: min(420px, 92vw);
+    background: var(--paper-raised);
+    color: var(--ink);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .app-confirm-dialog::backdrop { background: rgba(0,0,0,0.55); }
+  .app-confirm-msg { margin: 0 0 18px; line-height: 1.5; }
+  .app-confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
+  .app-confirm-yes { color: var(--rose-500); border-color: var(--rose-500); }
+  .app-confirm-yes:hover { color: var(--rose-500); border-color: var(--rose-500); background: var(--paper); }
+
   .stripe { height: 3px; border-radius: 3px 3px 0 0; margin: -20px -20px 18px; }
   .panel[data-mode="projecao"] .stripe, [data-accent="projecao"] .stripe { background: var(--amber-500); }
   .panel[data-mode="visualizacao"] .stripe, [data-accent="visualizacao"] .stripe { background: var(--cyan-500); }
