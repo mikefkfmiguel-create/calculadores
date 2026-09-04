@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.198</span>
+    <span class="mark">v1.199</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1228,7 +1228,7 @@
               <label for="proj-dsm-count">Ecrãs DSM (monitores de palco)</label>
               <div class="inputgroup countgroup">
                 <button type="button" class="count-step count-step-minus" data-step="-1" aria-label="Diminuir">−</button>
-                <input id="proj-dsm-count" type="number" value="0" min="0" step="1">
+                <input id="proj-dsm-count" type="number" value="0" min="0" step="1" autocomplete="off">
                 <button type="button" class="count-step count-step-plus" data-step="1" aria-label="Aumentar">+</button>
               </div>
             </div>
@@ -1267,7 +1267,7 @@
               <label for="proj-delay-count">Ecrãs delay (repetidores para salas/espaços maiores)</label>
               <div class="inputgroup countgroup">
                 <button type="button" class="count-step count-step-minus" data-step="-1" aria-label="Diminuir">−</button>
-                <input id="proj-delay-count" type="number" value="0" min="0" step="1">
+                <input id="proj-delay-count" type="number" value="0" min="0" step="1" autocomplete="off">
                 <button type="button" class="count-step count-step-plus" data-step="1" aria-label="Aumentar">+</button>
               </div>
             </div>
@@ -1299,10 +1299,11 @@
               <label for="proj-refresh">Refresh rate</label>
               <div class="inputgroup countgroup">
                 <button type="button" class="count-step count-step-minus" data-step="-1" aria-label="Diminuir">−</button>
-                <input id="proj-refresh" type="number" value="60" min="1" step="1">
+                <input id="proj-refresh" type="number" value="60" min="1" step="1" autocomplete="off">
                 <span class="unit">Hz</span>
                 <button type="button" class="count-step count-step-plus" data-step="1" aria-label="Aumentar">+</button>
               </div>
+              <button type="button" class="copy" id="proj-use-sinalfps" style="margin-top:8px;" title="Usa o frame rate configurado na aba Sinal & Data Rate, para não desalinhar os dois valores">↙ Sinal &amp; Data Rate</button>
             </div>
             <div class="field">
               <label for="proj-colordepth">Profundidade de cor</label>
@@ -3918,6 +3919,12 @@
       return;
     }
     useSinalRes(projLastRes.x, projLastRes.y, projLastRes.label);
+  });
+  document.getElementById("proj-use-sinalfps").addEventListener("click", function () {
+    var input = document.getElementById("proj-refresh");
+    input.value = document.getElementById("sg-fps").value;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
   });
   document.querySelectorAll('.panel[data-mode="mediaserver"] input').forEach(function (el) {
     el.addEventListener("input", calcMediaServer);

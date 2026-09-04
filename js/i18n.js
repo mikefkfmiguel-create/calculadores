@@ -472,6 +472,7 @@
     "↙ Media Server": "↙ Media Server",
 
     // ---- Projeto ----
+    "Usa o frame rate configurado na aba Sinal & Data Rate, para não desalinhar os dois valores": "Uses the frame rate set on the Signal & Data Rate tab, so the two values don't drift apart",
     "Como criar um projeto": "How to create a project",
     "Como navegar": "How to navigate",
     "Como usar esta calculadora": "How to use this calculator",
