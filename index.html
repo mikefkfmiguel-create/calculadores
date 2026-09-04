@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.197</span>
+    <span class="mark">v1.198</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1211,92 +1211,110 @@
         </details>
 
         <details class="card sinal-block" open>
-          <summary>Processamento</summary>
+          <summary>Adicionais</summary>
           <div class="sinal-block-body">
-        <div class="field">
-          <label for="proj-dsm-tvmodel">Modelo de TV para os DSM (opcional)</label>
-          <select id="proj-dsm-tvmodel" class="plain">
-            <option value="custom">Nenhum / não sei ainda</option>
-          </select>
-          <div class="hint">Inventário da AVK — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.</div>
-        </div>
-        <div class="row2">
+
+        <details class="sinal-subblock" open>
+          <summary>DSM</summary>
           <div class="field">
-            <label for="proj-dsm-count">Ecrãs DSM (monitores de palco)</label>
-            <div class="inputgroup countgroup">
-              <button type="button" class="count-step count-step-minus" data-step="-1" aria-label="Diminuir">−</button>
-              <input id="proj-dsm-count" type="number" value="0" min="0" step="1">
-              <button type="button" class="count-step count-step-plus" data-step="1" aria-label="Aumentar">+</button>
+            <label for="proj-dsm-tvmodel">Modelo de TV para os DSM (opcional)</label>
+            <select id="proj-dsm-tvmodel" class="plain">
+              <option value="custom">Nenhum / não sei ainda</option>
+            </select>
+            <div class="hint">Inventário da AVK — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.</div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="proj-dsm-count">Ecrãs DSM (monitores de palco)</label>
+              <div class="inputgroup countgroup">
+                <button type="button" class="count-step count-step-minus" data-step="-1" aria-label="Diminuir">−</button>
+                <input id="proj-dsm-count" type="number" value="0" min="0" step="1">
+                <button type="button" class="count-step count-step-plus" data-step="1" aria-label="Aumentar">+</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="proj-dsm-res">Resolução de cada DSM</label>
+              <select id="proj-dsm-res" class="plain">
+                <option value="1920x1080" selected>HD (1920×1080)</option>
+                <option value="3840x2160">UHD/4K (3840×2160)</option>
+                <option value="custom">Personalizado…</option>
+              </select>
             </div>
           </div>
-          <div class="field">
-            <label for="proj-dsm-res">Resolução de cada DSM</label>
-            <select id="proj-dsm-res" class="plain">
-              <option value="1920x1080" selected>HD (1920×1080)</option>
-              <option value="3840x2160">UHD/4K (3840×2160)</option>
-              <option value="custom">Personalizado…</option>
-            </select>
-          </div>
-        </div>
-        <div class="row2" id="proj-dsm-custom-res" style="display:none;">
-          <div class="field">
-            <label for="proj-dsm-w">Largura</label>
-            <div class="inputgroup"><input id="proj-dsm-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
-          </div>
-          <div class="field">
-            <label for="proj-dsm-h">Altura</label>
-            <div class="inputgroup"><input id="proj-dsm-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
-          </div>
-        </div>
-        <div class="field">
-          <label for="proj-delay-tvmodel">Modelo de TV para os delay (opcional)</label>
-          <select id="proj-delay-tvmodel" class="plain">
-            <option value="custom">Nenhum / não sei ainda</option>
-          </select>
-          <div class="hint">Inventário da AVK — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.</div>
-        </div>
-        <div class="row2">
-          <div class="field">
-            <label for="proj-delay-count">Ecrãs delay (repetidores para salas/espaços maiores)</label>
-            <div class="inputgroup countgroup">
-              <button type="button" class="count-step count-step-minus" data-step="-1" aria-label="Diminuir">−</button>
-              <input id="proj-delay-count" type="number" value="0" min="0" step="1">
-              <button type="button" class="count-step count-step-plus" data-step="1" aria-label="Aumentar">+</button>
+          <div class="row2" id="proj-dsm-custom-res" style="display:none;">
+            <div class="field">
+              <label for="proj-dsm-w">Largura</label>
+              <div class="inputgroup"><input id="proj-dsm-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+            </div>
+            <div class="field">
+              <label for="proj-dsm-h">Altura</label>
+              <div class="inputgroup"><input id="proj-dsm-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
             </div>
           </div>
+        </details>
+
+        <details class="sinal-subblock" open>
+          <summary>Delay</summary>
           <div class="field">
-            <label for="proj-delay-res">Resolução de cada delay</label>
-            <select id="proj-delay-res" class="plain">
-              <option value="1920x1080" selected>HD (1920×1080)</option>
-              <option value="3840x2160">UHD/4K (3840×2160)</option>
-              <option value="custom">Personalizado…</option>
+            <label for="proj-delay-tvmodel">Modelo de TV para os delay (opcional)</label>
+            <select id="proj-delay-tvmodel" class="plain">
+              <option value="custom">Nenhum / não sei ainda</option>
             </select>
+            <div class="hint">Inventário da AVK — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.</div>
           </div>
-        </div>
-        <div class="row2" id="proj-delay-custom-res" style="display:none;">
-          <div class="field">
-            <label for="proj-delay-w">Largura</label>
-            <div class="inputgroup"><input id="proj-delay-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+          <div class="row2">
+            <div class="field">
+              <label for="proj-delay-count">Ecrãs delay (repetidores para salas/espaços maiores)</label>
+              <div class="inputgroup countgroup">
+                <button type="button" class="count-step count-step-minus" data-step="-1" aria-label="Diminuir">−</button>
+                <input id="proj-delay-count" type="number" value="0" min="0" step="1">
+                <button type="button" class="count-step count-step-plus" data-step="1" aria-label="Aumentar">+</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="proj-delay-res">Resolução de cada delay</label>
+              <select id="proj-delay-res" class="plain">
+                <option value="1920x1080" selected>HD (1920×1080)</option>
+                <option value="3840x2160">UHD/4K (3840×2160)</option>
+                <option value="custom">Personalizado…</option>
+              </select>
+            </div>
           </div>
-          <div class="field">
-            <label for="proj-delay-h">Altura</label>
-            <div class="inputgroup"><input id="proj-delay-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+          <div class="row2" id="proj-delay-custom-res" style="display:none;">
+            <div class="field">
+              <label for="proj-delay-w">Largura</label>
+              <div class="inputgroup"><input id="proj-delay-w" type="number" value="1920" min="1" step="1"><span class="unit">px</span></div>
+            </div>
+            <div class="field">
+              <label for="proj-delay-h">Altura</label>
+              <div class="inputgroup"><input id="proj-delay-h" type="number" value="1080" min="1" step="1"><span class="unit">px</span></div>
+            </div>
           </div>
-        </div>
-        <div class="row2">
-          <div class="field">
-            <label for="proj-refresh">Refresh rate</label>
-            <div class="inputgroup"><input id="proj-refresh" type="number" value="60" min="1" step="1"><span class="unit">Hz</span></div>
+        </details>
+
+        <details class="sinal-subblock" open>
+          <summary>Outros</summary>
+          <div class="row2">
+            <div class="field">
+              <label for="proj-refresh">Refresh rate</label>
+              <div class="inputgroup countgroup">
+                <button type="button" class="count-step count-step-minus" data-step="-1" aria-label="Diminuir">−</button>
+                <input id="proj-refresh" type="number" value="60" min="1" step="1">
+                <span class="unit">Hz</span>
+                <button type="button" class="count-step count-step-plus" data-step="1" aria-label="Aumentar">+</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="proj-colordepth">Profundidade de cor</label>
+              <select id="proj-colordepth" class="plain">
+                <option value="8" selected>8-bit</option>
+                <option value="10">10-bit</option>
+                <option value="12">12-bit</option>
+              </select>
+            </div>
           </div>
-          <div class="field">
-            <label for="proj-colordepth">Profundidade de cor</label>
-            <select id="proj-colordepth" class="plain">
-              <option value="8" selected>8-bit</option>
-              <option value="10">10-bit</option>
-              <option value="12">12-bit</option>
-            </select>
-          </div>
-        </div>
+        </details>
+
           <div class="hint">DSM e delay somam ao total de píxeis para escolher o switcher de show. Só o ecrã LED entra na conta dos processadores de LED.</div>
           </div>
         </details>

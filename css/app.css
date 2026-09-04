@@ -524,6 +524,37 @@
   .sinal-block[open] summary::after { content: "▴"; }
   .sinal-block[open] summary { padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--line-soft); }
   .sinal-block-body > h2:first-child { margin-top: 0; }
+
+  /* Sub-bloco colapsável dentro de um .sinal-block (ex: DSM / Delay / Outros
+     dentro de "Adicionais", no separador Projeto) — mesma ideia do
+     .sinal-block, mas mais discreto (caixa fina em vez de card cheio),
+     para não competir visualmente com o bloco que o contém. */
+  .sinal-subblock {
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 12px 14px 14px;
+    margin-top: 12px;
+  }
+  .sinal-subblock:first-child { margin-top: 0; }
+  .sinal-subblock summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sinal-subblock summary::-webkit-details-marker { display: none; }
+  .sinal-subblock summary::after {
+    content: "▾";
+    color: var(--ink-faint);
+    font-size: 11px;
+    margin-left: 10px;
+  }
+  .sinal-subblock[open] summary::after { content: "▴"; }
+  .sinal-subblock[open] summary { margin-bottom: 12px; }
   .sinal-detail-card {
     border: 1px solid var(--line-soft);
     border-radius: 10px;

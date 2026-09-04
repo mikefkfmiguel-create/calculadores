@@ -547,7 +547,8 @@
     "Resolução de cada DSM": "Resolution of each DSM screen",
     "Resolução de cada delay": "Resolution of each delay screen",
     "Resolução de cada projetor": "Resolution of each projector",
-    "Processamento": "Processing",
+    "Adicionais": "Additional",
+    "Outros": "Others",
     "Pixel usage total (ecrã + DSM + delay)": "Total pixel usage (screen + DSM + delay)",
     "Vai à aba": "Go to the",
 
