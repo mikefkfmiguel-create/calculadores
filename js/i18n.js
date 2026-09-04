@@ -257,6 +257,8 @@
     "Editar zona — ": "Edit zone — ",
     "Abre o nome, posição, cópias, modelo, tamanho e curvatura desta zona num popup próprio": "Opens this zone's name, position, copies, model, size and curvature in its own popup",
     "Réplicas": "Replicas",
+    "Arrasta para mover o popup e ver o que está por baixo": "Drag to move the popup and see what's underneath",
+    "O popup arrasta-se pelo título — útil para o afastar e ver o desenho por baixo enquanto editas.": "The popup can be dragged by its title — handy for moving it aside to see the drawing underneath while you edit.",
     "Remover esta zona": "Remove this zone",
     "Diagrama do conjunto": "Layout diagram",
     "Dimensão do conjunto (com gaps)": "Overall size (with gaps)",

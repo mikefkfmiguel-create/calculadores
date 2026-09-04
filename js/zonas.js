@@ -77,6 +77,51 @@
     return { label: "Ângulo por tile", unit: "°", value: "5", step: "0.5" };
   }
 
+  // Abre o popup de edição sempre centrado (limpa qualquer posição de um
+  // arrasto anterior) — usado em vez de dialog.showModal() diretamente em
+  // todos os sítios que abrem este popup.
+  function lzOpenZoneDialog(dialog) {
+    if (!dialog) return;
+    dialog.style.position = "";
+    dialog.style.left = "";
+    dialog.style.top = "";
+    dialog.style.margin = "";
+    dialog.showModal();
+  }
+
+  // Arrastar o popup de edição pelo cabeçalho (lz-dialog-head) — pedido
+  // direto: sem isto o popup, sempre centrado, tapa o diagrama por baixo e
+  // não há como ver os dois ao mesmo tempo. Só o cabeçalho arrasta (não o
+  // botão de fechar); a posição fica só para esta sessão de abertura —
+  // lzOpenZoneDialog recentra sempre que o popup volta a abrir.
+  (function () {
+    var drag = null;
+    document.addEventListener("pointerdown", function (e) {
+      if (e.button != null && e.button !== 0) return;
+      var head = e.target.closest(".lz-dialog-head");
+      if (!head || e.target.closest(".lz-dialog-close")) return;
+      var dialog = head.closest(".lz-details-dialog");
+      if (!dialog || !dialog.open) return;
+      var rect = dialog.getBoundingClientRect();
+      drag = { dialog: dialog, startX: e.clientX, startY: e.clientY, startLeft: rect.left, startTop: rect.top };
+      dialog.style.margin = "0";
+      dialog.style.left = rect.left + "px";
+      dialog.style.top = rect.top + "px";
+      e.preventDefault();
+    });
+    document.addEventListener("pointermove", function (e) {
+      if (!drag) return;
+      var rect = drag.dialog.getBoundingClientRect();
+      var margin = 24;
+      var maxLeft = window.innerWidth - margin, maxTop = window.innerHeight - margin;
+      var newLeft = Math.min(Math.max(drag.startLeft + (e.clientX - drag.startX), margin - rect.width), maxLeft);
+      var newTop = Math.min(Math.max(drag.startTop + (e.clientY - drag.startY), 0), maxTop - margin);
+      drag.dialog.style.left = newLeft + "px";
+      drag.dialog.style.top = newTop + "px";
+    });
+    document.addEventListener("pointerup", function () { drag = null; });
+  })();
+
   // Aplica modelo/tamanho (mas nunca posição — cada zona mantém a sua) a um
   // card já existente. Usada tanto para preencher um card acabado de criar
   // como para "Atualizar réplicas" nos já existentes.
@@ -192,9 +237,10 @@
       '<div class="hint lz-curve-readout">Curvatura: desligada</div>' +
       '<dialog class="lz-details-dialog">' +
       '<div class="lz-dialog-body">' +
-        '<div class="lz-dialog-head">' +
+        '<div class="lz-dialog-head" title="Arrasta para mover o popup e ver o que está por baixo">' +
+          '<span class="lz-drag-handle" aria-hidden="true"></span>' +
           '<strong class="lz-dialog-title">Editar zona</strong>' +
-          '<button type="button" class="lz-dialog-close" aria-label="Fechar">✕</button>' +
+          '<button type="button" class="lz-dialog-close" aria-label="Fechar" title="Fechar">✕</button>' +
         '</div>' +
         '<div class="field">' +
           '<label>Nome da zona</label>' +
@@ -301,7 +347,7 @@
     if (opts && opts.ref) card.querySelector(".lz-ref").checked = true;
     if (opts && opts.colorOverride) card.dataset.colorOverride = opts.colorOverride;
     calcLedZones();
-    if (startOpen) card.querySelector(".lz-details-dialog").showModal();
+    if (startOpen) lzOpenZoneDialog(card.querySelector(".lz-details-dialog"));
     return card;
   }
 
@@ -426,7 +472,7 @@
     void card.offsetWidth;
     card.classList.add("lz-flash");
     var dialog = card.querySelector(".lz-details-dialog");
-    if (dialog) dialog.showModal();
+    lzOpenZoneDialog(dialog);
   }
   document.getElementById("lz-diagram").addEventListener("click", function (e) {
     if (lzJustDragged) { lzJustDragged = false; return; }
@@ -585,7 +631,7 @@
   lzList.addEventListener("click", function (e) {
     var editBtn = e.target.closest(".lz-edit-btn");
     if (editBtn) {
-      editBtn.closest(".card").querySelector(".lz-details-dialog").showModal();
+      lzOpenZoneDialog(editBtn.closest(".card").querySelector(".lz-details-dialog"));
       return;
     }
     var dialogCloseBtn = e.target.closest(".lz-dialog-close");

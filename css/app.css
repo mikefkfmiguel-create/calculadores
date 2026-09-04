@@ -626,10 +626,23 @@
   .lz-dialog-head {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 10px;
     margin-bottom: 16px;
+    cursor: move;
+    touch-action: none;
   }
+  .lz-dialog-head .lz-dialog-title { flex: 1; }
+  /* Grelha de pontos — sinal visual de que o cabeçalho se arrasta (pedido
+     depois de o arrasto em si já existir, para não ficar escondido). */
+  .lz-drag-handle {
+    flex: none;
+    width: 10px;
+    height: 18px;
+    opacity: 0.6;
+    background-image: radial-gradient(circle at 2px 2px, var(--ink-faint) 1.5px, transparent 1.6px);
+    background-size: 5px 6px;
+  }
+  .lz-dialog-head .lz-dialog-close { cursor: pointer; }
   .lz-dialog-head strong { font-size: 15px; }
   .lz-dialog-close {
     flex: none;
