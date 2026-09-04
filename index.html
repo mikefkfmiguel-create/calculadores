@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.190</span>
+    <span class="mark">v1.191</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -983,7 +983,7 @@
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
         <p>Junta tudo numa ficha técnica única para um evento. Podes preencher os campos aqui à mão, ou marcar <strong>"Adicionar ao projeto"</strong> nas calculadoras de Distância de Projeção, Ecrã LED ou Blending para os campos correspondentes virem preenchidos sozinhos — marcar uma dessas três desliga automaticamente as outras, porque um projeto só tem um tipo de ecrã de cada vez.</p>
-        <p>No fim, usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir depois com <strong>"Abrir projeto…"</strong>.</p>
+        <p>No fim, usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir depois com <strong>"Abrir projeto…"</strong>. Para começar um projeto novo do zero, usa <strong>"Limpar projeto"</strong> — repõe só os campos desta aba, não mexe nas calculadoras nem nas zonas do Ecrã Complexo.</p>
       </div>
     </details>
     <div style="margin-bottom:16px;" data-accent="projeto">
@@ -1350,6 +1350,7 @@
                   <button class="copy" id="proj-save">Guardar projeto</button>
                   <button class="copy" id="proj-open">Abrir projeto…</button>
                   <input type="file" id="proj-open-file" accept="application/json,.json" style="display:none;">
+                  <button class="copy" id="proj-clear" title="Repõe os campos desta aba em branco e desliga 'Adicionar ao projeto' em todas as calculadoras — não apaga as calculadoras em si nem as zonas do Ecrã Complexo">Limpar projeto</button>
                 </div>
               </div>
               <pre class="sumbox" id="proj-sum"></pre>
@@ -1766,7 +1767,7 @@
       <p>Usa a <strong>Distância de Projeção</strong>, <strong>Ecrã LED</strong> ou <strong>Blending</strong> para calcular essa parte com calma. Quando estiveres satisfeito, marca <strong>"Adicionar ao projeto"</strong> no resumo — os valores passam sozinhos para os campos da aba Projeto, não precisas de copiar nada à mão. Marcar uma destas três desliga automaticamente as outras, porque um projeto só tem um tipo de ecrã de cada vez.</p>
       <p class="hint" style="margin-top:8px;">A <strong>Distância de Visualização</strong> não tem campos próprios no projeto (o standard usado é geral, não é por projeto) — marcar "Adicionar ao projeto" aí só deixa uma nota de referência no topo da aba Projeto.</p>
       <div class="divider">No fim</div>
-      <p>Na aba Projeto podes ainda somar ecrãs DSM/delay e escolher os switchers de show compatíveis. Usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir mais tarde com <strong>"Abrir projeto…"</strong> e continuar de onde ficaste.</p>
+      <p>Na aba Projeto podes ainda somar ecrãs DSM/delay e escolher os switchers de show compatíveis. Usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir mais tarde com <strong>"Abrir projeto…"</strong> e continuar de onde ficaste. Para começar um projeto novo, usa <strong>"Limpar projeto"</strong>.</p>
     </div>
 
     <div class="card" style="margin-top:16px;">
@@ -4118,6 +4119,104 @@
     saveOrShareFile(slug + ".json", JSON.stringify(state, null, 2), "application/json;charset=utf-8");
   });
 
+  // Aplica um estado de projeto (guardado num ficheiro, ou o "em branco"
+  // do botão Limpar) aos campos da aba Projeto — partilhado entre "Abrir
+  // projeto…" e "Limpar projeto", para nunca haver dois sítios a saber
+  // preencher estes campos. Zonas do Ecrã Complexo só se tocam quando o
+  // estado pede mesmo "usar zonas" com zonas lá dentro — um estado em
+  // branco (ledUseZones:false) nunca mexe na lista de zonas, que é
+  // independente do projeto.
+  function applyProjState(state) {
+    setFieldVal("proj-nome", state.nome);
+    setFieldVal("proj-data-inicio", state.dataInicio);
+    setFieldVal("proj-data-fim", state.dataFim);
+    segClick("proj-type-seg", "projtype", state.projtype);
+
+    document.getElementById("proj-led-model").value = modelNameToIdx(LED_TILES_DATA, state.ledModelName);
+    document.getElementById("proj-led-model").dispatchEvent(new Event("change"));
+    segClick("proj-led-sizemode-seg", "sizemode", state.ledSizeMode);
+    setFieldVal("proj-led-mx", state.ledMx); setFieldVal("proj-led-my", state.ledMy);
+    setFieldVal("proj-led-w", state.ledW); setFieldVal("proj-led-h", state.ledH);
+    document.getElementById("proj-led-usezones").checked = !!state.ledUseZones;
+    if (state.ledUseZones && Array.isArray(state.ledZones) && state.ledZones.length) {
+      lzList.innerHTML = "";
+      state.ledZones.forEach(function (opts) { lzAddZone(opts.name, opts); });
+    }
+
+    document.getElementById("proj-proj-model").value = modelNameToIdx(PROJECTORS_DATA, state.projModelName);
+    document.getElementById("proj-proj-model").dispatchEvent(new Event("change"));
+    segClick("proj-blendmode-seg", "blendmode", state.blendMode);
+    setFieldVal("proj-blend-res", state.blendRes);
+    document.getElementById("proj-blend-res").dispatchEvent(new Event("change"));
+    setFieldVal("proj-blend-w", state.blendW); setFieldVal("proj-blend-h", state.blendH);
+    setFieldVal("proj-proj-ratio", state.projRatio);
+    segClick("proj-sizemode-seg", "sizemode", state.sizeMode);
+    setFieldVal("proj-proj-diag", state.projDiag); setFieldVal("proj-proj-w", state.projW); setFieldVal("proj-proj-h", state.projH);
+    setFieldVal("proj-proj-dist", state.projDist); setFieldVal("proj-proj-tmin", state.projTmin); setFieldVal("proj-proj-tmax", state.projTmax);
+    document.getElementById("proj-proj-lensmodel").value = "custom";
+    document.getElementById("proj-proj-lensmodel").dispatchEvent(new Event("change"));
+
+    setFieldVal("proj-dsm-count", state.dsmCount);
+    document.getElementById("proj-dsm-tvmodel").value = "custom";
+    document.getElementById("proj-dsm-tvmodel").dispatchEvent(new Event("change"));
+    setFieldVal("proj-dsm-res", state.dsmRes);
+    document.getElementById("proj-dsm-res").dispatchEvent(new Event("change"));
+    setFieldVal("proj-dsm-w", state.dsmW); setFieldVal("proj-dsm-h", state.dsmH);
+    setFieldVal("proj-delay-count", state.delayCount);
+    document.getElementById("proj-delay-tvmodel").value = "custom";
+    document.getElementById("proj-delay-tvmodel").dispatchEvent(new Event("change"));
+    setFieldVal("proj-delay-res", state.delayRes);
+    document.getElementById("proj-delay-res").dispatchEvent(new Event("change"));
+    setFieldVal("proj-delay-w", state.delayW); setFieldVal("proj-delay-h", state.delayH);
+    setFieldVal("proj-refresh", state.refresh);
+    setFieldVal("proj-colordepth", state.colordepth);
+
+    document.getElementById("proj-switcher-advanced").checked = false;
+    selectedSwitcherKeys = new Set(state.selectedSwitchers || []);
+    selectedLedProcKeys = new Set(state.selectedLedProcs || []);
+    projSwitcherListExpanded = false;
+    projLedProcListExpanded = false;
+
+    calcProjeto();
+  }
+
+  // Estado "em branco" — os mesmos valores por omissão com que a aba
+  // Projeto começa num carregamento novo da página, usado pelo botão
+  // "Limpar projeto" (ver applyProjState acima).
+  function projBlankState() {
+    return {
+      nome: "", dataInicio: "", dataFim: "", projtype: "led",
+      ledModelName: null, ledSizeMode: "tiles", ledMx: "16", ledMy: "9", ledW: "8.0", ledH: "4.5",
+      ledUseZones: false, ledZones: [],
+      projModelName: null, blendMode: "single", blendRes: "1920x1080", blendW: "1920", blendH: "1080",
+      projRatio: "16:9", sizeMode: "diag", projDiag: "120", projW: "2.66", projH: "1.49",
+      projDist: "4.0", projTmin: "1.39", projTmax: "1.87",
+      dsmCount: "0", dsmRes: "1920x1080", dsmW: "1920", dsmH: "1080",
+      delayCount: "0", delayRes: "1920x1080", delayW: "1920", delayH: "1080",
+      refresh: "60", colordepth: "8",
+      selectedSwitchers: [], selectedLedProcs: []
+    };
+  }
+
+  // "Limpar projeto" — desliga "Adicionar ao projeto" em todas as
+  // calculadoras (senão a próxima conta feita numa delas voltava a
+  // preencher isto sozinha) e repõe os campos da aba Projeto em branco.
+  // Nunca mexe nas outras calculadoras nem nas zonas do Ecrã Complexo —
+  // só desliga a ligação delas ao projeto.
+  var PROJ_ADDPROJECT_IDS = ["p-addproject", "v-addproject", "l-addproject", "z-addproject", "b-addproject", "sg-addproject", "ms-addproject"];
+  document.getElementById("proj-clear").addEventListener("click", function () {
+    var confirmMsg = (typeof i18nGetLang === "function" && i18nGetLang() === "en")
+      ? "Clear the project? This tab's fields go back to their starting state and \"Add to project\" turns off in every calculator. The calculators themselves (and the Multi-Zone Screen zones) aren't affected."
+      : "Limpar o projeto? Os campos desta aba voltam ao estado inicial e \"Adicionar ao projeto\" desliga-se em todas as calculadoras. As calculadoras em si (e as zonas do Ecrã Complexo) não são afetadas.";
+    if (!confirm(confirmMsg)) return;
+    PROJ_ADDPROJECT_IDS.forEach(function (id) {
+      var cb = document.getElementById(id);
+      if (cb) cb.checked = false;
+    });
+    applyProjState(projBlankState());
+    showToast("Projeto limpo.");
+  });
+
   document.getElementById("proj-open").addEventListener("click", function () {
     document.getElementById("proj-open-file").click();
   });
@@ -4129,51 +4228,7 @@
       var state;
       try { state = JSON.parse(reader.result); } catch (err) { showToast("Ficheiro inválido."); return; }
       if (!state || state._app !== "calculadores-projeto") { showToast("Este ficheiro não é um projeto guardado desta app."); return; }
-
-      setFieldVal("proj-nome", state.nome);
-      setFieldVal("proj-data-inicio", state.dataInicio);
-      setFieldVal("proj-data-fim", state.dataFim);
-      segClick("proj-type-seg", "projtype", state.projtype);
-
-      document.getElementById("proj-led-model").value = modelNameToIdx(LED_TILES_DATA, state.ledModelName);
-      document.getElementById("proj-led-model").dispatchEvent(new Event("change"));
-      segClick("proj-led-sizemode-seg", "sizemode", state.ledSizeMode);
-      setFieldVal("proj-led-mx", state.ledMx); setFieldVal("proj-led-my", state.ledMy);
-      setFieldVal("proj-led-w", state.ledW); setFieldVal("proj-led-h", state.ledH);
-      document.getElementById("proj-led-usezones").checked = !!state.ledUseZones;
-      if (state.ledUseZones && Array.isArray(state.ledZones) && state.ledZones.length) {
-        lzList.innerHTML = "";
-        state.ledZones.forEach(function (opts) { lzAddZone(opts.name, opts); });
-      }
-
-      document.getElementById("proj-proj-model").value = modelNameToIdx(PROJECTORS_DATA, state.projModelName);
-      document.getElementById("proj-proj-model").dispatchEvent(new Event("change"));
-      segClick("proj-blendmode-seg", "blendmode", state.blendMode);
-      setFieldVal("proj-blend-res", state.blendRes);
-      document.getElementById("proj-blend-res").dispatchEvent(new Event("change"));
-      setFieldVal("proj-blend-w", state.blendW); setFieldVal("proj-blend-h", state.blendH);
-      setFieldVal("proj-proj-ratio", state.projRatio);
-      segClick("proj-sizemode-seg", "sizemode", state.sizeMode);
-      setFieldVal("proj-proj-diag", state.projDiag); setFieldVal("proj-proj-w", state.projW); setFieldVal("proj-proj-h", state.projH);
-      setFieldVal("proj-proj-dist", state.projDist); setFieldVal("proj-proj-tmin", state.projTmin); setFieldVal("proj-proj-tmax", state.projTmax);
-
-      setFieldVal("proj-dsm-count", state.dsmCount);
-      setFieldVal("proj-dsm-res", state.dsmRes);
-      document.getElementById("proj-dsm-res").dispatchEvent(new Event("change"));
-      setFieldVal("proj-dsm-w", state.dsmW); setFieldVal("proj-dsm-h", state.dsmH);
-      setFieldVal("proj-delay-count", state.delayCount);
-      setFieldVal("proj-delay-res", state.delayRes);
-      document.getElementById("proj-delay-res").dispatchEvent(new Event("change"));
-      setFieldVal("proj-delay-w", state.delayW); setFieldVal("proj-delay-h", state.delayH);
-      setFieldVal("proj-refresh", state.refresh);
-      setFieldVal("proj-colordepth", state.colordepth);
-
-      selectedSwitcherKeys = new Set(state.selectedSwitchers || []);
-      selectedLedProcKeys = new Set(state.selectedLedProcs || []);
-      projSwitcherListExpanded = false;
-      projLedProcListExpanded = false;
-
-      calcProjeto();
+      applyProjState(state);
       e.target.value = "";
     };
     reader.readAsText(file);
