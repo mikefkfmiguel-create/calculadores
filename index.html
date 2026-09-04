@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.201</span>
+    <span class="mark">v1.202</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -573,6 +573,10 @@
             <div class="item"><div class="k">Flecha (profundidade)</div><div class="v" id="l-out-curve-sagitta">—</div></div>
             <div class="item wide"><div class="k">Largura desenvolvida (soma dos tiles)</div><div class="v" id="l-out-curve-developed">—</div></div>
           </div>
+          <div id="l-diagram-top-wrap" style="display:none; margin-top:14px;">
+            <div class="k" style="margin-bottom:6px;">Vista de cima (blueprint do chão)</div>
+            <svg id="l-diagram-top" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; width:100%; max-height:min(220px, 30vh); min-height:90px;"></svg>
+          </div>
           <p class="note" id="l-curve-warn" style="display:none;"></p>
         </div>
         <h2 style="margin-top:18px;">Distância de visualização</h2>
@@ -898,6 +902,10 @@
             <div class="item"><div class="k">Largura da superfície (arco)</div><div class="v" id="b-out-curve-arc">—</div></div>
             <div class="item"><div class="k">Raio</div><div class="v" id="b-out-curve-radius">—</div></div>
             <div class="item wide"><div class="k">Largura entre as pontas (corda)</div><div class="v" id="b-out-curve-chord">—</div></div>
+          </div>
+          <div id="b-diagram-top-wrap" style="display:none; margin-top:14px;">
+            <div class="k" style="margin-bottom:6px;">Vista de cima (blueprint do chão)</div>
+            <svg id="b-diagram-top" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; width:100%; max-height:min(220px, 30vh); min-height:90px;"></svg>
           </div>
         </div>
         <h2 style="margin-top:18px;">Luminosidade combinada</h2>
@@ -2799,6 +2807,55 @@
     svg.innerHTML = parts.join("");
   }
 
+  // Vista de cima da curvatura — o "blueprint do chão": o retângulo
+  // tracejado é o footprint mínimo (corda × flecha) que a curva ocupa no
+  // piso, útil para confirmar se cabe no espaço disponível do palco/sala.
+  // Reutiliza lzCurveSpinePoints (js/zonas.js) — mesma matemática do
+  // preview de curvatura de cada zona no Ecrã Complexo, só escalada de
+  // "1 tile = 1 unidade" para metros reais.
+  function renderLedCurveTopView(mx, mw, angleDeg, convex, chordWidthM, sagittaM) {
+    var wrap = document.getElementById("l-diagram-top-wrap");
+    var svg = document.getElementById("l-diagram-top");
+    if (!(angleDeg > 1e-6) || !(chordWidthM > 0)) {
+      wrap.style.display = "none";
+      svg.innerHTML = "";
+      return;
+    }
+    wrap.style.display = "block";
+    var tileWidthM = mw / 1000;
+    var pts = lzCurveSpinePoints(mx, angleDeg, convex).map(function (p) {
+      return { x: p.x * tileWidthM, y: p.y * tileWidthM };
+    });
+    var xs = pts.map(function (p) { return p.x; }), ys = pts.map(function (p) { return p.y; });
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    var footW = maxX - minX, footH = maxY - minY;
+    var unit = Math.max(footW, footH) || 1;
+    var pad = unit * 0.18;
+    var strokeW = unit * 0.02, dashStroke = unit * 0.01;
+    var fontSize = unit * 0.06;
+    // Uma curva larga e rasa (o caso mais comum na prática) tem footW muito
+    // maior que footH — a legenda de baixo (texto fixo + números) pode
+    // ficar mais larga que o próprio desenho e cortar-se no viewBox. Estima
+    // a largura do texto (mesma heurística já usada no desenho do conjunto
+    // do Ecrã Complexo) e alarga o viewBox para caber, sem mexer no desenho.
+    var captionText = "Footprint no chão: " + fmt(footW, 2) + "×" + fmt(footH, 2) + "m (corda × flecha)";
+    var captionW = captionText.length * fontSize * 0.56;
+    var vbW = Math.max(footW + pad * 2, captionW + pad), vbH = footH + pad * 2 + fontSize * 1.6;
+    svg.setAttribute("viewBox", "0 0 " + vbW.toFixed(4) + " " + vbH.toFixed(4));
+    var style = getComputedStyle(document.documentElement);
+    var teal = style.getPropertyValue("--teal-500").trim() || "#2AA6A0";
+    var inkFaint = style.getPropertyValue("--ink-faint").trim() || "#7C8994";
+    var rose = style.getPropertyValue("--rose-500").trim() || "#D14D78";
+    var parts = ['<rect x="' + pad + '" y="' + pad + '" width="' + footW.toFixed(4) + '" height="' + footH.toFixed(4) + '" fill="' + rose + '" fill-opacity="0.08" stroke="' + rose + '" stroke-width="' + dashStroke.toFixed(4) + '" stroke-dasharray="' + (dashStroke * 3).toFixed(4) + ' ' + (dashStroke * 2).toFixed(4) + '"/>'];
+    var d = pts.map(function (p, i) {
+      return (i === 0 ? "M" : "L") + (p.x - minX + pad).toFixed(4) + "," + (p.y - minY + pad).toFixed(4);
+    }).join(" ");
+    parts.push('<path d="' + d + '" fill="none" stroke="' + teal + '" stroke-width="' + strokeW.toFixed(4) + '" stroke-linecap="round" stroke-linejoin="round"/>');
+    parts.push('<text x="' + pad + '" y="' + (pad + footH + fontSize * 1.3).toFixed(4) + '" font-size="' + fontSize.toFixed(4) + '" fill="' + inkFaint + '" text-anchor="start">' + escapeXml(captionText) + '</text>');
+    svg.innerHTML = parts.join("");
+  }
+
   function calcLedCurvature(mx, mw) {
     var resultsEl = document.getElementById("l-curve-results");
     var warnEl = document.getElementById("l-curve-warn");
@@ -2809,6 +2866,7 @@
     var c = resolveCurvature(lCurveMode, val("l-curve-value"), mx, tileWidthM);
     if (!c) {
       outIds.forEach(function (id) { document.getElementById(id).textContent = "—"; });
+      document.getElementById("l-diagram-top-wrap").style.display = "none";
       warnEl.style.display = "block";
       warnEl.textContent = lCurveMode === "chord"
         ? "Essa corda não é alcançável com este nº de tiles/largura de tile, mesmo dobrando até meia-volta — aumenta a corda, o nº de tiles ou reduz a largura do tile."
@@ -2821,6 +2879,8 @@
     document.getElementById("l-out-curve-chord").innerHTML = fmt(c.chordWidthM, 2) + "<small>m</small>";
     document.getElementById("l-out-curve-sagitta").innerHTML = fmt(c.sagittaM, 2) + "<small>m</small>";
     document.getElementById("l-out-curve-developed").innerHTML = fmt(c.developedWidthM, 2) + "<small>m</small>";
+    var convex = document.getElementById("l-curve-dir").value === "convex";
+    renderLedCurveTopView(mx, mw, c.angleDegPerTile, convex, c.chordWidthM, c.sagittaM);
     if (c.totalAngleDeg > 360) {
       warnEl.style.display = "block";
       warnEl.textContent = "Ângulo total do arco (" + fmt(c.totalAngleDeg, 1) + "°) passa de 360° — o ecrã dá mais que uma volta completa; confirma os valores.";
@@ -3084,6 +3144,54 @@
   // escuras ao empilharem-se, sem precisar de desenhar essas zonas à
   // parte. Tal como no Ecrã LED, a curvatura não muda este desenho —
   // mostra sempre a superfície desenrolada (reta).
+  // Vista de cima da curvatura do blend — mesmo "blueprint do chão" do
+  // Ecrã LED, mas com um arco contínuo (não em degraus de tile) já que o
+  // blend é uma superfície de projeção lisa, não tiles rígidos.
+  function renderBlendCurveTopView(chordM, radiusM) {
+    var wrap = document.getElementById("b-diagram-top-wrap");
+    var svg = document.getElementById("b-diagram-top");
+    if (!(chordM > 0) || !(radiusM > 0)) { wrap.style.display = "none"; svg.innerHTML = ""; return; }
+    var ratio = chordM / (2 * radiusM);
+    if (ratio > 1) { wrap.style.display = "none"; svg.innerHTML = ""; return; }
+    wrap.style.display = "block";
+    var halfTheta = Math.asin(ratio);
+    var cosHalf = Math.cos(halfTheta);
+    var N = 48;
+    var pts = [];
+    for (var i = 0; i <= N; i++) {
+      var a = -halfTheta + (2 * halfTheta) * (i / N);
+      pts.push({ x: radiusM * Math.sin(a), y: -radiusM * (Math.cos(a) - cosHalf) });
+    }
+    var xs = pts.map(function (p) { return p.x; }), ys = pts.map(function (p) { return p.y; });
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    var footW = maxX - minX, footH = maxY - minY;
+    var unit = Math.max(footW, footH) || 1;
+    var pad = unit * 0.18;
+    var strokeW = unit * 0.02, dashStroke = unit * 0.01;
+    var fontSize = unit * 0.06;
+    // Um blend largo e raso (o caso mais comum na prática) tem footW muito
+    // maior que footH — a legenda de baixo pode ficar mais larga que o
+    // próprio desenho e cortar-se no viewBox. Estima a largura do texto
+    // (mesma heurística já usada no desenho do conjunto do Ecrã Complexo) e
+    // alarga o viewBox para caber, sem mexer no desenho.
+    var captionText = "Footprint no chão: " + fmt(footW, 2) + "×" + fmt(footH, 2) + "m (corda × flecha)";
+    var captionW = captionText.length * fontSize * 0.56;
+    var vbW = Math.max(footW + pad * 2, captionW + pad), vbH = footH + pad * 2 + fontSize * 1.6;
+    svg.setAttribute("viewBox", "0 0 " + vbW.toFixed(4) + " " + vbH.toFixed(4));
+    var style = getComputedStyle(document.documentElement);
+    var violet = style.getPropertyValue("--violet-500").trim() || "#6C5DD3";
+    var inkFaint = style.getPropertyValue("--ink-faint").trim() || "#7C8994";
+    var rose = style.getPropertyValue("--rose-500").trim() || "#D14D78";
+    var parts = ['<rect x="' + pad + '" y="' + pad + '" width="' + footW.toFixed(4) + '" height="' + footH.toFixed(4) + '" fill="' + rose + '" fill-opacity="0.08" stroke="' + rose + '" stroke-width="' + dashStroke.toFixed(4) + '" stroke-dasharray="' + (dashStroke * 3).toFixed(4) + ' ' + (dashStroke * 2).toFixed(4) + '"/>'];
+    var d = pts.map(function (p, i) {
+      return (i === 0 ? "M" : "L") + (p.x - minX + pad).toFixed(4) + "," + (p.y - minY + pad).toFixed(4);
+    }).join(" ");
+    parts.push('<path d="' + d + '" fill="none" stroke="' + violet + '" stroke-width="' + strokeW.toFixed(4) + '" stroke-linecap="round" stroke-linejoin="round"/>');
+    parts.push('<text x="' + pad + '" y="' + (pad + footH + fontSize * 1.3).toFixed(4) + '" font-size="' + fontSize.toFixed(4) + '" fill="' + inkFaint + '" text-anchor="start">' + escapeXml(captionText) + '</text>');
+    svg.innerHTML = parts.join("");
+  }
+
   function renderBlendDiagram(nh, nv, oh, ov, hpx, vpx, totalWm, totalHm, totalPxH, totalPxV) {
     var wrap = document.getElementById("b-diagram-wrap");
     var svg = document.getElementById("b-diagram");
@@ -3199,6 +3307,7 @@
     if (!curveEnabled) {
       curveResultsEl.style.display = "none";
       curveWarnEl.style.display = "none";
+      document.getElementById("b-diagram-top-wrap").style.display = "none";
     } else if (curveArc == null) {
       curveResultsEl.style.display = "none";
       curveWarnEl.style.display = "block";
@@ -3209,6 +3318,7 @@
       document.getElementById("b-out-curve-arc").innerHTML = fmt(curveArc, 2) + "<small>m</small>";
       document.getElementById("b-out-curve-radius").innerHTML = fmt(curveRadius, 2) + "<small>m</small>";
       document.getElementById("b-out-curve-chord").innerHTML = fmt(wm, 2) + "<small>m</small>";
+      renderBlendCurveTopView(wm, curveRadius);
     }
 
     var warnMsgs = [];
