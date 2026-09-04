@@ -41,6 +41,11 @@
     "Guardar projeto": "Save project",
     "Abrir projeto…": "Open project…",
     "Descarregar .txt": "Download .txt",
+    "Limpar projeto": "Clear project",
+    "Para começar um projeto novo do zero, usa \"Limpar projeto\" — repõe só os campos desta aba, não mexe nas calculadoras nem nas zonas do Ecrã Complexo.": "To start a new project from scratch, use \"Clear project\" — it only resets this tab's fields, it doesn't touch the calculators or the Multi-Zone Screen zones.",
+    "Para começar um projeto novo, usa \"Limpar projeto\".": "To start a new project, use \"Clear project\".",
+    "Repõe os campos desta aba em branco e desliga 'Adicionar ao projeto' em todas as calculadoras — não apaga as calculadoras em si nem as zonas do Ecrã Complexo": "Resets this tab's fields to blank and turns off 'Add to project' in every calculator — doesn't delete the calculators themselves or the Multi-Zone Screen zones",
+    "Projeto limpo.": "Project cleared.",
     "Limpar": "Clear",
     "Remover": "Remove",
     "Mover": "Move",
@@ -979,4 +984,8 @@
   }
 
   window.i18nSetLang = setLang;
+  // Para textos que nunca passam pelo DOM (ex: confirm() nativo) e por
+  // isso o MutationObserver não consegue traduzir sozinho — quem os gera
+  // consulta isto para escolher a versão certa à mão.
+  window.i18nGetLang = function () { return lang; };
 })();
