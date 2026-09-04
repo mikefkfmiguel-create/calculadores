@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.200</span>
+    <span class="mark">v1.201</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -559,6 +559,10 @@
           <div class="item wide"><div class="k">Brilho</div><div class="v" id="l-out-nits">—</div></div>
         </div>
         <p class="note" id="l-halftile-note" style="display:none;"></p>
+        <div id="l-diagram-wrap" style="display:none; margin-top:18px;">
+          <h2>Vista do ecrã</h2>
+          <svg id="l-diagram" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; width:100%; max-height:min(320px, 40vh); min-height:120px;"></svg>
+        </div>
         <div id="l-curve-results" style="display:none;">
           <h2 style="margin-top:18px;">Curvatura</h2>
           <div class="readout">
@@ -882,6 +886,11 @@
           <div class="item"><div class="k">Área</div><div class="v" id="b-out-area">—</div></div>
           <div class="item"><div class="k">Formato</div><div class="v" id="b-out-ratio">—</div></div>
           <div class="item wide"><div class="k">Pixel size (densidade)</div><div class="v" id="b-out-pitch">—</div></div>
+        </div>
+        <div id="b-diagram-wrap" style="display:none; margin-top:18px;">
+          <h2>Vista do ecrã</h2>
+          <svg id="b-diagram" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="display:block; width:100%; max-height:min(320px, 40vh); min-height:120px;"></svg>
+          <div id="b-diagram-legend" style="display:flex; gap:16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-faint); flex-wrap:wrap;"></div>
         </div>
         <div id="b-curve-results" style="display:none;">
           <h2 style="margin-top:18px;">Curvatura</h2>
@@ -2751,6 +2760,45 @@
   // curvatureAngleFromRadius em js/utils.js para a matemática partilhada
   // com o Ecrã Complexo. mx = tiles na horizontal, mw = largura do módulo
   // (mm) — a curvatura é sempre ao longo dessa horizontal.
+  // Vista simples do ecrã (retângulo + grelha de tiles) — mesma ideia da
+  // "DIAGRAMA DO CONJUNTO" do Ecrã Complexo, mas para um único ecrã: sem
+  // arrastar/editar, só uma referência visual do tamanho físico. A
+  // curvatura (quando ligada) não muda este desenho — mostra sempre a
+  // superfície desenrolada (reta), tal como o Ecrã Complexo faz para cada
+  // zona curva no desenho do conjunto.
+  function renderLedDiagram(mx, my, totalWm, totalHm) {
+    var wrap = document.getElementById("l-diagram-wrap");
+    var svg = document.getElementById("l-diagram");
+    if (!(totalWm > 0) || !(totalHm > 0) || !(mx > 0) || !(my > 0)) {
+      wrap.style.display = "none";
+      svg.innerHTML = "";
+      return;
+    }
+    wrap.style.display = "block";
+    var unit = Math.max(totalWm, totalHm) || 1;
+    var strokeW = unit * 0.006, gridStrokeW = unit * 0.0025;
+    var fontSize = unit * 0.045;
+    var pad = unit * 0.08;
+    var vbW = totalWm + pad * 2, vbH = totalHm + pad * 2 + fontSize * 1.6;
+    svg.setAttribute("viewBox", "0 0 " + vbW.toFixed(4) + " " + vbH.toFixed(4));
+    var style = getComputedStyle(document.documentElement);
+    var teal = style.getPropertyValue("--teal-500").trim() || "#2AA6A0";
+    var inkFaint = style.getPropertyValue("--ink-faint").trim() || "#7C8994";
+    var parts = ['<rect x="' + pad + '" y="' + pad + '" width="' + totalWm + '" height="' + totalHm + '" fill="' + teal + '" fill-opacity="0.16" stroke="' + teal + '" stroke-width="' + strokeW.toFixed(4) + '"/>'];
+    var tileW = totalWm / mx, tileH = totalHm / my;
+    for (var i = 1; i < mx; i++) {
+      var x = pad + i * tileW;
+      parts.push('<line x1="' + x.toFixed(4) + '" y1="' + pad + '" x2="' + x.toFixed(4) + '" y2="' + (pad + totalHm).toFixed(4) + '" stroke="' + teal + '" stroke-opacity="0.35" stroke-width="' + gridStrokeW.toFixed(4) + '"/>');
+    }
+    for (var j = 1; j < my; j++) {
+      var y = pad + j * tileH;
+      parts.push('<line x1="' + pad + '" y1="' + y.toFixed(4) + '" x2="' + (pad + totalWm).toFixed(4) + '" y2="' + y.toFixed(4) + '" stroke="' + teal + '" stroke-opacity="0.35" stroke-width="' + gridStrokeW.toFixed(4) + '"/>');
+    }
+    var captionText = fmt(totalWm, 2) + "×" + fmt(totalHm, 2) + "m — " + mx + "×" + my + " tiles";
+    parts.push('<text x="' + pad + '" y="' + (pad + totalHm + fontSize * 1.3).toFixed(4) + '" font-size="' + fontSize.toFixed(4) + '" fill="' + inkFaint + '" text-anchor="start">' + escapeXml(captionText) + '</text>');
+    svg.innerHTML = parts.join("");
+  }
+
   function calcLedCurvature(mx, mw) {
     var resultsEl = document.getElementById("l-curve-results");
     var warnEl = document.getElementById("l-curve-warn");
@@ -2912,6 +2960,7 @@
       warnEl.style.display = "none";
     }
 
+    renderLedDiagram(mx, my, totalWm, totalHm);
     calcLedCurvature(mx, mw);
     var curveSummaryText = "";
     if (lCurveEnabled.checked) {
@@ -3029,6 +3078,50 @@
   }
 
 
+  // Vista simples do blend (grelha nh x nv de retângulos, um por
+  // projetor) — cada retângulo é semi-transparente, por isso as zonas de
+  // overlap (onde dois projetores se sobrepõem) ficam naturalmente mais
+  // escuras ao empilharem-se, sem precisar de desenhar essas zonas à
+  // parte. Tal como no Ecrã LED, a curvatura não muda este desenho —
+  // mostra sempre a superfície desenrolada (reta).
+  function renderBlendDiagram(nh, nv, oh, ov, hpx, vpx, totalWm, totalHm, totalPxH, totalPxV) {
+    var wrap = document.getElementById("b-diagram-wrap");
+    var svg = document.getElementById("b-diagram");
+    var legend = document.getElementById("b-diagram-legend");
+    if (!(totalWm > 0) || !(totalHm > 0) || !(nh > 0) || !(nv > 0)) {
+      wrap.style.display = "none";
+      svg.innerHTML = "";
+      legend.innerHTML = "";
+      return;
+    }
+    wrap.style.display = "block";
+    var unit = Math.max(totalWm, totalHm) || 1;
+    var strokeW = unit * 0.006;
+    var fontSize = unit * 0.045;
+    var pad = unit * 0.08;
+    var vbW = totalWm + pad * 2, vbH = totalHm + pad * 2 + fontSize * 1.6;
+    svg.setAttribute("viewBox", "0 0 " + vbW.toFixed(4) + " " + vbH.toFixed(4));
+    var style = getComputedStyle(document.documentElement);
+    var violet = style.getPropertyValue("--violet-500").trim() || "#6C5DD3";
+    var inkFaint = style.getPropertyValue("--ink-faint").trim() || "#7C8994";
+    var cellWm = (hpx * totalWm) / totalPxH, cellHm = (vpx * totalHm) / totalPxV;
+    var stepWm = ((hpx - oh) * totalWm) / totalPxH, stepHm = ((vpx - ov) * totalHm) / totalPxV;
+    var parts = [];
+    for (var j = 0; j < nv; j++) {
+      for (var i = 0; i < nh; i++) {
+        var x = pad + i * stepWm, y = pad + j * stepHm;
+        parts.push('<rect x="' + x.toFixed(4) + '" y="' + y.toFixed(4) + '" width="' + cellWm.toFixed(4) + '" height="' + cellHm.toFixed(4) + '" fill="' + violet + '" fill-opacity="0.28" stroke="' + violet + '" stroke-width="' + strokeW.toFixed(4) + '"/>');
+      }
+    }
+    var captionText = fmt(totalWm, 2) + "×" + fmt(totalHm, 2) + "m — " + nh + "×" + nv + " projetor" + (nh * nv === 1 ? "" : "es");
+    parts.push('<text x="' + pad + '" y="' + (pad + totalHm + fontSize * 1.3).toFixed(4) + '" font-size="' + fontSize.toFixed(4) + '" fill="' + inkFaint + '" text-anchor="start">' + escapeXml(captionText) + '</text>');
+    svg.innerHTML = parts.join("");
+    legend.innerHTML = (nh > 1 || nv > 1)
+      ? '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + violet + '; opacity:0.28; border:1px solid ' + violet + '; margin-right:5px; vertical-align:-1px;"></span>1 projetor</span>' +
+        '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + violet + '; opacity:0.56; margin-right:5px; vertical-align:-1px;"></span>overlap (2 projetores sobrepostos)</span>'
+      : "";
+  }
+
   function calcBlend() {
     updateSourceHint(blendProjModelSel, PROJECTORS_DATA, "b-projmodel-source");
     var wm = val("b-w"), hm = val("b-h");
@@ -3083,6 +3176,7 @@
     // servers exigem par) — arredonda sempre para cima ao par seguinte.
     var totalPxH = roundUpEven(nh * hpx - overlapTotalH);
     var totalPxV = roundUpEven(nv * vpx - overlapTotalV);
+    renderBlendDiagram(nh, nv, oh, ov, hpx, vpx, effWm, hm, totalPxH, totalPxV);
 
     var pitchMmH = (effWm * 1000) / totalPxH;
     var pitchMmV = (hm * 1000) / totalPxV;
