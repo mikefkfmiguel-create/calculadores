@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.203</span>
+    <span class="mark">v1.204</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -751,8 +751,17 @@
           <div class="item"><div class="k">Amp total (máx.)</div><div class="v" id="lz-out-amp">—</div></div>
           <div class="item wide"><div class="k">Dimensão do conjunto (com gaps)</div><div class="v" id="lz-out-bbox">—</div></div>
           <div class="item wide"><div class="k">Resolução final do canvas (com gaps)</div><div class="v" id="lz-out-canvasres">—</div></div>
+          <div class="item wide"><div class="k">Resolução final do canvas (sem gaps)</div><div class="v" id="lz-out-canvasres-nogaps">—</div></div>
         </div>
-        <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá) — é a soma dos píxeis nativos de cada zona, não o canvas final. A área total também aparece lá — referência interna, não sai no material para o cliente. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas. A "resolução final do canvas" é esse mesmo retângulo convertido em píxeis (usando o pitch da zona maior como referência) — é o tamanho real a configurar no media server, incluindo o espaço dos gaps. O amp total é o consumo máximo publicado pelo fabricante de cada tile (pico, não a média em uso real), dividido por 3 fases.</p>
+        <div class="field" style="margin-top:12px;">
+          <label>Usar para o sinal/processo (Sinal &amp; Data Rate, Projeto, Media Server)</label>
+          <div class="seg lz-canvas-mode-seg">
+            <button type="button" class="seg-btn active" data-canvasmode="gaps">Com gaps</button>
+            <button type="button" class="seg-btn" data-canvasmode="nogaps">Sem gaps</button>
+          </div>
+          <div class="hint">O Grafismo px↔cm usa sempre o canvas com gaps (para gerar a máscara completa a entregar ao grafismo), seja qual for esta escolha.</div>
+        </div>
+        <p class="hint">O total de píxeis fica disponível na aba Projeto para dimensionar switcher/processador de LED (marca "Usar total das zonas" lá) — é a soma dos píxeis nativos de cada zona, não o canvas final. A área total também aparece lá — referência interna, não sai no material para o cliente. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas. A "resolução final do canvas" é esse mesmo retângulo convertido em píxeis (usando o pitch da zona maior como referência) — é o tamanho real a configurar no media server, incluindo o espaço dos gaps. A versão "sem gaps" empacota as zonas lado a lado sem o espaço vazio entre elas — menos píxeis para o processo/sinal, mas já não corresponde à disposição física real (essa continua a ser a versão "com gaps", a única a usar para gerar uma máscara para o grafismo). O amp total é o consumo máximo publicado pelo fabricante de cada tile (pico, não a média em uso real), dividido por 3 fases.</p>
         <div class="summary">
           <div class="summary-head">
             <span class="k">Resumo por zona</span>
@@ -3679,9 +3688,11 @@
         var totalWeight = lzLastTotals.totalWeight, totalAmp = lzLastTotals.totalAmp;
         var ampPhaseZ = totalAmp / 3;
 
+        var selCanvas = lzSelectedCanvas(lzLastTotals.pixelMap);
+        var selCanvasLabel = (typeof lzCanvasMode !== "undefined" && lzCanvasMode === "nogaps") ? "sem gaps" : "com gaps";
         document.getElementById("proj-out-tiles").textContent = fmtInt(numTiles) + " (várias zonas)";
         document.getElementById("proj-out-res").innerHTML = fmtInt(lzLastTotals.totalPixels) + "<small>px totais</small>" +
-          (lzLastTotals.pixelMap ? "<span class=\"canvas-note\">canvas (com gaps): " + fmtInt(lzLastTotals.pixelMap.canvasW) + "×" + fmtInt(lzLastTotals.pixelMap.canvasH) + "px</span>" : "");
+          (selCanvas ? "<span class=\"canvas-note\">canvas (" + selCanvasLabel + "): " + fmtInt(selCanvas.w) + "×" + fmtInt(selCanvas.h) + "px</span>" : "");
         document.getElementById("proj-out-size").innerHTML = "várias zonas<small> — ver detalhe na aba Ecrã Complexo</small>";
         document.getElementById("proj-out-pitch").innerHTML = "vário<small> (zonas com pitches diferentes)</small>";
         document.getElementById("proj-out-weight").innerHTML = fmt(totalWeight, 1) + "<small>kg</small>";
@@ -3691,8 +3702,8 @@
 
         ledPixels = lzLastTotals.totalPixels;
         ledLabel = "Ecrã LED (múltiplas zonas)";
-        projLastRes = lzLastTotals.pixelMap ? { x: lzLastTotals.pixelMap.canvasW, y: lzLastTotals.pixelMap.canvasH, label: "Projeto — Ecrã LED (múltiplas zonas)" } : null;
-        if (lzLastTotals.pixelMap) { ledResW = lzLastTotals.pixelMap.canvasW; ledResH = lzLastTotals.pixelMap.canvasH; }
+        projLastRes = selCanvas ? { x: selCanvas.w, y: selCanvas.h, label: "Projeto — Ecrã LED (múltiplas zonas)" } : null;
+        if (selCanvas) { ledResW = selCanvas.w; ledResH = selCanvas.h; }
 
         ledSumText =
           lzLastTotals.zones.map(function (z) {
@@ -3700,7 +3711,7 @@
           }).join("\n") + "\n" +
           "Nº de tiles total: " + fmtInt(numTiles) + "\n" +
           "Total de píxeis (soma nativa das zonas): " + fmtInt(lzLastTotals.totalPixels) + " px\n" +
-          (lzLastTotals.pixelMap ? "Resolução do canvas (com gaps): " + fmtInt(lzLastTotals.pixelMap.canvasW) + "x" + fmtInt(lzLastTotals.pixelMap.canvasH) + " px\n" : "") +
+          (selCanvas ? "Resolução do canvas (" + selCanvasLabel + "): " + fmtInt(selCanvas.w) + "x" + fmtInt(selCanvas.h) + " px\n" : "") +
           "Peso total: " + fmt(totalWeight, 1) + " kg\n" +
           "Amp total (máx.): " + fmt(totalAmp, 2) + " A  —  " + fmt(ampPhaseZ, 2) + " A por fase (trifásica)\n" +
           "Área total (uso interno): " + fmt(lzLastTotals.totalArea, 2) + " m²";
@@ -4143,7 +4154,8 @@
       showToast("Ainda não há zonas com canvas calculado na aba Ecrã Complexo.");
       return;
     }
-    useSinalRes(lzLastTotals.pixelMap.canvasW, lzLastTotals.pixelMap.canvasH, "Ecrã Complexo");
+    var sgSel = lzSelectedCanvas(lzLastTotals.pixelMap);
+    useSinalRes(sgSel.w, sgSel.h, "Ecrã Complexo" + (lzCanvasMode === "nogaps" ? " (sem gaps)" : ""));
   });
   document.getElementById("sg-use-proj").addEventListener("click", function () {
     if (!projLastRes) {
@@ -4173,7 +4185,8 @@
       showToast("Ainda não há zonas com canvas calculado na aba Ecrã Complexo.");
       return;
     }
-    useMsRes(lzLastTotals.pixelMap.canvasW, lzLastTotals.pixelMap.canvasH, "Ecrã Complexo");
+    var msSel = lzSelectedCanvas(lzLastTotals.pixelMap);
+    useMsRes(msSel.w, msSel.h, "Ecrã Complexo" + (lzCanvasMode === "nogaps" ? " (sem gaps)" : ""));
   });
   document.getElementById("ms-use-proj").addEventListener("click", function () {
     if (!projLastRes) {
