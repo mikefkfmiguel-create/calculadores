@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.199</span>
+    <span class="mark">v1.200</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -4410,8 +4410,8 @@
   function splitCanvasForClock(h, v, fps, maxMHz) {
     var splitWidth = h >= v;
     for (var n = 1; n <= 64; n++) {
-      var pw = splitWidth ? Math.ceil(h / n) : h;
-      var ph = splitWidth ? v : Math.ceil(v / n);
+      var pw = splitWidth ? roundUpEven(h / n) : h;
+      var ph = splitWidth ? v : roundUpEven(v / n);
       if (cvtRb2ClockMHz(pw, ph, fps) <= maxMHz + 0.05) return { n: n, w: pw, h: ph };
     }
     return null;
@@ -4425,8 +4425,8 @@
   function splitCanvasForCapacity(h, v, pxBudget) {
     var splitWidth = h >= v;
     for (var n = 1; n <= 64; n++) {
-      var pw = splitWidth ? Math.ceil(h / n) : h;
-      var ph = splitWidth ? v : Math.ceil(v / n);
+      var pw = splitWidth ? roundUpEven(h / n) : h;
+      var ph = splitWidth ? v : roundUpEven(v / n);
       if (pw * ph <= pxBudget) return { n: n, w: pw, h: ph };
     }
     return null;
