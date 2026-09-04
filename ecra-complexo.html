@@ -82,7 +82,7 @@
             <p>Para abrir espaço a uma zona nova (ex: adicionar um ecrã à esquerda de tudo o resto): marca a caixa <strong>"Sel."</strong> nas zonas que já lá estão (ou usa "Todas"), indica quanto deslocar em X/Y aqui ao lado e carrega em <strong>"Mover"</strong> — soma esse deslocamento à posição de todas as marcadas de uma vez, sem teres de editar zona a zona.</p>
             <p>Zonas com o mesmo nome-base (ex: "Lateral", "Lateral 2", "Lateral 3") ficam marcadas automaticamente com a mesma cor no diagrama, no mapa de píxeis exportado e num pontinho junto ao nome de cada zona — só para ajudar a distinguir grupos à vista, não afeta os cálculos.</p>
             <p>Desmarca a caixa <strong>"Vis."</strong> numa zona para a esconder — sai do diagrama, dos totais e do mapa de píxeis exportado, mas fica guardada (não é apagada). Útil para testar cenários sem uma zona ou para preparar uma zona que ainda não está confirmada.</p>
-            <p><strong>"Remover"</strong> numa zona apaga só essa; <strong>"Limpar zonas"</strong>, no fundo da lista, apaga todas de uma vez para recomeçar do zero — pede confirmação antes, porque não pode ser desfeito. Nenhum dos dois mexe nas outras calculadoras nem no projeto.</p>
+            <p><strong>"Remover esta zona"</strong>, dentro do popup de edição, apaga só essa zona; <strong>"Limpar zonas"</strong>, no fundo da lista, apaga todas de uma vez para recomeçar do zero — pede confirmação antes. Enganaste-te? <strong>Ctrl+Z</strong> (ou o botão "↩ Desfazer") desfaz a última alteração às zonas — remover, aplicar/atualizar réplicas, mover, arrastar ou limpar tudo. Nenhuma destas ações mexe nas outras calculadoras nem no projeto.</p>
             <p>As zonas ficam guardadas automaticamente neste aparelho (mesmo que atualizes a página ou feches esta app) — e são as mesmas zonas que aparecem na aba "Ecrã Complexo" dos Calculadores, dos dois lados.</p>
             <p>Em ecrãs largos (computador), o diagrama fica mesmo fixo no topo da página e só o resto desce — fácil de ver mesmo em projetos com muitas zonas. Em telemóvel/tablet mantém-se a barra fixa condensada em baixo.</p>
             <p><strong>"Exportar mapa de píxeis"</strong> e <strong>"Exportar máscara"</strong> geram um PNG do canvas combinado em píxeis (posição/tamanho reais de cada zona), para levar para um media server — o mapa tem legendas com os valores, a máscara é só preto/branco para usar como matte de conteúdo.</p>
@@ -92,6 +92,8 @@
       <div id="lz-list"></div>
       <button type="button" class="copy" id="lz-add">+ Adicionar zona</button>
       <button type="button" class="copy" id="lz-clear-zones" title="Remover todas as zonas desta lista — as outras calculadoras e o projeto não são afetados">Limpar zonas</button>
+      <button type="button" class="copy lz-undo" title="Desfazer a última alteração às zonas (Ctrl+Z)" disabled>↩ Desfazer</button>
+      <button type="button" class="copy lz-redo" title="Refazer (Ctrl+Y)" disabled>↪ Refazer</button>
     </div>
 
     <div class="card results" data-accent="zonas" style="display:none;" id="lz-totals-card">

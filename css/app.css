@@ -575,6 +575,14 @@
     margin-top: 12px;
   }
   .lz-readout-row .hint { margin: 0; }
+  .lz-name-display { display: block; font-size: 14px; margin-bottom: 2px; }
+  .lz-dialog-danger {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .lz-dialog-danger .lz-remove { color: var(--rose-500); border-color: var(--rose-500); }
+  .lz-dialog-danger .lz-remove:hover { color: var(--rose-500); border-color: var(--rose-500); background: var(--paper); }
   /* Cor de destaque (a mesma da aba Zonas/Ecrã Complexo) para ser o botão
      mais visível do card — é o único acesso à posição, modelo, tamanho e
      curvatura, por isso não pode passar despercebido como mais um botão
@@ -598,6 +606,13 @@
     border-radius: 14px;
     padding: 20px 20px 22px;
     box-shadow: var(--shadow);
+    /* [dialog] deve promover-se sozinho para o "top layer" do browser ao
+       abrir com showModal() — mas na página avançada (ecra-complexo.html)
+       o diagrama fica num bloco sticky (#ecra-sticky-top, z-index:20) por
+       cima do resto; nalguns browsers/versões isso já se viu a "ganhar" ao
+       popup. z-index explícito aqui é só uma rede de segurança — não
+       deveria ser preciso, mas garante que o popup fica sempre por cima. */
+    z-index: 2147483647;
   }
   .lz-details-dialog::backdrop { background: rgba(0,0,0,0.55); }
   .lz-dialog-head {
@@ -1278,6 +1293,8 @@
   }
   button.copy:hover { color: var(--ink); border-color: var(--ink-faint); }
   button.copy:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  button.copy:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.copy:disabled:hover { color: var(--ink-soft); border-color: var(--line); }
 
   /* Select com o mesmo aspeto do button.copy — usado no "Partilhar", onde
      escolher o formato (texto/.txt/.csv/PDF) já dispara logo o envio nesse

@@ -155,7 +155,7 @@
     card.className = "card";
     card.dataset.zoneId = id;
     card.innerHTML =
-      '<div style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-bottom:14px; flex-wrap:wrap;">' +
+      '<div style="display:flex; justify-content:flex-start; align-items:flex-end; gap:10px; margin-bottom:14px; flex-wrap:wrap;">' +
         '<div class="field" style="width:32px; margin-bottom:0;">' +
           '<label style="text-align:center;">Sel.</label>' +
           '<div style="display:flex; align-items:center; justify-content:center; height:35px;">' +
@@ -181,40 +181,23 @@
             '<button type="button" class="lz-color-reset" title="Repor cor automática (por grupo)" style="font-size:9.5px; line-height:1; padding:0; border:none; background:none; color:var(--ink-faint); cursor:pointer; text-decoration:underline; visibility:hidden;">auto</button>' +
           '</div>' +
         '</div>' +
-        '<div class="field" style="flex:1; min-width:160px; margin-bottom:0;">' +
-          '<label>Nome da zona</label>' +
-          '<div class="inputgroup"><input type="text" class="lz-name" value="' + (name || ("Zona " + (lzNextId - 1))) + '"></div>' +
-        '</div>' +
-        '<div class="field" style="width:100px; margin-bottom:0;">' +
-          '<label>Cópias</label>' +
-          '<div class="inputgroup"><input type="number" class="lz-dup-count" value="1" min="1" step="1"></div>' +
-        '</div>' +
-        '<div class="field" style="width:120px; margin-bottom:0;">' +
-          '<label>Gap p/ cópia</label>' +
-          '<div class="inputgroup"><input type="number" class="lz-dup-gap" value="0.05" min="0" step="0.01"></div>' +
-        '</div>' +
-        '<div class="field" style="width:118px; margin-bottom:0;">' +
-          '<label>Direção cópias</label>' +
-          '<select class="lz-dup-dir plain">' +
-            '<option value="h" selected>→ horizontal</option>' +
-            '<option value="v">↓ vertical</option>' +
-          '</select>' +
-        '</div>' +
-        '<div style="display:flex; gap:8px; flex-wrap:wrap;">' +
-          '<button type="button" class="copy lz-duplicate" title="Cria o nº de zonas indicado em Cópias, iguais a esta, em fila com o gap e direção indicados">Aplicar réplicas</button>' +
-          '<button type="button" class="copy lz-update-replicas" title="Aplica o modelo/tamanho desta zona às outras zonas com o mesmo nome-base (ex: &quot;Lateral 2&quot;, &quot;Lateral 3&quot;), sem criar novas nem mexer nas posições delas">Atualizar réplicas</button>' +
-          '<button type="button" class="copy lz-remove">Remover</button>' +
-        '</div>' +
       '</div>' +
       '<div class="lz-readout-row">' +
-        '<div class="hint lz-readout">—</div>' +
-        '<button type="button" class="copy lz-edit-btn" title="Abre a posição, modelo, tamanho e curvatura desta zona num popup próprio">✎ Editar</button>' +
+        '<div>' +
+          '<strong class="lz-name-display"></strong>' +
+          '<div class="hint lz-readout">—</div>' +
+        '</div>' +
+        '<button type="button" class="copy lz-edit-btn" title="Abre o nome, posição, cópias, modelo, tamanho e curvatura desta zona num popup próprio">✎ Editar</button>' +
       '</div>' +
       '<div class="hint lz-curve-readout">Curvatura: desligada</div>' +
       '<dialog class="lz-details-dialog">' +
         '<div class="lz-dialog-head">' +
           '<strong class="lz-dialog-title">Editar zona</strong>' +
           '<button type="button" class="lz-dialog-close" aria-label="Fechar">✕</button>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Nome da zona</label>' +
+          '<div class="inputgroup"><input type="text" class="lz-name" value="' + (name || ("Zona " + (lzNextId - 1))) + '"></div>' +
         '</div>' +
         '<div class="row2 lz-position-inputs">' +
           '<div class="field"><label>Posição X (horizontal)</label><div class="inputgroup"><input class="lz-posx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
@@ -283,6 +266,25 @@
             '<label>Vista de cima (referência — não afeta o desenho do conjunto nem as contas)</label>' +
             '<svg class="lz-curve-preview" viewBox="0 0 100 40" preserveAspectRatio="xMidYMid meet" style="display:block; width:100%; max-height:140px; background:var(--paper); border:1px solid var(--line-soft); border-radius:8px;"></svg>' +
           '</div>' +
+        '</div>' +
+        '<div class="divider">Réplicas</div>' +
+        '<div class="row2">' +
+          '<div class="field"><label>Cópias</label><div class="inputgroup"><input type="number" class="lz-dup-count" value="1" min="1" step="1"></div></div>' +
+          '<div class="field"><label>Gap p/ cópia</label><div class="inputgroup"><input type="number" class="lz-dup-gap" value="0.05" min="0" step="0.01"></div></div>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Direção cópias</label>' +
+          '<select class="lz-dup-dir plain">' +
+            '<option value="h" selected>→ horizontal</option>' +
+            '<option value="v">↓ vertical</option>' +
+          '</select>' +
+        '</div>' +
+        '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">' +
+          '<button type="button" class="copy lz-duplicate" title="Cria o nº de zonas indicado em Cópias, iguais a esta, em fila com o gap e direção indicados">Aplicar réplicas</button>' +
+          '<button type="button" class="copy lz-update-replicas" title="Aplica o modelo/tamanho desta zona às outras zonas com o mesmo nome-base (ex: &quot;Lateral 2&quot;, &quot;Lateral 3&quot;), sem criar novas nem mexer nas posições delas">Atualizar réplicas</button>' +
+        '</div>' +
+        '<div class="lz-dialog-danger">' +
+          '<button type="button" class="copy lz-remove">Remover esta zona</button>' +
         '</div>' +
       '</dialog>';
     lzList.appendChild(card);
@@ -381,17 +383,18 @@
   }
 
   document.querySelectorAll("#lz-add, #lz-add-top, #lz-add-canvas").forEach(function (btn) {
-    btn.addEventListener("click", function () { lzAddZone(); });
+    btn.addEventListener("click", function () { lzPushUndo(); lzAddZone(); });
   });
   var lzClearZonesBtn = document.getElementById("lz-clear-zones");
   if (lzClearZonesBtn) {
     lzClearZonesBtn.addEventListener("click", function () {
       if (!lzList.children.length) return;
-      appConfirm("Remover todas as zonas desta lista? Esta ação não pode ser desfeita — as outras calculadoras e o projeto não são afetados.").then(function (ok) {
+      appConfirm("Remover todas as zonas desta lista? Dá para desfazer a seguir (Ctrl+Z) — as outras calculadoras e o projeto não são afetados.").then(function (ok) {
         if (!ok) return;
+        lzPushUndo();
         lzList.innerHTML = "";
         calcLedZones();
-        showToast("Zonas removidas.");
+        showToast("Zonas removidas. Ctrl+Z para desfazer.");
       });
     });
   }
@@ -480,6 +483,7 @@
       var dClientX = e.clientX - lzDrag.startClientX, dClientY = e.clientY - lzDrag.startClientY;
       if (Math.hypot(dClientX, dClientY) < LZ_DRAG_CLICK_THRESHOLD_PX) return;
       lzDrag.moved = true;
+      lzPushUndo();
     }
     var cur = lzSvgPoint(lzDrag.svg, e.clientX, e.clientY);
     lzDrag.dx = cur.x - lzDrag.startSvgX;
@@ -566,6 +570,7 @@
     if (!dx && !dy) { showToast("Indica um deslocamento em X e/ou Y primeiro."); return; }
     var selected = lzList.querySelectorAll(".lz-select:checked");
     if (!selected.length) { showToast("Marca a caixa \"Sel.\" de pelo menos uma zona primeiro — são as que vão ser deslocadas."); return; }
+    lzPushUndo();
     selected.forEach(function (cb) {
       var card = cb.closest(".card");
       var xInput = card.querySelector(".lz-posx"), yInput = card.querySelector(".lz-posy");
@@ -602,12 +607,14 @@
     }
     var removeBtn = e.target.closest(".lz-remove");
     if (removeBtn) {
+      lzPushUndo();
       removeBtn.closest(".card").remove();
       calcLedZones();
       return;
     }
     var dupBtn = e.target.closest(".lz-duplicate");
     if (dupBtn) {
+      lzPushUndo();
       var srcCard = dupBtn.closest(".card");
       var count = Math.max(1, parseInt(srcCard.querySelector(".lz-dup-count").value, 10) || 1);
       var srcName = srcCard.querySelector(".lz-name").value.trim() || "Zona";
@@ -642,18 +649,15 @@
       var updSrcName = updSrcCard.querySelector(".lz-name").value.trim() || "Zona";
       var updRoot = lzBaseName(updSrcName) || updSrcName;
       var updOpts = lzOptsFromCard(updSrcCard);
-      var updated = 0;
-      document.querySelectorAll("#lz-list .card").forEach(function (card) {
-        if (card === updSrcCard) return;
-        var n = card.querySelector(".lz-name").value.trim();
-        if (lzBaseName(n) !== updRoot) return;
-        lzApplyOptsToCard(card, updOpts);
-        updated++;
+      var toUpdate = Array.from(document.querySelectorAll("#lz-list .card")).filter(function (card) {
+        return card !== updSrcCard && lzBaseName(card.querySelector(".lz-name").value.trim()) === updRoot;
       });
-      if (!updated) {
+      if (!toUpdate.length) {
         showToast("Não encontrei outras zonas com o mesmo nome-base (\"" + updRoot + "\") para atualizar — usa \"Aplicar réplicas\" primeiro para as criar.");
         return;
       }
+      lzPushUndo();
+      toUpdate.forEach(function (card) { lzApplyOptsToCard(card, updOpts); });
       calcLedZones();
       return;
     }
@@ -945,8 +949,11 @@
       z.pxW = Math.max(1, Math.round((z.w * 1000) / refPitch));
       z.pxH = Math.max(1, Math.round((z.h * 1000) / refPitch));
     });
-    var canvasW = Math.max.apply(null, valid.map(function (z) { return z.pxX + z.pxW; }));
-    var canvasH = Math.max.apply(null, valid.map(function (z) { return z.pxY + z.pxH; }));
+    // Arredonda sempre para cima ao par seguinte — mesma regra já usada no
+    // Blend, a maioria dos processadores/media servers exige resolução
+    // final par (nunca ímpar).
+    var canvasW = roundUpEven(Math.max.apply(null, valid.map(function (z) { return z.pxX + z.pxW; })));
+    var canvasH = roundUpEven(Math.max.apply(null, valid.map(function (z) { return z.pxY + z.pxH; })));
     return { zones: valid, canvasW: canvasW, canvasH: canvasH, refPitch: refPitch, refName: ref.name, mixedPitch: mixedPitch, refPinned: !!pinnedRef };
   }
 
@@ -1101,6 +1108,63 @@
   // ao abrir a app — um refresh acidental (ou o telemóvel a recarregar a
   // PWA em segundo plano) já não apaga um setup complexo de várias zonas,
   // que demora a voltar a preencher à mão.
+  // Desfazer/refazer — pilha de snapshots completos da lista de zonas
+  // (mesmo formato usado para gravar/restaurar). lzPushUndo() é chamado
+  // antes de cada ação que muda a lista (remover, aplicar/atualizar
+  // réplicas, mover em bloco, arrastar, adicionar, limpar) — nunca a cada
+  // tecla premida a editar um campo, senão o undo ficava granular demais.
+  var LZ_UNDO_MAX = 30;
+  var lzUndoStack = [];
+  var lzRedoStack = [];
+  function lzPushUndo() {
+    lzUndoStack.push(JSON.stringify(lzSerializeZones()));
+    if (lzUndoStack.length > LZ_UNDO_MAX) lzUndoStack.shift();
+    lzRedoStack.length = 0;
+    lzUpdateUndoRedoButtons();
+  }
+  function lzApplyZonesSnapshot(data) {
+    lzList.innerHTML = "";
+    data.forEach(function (opts) { lzAddZone(opts.name, opts, false); });
+    calcLedZones();
+  }
+  function lzUndo() {
+    if (!lzUndoStack.length) return;
+    lzRedoStack.push(JSON.stringify(lzSerializeZones()));
+    lzApplyZonesSnapshot(JSON.parse(lzUndoStack.pop()));
+    lzUpdateUndoRedoButtons();
+    showToast("Ação desfeita.");
+  }
+  function lzRedo() {
+    if (!lzRedoStack.length) return;
+    lzUndoStack.push(JSON.stringify(lzSerializeZones()));
+    lzApplyZonesSnapshot(JSON.parse(lzRedoStack.pop()));
+    lzUpdateUndoRedoButtons();
+    showToast("Ação refeita.");
+  }
+  function lzUpdateUndoRedoButtons() {
+    document.querySelectorAll(".lz-undo").forEach(function (b) { b.disabled = !lzUndoStack.length; });
+    document.querySelectorAll(".lz-redo").forEach(function (b) { b.disabled = !lzRedoStack.length; });
+  }
+  document.querySelectorAll(".lz-undo").forEach(function (b) { b.addEventListener("click", lzUndo); });
+  document.querySelectorAll(".lz-redo").forEach(function (b) { b.addEventListener("click", lzRedo); });
+  // Ctrl+Z / Cmd+Z e Ctrl+Y / Ctrl+Shift+Z em qualquer lado da página —
+  // exceto a escrever num campo de texto, onde o undo nativo do browser
+  // (desfazer caracteres) continua a fazer mais sentido.
+  document.addEventListener("keydown", function (e) {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    var key = e.key.toLowerCase();
+    if (key !== "z" && key !== "y") return;
+    // Só atua se a secção de zonas estiver mesmo visível — em index.html
+    // as abas ficam todas no DOM ao mesmo tempo, só escondidas, por isso
+    // sem isto o atalho disparava mesmo com outra aba (ex: Blend) aberta.
+    if (!lzList.offsetParent) return;
+    var t = e.target;
+    var isEditable = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
+    if (isEditable) return;
+    if (key === "y" || (key === "z" && e.shiftKey)) { e.preventDefault(); lzRedo(); }
+    else if (key === "z") { e.preventDefault(); lzUndo(); }
+  });
+
   var LZ_STORAGE_KEY = "calculadores-zonas-v1";
   function lzSerializeZones() {
     return Array.from(lzList.querySelectorAll(".card")).map(function (card) {
@@ -1154,6 +1218,8 @@
       var name = card.querySelector(".lz-name").value.trim() || "Zona";
       var dialogTitle = card.querySelector(".lz-dialog-title");
       if (dialogTitle) dialogTitle.textContent = "Editar zona — " + name;
+      var nameDisplay = card.querySelector(".lz-name-display");
+      if (nameDisplay) nameDisplay.textContent = name;
       var posX = parseFloat(card.querySelector(".lz-posx").value);
       var posY = parseFloat(card.querySelector(".lz-posy").value);
       if (isNaN(posX)) posX = 0;
