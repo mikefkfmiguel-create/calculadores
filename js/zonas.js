@@ -383,6 +383,18 @@
   document.querySelectorAll("#lz-add, #lz-add-top, #lz-add-canvas").forEach(function (btn) {
     btn.addEventListener("click", function () { lzAddZone(); });
   });
+  var lzClearZonesBtn = document.getElementById("lz-clear-zones");
+  if (lzClearZonesBtn) {
+    lzClearZonesBtn.addEventListener("click", function () {
+      if (!lzList.children.length) return;
+      appConfirm("Remover todas as zonas desta lista? Esta ação não pode ser desfeita — as outras calculadoras e o projeto não são afetados.").then(function (ok) {
+        if (!ok) return;
+        lzList.innerHTML = "";
+        calcLedZones();
+        showToast("Zonas removidas.");
+      });
+    });
+  }
   document.getElementById("lz-preview-bar").addEventListener("click", function () {
     var totalsCard = document.getElementById("lz-totals-card");
     totalsCard.open = true;
