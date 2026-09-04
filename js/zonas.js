@@ -191,6 +191,7 @@
       '</div>' +
       '<div class="hint lz-curve-readout">Curvatura: desligada</div>' +
       '<dialog class="lz-details-dialog">' +
+      '<div class="lz-dialog-body">' +
         '<div class="lz-dialog-head">' +
           '<strong class="lz-dialog-title">Editar zona</strong>' +
           '<button type="button" class="lz-dialog-close" aria-label="Fechar">✕</button>' +
@@ -286,6 +287,7 @@
         '<div class="lz-dialog-danger">' +
           '<button type="button" class="copy lz-remove">Remover esta zona</button>' +
         '</div>' +
+      '</div>' +
       '</dialog>';
     lzList.appendChild(card);
     lzPopulateModelSelect(card.querySelector(".lz-model"));

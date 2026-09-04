@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.193</span>
+    <span class="mark">v1.194</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -39,11 +39,13 @@
   <div id="app-toast" role="status" aria-live="polite"></div>
 
   <dialog id="app-confirm-dialog" class="app-confirm-dialog">
-    <p class="app-confirm-msg"></p>
-    <form method="dialog" class="app-confirm-actions">
-      <button type="submit" value="no" class="copy">Cancelar</button>
-      <button type="submit" value="yes" class="copy app-confirm-yes">Confirmar</button>
-    </form>
+    <div class="app-confirm-body">
+      <p class="app-confirm-msg"></p>
+      <form method="dialog" class="app-confirm-actions">
+        <button type="submit" value="no" class="copy">Cancelar</button>
+        <button type="submit" value="yes" class="copy app-confirm-yes">Confirmar</button>
+      </form>
+    </div>
   </dialog>
 
   <div class="tabs-wrap" id="tabs-wrap">

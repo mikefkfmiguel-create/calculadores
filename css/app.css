@@ -604,7 +604,7 @@
     color: var(--ink);
     border: 1px solid var(--line-soft);
     border-radius: 14px;
-    padding: 20px 20px 22px;
+    padding: 0;
     box-shadow: var(--shadow);
     /* [dialog] deve promover-se sozinho para o "top layer" do browser ao
        abrir com showModal() — mas na página avançada (ecra-complexo.html)
@@ -615,6 +615,14 @@
     z-index: 2147483647;
   }
   .lz-details-dialog::backdrop { background: rgba(0,0,0,0.55); }
+  /* O padding vive aqui, nunca no <dialog> em si — se ficasse no <dialog>,
+     um clique na própria margem/padding do popup (não em nenhum campo,
+     só no espaço "vazio" dentro da caixa visível) tinha e.target a
+     apontar para o <dialog>, o mesmo sinal usado para "clicou fora,
+     fechar" — fechava o popup ao clicar dentro dele por engano. Com o
+     padding só aqui, o <dialog> fica com a caixa exatamente do tamanho
+     do conteúdo, sem essa margem "traiçoeira". */
+  .lz-dialog-body { padding: 20px 20px 22px; }
   .lz-dialog-head {
     display: flex;
     align-items: center;
@@ -1085,10 +1093,14 @@
     color: var(--ink);
     border: 1px solid var(--line-soft);
     border-radius: 14px;
-    padding: 20px;
+    padding: 0;
     box-shadow: var(--shadow);
   }
   .app-confirm-dialog::backdrop { background: rgba(0,0,0,0.55); }
+  /* Padding só aqui, nunca no <dialog> — ver o mesmo comentário em
+     .lz-dialog-body (clicar no padding do <dialog> conta como "clicar
+     fora" para o handler de fechar ao clicar no backdrop). */
+  .app-confirm-body { padding: 20px; }
   .app-confirm-msg { margin: 0 0 18px; line-height: 1.5; }
   .app-confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
   .app-confirm-yes { color: var(--rose-500); border-color: var(--rose-500); }
