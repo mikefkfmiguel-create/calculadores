@@ -1384,6 +1384,27 @@
   .calcw-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
   .inputgroup:has(input:read-only) .calcw-btn { display: none; }
 
+  /* Botões +/- para campos de quantidade (ex: nº de ecrãs DSM/delay) — mais
+     rápido que escrever o número para quem só quer subir/descer de 1 em 1. */
+  .count-step {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    color: var(--ink-faint);
+    background: var(--line-soft);
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: "IBM Plex Mono", monospace;
+    cursor: pointer;
+  }
+  .count-step:hover { color: var(--ink); background: var(--line); }
+  .count-step:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  .count-step-minus { border-right: 1px solid var(--line); }
+  .count-step-plus { border-left: 1px solid var(--line); }
+
   /* <dialog> nativo (showModal()) em vez de div+z-index: promove-se sozinho
      para o "top layer" do browser, por cima de qualquer outro conteúdo —
      incluindo outro <dialog> já aberto (ex: o popup de edição de zona, se a
