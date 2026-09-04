@@ -452,6 +452,16 @@
     totalsCard.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
+  document.querySelectorAll(".lz-canvas-mode-seg .seg-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      lzSetCanvasMode(btn.dataset.canvasmode);
+      document.querySelectorAll(".lz-canvas-mode-seg").forEach(function (seg) {
+        seg.querySelectorAll(".seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.canvasmode === lzCanvasMode); });
+      });
+      if (typeof calcProjeto === "function") calcProjeto();
+    });
+  });
+
   // Na página "Ecrã Complexo" à parte, o diagrama (#ecra-fixed-top) já foi
   // fixo no topo, com o resto da página a ganhar uma margem de compensação
   // calculada aqui via ResizeObserver — mas essa compensação ficava
@@ -1002,7 +1012,52 @@
     // final par (nunca ímpar).
     var canvasW = roundUpEven(Math.max.apply(null, valid.map(function (z) { return z.pxX + z.pxW; })));
     var canvasH = roundUpEven(Math.max.apply(null, valid.map(function (z) { return z.pxY + z.pxH; })));
-    return { zones: valid, canvasW: canvasW, canvasH: canvasH, refPitch: refPitch, refName: ref.name, mixedPitch: mixedPitch, refPinned: !!pinnedRef };
+    // "Sem gaps": quanto ocuparia o canvas se as zonas estivessem
+    // encostadas umas às outras, sem o espaço vazio entre elas — útil para
+    // o processo/sinal (menos píxeis a processar), em vez do canvas com
+    // gaps (usado para gerar uma máscara completa para o grafismo). Não há
+    // um valor de "gap" guardado à parte, por isso empacota-se tudo lado a
+    // lado ao longo do eixo dominante do conjunto (o mesmo critério usado
+    // no Blend para repartir por várias ligações): se o conjunto é mais
+    // largo que alto, soma-se a largura de cada zona lado a lado e a
+    // altura fica a da zona mais alta; se é mais alto que largo, o
+    // inverso. Não é um reempacotamento 2D real (não tenta otimizar grelhas
+    // irregulares) — é a mesma lógica simples "tudo numa fila".
+    var splitWidthNoGaps = canvasW >= canvasH;
+    var canvasWNoGaps, canvasHNoGaps;
+    if (splitWidthNoGaps) {
+      canvasWNoGaps = roundUpEven(valid.reduce(function (s, z) { return s + z.pxW; }, 0));
+      canvasHNoGaps = roundUpEven(Math.max.apply(null, valid.map(function (z) { return z.pxH; })));
+    } else {
+      canvasHNoGaps = roundUpEven(valid.reduce(function (s, z) { return s + z.pxH; }, 0));
+      canvasWNoGaps = roundUpEven(Math.max.apply(null, valid.map(function (z) { return z.pxW; })));
+    }
+    return { zones: valid, canvasW: canvasW, canvasH: canvasH, canvasWNoGaps: canvasWNoGaps, canvasHNoGaps: canvasHNoGaps, refPitch: refPitch, refName: ref.name, mixedPitch: mixedPitch, refPinned: !!pinnedRef };
+  }
+
+  // Qual canvas os atalhos "↙ Ecrã Complexo" (Sinal & Data Rate, Projeto,
+  // Media Server) devem usar — com gaps (por omissão, igual a sempre) ou
+  // sem gaps (menos píxeis, para não sobrecarregar o processo). Persiste
+  // entre sessões e entre esta página e o ecra-complexo.html standalone,
+  // tal como as próprias zonas. O Grafismo px↔cm não usa isto — usa sempre
+  // pm.canvasW/canvasH diretamente, para gerar a máscara completa (com
+  // gaps) a entregar ao grafismo, independentemente desta escolha.
+  var LZ_CANVAS_MODE_KEY = "calculadores-canvas-mode";
+  var lzCanvasMode = "gaps";
+  (function () {
+    try {
+      if (localStorage.getItem(LZ_CANVAS_MODE_KEY) === "nogaps") lzCanvasMode = "nogaps";
+    } catch (e) {}
+  })();
+  function lzSetCanvasMode(mode) {
+    lzCanvasMode = mode === "nogaps" ? "nogaps" : "gaps";
+    try { localStorage.setItem(LZ_CANVAS_MODE_KEY, lzCanvasMode); } catch (e) {}
+  }
+  function lzSelectedCanvas(pm) {
+    if (!pm) return null;
+    return lzCanvasMode === "nogaps"
+      ? { w: pm.canvasWNoGaps, h: pm.canvasHNoGaps }
+      : { w: pm.canvasW, h: pm.canvasH };
   }
 
   function lzCanvasScale(pm) {
@@ -1375,9 +1430,17 @@
     document.getElementById("lz-out-bbox").innerHTML = bbox ? (fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + "<small>m</small>") : "—";
 
     var canvasResText = pm ? (fmtInt(pm.canvasW) + " x " + fmtInt(pm.canvasH) + " px") : "—";
+    var canvasResNoGapsText = pm ? (fmtInt(pm.canvasWNoGaps) + " x " + fmtInt(pm.canvasHNoGaps) + " px") : "—";
     document.getElementById("lz-out-canvasres").innerHTML = pm
       ? (fmtInt(pm.canvasW) + "×" + fmtInt(pm.canvasH) + "<small>px</small>" + (pm.mixedPitch ? " <small>(pitches diferentes — aproximado, ref. \"" + escapeXml(pm.refName) + "\"" + (pm.refPinned ? ", marcada" : ", automática") + ")</small>" : ""))
       : "—";
+    var canvasResNoGapsEl = document.getElementById("lz-out-canvasres-nogaps");
+    if (canvasResNoGapsEl) {
+      canvasResNoGapsEl.innerHTML = pm ? (fmtInt(pm.canvasWNoGaps) + "×" + fmtInt(pm.canvasHNoGaps) + "<small>px</small>") : "—";
+    }
+    document.querySelectorAll(".lz-canvas-mode-seg").forEach(function (seg) {
+      seg.querySelectorAll(".seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.canvasmode === lzCanvasMode); });
+    });
     var hiddenCount = zones.length - visibleZones.length;
     document.getElementById("lz-preview-bar-text").textContent = (pm ? canvasResText : "—") + " · " + fmtInt(totalTiles) + " tiles · " + visibleZones.length + " zona(s)" + (hiddenCount ? " (" + hiddenCount + " escondida(s))" : "");
 
@@ -1385,7 +1448,8 @@
       return z.name + " (X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A" + (z.curveText ? "\nCurvatura: " + z.curveText : "");
     }).join("\n") + (hiddenCount ? "\n\n(" + hiddenCount + " zona(s) escondida(s), fora destas contas)" : "") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos de cada zona), " + fmt(totalArea,2) + " m² (soma das zonas), " + fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A máx. (" + fmt(totalAmp/3,2) + " A/fase)" +
       (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "") +
-      (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, zona mais alta") + ")" : "") : "");
+      (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, zona mais alta") + ")" : "") : "") +
+      (pm ? "\nResolução final do canvas (sem gaps): " + canvasResNoGapsText + " — usada para o sinal/processo: " + (lzCanvasMode === "nogaps" ? "sem gaps" : "com gaps") : "");
 
     lzLastTotals = { zones: visibleZones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm, colorMap: colorMap };
     lzSortCardsByPosition();

@@ -109,8 +109,17 @@
         <div class="item"><div class="k">Amp total</div><div class="v" id="lz-out-amp">—</div></div>
         <div class="item wide"><div class="k">Dimensão do conjunto (com gaps)</div><div class="v" id="lz-out-bbox">—</div></div>
         <div class="item wide"><div class="k">Resolução final do canvas (com gaps)</div><div class="v" id="lz-out-canvasres">—</div></div>
+        <div class="item wide"><div class="k">Resolução final do canvas (sem gaps)</div><div class="v" id="lz-out-canvasres-nogaps">—</div></div>
       </div>
-      <p class="hint">O total de píxeis serve para dimensionar switcher/processador de LED — é a soma dos píxeis nativos de cada zona, não o canvas final. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas. A "resolução final do canvas" é esse mesmo retângulo convertido em píxeis (usando o pitch da zona maior como referência) — é o tamanho real a configurar no media server, incluindo o espaço dos gaps.</p>
+      <div class="field" style="margin-top:12px;">
+        <label>Usar para o sinal/processo (Sinal &amp; Data Rate, Projeto, Media Server, na app principal)</label>
+        <div class="seg lz-canvas-mode-seg">
+          <button type="button" class="seg-btn active" data-canvasmode="gaps">Com gaps</button>
+          <button type="button" class="seg-btn" data-canvasmode="nogaps">Sem gaps</button>
+        </div>
+        <div class="hint">O Grafismo px↔cm usa sempre o canvas com gaps (para gerar a máscara completa a entregar ao grafismo), seja qual for esta escolha.</div>
+      </div>
+      <p class="hint">O total de píxeis serve para dimensionar switcher/processador de LED — é a soma dos píxeis nativos de cada zona, não o canvas final. A "dimensão do conjunto" é o retângulo que envolve todas as zonas, já a contar com os gaps entre elas. A "resolução final do canvas" é esse mesmo retângulo convertido em píxeis (usando o pitch da zona maior como referência) — é o tamanho real a configurar no media server, incluindo o espaço dos gaps. A versão "sem gaps" empacota as zonas lado a lado sem o espaço vazio entre elas.</p>
       <div class="summary">
         <div class="summary-head">
           <span class="k">Resumo por zona</span>
