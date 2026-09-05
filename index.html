@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.223</span>
+    <span class="mark">v1.224</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -5936,17 +5936,20 @@
           ? "Uma grelha de TVs fica com juntas visíveis entre unidades (ao contrário de LED/videowall dedicado) — indicativo de escala, não recomendação final."
           : "Uma só unidade já cobre o tamanho recomendado.";
         tvWrap.style.display = "block";
-        tvUseBtn.style.display = "inline-block";
 
         // A grelha arredonda para cima ao nº inteiro de unidades — a altura
         // real que sai daí (tvGridHeight) pode já não caber no pé-direito da
-        // sala, mesmo quando a altura "leitura normal" pedida cabia.
-        if (roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && tvGridHeight > roomHeight) {
+        // sala, mesmo quando a altura "leitura normal" pedida cabia. Quando
+        // isso acontece, deixa de fazer sentido oferecer "Usar em TVs" como
+        // opção clicável — fica só o aviso, informativo.
+        var tvFitsCeiling = !(roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && tvGridHeight > roomHeight);
+        if (!tvFitsCeiling) {
           tvFitWarn.style.display = "block";
           tvFitWarn.textContent = "Esta grelha fica com " + fmt(tvGridHeight,2) + " m de altura — não cabe no pé-direito da sala (" + fmt(roomHeight,2) + " m). Não é opção viável aqui nesta configuração.";
         } else {
           tvFitWarn.style.display = "none";
         }
+        tvUseBtn.style.display = tvFitsCeiling ? "inline-block" : "none";
       } else {
         tvWrap.style.display = "none";
         tvHint.style.display = "none";
