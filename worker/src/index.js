@@ -54,10 +54,11 @@ const EXTRACT_TOOL = {
           distanciaProjecaoM: { type: ["number", "null"], description: "Distância disponível entre projetor/lente e ecrã, se indicada (só relevante para projeção)." },
           distanciaVisualizacaoM: { type: ["number", "null"], description: "Distância do público mais afastado ao ecrã. Se não estiver indicada diretamente mas o texto der as dimensões da sala/espaço (largura x profundidade), usa a profundidade da sala como estimativa razoável — assume-se o ecrã numa das paredes e o público a ocupar o espaço até à parede oposta. Só fica null se não houver distância nem dimensões de sala nenhumas no texto." },
           larguraPlateiaM: { type: ["number", "null"], description: "Largura da plateia/audiência (fila de lugares) em metros — usada só para verificar o ângulo lateral dos lugares mais afastados do centro do ecrã. NÃO é a largura do ecrã (isso vai em dimensoes.larguraM). Se o texto não indicar a largura da plateia à parte mas der a largura da sala/espaço, usa essa largura da sala como estimativa (assume-se que a plateia ocupa a largura disponível) — só fica null se não houver largura de plateia nem dimensões de sala nenhumas." },
+          alturaSalaM: { type: ["number", "null"], description: "Altura do teto/pé-direito da sala ou espaço em metros, se indicada — usada só para verificar se um ecrã do tamanho recomendado cabe no espaço disponível. NÃO é a altura do ecrã (isso vai em dimensoes.alturaM)." },
           interior: { type: ["boolean", "null"], description: "true=interior, false=exterior, null=não indicado." },
           curvo: { type: ["boolean", "null"], description: "Se o ecrã deve ser curvo." },
         },
-        required: ["distanciaProjecaoM", "distanciaVisualizacaoM", "larguraPlateiaM", "interior", "curvo"],
+        required: ["distanciaProjecaoM", "distanciaVisualizacaoM", "larguraPlateiaM", "alturaSalaM", "interior", "curvo"],
         additionalProperties: false,
       },
       led: {
