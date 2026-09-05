@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.204</span>
+    <span class="mark">v1.205</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -58,6 +58,7 @@
   <div class="tabs-wrap" id="tabs-wrap">
     <div class="tabs-current" id="tabs-current"></div>
     <div class="tabs" role="tablist">
+      <button class="tab" data-mode="assistente" role="tab" aria-selected="false"><span class="swatch"></span>Assistente de Projeto</button>
       <button class="tab" data-mode="projecao" role="tab" aria-selected="true"><span class="swatch"></span>Distância de Projeção</button>
       <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
       <button class="tab" data-mode="visualizacao" role="tab" aria-selected="false"><span class="swatch"></span>Distância de Visualização</button>
@@ -77,6 +78,104 @@
       <span>Adicionar ao projeto</span>
     </label>
   </div>
+
+  <!-- ASSISTENTE DE PROJETO -->
+  <section class="panel" data-mode="assistente">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Cola aqui o texto de um pedido/briefing, ou carrega um PDF do projeto. Um modelo de IA lê o documento e tenta extrair as medidas, o tipo de ecrã e outros requisitos.</p>
+        <p><strong>Revê e confirma sempre</strong> os valores antes de os aplicares — a IA pode falhar a leitura ou interpretar mal um documento ambíguo, e os campos ficam editáveis precisamente para corrigires antes de "Aplicar".</p>
+        <p>Precisa de um <strong>Worker</strong> próprio configurado (ver "Configuração do assistente" abaixo) — sem isso não há para onde enviar o pedido.</p>
+      </div>
+    </details>
+
+    <details class="card sinal-block" id="asst-config-block">
+      <summary>Configuração do assistente</summary>
+      <div class="sinal-block-body">
+        <div class="field">
+          <label for="asst-worker-url">Endereço do Worker</label>
+          <div class="inputgroup"><input id="asst-worker-url" type="url" placeholder="https://calculadores-assistente.&lt;subdomínio&gt;.workers.dev" autocomplete="off"></div>
+          <div class="hint">Guardado só neste dispositivo (localStorage) — nunca é enviado para o repositório nem para outro sítio.</div>
+        </div>
+      </div>
+    </details>
+
+    <div class="grid">
+      <div>
+        <details class="card sinal-block" open>
+          <summary>Descrever o projeto</summary>
+          <div class="sinal-block-body">
+            <div class="field">
+              <label for="asst-text">Texto do pedido / briefing</label>
+              <div class="inputgroup"><textarea id="asst-text" rows="6" placeholder="Cola aqui o email, briefing ou descrição do projeto…"></textarea></div>
+            </div>
+            <div class="field">
+              <label for="asst-pdf">Documento (PDF, opcional)</label>
+              <div class="inputgroup"><input id="asst-pdf" type="file" accept="application/pdf"></div>
+            </div>
+            <button type="button" class="copy" id="asst-analyze">Analisar</button>
+            <div class="hint" id="asst-status"></div>
+          </div>
+        </details>
+      </div>
+
+      <div>
+        <details class="card sinal-block" id="asst-results-card" style="display:none;" open>
+          <summary>Requisitos extraídos</summary>
+          <div class="sinal-block-body">
+            <p class="note" id="asst-resumo"></p>
+            <p class="note" id="asst-detalhes"></p>
+            <div class="warn" id="asst-avisos" style="display:none;"></div>
+
+            <div class="field">
+              <label for="asst-tipoecra">Tipo de ecrã</label>
+              <select id="asst-tipoecra" class="plain">
+                <option value="led">Ecrã LED</option>
+                <option value="projecao">Projeção</option>
+                <option value="blend">Blending multi-projetor</option>
+                <option value="misto">Misto</option>
+                <option value="desconhecido">Desconhecido</option>
+              </select>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="asst-largura">Largura</label>
+                <div class="inputgroup"><input id="asst-largura" type="number" inputmode="decimal" step="0.1"><span class="unit">m</span></div>
+              </div>
+              <div class="field">
+                <label for="asst-altura">Altura</label>
+                <div class="inputgroup"><input id="asst-altura" type="number" inputmode="decimal" step="0.1"><span class="unit">m</span></div>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="asst-diagonal">Diagonal (projeção)</label>
+                <div class="inputgroup"><input id="asst-diagonal" type="number" inputmode="decimal" step="1"><span class="unit">pol.</span></div>
+              </div>
+              <div class="field">
+                <label for="asst-distprojecao">Distância à lente (projeção)</label>
+                <div class="inputgroup"><input id="asst-distprojecao" type="number" inputmode="decimal" step="0.1"><span class="unit">m</span></div>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="asst-pitch">Pixel pitch pedido (LED)</label>
+                <div class="inputgroup"><input id="asst-pitch" type="number" inputmode="decimal" step="0.1"><span class="unit">mm</span></div>
+              </div>
+              <div class="field">
+                <label for="asst-nits">Brilho mínimo (LED)</label>
+                <div class="inputgroup"><input id="asst-nits" type="number" inputmode="decimal" step="50"><span class="unit">nits</span></div>
+              </div>
+            </div>
+            <div class="hint">O pixel pitch pedido não é aplicado automaticamente — escolhe na aba Ecrã LED um modelo de tile com esse pitch (ou próximo).</div>
+
+            <button type="button" class="copy" id="asst-apply" style="margin-top:10px;">Aplicar à calculadora</button>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
 
   <!-- PROJEÇÃO -->
   <section class="panel active" data-mode="projecao">
@@ -5401,6 +5500,183 @@
     window.addEventListener("appinstalled", function () {
       setDismissed();
       hideBanner();
+    });
+  })();
+
+  // Assistente de Projeto — envia texto/PDF para o Worker (proxy da API da
+  // Anthropic, configurado à parte) e extrai requisitos do projeto. Nada
+  // aqui é aplicado às calculadoras sem o utilizador rever/confirmar os
+  // campos e clicar "Aplicar" — a leitura da IA pode falhar ou ser ambígua.
+  (function () {
+    var WORKER_URL_KEY = "calculadores-assistente-worker-url";
+    var asstWorkerUrl = document.getElementById("asst-worker-url");
+    var asstText = document.getElementById("asst-text");
+    var asstPdf = document.getElementById("asst-pdf");
+    var asstAnalyze = document.getElementById("asst-analyze");
+    var asstStatus = document.getElementById("asst-status");
+    var asstResultsCard = document.getElementById("asst-results-card");
+    var asstApply = document.getElementById("asst-apply");
+    var lastRequisitos = null;
+
+    var savedWorkerUrl = localStorage.getItem(WORKER_URL_KEY);
+    if (savedWorkerUrl) asstWorkerUrl.value = savedWorkerUrl;
+    asstWorkerUrl.addEventListener("change", function () {
+      localStorage.setItem(WORKER_URL_KEY, asstWorkerUrl.value.trim());
+    });
+
+    function setFieldValAndFire(id, value) {
+      var el = document.getElementById(id);
+      if (!el || value === undefined || value === null || value === "") return;
+      el.value = value;
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+
+    function fileToBase64(file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var result = reader.result || "";
+          var idx = result.indexOf(",");
+          resolve(idx >= 0 ? result.slice(idx + 1) : result);
+        };
+        reader.onerror = function () { reject(reader.error); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderRequisitos(r) {
+      setFieldVal("asst-tipoecra", r.tipoEcra || "desconhecido");
+      setFieldVal("asst-largura", r.dimensoes && r.dimensoes.larguraM != null ? r.dimensoes.larguraM : "");
+      setFieldVal("asst-altura", r.dimensoes && r.dimensoes.alturaM != null ? r.dimensoes.alturaM : "");
+      setFieldVal("asst-diagonal", r.dimensoes && r.dimensoes.diagonalPolegadas != null ? r.dimensoes.diagonalPolegadas : "");
+      setFieldVal("asst-distprojecao", r.local && r.local.distanciaProjecaoM != null ? r.local.distanciaProjecaoM : "");
+      setFieldVal("asst-pitch", r.led && r.led.pixelPitchMm != null ? r.led.pixelPitchMm : "");
+      setFieldVal("asst-nits", r.led && r.led.brilhoNits != null ? r.led.brilhoNits : "");
+
+      document.getElementById("asst-resumo").textContent = r.resumo || "";
+
+      var detalhes = [];
+      if (r.confianca) detalhes.push("Confiança da leitura: " + r.confianca);
+      if (r.dimensoes && r.dimensoes.formato) detalhes.push("Formato: " + r.dimensoes.formato);
+      if (r.local && r.local.distanciaVisualizacaoM != null) detalhes.push("Distância de visualização: " + r.local.distanciaVisualizacaoM + " m");
+      if (r.local && r.local.interior === true) detalhes.push("Interior");
+      if (r.local && r.local.interior === false) detalhes.push("Exterior");
+      if (r.local && r.local.curvo === true) detalhes.push("Ecrã curvo");
+      if (r.orcamento && r.orcamento.valor != null) detalhes.push("Orçamento: " + r.orcamento.valor + " " + (r.orcamento.moeda || ""));
+      document.getElementById("asst-detalhes").textContent = detalhes.join(" · ");
+
+      var avisosEl = document.getElementById("asst-avisos");
+      if (r.pontosPorConfirmar && r.pontosPorConfirmar.length) {
+        avisosEl.innerHTML = "<strong>Confirma antes de aplicar:</strong><ul style=\"margin:6px 0 0; padding-left:18px;\">" +
+          r.pontosPorConfirmar.map(function (p) { return "<li>" + escapeHtml(p) + "</li>"; }).join("") +
+          "</ul>";
+        avisosEl.style.display = "block";
+      } else {
+        avisosEl.style.display = "none";
+      }
+    }
+
+    asstAnalyze.addEventListener("click", function () {
+      var workerUrl = asstWorkerUrl.value.trim();
+      if (!workerUrl) {
+        asstStatus.textContent = "Indica o endereço do Worker em \"Configuração do assistente\" antes de analisar.";
+        document.getElementById("asst-config-block").open = true;
+        return;
+      }
+      var text = asstText.value.trim();
+      var file = asstPdf.files && asstPdf.files[0];
+      if (!text && !file) {
+        asstStatus.textContent = "Escreve um texto ou carrega um PDF primeiro.";
+        return;
+      }
+
+      asstAnalyze.disabled = true;
+      asstStatus.textContent = "A analisar… pode demorar alguns segundos.";
+      asstResultsCard.style.display = "none";
+
+      var pdfPromise = file ? fileToBase64(file) : Promise.resolve("");
+      pdfPromise.then(function (pdfBase64) {
+        return fetch(workerUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text, pdfBase64: pdfBase64 }),
+        });
+      }).then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      }).then(function (result) {
+        if (!result.ok || !result.data || !result.data.requisitos) {
+          throw new Error((result.data && result.data.error) || "Resposta inesperada do Worker.");
+        }
+        lastRequisitos = result.data.requisitos;
+        renderRequisitos(lastRequisitos);
+        asstStatus.textContent = "";
+        asstResultsCard.style.display = "block";
+        asstResultsCard.open = true;
+      }).catch(function (err) {
+        asstStatus.textContent = "Erro: " + err.message;
+      }).finally(function () {
+        asstAnalyze.disabled = false;
+      });
+    });
+
+    asstApply.addEventListener("click", function () {
+      var tipo = fieldVal("asst-tipoecra");
+      var largura = val("asst-largura");
+      var altura = val("asst-altura");
+      var diagonal = val("asst-diagonal");
+      var distProjecao = val("asst-distprojecao");
+      var nits = val("asst-nits");
+      var curvo = !!(lastRequisitos && lastRequisitos.local && lastRequisitos.local.curvo);
+      var formato = lastRequisitos && lastRequisitos.dimensoes && lastRequisitos.dimensoes.formato;
+
+      if (tipo === "led") {
+        document.querySelector('.tab[data-mode="led"]').click();
+        if (!isNaN(largura) && !isNaN(altura)) {
+          segClick("l-sizemode-seg", "sizemode", "meters");
+          setFieldValAndFire("l-target-w", largura);
+          setFieldValAndFire("l-target-h", altura);
+        }
+        if (!isNaN(nits)) setFieldValAndFire("l-nits", nits);
+        if (curvo) {
+          var ledCurveCb = document.getElementById("l-curve-enabled");
+          if (ledCurveCb && !ledCurveCb.checked) ledCurveCb.click();
+        }
+        showToast("Valores aplicados na aba Ecrã LED — confirma e escolhe o modelo de tile.");
+      } else if (tipo === "projecao") {
+        document.querySelector('.tab[data-mode="projecao"]').click();
+        var knownRatios = ["16:9", "16:10", "4:3", "21:9"];
+        if (!isNaN(largura) && !isNaN(altura)) {
+          setFieldValAndFire("p-ratio", "custom");
+          setFieldValAndFire("p-rw", largura);
+          setFieldValAndFire("p-rh", altura);
+        } else if (!isNaN(diagonal)) {
+          if (formato && knownRatios.indexOf(formato) >= 0) setFieldValAndFire("p-ratio", formato);
+          segClick("p-sizemode-seg", "sizemode", "diag");
+          setFieldValAndFire("p-diag", diagonal);
+        }
+        if (!isNaN(distProjecao)) setFieldValAndFire("p-knowndist", distProjecao);
+        showToast("Valores aplicados na aba Distância de Projeção — confirma o projetor e a lente.");
+      } else if (tipo === "blend") {
+        document.querySelector('.tab[data-mode="blend"]').click();
+        if (!isNaN(largura) && !isNaN(altura)) {
+          setFieldValAndFire("b-w", largura);
+          setFieldValAndFire("b-h", altura);
+        }
+        if (curvo) {
+          var blendCurveCb = document.getElementById("b-curve-enabled");
+          if (blendCurveCb && !blendCurveCb.checked) blendCurveCb.click();
+        }
+        showToast("Valores aplicados na aba Blending Multi-Projetor — confirma a grelha de projetores.");
+      } else {
+        showToast("Tipo \"" + (tipo === "misto" ? "Misto" : "Desconhecido") + "\" — aplica os valores manualmente na(s) aba(s) relevante(s).");
+      }
     });
   })();
 </script>

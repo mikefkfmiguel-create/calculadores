@@ -1,0 +1,14 @@
+name = "calculadores-assistente"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Site(s) autorizados a chamar este Worker (separados por vírgula, sem
+# barra final). Ajusta ao(s) domínio(s) reais onde a app está publicada.
+# Isto é verificado no próprio Worker (não só no browser via CORS), por
+# isso continua a bloquear pedidos diretos (curl/scripts) de outras origens.
+[vars]
+ALLOWED_ORIGINS = "https://mikefkfmiguel-create.github.io"
+
+# A chave da Anthropic NUNCA vai aqui nem em nenhum ficheiro do repositório —
+# define-se como secret depois do primeiro deploy:
+#   wrangler secret put ANTHROPIC_API_KEY
