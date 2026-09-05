@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.218</span>
+    <span class="mark">v1.219</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -135,8 +135,10 @@
                 <div class="item wide"><div class="k">Nº de ecrãs (ângulo confortável, SMPTE)</div><div class="v" id="asst-rec-screens">—</div></div>
                 <div class="item"><div class="k">Altura mín. — texto denso (AVIXA ×4)</div><div class="v" id="asst-rec-height-detailed">—</div></div>
                 <div class="item"><div class="k">Altura mín. — leitura normal (AVIXA ×6)</div><div class="v" id="asst-rec-height-basic">—</div></div>
+                <div class="item wide" id="asst-rec-tv-wrap" style="display:none;"><div class="k">Opção TV (grelha do maior modelo em stock, p/ leitura normal)</div><div class="v" id="asst-rec-tv">—</div></div>
               </div>
               <div id="asst-rec-ceiling-warn" class="warn" style="display:none;"></div>
+              <div id="asst-rec-tv-hint" class="hint" style="display:none;"></div>
               <div class="hint">Estimativa a partir da distância/largura da plateia (linha acima) e das mesmas regras SMPTE (ângulo) e AVIXA (legibilidade) já usadas na aba Distância de Visualização — confirma sempre com a disposição real do espaço.</div>
             </div>
 
@@ -2098,6 +2100,17 @@
     var std = VIEW_STANDARDS[vStandardKey];
     if (std.basis === "width") return std.label;
     return std.label + " — " + AVIXA_CONTENT[vAvixaContentKey].label;
+  }
+
+  // Largura/altura físicas (m) de uma TV do inventário a partir da diagonal
+  // (polegadas) e do rácio "L:A" — mesma fórmula usada em calcTV().
+  function tvSizeMeters(tv) {
+    var parts = tv.ratio.split(":");
+    var rw = parseFloat(parts[0]), rh = parseFloat(parts[1]);
+    var r = rw / rh;
+    var diagM = tv.diag * 0.0254;
+    var h = diagM / Math.sqrt(r * r + 1);
+    return { w: h * r, h: h };
   }
 
   // Checklist "Itens do projeto" — fontes que se juntam ao projeto sem
@@ -5879,6 +5892,33 @@
           : "A altura para texto denso (" + fmt(heightDetailed,2) + " m) deixa pouca folga no pé-direito da sala (" + fmt(roomHeight,2) + " m) para estrutura/fixação.";
       } else {
         ceilingWarn.style.display = "none";
+      }
+
+      // Opção TV: em vez de só LED/projeção, verifica também se dá para
+      // cobrir o tamanho recomendado (leitura normal) com uma grelha da
+      // maior TV disponível no inventário — dado real (tvs.json), não
+      // inventado. TVs em grelha ficam com juntas visíveis entre unidades
+      // (ao contrário de LED/videowall dedicado), por isso é só indicativo.
+      var tvWrap = document.getElementById("asst-rec-tv-wrap");
+      var tvHint = document.getElementById("asst-rec-tv-hint");
+      var biggestTv = (typeof TVS_DATA !== "undefined" && TVS_DATA.length)
+        ? TVS_DATA.reduce(function (best, tv) { return (!best || tv.diag > best.diag) ? tv : best; }, null)
+        : null;
+      if (biggestTv) {
+        var tvSize = tvSizeMeters(biggestTv);
+        var tvCols = Math.max(1, Math.ceil(widthBasic / tvSize.w));
+        var tvRows = Math.max(1, Math.ceil(heightBasic / tvSize.h));
+        var tvCount = tvCols * tvRows;
+        document.getElementById("asst-rec-tv").innerHTML = tvCols + "×" + tvRows + " = " + tvCount + "× " + escapeHtml(biggestTv.modelo) +
+          " → " + fmt(tvCols * tvSize.w, 2) + "×" + fmt(tvRows * tvSize.h, 2) + "<small> m</small>";
+        tvHint.style.display = "block";
+        tvHint.textContent = tvCount > 1
+          ? "Uma grelha de TVs fica com juntas visíveis entre unidades (ao contrário de LED/videowall dedicado) — indicativo de escala, não recomendação final."
+          : "Uma só unidade já cobre o tamanho recomendado.";
+        tvWrap.style.display = "block";
+      } else {
+        tvWrap.style.display = "none";
+        tvHint.style.display = "none";
       }
 
       block.style.display = "block";
