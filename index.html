@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.220</span>
+    <span class="mark">v1.221</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -140,6 +140,12 @@
               </div>
               <div id="asst-rec-ceiling-warn" class="warn" style="display:none;"></div>
               <div id="asst-rec-tv-hint" class="hint" style="display:none;"></div>
+              <div class="summary-actions" style="margin-top:10px; flex-wrap:wrap;">
+                <button type="button" class="copy" id="asst-rec-use-led">Usar em Ecrã LED</button>
+                <button type="button" class="copy" id="asst-rec-use-proj">Usar em Distância de Projeção</button>
+                <button type="button" class="copy" id="asst-rec-use-tv" style="display:none;">Usar em TVs</button>
+              </div>
+              <div class="hint">Cada botão aplica o tamanho de 1 ecrã (leitura normal) à aba respetiva — se a sugestão acima for de mais do que 1 ecrã, repete a configuração nessa aba para cada um.</div>
               <div class="hint">Estimativa a partir da distância/largura da plateia (linha acima) e das mesmas regras SMPTE (ângulo) e AVIXA (legibilidade) já usadas na aba Distância de Visualização — confirma sempre com a disposição real do espaço.</div>
             </div>
 
@@ -5693,6 +5699,7 @@
     var asstResultsCard = document.getElementById("asst-results-card");
     var asstApply = document.getElementById("asst-apply");
     var lastRequisitos = null;
+    var lastRecommendation = null;
 
     var savedWorkerUrl = localStorage.getItem(WORKER_URL_KEY);
     asstWorkerUrl.value = savedWorkerUrl || DEFAULT_WORKER_URL;
@@ -5869,6 +5876,7 @@
 
       if (hasScreenTech || distance == null || isNaN(distance) || distance <= 0) {
         block.style.display = "none";
+        lastRecommendation = null;
         return;
       }
 
@@ -5902,15 +5910,18 @@
       // (ao contrário de LED/videowall dedicado), por isso é só indicativo.
       var tvWrap = document.getElementById("asst-rec-tv-wrap");
       var tvHint = document.getElementById("asst-rec-tv-hint");
+      var tvUseBtn = document.getElementById("asst-rec-use-tv");
       var biggestTv = (typeof TVS_DATA !== "undefined" && TVS_DATA.length)
         ? TVS_DATA.reduce(function (best, tv) { return (!best || tv.diag > best.diag) ? tv : best; }, null)
         : null;
       var tvCount = null;
+      var biggestTvIdx = null;
       if (biggestTv) {
         var tvSize = tvSizeMeters(biggestTv);
         var tvCols = Math.max(1, Math.ceil(widthBasic / tvSize.w));
         var tvRows = Math.max(1, Math.ceil(heightBasic / tvSize.h));
         tvCount = tvCols * tvRows;
+        biggestTvIdx = TVS_DATA.indexOf(biggestTv);
         document.getElementById("asst-rec-tv").innerHTML = tvCols + "×" + tvRows + " = " + tvCount + "× " + escapeHtml(biggestTv.modelo) +
           " → " + fmt(tvCols * tvSize.w, 2) + "×" + fmt(tvRows * tvSize.h, 2) + "<small> m</small>";
         tvHint.style.display = "block";
@@ -5918,10 +5929,14 @@
           ? "Uma grelha de TVs fica com juntas visíveis entre unidades (ao contrário de LED/videowall dedicado) — indicativo de escala, não recomendação final."
           : "Uma só unidade já cobre o tamanho recomendado.";
         tvWrap.style.display = "block";
+        tvUseBtn.style.display = "inline-block";
       } else {
         tvWrap.style.display = "none";
         tvHint.style.display = "none";
+        tvUseBtn.style.display = "none";
       }
+
+      lastRecommendation = { widthBasic: widthBasic, heightBasic: heightBasic, nScreens: nScreens, tvCount: tvCount, biggestTvIdx: biggestTvIdx };
 
       // Frase de veredito, a juntar os números todos numa única sugestão em
       // linguagem simples — em vez de deixar cada pessoa a interpretar os
@@ -5941,6 +5956,38 @@
 
       block.style.display = "block";
     }
+
+    // Botões "Usar" da sugestão de dimensionamento — aplicam o tamanho de 1
+    // ecrã (leitura normal) à aba correspondente, tal como o "Aplicar"
+    // principal já faz para os campos extraídos diretamente.
+    function round2(n) { return Math.round(n * 100) / 100; }
+
+    document.getElementById("asst-rec-use-led").addEventListener("click", function () {
+      if (!lastRecommendation) return;
+      document.querySelector('.tab[data-mode="led"]').click();
+      segClick("l-sizemode-seg", "sizemode", "meters");
+      setFieldValAndFire("l-target-w", round2(lastRecommendation.widthBasic));
+      setFieldValAndFire("l-target-h", round2(lastRecommendation.heightBasic));
+      showToast("Tamanho aplicado na aba Ecrã LED (1 ecrã) — escolhe o tile e repete a configuração se a sugestão for de mais do que 1 ecrã.");
+    });
+
+    document.getElementById("asst-rec-use-proj").addEventListener("click", function () {
+      if (!lastRecommendation) return;
+      document.querySelector('.tab[data-mode="projecao"]').click();
+      setFieldValAndFire("p-ratio", "custom");
+      setFieldValAndFire("p-rw", round2(lastRecommendation.widthBasic));
+      setFieldValAndFire("p-rh", round2(lastRecommendation.heightBasic));
+      showToast("Tamanho aplicado na aba Distância de Projeção (1 ecrã) — confirma o projetor e a lente.");
+    });
+
+    document.getElementById("asst-rec-use-tv").addEventListener("click", function () {
+      if (!lastRecommendation || lastRecommendation.biggestTvIdx == null) return;
+      document.querySelector('.tab[data-mode="tv"]').click();
+      var tvSel = document.getElementById("tv-model");
+      tvSel.value = String(lastRecommendation.biggestTvIdx);
+      tvSel.dispatchEvent(new Event("change", { bubbles: true }));
+      showToast("Modelo aplicado na aba TVs — precisas de " + lastRecommendation.tvCount + " unidade(s) em grelha para atingir o tamanho recomendado.");
+    });
 
     asstAnalyze.addEventListener("click", function () {
       var workerUrl = asstWorkerUrl.value.trim();
