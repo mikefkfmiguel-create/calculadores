@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.215</span>
+    <span class="mark">v1.216</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -525,6 +525,14 @@
           </div>
           <div class="hint">Só para verificar o ângulo lateral dos lugares mais afastados do centro (assume o ecrã centrado na parede/palco, e esta largura medida à distância acima). Deixa em branco se não te importa isso ou não tens essa medida.</div>
         </div>
+        <div class="field" id="v-numscreens-field" style="display:none;">
+          <label for="v-numscreens">Número de ecrãs (lado a lado)</label>
+          <div class="inputgroup">
+            <input id="v-numscreens" type="number" autocomplete="off" inputmode="numeric" value="1" min="1" step="1">
+            <span class="unit">ecrã(s)</span>
+          </div>
+          <div class="hint">Cada ecrã cobre a sua secção da plateia (largura acima ÷ nº de ecrãs) — sobe o número até o ângulo abaixo ficar confortável. <button type="button" class="copy" id="v-use-suggested-screens" style="display:none; margin-top:6px;"></button></div>
+        </div>
         </div>
       </details>
       <details class="card results sinal-block" data-accent="visualizacao">
@@ -540,10 +548,11 @@
         <div id="v-angle-block" style="display:none;">
           <h2 style="margin-top:18px;">Ângulo lateral (lugares mais afastados)</h2>
           <div class="readout">
-            <div class="item wide"><div class="k">Ângulo até ao centro do ecrã</div><div class="v" id="v-out-angle">—</div></div>
+            <div class="item wide"><div class="k" id="v-out-angle-label">Ângulo até ao centro do ecrã</div><div class="v" id="v-out-angle">—</div></div>
           </div>
           <p class="note">Standard: SMPTE EG-18-1994 — acima de 30° a pessoa tem de rodar visivelmente a cabeça/corpo para o ecrã; a partir dos 35° a maioria já sente desconforto. <a class="srclink" href="https://www.cinemaview.in/en/blog/smpte-viewing-standards" target="_blank" rel="noopener" onclick="event.stopPropagation()">Fonte ↗</a></p>
           <div id="v-anglewarn" class="warn" style="display:none;"></div>
+          <div id="v-angleok" class="note" style="display:none;"></div>
         </div>
       </details>
     </div>
@@ -2744,6 +2753,11 @@
     calcLed();
   });
 
+  // Último cálculo de ângulo/nº de ecrãs da Distância de Visualização —
+  // usado só para incluir esta info no resumo do projeto (v-sum) sem
+  // recalcular tudo outra vez ali.
+  var lastVisualizacaoAngle = null;
+
   // Nº de ecrãs lado a lado necessário para que a secção de plateia coberta
   // por cada um fique dentro do ângulo lateral máximo indicado, a partir da
   // mesma distância — sobe N a testar o ângulo real de cada divisão, mesmo
@@ -2794,10 +2808,11 @@
     document.getElementById("v-out-dmax").innerHTML = fmt(range.max, 2) + "<small>m</small>";
     document.getElementById("v-rule-note").textContent = "Regra: " + viewRuleDescription();
 
-    document.getElementById("v-sum").textContent =
-      "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
-      "Standard: " + viewRuleDescription() + "\n" +
-      "Distância de visualização ideal: " + fmt(range.min,2) + " – " + fmt(range.max,2) + " m";
+    var vSumLines = [
+      "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m",
+      "Standard: " + viewRuleDescription(),
+      "Distância de visualização ideal: " + fmt(range.min,2) + " – " + fmt(range.max,2) + " m",
+    ];
 
     var avail = val("v-avail");
     var ideal = idealScreenForDistance(avail, r);
@@ -2822,36 +2837,68 @@
     // SMPTE EG-18-1994: acima de 30° a pessoa já tem de rodar visivelmente
     // a cabeça, a partir de 35° a maioria sente desconforto. Só aparece se
     // a largura da plateia for indicada (é opcional, nem todos os pedidos
-    // têm essa medida).
+    // têm essa medida). O nº de ecrãs (lado a lado, cada um a cobrir a sua
+    // secção da plateia) é editável aqui mesmo — dá para ir subindo até o
+    // ângulo ficar confortável, em vez de só mostrar uma sugestão fixa.
     var angleBlock = document.getElementById("v-angle-block");
+    var numScreensField = document.getElementById("v-numscreens-field");
     var audienceWidth = val("v-audiencewidth");
+    var suggestBtn = document.getElementById("v-use-suggested-screens");
     if (!isNaN(audienceWidth) && audienceWidth > 0 && avail > 0) {
-      var angleDeg = Math.atan((audienceWidth / 2) / avail) * (180 / Math.PI);
+      var nScreens = Math.max(1, Math.round(val("v-numscreens")) || 1);
+      var widthPerScreen = audienceWidth / nScreens;
+      var angleDeg = Math.atan((widthPerScreen / 2) / avail) * (180 / Math.PI);
+      lastVisualizacaoAngle = { nScreens: nScreens, angleDeg: angleDeg, audienceWidth: audienceWidth };
+
+      document.getElementById("v-out-angle-label").textContent = nScreens > 1
+        ? "Ângulo por ecrã (com " + nScreens + " ecrãs, " + fmt(widthPerScreen,1) + " m cada)"
+        : "Ângulo até ao centro do ecrã";
       document.getElementById("v-out-angle").innerHTML = fmt(angleDeg, 1) + "<small>°</small>";
+
       var angleWarn = document.getElementById("v-anglewarn");
+      var angleOk = document.getElementById("v-angleok");
+      var suggestedN = screensNeededForAngle(audienceWidth, avail, 30);
       if (angleDeg > 35 || angleDeg > 30) {
+        angleOk.style.display = "none";
         angleWarn.style.display = "block";
         var msg = angleDeg > 35
-          ? "Os lugares mais afastados ficam a " + fmt(angleDeg,1) + "° do centro do ecrã — acima dos 35°, a maioria do público sente desconforto visual. Aproxima a plateia do eixo central, estreita a plateia, ou afasta o ecrã."
+          ? "Os lugares mais afastados ficam a " + fmt(angleDeg,1) + "° do centro do ecrã — acima dos 35°, a maioria do público sente desconforto visual."
           : "Os lugares mais afastados ficam a " + fmt(angleDeg,1) + "° do centro do ecrã — acima da recomendação SMPTE de 30°. Ainda aceitável, mas no limite.";
-        // Nº de ecrãs lado a lado, cada um a cobrir a sua secção da plateia,
-        // até essa secção caber nos 30° recomendados — mesmo método usado em
-        // splitCanvasForClock/splitCanvasForCapacity (Sinal & Data Rate):
-        // sobe N e testa o caso real a cada passo, em vez de uma fórmula
-        // fechada só válida para o caso ideal.
-        var nScreens = screensNeededForAngle(audienceWidth, avail, 30);
-        if (nScreens && nScreens > 1) {
-          var angleWithSplit = Math.atan((audienceWidth / nScreens / 2) / avail) * (180 / Math.PI);
-          msg += " Alternativa: com " + nScreens + " ecrãs lado a lado (cada um a cobrir cerca de " + fmt(audienceWidth / nScreens, 1) + " m de plateia), o ângulo mais desfavorável desceria para " + fmt(angleWithSplit, 1) + "°.";
+        if (suggestedN && suggestedN > nScreens) {
+          msg += " Sobe para " + suggestedN + " ecrãs (ou aproxima/estreita a plateia, ou afasta o ecrã) para ficar dentro dos 30°.";
         }
         angleWarn.textContent = msg;
       } else {
         angleWarn.style.display = "none";
+        angleOk.style.display = "block";
+        angleOk.textContent = nScreens > 1
+          ? "Com " + nScreens + " ecrãs, o ângulo mais desfavorável (" + fmt(angleDeg,1) + "°) já está dentro dos 30° recomendados."
+          : "Dentro dos 30° recomendados.";
       }
+
+      if (suggestedN && suggestedN > nScreens) {
+        suggestBtn.style.display = "inline-block";
+        suggestBtn.textContent = "Usar sugestão: " + suggestedN + " ecrãs";
+      } else {
+        suggestBtn.style.display = "none";
+      }
+
+      numScreensField.style.display = "block";
       angleBlock.style.display = "block";
     } else {
+      lastVisualizacaoAngle = null;
+      numScreensField.style.display = "none";
       angleBlock.style.display = "none";
     }
+
+    if (lastVisualizacaoAngle) {
+      vSumLines.push(
+        "Plateia: " + fmt(lastVisualizacaoAngle.audienceWidth,1) + " m de largura, " + fmt(avail,2) + " m de distância",
+        "Nº de ecrãs: " + lastVisualizacaoAngle.nScreens + " — ângulo lateral " + fmt(lastVisualizacaoAngle.angleDeg,1) + "° " +
+          (lastVisualizacaoAngle.angleDeg > 30 ? "(acima da recomendação SMPTE de 30°)" : "(dentro dos 30° recomendados)")
+      );
+    }
+    document.getElementById("v-sum").textContent = vSumLines.join("\n");
 
     renderProjectItems();
   }
@@ -3628,6 +3675,12 @@
   });
   document.querySelectorAll('.panel[data-mode="visualizacao"] input, .panel[data-mode="visualizacao"] select').forEach(function (el) {
     el.addEventListener("input", calcVisualizacao);
+  });
+  document.getElementById("v-use-suggested-screens").addEventListener("click", function () {
+    var suggestedN = screensNeededForAngle(val("v-audiencewidth"), val("v-avail"), 30);
+    if (!suggestedN) return;
+    document.getElementById("v-numscreens").value = suggestedN;
+    calcVisualizacao();
   });
   document.querySelectorAll('.panel[data-mode="led"] input').forEach(function (el) {
     el.addEventListener("input", calcLed);
