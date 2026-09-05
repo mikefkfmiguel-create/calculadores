@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.219</span>
+    <span class="mark">v1.220</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -131,6 +131,7 @@
 
             <div id="asst-recommend-block" style="display:none; margin-bottom:16px;">
               <p class="note" style="font-weight:600;">Sugestão de dimensionamento (a partir da distância/largura da plateia acima):</p>
+              <p id="asst-rec-verdict" class="note" style="font-size:1.05em;"></p>
               <div class="readout">
                 <div class="item wide"><div class="k">Nº de ecrãs (ângulo confortável, SMPTE)</div><div class="v" id="asst-rec-screens">—</div></div>
                 <div class="item"><div class="k">Altura mín. — texto denso (AVIXA ×4)</div><div class="v" id="asst-rec-height-detailed">—</div></div>
@@ -5904,11 +5905,12 @@
       var biggestTv = (typeof TVS_DATA !== "undefined" && TVS_DATA.length)
         ? TVS_DATA.reduce(function (best, tv) { return (!best || tv.diag > best.diag) ? tv : best; }, null)
         : null;
+      var tvCount = null;
       if (biggestTv) {
         var tvSize = tvSizeMeters(biggestTv);
         var tvCols = Math.max(1, Math.ceil(widthBasic / tvSize.w));
         var tvRows = Math.max(1, Math.ceil(heightBasic / tvSize.h));
-        var tvCount = tvCols * tvRows;
+        tvCount = tvCols * tvRows;
         document.getElementById("asst-rec-tv").innerHTML = tvCols + "×" + tvRows + " = " + tvCount + "× " + escapeHtml(biggestTv.modelo) +
           " → " + fmt(tvCols * tvSize.w, 2) + "×" + fmt(tvRows * tvSize.h, 2) + "<small> m</small>";
         tvHint.style.display = "block";
@@ -5920,6 +5922,22 @@
         tvWrap.style.display = "none";
         tvHint.style.display = "none";
       }
+
+      // Frase de veredito, a juntar os números todos numa única sugestão em
+      // linguagem simples — em vez de deixar cada pessoa a interpretar os
+      // números soltos, dá logo o "usa isto" para produção não-técnica.
+      var verdictParts = [];
+      verdictParts.push((nScreens > 1 ? nScreens + " ecrãs lado a lado" : "1 ecrã") + ", ~" + fmt(heightBasic,2) + " m de altura cada (leitura normal).");
+      if (tvCount != null) {
+        if (tvCount <= 1) {
+          verdictParts.push("TV é viável a este tamanho.");
+        } else if (tvCount <= 4) {
+          verdictParts.push("TV dá para cobrir com " + tvCount + " unidades, mas com juntas visíveis — LED fica mais limpo.");
+        } else {
+          verdictParts.push("TV não é prático aqui (precisarias de " + tvCount + " unidades por ecrã) — LED ou projeção são as opções mais realistas.");
+        }
+      }
+      document.getElementById("asst-rec-verdict").textContent = "Sugestão: " + verdictParts.join(" ");
 
       block.style.display = "block";
     }
