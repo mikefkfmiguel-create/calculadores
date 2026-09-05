@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.212</span>
+    <span class="mark">v1.213</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -517,6 +517,14 @@
           </div>
           <div class="hint">Usa o standard escolhido acima e o mesmo formato de ecrã.</div>
         </div>
+        <div class="field">
+          <label for="v-audiencewidth">Largura da plateia (opcional)</label>
+          <div class="inputgroup">
+            <input id="v-audiencewidth" type="number" autocomplete="off" inputmode="decimal" min="0" step="0.1">
+            <span class="unit">metros</span>
+          </div>
+          <div class="hint">Só para verificar o ângulo lateral dos lugares mais afastados do centro (assume o ecrã centrado na parede/palco, e esta largura medida à distância acima). Deixa em branco se não te importa isso ou não tens essa medida.</div>
+        </div>
         </div>
       </details>
       <details class="card results sinal-block" data-accent="visualizacao">
@@ -529,6 +537,13 @@
           <div class="item wide"><div class="k">Largura recomendada</div><div class="v" id="v-out-wrange">—</div></div>
         </div>
         <div id="v-viewwarn" class="warn" style="display:none;"></div>
+        <div id="v-angle-block" style="display:none;">
+          <h2 style="margin-top:18px;">Ângulo lateral (lugares mais afastados)</h2>
+          <div class="readout">
+            <div class="item wide"><div class="k">Ângulo até ao centro do ecrã</div><div class="v" id="v-out-angle">—</div></div>
+          </div>
+          <p class="note">Standard: SMPTE EG-18-1994 — acima de 30° a pessoa tem de rodar visivelmente a cabeça/corpo para o ecrã; a partir dos 35° a maioria já sente desconforto. <a class="srclink" href="https://www.cinemaview.in/en/blog/smpte-viewing-standards" target="_blank" rel="noopener" onclick="event.stopPropagation()">Fonte ↗</a></p>
+          <div id="v-anglewarn" class="warn" style="display:none;"></div>
         </div>
       </details>
     </div>
@@ -2788,6 +2803,31 @@
       viewWarn.textContent = "O ecrã definido acima (" + fmt(w,2) + " m de largura) é grande para " + fmt(avail,2) + " m de distância — ideal a partir de " + fmt(range.min,2) + " m. Ajusta a largura para no máximo " + fmt(ideal.wMin,2) + " m.";
     } else {
       viewWarn.style.display = "none";
+    }
+
+    // Ângulo lateral dos lugares mais afastados do eixo central do ecrã —
+    // SMPTE EG-18-1994: acima de 30° a pessoa já tem de rodar visivelmente
+    // a cabeça, a partir de 35° a maioria sente desconforto. Só aparece se
+    // a largura da plateia for indicada (é opcional, nem todos os pedidos
+    // têm essa medida).
+    var angleBlock = document.getElementById("v-angle-block");
+    var audienceWidth = val("v-audiencewidth");
+    if (!isNaN(audienceWidth) && audienceWidth > 0 && avail > 0) {
+      var angleDeg = Math.atan((audienceWidth / 2) / avail) * (180 / Math.PI);
+      document.getElementById("v-out-angle").innerHTML = fmt(angleDeg, 1) + "<small>°</small>";
+      var angleWarn = document.getElementById("v-anglewarn");
+      if (angleDeg > 35) {
+        angleWarn.style.display = "block";
+        angleWarn.textContent = "Os lugares mais afastados ficam a " + fmt(angleDeg,1) + "° do centro do ecrã — acima dos 35°, a maioria do público sente desconforto visual. Aproxima a plateia do eixo central, estreita a plateia, ou afasta o ecrã.";
+      } else if (angleDeg > 30) {
+        angleWarn.style.display = "block";
+        angleWarn.textContent = "Os lugares mais afastados ficam a " + fmt(angleDeg,1) + "° do centro do ecrã — acima da recomendação SMPTE de 30°. Ainda aceitável, mas no limite.";
+      } else {
+        angleWarn.style.display = "none";
+      }
+      angleBlock.style.display = "block";
+    } else {
+      angleBlock.style.display = "none";
     }
 
     renderProjectItems();
