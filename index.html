@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.221</span>
+    <span class="mark">v1.222</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -5884,7 +5884,9 @@
       if (audienceWidth != null && !isNaN(audienceWidth) && audienceWidth > 0) {
         nScreens = screensNeededForAngle(audienceWidth, distance, 30) || 1;
       }
-      document.getElementById("asst-rec-screens").textContent = nScreens + (nScreens > 1 ? " (lado a lado)" : "");
+      document.getElementById("asst-rec-screens").textContent = nScreens > 1
+        ? nScreens + " (lado a lado, ~" + fmt(audienceWidth / nScreens, 1) + " m de plateia cada)"
+        : String(nScreens);
 
       var heightDetailed = distance / AVIXA_CONTENT.detailed.mult;
       var heightBasic = distance / AVIXA_CONTENT.basic.mult;
@@ -5922,8 +5924,10 @@
         var tvRows = Math.max(1, Math.ceil(heightBasic / tvSize.h));
         tvCount = tvCols * tvRows;
         biggestTvIdx = TVS_DATA.indexOf(biggestTv);
+        var tvTotal = tvCount * nScreens;
         document.getElementById("asst-rec-tv").innerHTML = tvCols + "×" + tvRows + " = " + tvCount + "× " + escapeHtml(biggestTv.modelo) +
-          " → " + fmt(tvCols * tvSize.w, 2) + "×" + fmt(tvRows * tvSize.h, 2) + "<small> m</small>";
+          " → " + fmt(tvCols * tvSize.w, 2) + "×" + fmt(tvRows * tvSize.h, 2) + "<small> m</small>" +
+          (nScreens > 1 ? "<br><strong>Total para os " + nScreens + " ecrãs: " + tvTotal + " unidades</strong>" : "");
         tvHint.style.display = "block";
         tvHint.textContent = tvCount > 1
           ? "Uma grelha de TVs fica com juntas visíveis entre unidades (ao contrário de LED/videowall dedicado) — indicativo de escala, não recomendação final."
@@ -5944,12 +5948,13 @@
       var verdictParts = [];
       verdictParts.push((nScreens > 1 ? nScreens + " ecrãs lado a lado" : "1 ecrã") + ", ~" + fmt(heightBasic,2) + " m de altura cada (leitura normal).");
       if (tvCount != null) {
+        var tvTotalTxt = nScreens > 1 ? ", " + (tvCount * nScreens) + " no total para os " + nScreens + " ecrãs" : "";
         if (tvCount <= 1) {
           verdictParts.push("TV é viável a este tamanho.");
         } else if (tvCount <= 4) {
-          verdictParts.push("TV dá para cobrir com " + tvCount + " unidades, mas com juntas visíveis — LED fica mais limpo.");
+          verdictParts.push("TV dá para cobrir com " + tvCount + " unidades por ecrã" + tvTotalTxt + ", mas com juntas visíveis — LED fica mais limpo.");
         } else {
-          verdictParts.push("TV não é prático aqui (precisarias de " + tvCount + " unidades por ecrã) — LED ou projeção são as opções mais realistas.");
+          verdictParts.push("TV não é prático aqui — precisarias de " + tvCount + " unidades por ecrã" + tvTotalTxt + " — LED ou projeção são as opções mais realistas.");
         }
       }
       document.getElementById("asst-rec-verdict").textContent = "Sugestão: " + verdictParts.join(" ");
