@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.217</span>
+    <span class="mark">v1.218</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -128,6 +128,17 @@
             <p class="note" id="asst-resumo"></p>
             <p class="note" id="asst-detalhes"></p>
             <div class="warn" id="asst-avisos" style="display:none;"></div>
+
+            <div id="asst-recommend-block" style="display:none; margin-bottom:16px;">
+              <p class="note" style="font-weight:600;">Sugestão de dimensionamento (a partir da distância/largura da plateia acima):</p>
+              <div class="readout">
+                <div class="item wide"><div class="k">Nº de ecrãs (ângulo confortável, SMPTE)</div><div class="v" id="asst-rec-screens">—</div></div>
+                <div class="item"><div class="k">Altura mín. — texto denso (AVIXA ×4)</div><div class="v" id="asst-rec-height-detailed">—</div></div>
+                <div class="item"><div class="k">Altura mín. — leitura normal (AVIXA ×6)</div><div class="v" id="asst-rec-height-basic">—</div></div>
+              </div>
+              <div id="asst-rec-ceiling-warn" class="warn" style="display:none;"></div>
+              <div class="hint">Estimativa a partir da distância/largura da plateia (linha acima) e das mesmas regras SMPTE (ângulo) e AVIXA (legibilidade) já usadas na aba Distância de Visualização — confirma sempre com a disposição real do espaço.</div>
+            </div>
 
             <div class="field">
               <label for="asst-nome">Nome do projeto/evento</label>
@@ -5810,6 +5821,7 @@
       if (r.dimensoes && r.dimensoes.formato) detalhes.push("Formato: " + r.dimensoes.formato);
       if (r.local && r.local.distanciaVisualizacaoM != null) detalhes.push("Distância de visualização: " + r.local.distanciaVisualizacaoM + " m");
       if (r.local && r.local.larguraPlateiaM != null) detalhes.push("Largura da plateia: " + r.local.larguraPlateiaM + " m");
+      if (r.local && r.local.alturaSalaM != null) detalhes.push("Altura da sala: " + r.local.alturaSalaM + " m");
       if (r.local && r.local.interior === true) detalhes.push("Interior");
       if (r.local && r.local.interior === false) detalhes.push("Exterior");
       if (r.local && r.local.curvo === true) detalhes.push("Ecrã curvo");
@@ -5825,6 +5837,51 @@
       } else {
         avisosEl.style.display = "none";
       }
+
+      renderScreenRecommendation(r);
+    }
+
+    // Quando não se sabe ainda que tecnologia usar (tipoEcra "desconhecido")
+    // mas já há distância/largura de plateia (dadas ou estimadas a partir da
+    // sala), dá para adiantar uma sugestão de tamanho — mesmas fórmulas reais
+    // já usadas na aba Distância de Visualização (SMPTE para o ângulo,
+    // AVIXA para a legibilidade de texto), sem inventar nenhum valor novo.
+    function renderScreenRecommendation(r) {
+      var block = document.getElementById("asst-recommend-block");
+      var distance = r.local ? r.local.distanciaVisualizacaoM : null;
+      var audienceWidth = r.local ? r.local.larguraPlateiaM : null;
+      var roomHeight = r.local ? r.local.alturaSalaM : null;
+      var hasScreenTech = r.tipoEcra && r.tipoEcra !== "desconhecido";
+
+      if (hasScreenTech || distance == null || isNaN(distance) || distance <= 0) {
+        block.style.display = "none";
+        return;
+      }
+
+      var nScreens = 1;
+      if (audienceWidth != null && !isNaN(audienceWidth) && audienceWidth > 0) {
+        nScreens = screensNeededForAngle(audienceWidth, distance, 30) || 1;
+      }
+      document.getElementById("asst-rec-screens").textContent = nScreens + (nScreens > 1 ? " (lado a lado)" : "");
+
+      var heightDetailed = distance / AVIXA_CONTENT.detailed.mult;
+      var heightBasic = distance / AVIXA_CONTENT.basic.mult;
+      var widthDetailed = heightDetailed * (16 / 9);
+      var widthBasic = heightBasic * (16 / 9);
+      document.getElementById("asst-rec-height-detailed").innerHTML = fmt(heightDetailed, 2) + "<small> m alt. (" + fmt(widthDetailed, 2) + " m larg., 16:9)</small>";
+      document.getElementById("asst-rec-height-basic").innerHTML = fmt(heightBasic, 2) + "<small> m alt. (" + fmt(widthBasic, 2) + " m larg., 16:9)</small>";
+
+      var ceilingWarn = document.getElementById("asst-rec-ceiling-warn");
+      if (roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && heightDetailed >= roomHeight * 0.85) {
+        ceilingWarn.style.display = "block";
+        ceilingWarn.textContent = heightDetailed >= roomHeight
+          ? "A altura para texto denso (" + fmt(heightDetailed,2) + " m) não cabe no pé-direito da sala (" + fmt(roomHeight,2) + " m). Para este teto só é realista a leitura \"normal\" (" + fmt(heightBasic,2) + " m), ou aproximar do ecrã quem precisa de ler detalhe."
+          : "A altura para texto denso (" + fmt(heightDetailed,2) + " m) deixa pouca folga no pé-direito da sala (" + fmt(roomHeight,2) + " m) para estrutura/fixação.";
+      } else {
+        ceilingWarn.style.display = "none";
+      }
+
+      block.style.display = "block";
     }
 
     asstAnalyze.addEventListener("click", function () {
@@ -5916,7 +5973,13 @@
         setFieldValAndFire("v-diag", diagonal);
       }
       if (distVisualizacao != null && !isNaN(distVisualizacao)) setFieldValAndFire("v-avail", distVisualizacao);
-      if (larguraPlateia != null && !isNaN(larguraPlateia)) setFieldValAndFire("v-audiencewidth", larguraPlateia);
+      if (larguraPlateia != null && !isNaN(larguraPlateia)) {
+        setFieldValAndFire("v-audiencewidth", larguraPlateia);
+        if (distVisualizacao != null && !isNaN(distVisualizacao)) {
+          var suggestedScreens = screensNeededForAngle(larguraPlateia, distVisualizacao, 30);
+          if (suggestedScreens && suggestedScreens > 1) setFieldValAndFire("v-numscreens", suggestedScreens);
+        }
+      }
     }
 
     asstApply.addEventListener("click", function () {
