@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.213</span>
+    <span class="mark">v1.214</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2744,6 +2744,19 @@
     calcLed();
   });
 
+  // Nº de ecrãs lado a lado necessário para que a secção de plateia coberta
+  // por cada um fique dentro do ângulo lateral máximo indicado, a partir da
+  // mesma distância — sobe N a testar o ângulo real de cada divisão, mesmo
+  // método usado em splitCanvasForClock/splitCanvasForCapacity (Sinal &
+  // Data Rate) para repartir um sinal grande por várias ligações.
+  function screensNeededForAngle(audienceWidth, distance, maxAngleDeg) {
+    for (var n = 1; n <= 16; n++) {
+      var angleDeg = Math.atan((audienceWidth / n / 2) / distance) * (180 / Math.PI);
+      if (angleDeg <= maxAngleDeg) return n;
+    }
+    return null;
+  }
+
   function calcVisualizacao() {
     var isCustom = vRatioSel.value === "custom";
     var w, h, label;
@@ -2816,12 +2829,22 @@
       var angleDeg = Math.atan((audienceWidth / 2) / avail) * (180 / Math.PI);
       document.getElementById("v-out-angle").innerHTML = fmt(angleDeg, 1) + "<small>°</small>";
       var angleWarn = document.getElementById("v-anglewarn");
-      if (angleDeg > 35) {
+      if (angleDeg > 35 || angleDeg > 30) {
         angleWarn.style.display = "block";
-        angleWarn.textContent = "Os lugares mais afastados ficam a " + fmt(angleDeg,1) + "° do centro do ecrã — acima dos 35°, a maioria do público sente desconforto visual. Aproxima a plateia do eixo central, estreita a plateia, ou afasta o ecrã.";
-      } else if (angleDeg > 30) {
-        angleWarn.style.display = "block";
-        angleWarn.textContent = "Os lugares mais afastados ficam a " + fmt(angleDeg,1) + "° do centro do ecrã — acima da recomendação SMPTE de 30°. Ainda aceitável, mas no limite.";
+        var msg = angleDeg > 35
+          ? "Os lugares mais afastados ficam a " + fmt(angleDeg,1) + "° do centro do ecrã — acima dos 35°, a maioria do público sente desconforto visual. Aproxima a plateia do eixo central, estreita a plateia, ou afasta o ecrã."
+          : "Os lugares mais afastados ficam a " + fmt(angleDeg,1) + "° do centro do ecrã — acima da recomendação SMPTE de 30°. Ainda aceitável, mas no limite.";
+        // Nº de ecrãs lado a lado, cada um a cobrir a sua secção da plateia,
+        // até essa secção caber nos 30° recomendados — mesmo método usado em
+        // splitCanvasForClock/splitCanvasForCapacity (Sinal & Data Rate):
+        // sobe N e testa o caso real a cada passo, em vez de uma fórmula
+        // fechada só válida para o caso ideal.
+        var nScreens = screensNeededForAngle(audienceWidth, avail, 30);
+        if (nScreens && nScreens > 1) {
+          var angleWithSplit = Math.atan((audienceWidth / nScreens / 2) / avail) * (180 / Math.PI);
+          msg += " Alternativa: com " + nScreens + " ecrãs lado a lado (cada um a cobrir cerca de " + fmt(audienceWidth / nScreens, 1) + " m de plateia), o ângulo mais desfavorável desceria para " + fmt(angleWithSplit, 1) + "°.";
+        }
+        angleWarn.textContent = msg;
       } else {
         angleWarn.style.display = "none";
       }
