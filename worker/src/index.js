@@ -83,7 +83,7 @@ const EXTRACT_TOOL = {
       pontosPorConfirmar: {
         type: "array",
         items: { type: "string" },
-        description: "Lista curta de suposições, ambiguidades ou dados em falta que a pessoa deve confirmar antes de avançar. Vazio se não houver nenhuma.",
+        description: "Lista MUITO curta (0 a 2 itens, idealmente vazia) — só ambiguidades reais ou contradições no texto que impedem escolher o equipamento certo (ex: o texto dá duas medidas diferentes para o mesmo ecrã). NÃO listes aqui um dado simplesmente não mencionado (orçamento, brilho, pixel pitch, se é curvo, formato) — isso fica null nos campos próprios, sem aviso; a pessoa já vê o que ficou em branco nos campos.",
       },
     },
     required: ["tipoEcra", "confianca", "dimensoes", "local", "led", "orcamento", "resumo", "pontosPorConfirmar"],
@@ -183,7 +183,7 @@ export default {
       type: "text",
       text:
         (text || "(sem texto adicional — ler o documento em anexo)") +
-        "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento, usa null — nunca adivinhes uma especificação técnica.",
+        "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento, usa null — nunca adivinhes uma especificação técnica. Em pontosPorConfirmar, não repitas como 'aviso' cada campo que ficou null — só usa esse campo para contradições ou ambiguidades reais no texto; na maioria dos casos deve ficar vazio.",
     });
 
     let anthropicRes;
