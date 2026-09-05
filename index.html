@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.227</span>
+    <span class="mark">v1.228</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -137,8 +137,10 @@
                 <div class="item" id="asst-rec-height-detailed-wrap"><div class="k">Altura mín. — texto denso (AVIXA ×4)</div><div class="v" id="asst-rec-height-detailed">—</div></div>
                 <div class="item"><div class="k">Altura mín. — leitura normal (AVIXA ×6)</div><div class="v" id="asst-rec-height-basic">—</div></div>
                 <div class="item wide" id="asst-rec-tv-wrap" style="display:none;"><div class="k" id="asst-rec-tv-label">Opção TV (grelha do maior modelo em stock, p/ leitura normal)</div><div class="v" id="asst-rec-tv">—</div></div>
+                <div class="item wide" id="asst-rec-delay-wrap" style="display:none;"><div class="k">Alternativa: TVs "delay" distribuídas pela profundidade (1 unidade por posição, sem grelha)</div><div class="v" id="asst-rec-delay">—</div></div>
               </div>
               <div id="asst-rec-tv-hint" class="hint" style="display:none;"></div>
+              <div id="asst-rec-delay-hint" class="hint" style="display:none;">Em vez de uma grelha grande a cobrir toda a distância a partir de um único ponto, distribui ecrãs repetidores (delay) mais pequenos ao longo da sala — cada um só tem de servir quem está por perto, tal como em torres de delay em eventos ao vivo.</div>
               <div class="summary-actions" style="margin-top:10px; flex-wrap:wrap;">
                 <button type="button" class="copy" id="asst-rec-use-led">Usar em Ecrã LED</button>
                 <button type="button" class="copy" id="asst-rec-use-proj">Usar em Distância de Projeção</button>
@@ -5979,6 +5981,48 @@
         tvUseBtn.style.display = "none";
       }
 
+      // Alternativa "delay": em vez de uma grelha grande a cobrir toda a
+      // distância a partir de um único ponto, distribuir TVs repetidoras
+      // (1 unidade cada, sem grelha) a intervalos ao longo da profundidade
+      // da sala — cada posição só serve quem está por perto, por isso um
+      // ecrã mais pequeno já chega (mesma técnica de torres de delay em
+      // eventos ao vivo). Mesma regra AVIXA "leitura normal" (heightBasic),
+      // só que aplicada por posição em vez de à distância toda: distância
+      // máxima por posição = altura da própria TV × 6.
+      var delayWrap = document.getElementById("asst-rec-delay-wrap");
+      var delayHint = document.getElementById("asst-rec-delay-hint");
+      var delayIsShown = false;
+      var delayPositions = null, delayTotalUnits = null, delayTv = null;
+      if (biggestTv && typeof TVS_DATA !== "undefined" && TVS_DATA.length) {
+        delayTv = tvsByDiagDesc.find(function (tv) {
+          var s = tvSizeMeters(tv);
+          return roomHeight == null || isNaN(roomHeight) || roomHeight <= 0 || s.h <= roomHeight;
+        });
+        if (delayTv) {
+          var delaySize = tvSizeMeters(delayTv);
+          var maxDistPerPosition = delaySize.h * AVIXA_CONTENT.basic.mult;
+          delayPositions = Math.max(1, Math.ceil(distance / maxDistPerPosition));
+          delayTotalUnits = delayPositions * nScreens;
+          var gridNotViable = tvCount == null || !tvFitsCeiling || !tvIsRealisticCount;
+          if (delayPositions > 1 && (gridNotViable || delayTotalUnits < tvCount * nScreens)) {
+            document.getElementById("asst-rec-delay").innerHTML = delayPositions + " posições" + (nScreens > 1 ? " × " + nScreens + " ecrãs" : "") +
+              " = " + delayTotalUnits + "× " + escapeHtml(delayTv.modelo) + "<br><small>cada posição cobre até " + fmt(maxDistPerPosition,1) + " m de profundidade</small>";
+            delayWrap.style.display = "block";
+            delayHint.style.display = "block";
+            delayIsShown = true;
+          } else {
+            delayWrap.style.display = "none";
+            delayHint.style.display = "none";
+          }
+        } else {
+          delayWrap.style.display = "none";
+          delayHint.style.display = "none";
+        }
+      } else {
+        delayWrap.style.display = "none";
+        delayHint.style.display = "none";
+      }
+
       lastRecommendation = { widthBasic: widthBasic, heightBasic: heightBasic, nScreens: nScreens, tvCount: tvCount, biggestTvIdx: biggestTvIdx };
 
       // Frase de veredito, a juntar os números todos numa única sugestão em
@@ -5998,6 +6042,9 @@
         } else {
           verdictParts.push("TV não é prático aqui — precisarias de " + tvCount + " unidades por ecrã" + tvTotalTxt + " — LED ou projeção são as opções mais realistas.");
         }
+      }
+      if (delayIsShown) {
+        verdictParts.push("Alternativa: distribuir " + delayTotalUnits + " TVs \"delay\" (1 unidade cada, sem grelha) a " + delayPositions + " posições ao longo da profundidade, em vez de uma grelha grande a partir de um único ponto.");
       }
       document.getElementById("asst-rec-verdict").textContent = "Sugestão: " + verdictParts.join(" ");
 
