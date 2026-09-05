@@ -38,11 +38,12 @@ const EXTRACT_TOOL = {
       },
       dimensoes: {
         type: "object",
+        description: "Medidas do PRÓPRIO ECRÃ pretendido — nunca da sala, palco, parede ou espaço disponível. Um texto pode dar as duas coisas (ex: 'sala com 30x4m, quero um ecrã') — usa aqui só a medida explicitamente atribuída ao ecrã. Se o texto só descrever o espaço/sala e pedir sugestão de ecrã, sem indicar o tamanho do ecrã em si, deixa todos os campos aqui a null (a pessoa decide o tamanho depois, na calculadora).",
         properties: {
-          larguraM: { type: ["number", "null"], description: "Largura do ecrã em metros, se indicada." },
-          alturaM: { type: ["number", "null"], description: "Altura do ecrã em metros, se indicada." },
-          diagonalPolegadas: { type: ["number", "null"], description: "Diagonal em polegadas, se for essa a medida dada (ex: projeção)." },
-          formato: { type: ["string", "null"], description: "Relação de aspeto, ex: '16:9', '21:9'." },
+          larguraM: { type: ["number", "null"], description: "Largura do ECRÃ (não da sala/espaço) em metros, se indicada." },
+          alturaM: { type: ["number", "null"], description: "Altura do ECRÃ (não da sala/espaço) em metros, se indicada." },
+          diagonalPolegadas: { type: ["number", "null"], description: "Diagonal do ecrã em polegadas, se for essa a medida dada (ex: projeção)." },
+          formato: { type: ["string", "null"], description: "Relação de aspeto do ecrã, ex: '16:9', '21:9'." },
         },
         required: ["larguraM", "alturaM", "diagonalPolegadas", "formato"],
         additionalProperties: false,
@@ -193,7 +194,7 @@ export default {
       type: "text",
       text:
         (text || "(sem texto adicional — ler o documento em anexo)") +
-        "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento, usa null — nunca adivinhes uma especificação técnica. Em pontosPorConfirmar, não repitas como 'aviso' cada campo que ficou null — só usa esse campo para contradições ou ambiguidades reais no texto; na maioria dos casos deve ficar vazio.",
+        "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento, usa null — nunca adivinhes uma especificação técnica. Em pontosPorConfirmar, não repitas como 'aviso' cada campo que ficou null — só usa esse campo para contradições ou ambiguidades reais no texto; na maioria dos casos deve ficar vazio. Atenção especial a dimensoes: nunca uses medidas de sala/palco/espaço como se fossem do ecrã — se só houver medidas do local e um pedido de sugestão (ex: 'que ecrã devo usar?'), deixa dimensoes a null.",
     });
 
     let anthropicRes;
