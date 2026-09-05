@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.232</span>
+    <span class="mark">v1.233</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3200,6 +3200,14 @@
     var rx = val("l-rx"), ry = val("l-ry");
     var weightPerTile = val("l-weight"), ampPerTile = val("l-amp");
     var nits = val("l-nits");
+    // Muitos tiles têm o brilho confirmado como gama (nitsMin–nitsMax), não
+    // um valor fixo — mostra a gama real em vez de só o máximo sempre que o
+    // campo ainda tiver o valor preenchido automaticamente pelo modelo.
+    var selTileForNits = ledModelSel.value !== "custom" ? LED_TILES_DATA[parseInt(ledModelSel.value, 10)] : null;
+    var nitsRangeText = (selTileForNits && selTileForNits.nitsMin != null && selTileForNits.nitsMax != null &&
+      selTileForNits.nitsMin !== selTileForNits.nitsMax && nits === selTileForNits.nitsMax)
+      ? fmtInt(selTileForNits.nitsMin) + "–" + fmtInt(selTileForNits.nitsMax)
+      : null;
     var mx, my;
     var mixed = null;
 
@@ -3274,7 +3282,7 @@
     document.getElementById("l-out-area").innerHTML = fmt(area,2) + "<small>m²</small>";
     document.getElementById("l-out-pitch").innerHTML = fmt(pitchAvg,2) + "<small>mm</small>";
     document.getElementById("l-out-ratio").textContent = describeRatio(totalPx, totalPy);
-    document.getElementById("l-out-nits").innerHTML = isNaN(nits) ? "—" : fmtInt(nits) + "<small>nits</small>";
+    document.getElementById("l-out-nits").innerHTML = nitsRangeText ? nitsRangeText + "<small>nits</small>" : (isNaN(nits) ? "—" : fmtInt(nits) + "<small>nits</small>");
 
     var viewRange = viewingDistanceRange(totalWm, totalHm);
     var dmin = viewRange.min, dmax = viewRange.max;
@@ -3322,7 +3330,7 @@
       "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px  —  formato " + describeRatio(totalPx, totalPy) + "\n" +
       "Tamanho físico: " + fmt(totalWm,2) + " x " + fmt(totalHm,2) + " m  (" + fmt(area,2) + " m²)\n" +
       "Pixel pitch: " + fmt(pitchAvg,2) + " mm\n" +
-      (isNaN(nits) ? "" : "Brilho: " + fmtInt(nits) + " nits\n") +
+      (isNaN(nits) ? "" : "Brilho: " + (nitsRangeText || fmtInt(nits)) + " nits\n") +
       curveSummaryText +
       "Distância de visualização: " + fmt(dmin,1) + " – " + fmt(dmax,1) + " m (mín. – máx.)\n" +
       "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps (máx.): " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)";
