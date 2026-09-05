@@ -53,10 +53,11 @@ const EXTRACT_TOOL = {
         properties: {
           distanciaProjecaoM: { type: ["number", "null"], description: "Distância disponível entre projetor/lente e ecrã, se indicada (só relevante para projeção)." },
           distanciaVisualizacaoM: { type: ["number", "null"], description: "Distância do público ao ecrã, se indicada." },
+          larguraPlateiaM: { type: ["number", "null"], description: "Largura da plateia/audiência (fila de lugares, sala) em metros, se indicada — usada só para verificar o ângulo lateral dos lugares mais afastados do centro do ecrã. NÃO é a largura do ecrã (isso vai em dimensoes.larguraM) nem a largura da sala em si quando não descreve onde o público se senta." },
           interior: { type: ["boolean", "null"], description: "true=interior, false=exterior, null=não indicado." },
           curvo: { type: ["boolean", "null"], description: "Se o ecrã deve ser curvo." },
         },
-        required: ["distanciaProjecaoM", "distanciaVisualizacaoM", "interior", "curvo"],
+        required: ["distanciaProjecaoM", "distanciaVisualizacaoM", "larguraPlateiaM", "interior", "curvo"],
         additionalProperties: false,
       },
       led: {
@@ -194,7 +195,7 @@ export default {
       type: "text",
       text:
         (text || "(sem texto adicional — ler o documento em anexo)") +
-        "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento, usa null — nunca adivinhes uma especificação técnica. Em pontosPorConfirmar, não repitas como 'aviso' cada campo que ficou null — só usa esse campo para contradições ou ambiguidades reais no texto; na maioria dos casos deve ficar vazio. Atenção especial a dimensoes: nunca uses medidas de sala/palco/espaço como se fossem do ecrã — se só houver medidas do local e um pedido de sugestão (ex: 'que ecrã devo usar?'), deixa dimensoes a null.",
+        "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento, usa null — nunca adivinhes uma especificação técnica. Em pontosPorConfirmar, não repitas como 'aviso' cada campo que ficou null — só usa esse campo para contradições ou ambiguidades reais no texto; na maioria dos casos deve ficar vazio. Atenção especial a dimensoes: nunca uses medidas de sala/palco/espaço como se fossem do ecrã — se só houver medidas do local e um pedido de sugestão (ex: 'que ecrã devo usar?'), deixa dimensoes a null. Em local.larguraPlateiaM, só preenche se o texto der claramente a largura ocupada pelo público/plateia (fila de lugares) — não a largura da sala/espaço em geral quando não é isso que descreve.",
     });
 
     let anthropicRes;

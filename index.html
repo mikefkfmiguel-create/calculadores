@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.214</span>
+    <span class="mark">v1.215</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -5756,6 +5756,7 @@
       if (r.confianca) detalhes.push("Confiança da leitura: " + r.confianca);
       if (r.dimensoes && r.dimensoes.formato) detalhes.push("Formato: " + r.dimensoes.formato);
       if (r.local && r.local.distanciaVisualizacaoM != null) detalhes.push("Distância de visualização: " + r.local.distanciaVisualizacaoM + " m");
+      if (r.local && r.local.larguraPlateiaM != null) detalhes.push("Largura da plateia: " + r.local.larguraPlateiaM + " m");
       if (r.local && r.local.interior === true) detalhes.push("Interior");
       if (r.local && r.local.interior === false) detalhes.push("Exterior");
       if (r.local && r.local.curvo === true) detalhes.push("Ecrã curvo");
@@ -5850,7 +5851,7 @@
     // que a Projeção, mais um campo de distância — não tinha nenhuma ligação
     // a outras abas, por isso aplica-se aqui diretamente a partir do que a
     // IA extraiu.
-    function applyVisualizacao(largura, altura, diagonal, formato, distVisualizacao) {
+    function applyVisualizacao(largura, altura, diagonal, formato, distVisualizacao, larguraPlateia) {
       var knownRatios = ["16:9", "16:10", "4:3", "21:9"];
       if (!isNaN(largura) && !isNaN(altura)) {
         setFieldValAndFire("v-ratio", "custom");
@@ -5862,6 +5863,7 @@
         setFieldValAndFire("v-diag", diagonal);
       }
       if (distVisualizacao != null && !isNaN(distVisualizacao)) setFieldValAndFire("v-avail", distVisualizacao);
+      if (larguraPlateia != null && !isNaN(larguraPlateia)) setFieldValAndFire("v-audiencewidth", larguraPlateia);
     }
 
     asstApply.addEventListener("click", function () {
@@ -5873,9 +5875,10 @@
       var curvo = !!(lastRequisitos && lastRequisitos.local && lastRequisitos.local.curvo);
       var formato = lastRequisitos && lastRequisitos.dimensoes && lastRequisitos.dimensoes.formato;
       var distVisualizacao = lastRequisitos && lastRequisitos.local ? lastRequisitos.local.distanciaVisualizacaoM : null;
+      var larguraPlateia = lastRequisitos && lastRequisitos.local ? lastRequisitos.local.larguraPlateiaM : null;
 
       applyProjMeta();
-      applyVisualizacao(largura, altura, diagonal, formato, distVisualizacao);
+      applyVisualizacao(largura, altura, diagonal, formato, distVisualizacao, larguraPlateia);
 
       if (tipo === "led") {
         applyLedFromAssistente(null);
