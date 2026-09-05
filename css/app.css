@@ -402,6 +402,7 @@
   .tab[data-mode="blend"] .swatch, .tabs-current[data-mode="blend"] .swatch { background: var(--violet-500); }
   .tab[data-mode="lentes"] .swatch, .tabs-current[data-mode="lentes"] .swatch { background: var(--blue-500); }
   .tab[data-mode="projeto"] .swatch, .tabs-current[data-mode="projeto"] .swatch { background: var(--green-500); }
+  .tab[data-mode="assistente"] .swatch, .tabs-current[data-mode="assistente"] .swatch { background: var(--green-500); }
   .tab[data-mode="sinal"] .swatch, .tabs-current[data-mode="sinal"] .swatch { background: var(--rose-500); }
   .tab[data-mode="mediaserver"] .swatch, .tabs-current[data-mode="mediaserver"] .swatch { background: var(--cyan-500); }
   .tab[data-mode="tv"] .swatch, .tabs-current[data-mode="tv"] .swatch { background: var(--orange-500); }
@@ -418,6 +419,7 @@
   .tab[data-mode="grafismo"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
   .tab[data-mode="ajuda"][aria-selected="true"] { border-bottom-color: var(--ink-faint); }
   .tab[data-mode="projeto"][aria-selected="true"] { border-bottom-color: var(--green-500); }
+  .tab[data-mode="assistente"][aria-selected="true"] { border-bottom-color: var(--green-500); }
   .tab[data-mode="sinal"][aria-selected="true"] { border-bottom-color: var(--rose-500); }
   .tab[data-mode="mediaserver"][aria-selected="true"] { border-bottom-color: var(--cyan-500); }
   .tab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
@@ -719,7 +721,7 @@
     overflow: hidden;
   }
   .inputgroup:focus-within { outline: 2px solid var(--focus); outline-offset: 1px; }
-  .inputgroup input, .inputgroup select {
+  .inputgroup input, .inputgroup select, .inputgroup textarea {
     border: none;
     background: none;
     color: var(--ink);
@@ -731,6 +733,7 @@
     min-width: 0;
   }
   .inputgroup select { font-family: "IBM Plex Sans", sans-serif; font-size: 16px; }
+  .inputgroup textarea { font-family: "IBM Plex Sans", sans-serif; resize: vertical; min-height: 90px; }
   .inputgroup input:focus, .inputgroup select:focus { outline: none; }
   /* Spinner nativo de type="number" removido — redundante desde que todo
      o campo já tem o botão de calculadora ao lado (soma/subtrai/multiplica/
