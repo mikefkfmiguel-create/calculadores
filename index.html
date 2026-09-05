@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.228</span>
+    <span class="mark">v1.229</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -145,6 +145,7 @@
                 <button type="button" class="copy" id="asst-rec-use-led">Usar em Ecrã LED</button>
                 <button type="button" class="copy" id="asst-rec-use-proj">Usar em Distância de Projeção</button>
                 <button type="button" class="copy" id="asst-rec-use-tv" style="display:none;">Usar em TVs</button>
+                <button type="button" class="copy" id="asst-rec-use-delay" style="display:none;">Usar em TVs (delay)</button>
               </div>
               <div class="hint">Cada botão aplica o tamanho de 1 ecrã (leitura normal) à aba respetiva — se a sugestão acima for de mais do que 1 ecrã, repete a configuração nessa aba para cada um.</div>
               <div class="hint">Estimativa a partir da distância/largura da plateia (linha acima) e das mesmas regras SMPTE (ângulo) e AVIXA (legibilidade) já usadas na aba Distância de Visualização — confirma sempre com a disposição real do espaço.</div>
@@ -6022,8 +6023,12 @@
         delayWrap.style.display = "none";
         delayHint.style.display = "none";
       }
+      document.getElementById("asst-rec-use-delay").style.display = delayIsShown ? "inline-block" : "none";
 
-      lastRecommendation = { widthBasic: widthBasic, heightBasic: heightBasic, nScreens: nScreens, tvCount: tvCount, biggestTvIdx: biggestTvIdx };
+      lastRecommendation = {
+        widthBasic: widthBasic, heightBasic: heightBasic, nScreens: nScreens, tvCount: tvCount, biggestTvIdx: biggestTvIdx,
+        delayTvIdx: delayIsShown ? TVS_DATA.indexOf(delayTv) : null,
+      };
 
       // Frase de veredito, a juntar os números todos numa única sugestão em
       // linguagem simples — em vez de deixar cada pessoa a interpretar os
@@ -6081,6 +6086,15 @@
       tvSel.value = String(lastRecommendation.biggestTvIdx);
       tvSel.dispatchEvent(new Event("change", { bubbles: true }));
       showToast("Modelo aplicado na aba TVs — precisas de " + lastRecommendation.tvCount + " unidade(s) em grelha para atingir o tamanho recomendado.");
+    });
+
+    document.getElementById("asst-rec-use-delay").addEventListener("click", function () {
+      if (!lastRecommendation || lastRecommendation.delayTvIdx == null) return;
+      document.querySelector('.tab[data-mode="tv"]').click();
+      var delaySel = document.getElementById("tv-model");
+      delaySel.value = String(lastRecommendation.delayTvIdx);
+      delaySel.dispatchEvent(new Event("change", { bubbles: true }));
+      showToast("Modelo aplicado na aba TVs — usa esta unidade repetida em cada posição de delay, sem grelha.");
     });
 
     asstAnalyze.addEventListener("click", function () {
