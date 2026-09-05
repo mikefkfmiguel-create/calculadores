@@ -76,6 +76,16 @@ const EXTRACT_TOOL = {
         required: ["valor", "moeda"],
         additionalProperties: false,
       },
+      projeto: {
+        type: "object",
+        properties: {
+          nome: { type: ["string", "null"], description: "Nome do evento/projeto/cliente, se identificável (ex: título do documento, nome do evento mencionado). null se não estiver claro — nunca inventes um nome." },
+          dataInicio: { type: ["string", "null"], description: "Data de início do evento, em formato AAAA-MM-DD, se indicada." },
+          dataFim: { type: ["string", "null"], description: "Data de fim do evento, em formato AAAA-MM-DD. Se só houver uma data (evento de um dia), repete aqui o mesmo valor de dataInicio." },
+        },
+        required: ["nome", "dataInicio", "dataFim"],
+        additionalProperties: false,
+      },
       resumo: {
         type: "string",
         description: "Resumo curto em português (2-4 frases) do que foi pedido, para o utilizador confirmar rapidamente que a leitura está correta.",
@@ -86,7 +96,7 @@ const EXTRACT_TOOL = {
         description: "Lista MUITO curta (0 a 2 itens, idealmente vazia) — só ambiguidades reais ou contradições no texto que impedem escolher o equipamento certo (ex: o texto dá duas medidas diferentes para o mesmo ecrã). NÃO listes aqui um dado simplesmente não mencionado (orçamento, brilho, pixel pitch, se é curvo, formato) — isso fica null nos campos próprios, sem aviso; a pessoa já vê o que ficou em branco nos campos.",
       },
     },
-    required: ["tipoEcra", "confianca", "dimensoes", "local", "led", "orcamento", "resumo", "pontosPorConfirmar"],
+    required: ["tipoEcra", "confianca", "dimensoes", "local", "led", "orcamento", "projeto", "resumo", "pontosPorConfirmar"],
     additionalProperties: false,
   },
 };
