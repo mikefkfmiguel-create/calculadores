@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.211</span>
+    <span class="mark">v1.212</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -5856,7 +5856,12 @@
         syncResolutionEverywhere();
         showToast("Projeto misto: aplicada a parte do Ecrã LED — configura a parte de projeção à mão na aba Distância de Projeção ou Blending.");
       } else {
-        showToast("Tipo \"Desconhecido\" — aplica os valores manualmente na(s) aba(s) relevante(s).");
+        // Sem tipo de ecrã nem tamanho definidos, não há para onde "aplicar"
+        // — mas a pergunta típica destes casos ("que ecrã devo usar?") é
+        // exatamente para o que serve a aba Distância de Visualização: dado
+        // uma distância da audiência, sugere o tamanho de ecrã ideal.
+        document.querySelector('.tab[data-mode="visualizacao"]').click();
+        showToast("Sem tecnologia/tamanho de ecrã definidos para aplicar diretamente — usa esta aba: indica a distância da audiência mais distante e o standard, e a calculadora sugere o tamanho ideal de ecrã.");
       }
     });
   })();
