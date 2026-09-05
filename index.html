@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.229</span>
+    <span class="mark">v1.230</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -6076,7 +6076,25 @@
       setFieldValAndFire("p-ratio", "custom");
       setFieldValAndFire("p-rw", round2(lastRecommendation.widthBasic));
       setFieldValAndFire("p-rh", round2(lastRecommendation.heightBasic));
-      showToast("Tamanho aplicado na aba Distância de Projeção (1 ecrã) — confirma o projetor e a lente.");
+      // Sem cálculo de lúmens necessários (precisaria de luz ambiente, que
+      // não é extraída), a aba ficava sempre com o projetor "default" dela
+      // — normalmente um dos mais potentes do inventário, exagerado para um
+      // ecrã pequeno. Troca antes para o de menos lúmens em stock, mais
+      // proporcional, deixando claro que o brilho ainda tem de ser
+      // confirmado com a luz ambiente real da sala.
+      if (typeof PROJECTORS_DATA !== "undefined" && PROJECTORS_DATA.length) {
+        var projCandidates = PROJECTORS_DATA
+          .map(function (p, i) { return { p: p, i: i }; })
+          .filter(function (x) { return x.p.modelo.indexOf("(stock)") !== -1; });
+        if (!projCandidates.length) projCandidates = PROJECTORS_DATA.map(function (p, i) { return { p: p, i: i }; });
+        var smallestProj = projCandidates.reduce(function (best, x) { return (!best || x.p.lumens < best.p.lumens) ? x : best; }, null);
+        if (smallestProj) {
+          var projSel = document.getElementById("p-projmodel");
+          populateProjectorSelect(projSel, null, smallestProj.i);
+          projSel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }
+      showToast("Tamanho aplicado na aba Distância de Projeção (1 ecrã), com o projetor de menos lúmens em stock — confirma o brilho conforme a luz ambiente real da sala.");
     });
 
     document.getElementById("asst-rec-use-tv").addEventListener("click", function () {
