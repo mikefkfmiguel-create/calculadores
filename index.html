@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.210</span>
+    <span class="mark">v1.211</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -5847,8 +5847,16 @@
         checkAddProject("b-addproject");
         syncResolutionEverywhere();
         showToast("Valores aplicados na aba Blending Multi-Projetor — confirma a grelha de projetores.");
+      } else if (tipo === "misto") {
+        // O esquema só extrai um conjunto de dimensões/pitch — num projeto
+        // misto (LED + projeção) isso é sempre o ecrã LED (é o que tem
+        // pitch), por isso aplica-se essa parte sozinha; a projeção fica
+        // por preencher à mão, já que a IA não tem medidas próprias dela.
+        applyLedFromAssistente(null);
+        syncResolutionEverywhere();
+        showToast("Projeto misto: aplicada a parte do Ecrã LED — configura a parte de projeção à mão na aba Distância de Projeção ou Blending.");
       } else {
-        showToast("Tipo \"" + (tipo === "misto" ? "Misto" : "Desconhecido") + "\" — aplica os valores manualmente na(s) aba(s) relevante(s).");
+        showToast("Tipo \"Desconhecido\" — aplica os valores manualmente na(s) aba(s) relevante(s).");
       }
     });
   })();
