@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.225</span>
+    <span class="mark">v1.226</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -138,7 +138,7 @@
                 <div class="item"><div class="k">Altura mín. — leitura normal (AVIXA ×6)</div><div class="v" id="asst-rec-height-basic">—</div></div>
                 <div class="item wide" id="asst-rec-tv-wrap" style="display:none;"><div class="k" id="asst-rec-tv-label">Opção TV (grelha do maior modelo em stock, p/ leitura normal)</div><div class="v" id="asst-rec-tv">—</div></div>
               </div>
-              <div id="asst-rec-ceiling-warn" class="warn" style="display:none;"></div>
+              <div id="asst-rec-ceiling-warn" class="note" style="display:none;"></div>
               <div id="asst-rec-tv-fit-warn" class="warn" style="display:none;"></div>
               <div id="asst-rec-tv-hint" class="hint" style="display:none;"></div>
               <div class="summary-actions" style="margin-top:10px; flex-wrap:wrap;">
@@ -5896,12 +5896,17 @@
       document.getElementById("asst-rec-height-detailed").innerHTML = fmt(heightDetailed, 2) + "<small> m alt. (" + fmt(widthDetailed, 2) + " m larg., 16:9)</small>";
       document.getElementById("asst-rec-height-basic").innerHTML = fmt(heightBasic, 2) + "<small> m alt. (" + fmt(widthBasic, 2) + " m larg., 16:9)</small>";
 
+      // Nota informativa, não um bloqueio: a sugestão principal (verdito,
+      // opção TV, botões "Usar") usa sempre a leitura "normal" (heightBasic),
+      // que já cabe neste teto — isto é só a explicar que o nível "texto
+      // denso" (mais exigente, opcional) não seria possível com um único
+      // ecrã, para quem realmente precisar dessa leitura mais fina.
       var ceilingWarn = document.getElementById("asst-rec-ceiling-warn");
       if (roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && heightDetailed >= roomHeight * 0.85) {
         ceilingWarn.style.display = "block";
         ceilingWarn.textContent = heightDetailed >= roomHeight
-          ? "A altura para texto denso (" + fmt(heightDetailed,2) + " m) não cabe no pé-direito da sala (" + fmt(roomHeight,2) + " m). Para este teto só é realista a leitura \"normal\" (" + fmt(heightBasic,2) + " m), ou aproximar do ecrã quem precisa de ler detalhe."
-          : "A altura para texto denso (" + fmt(heightDetailed,2) + " m) deixa pouca folga no pé-direito da sala (" + fmt(roomHeight,2) + " m) para estrutura/fixação.";
+          ? "Nota: a sugestão acima já usa leitura \"normal\" (cabe bem no teto desta sala). Se precisares mesmo do nível \"texto denso\" (" + fmt(heightDetailed,2) + " m), não cabe no pé-direito de " + fmt(roomHeight,2) + " m com um único ecrã por secção — só aproximando do ecrã quem precisa de ler detalhe."
+          : "Nota: a altura para o nível \"texto denso\" (" + fmt(heightDetailed,2) + " m) deixa pouca folga no pé-direito da sala (" + fmt(roomHeight,2) + " m) para estrutura/fixação — a sugestão acima usa leitura \"normal\", que não tem este problema.";
       } else {
         ceilingWarn.style.display = "none";
       }
