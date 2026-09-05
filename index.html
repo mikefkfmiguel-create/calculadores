@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.206</span>
+    <span class="mark">v1.207</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -4630,13 +4630,16 @@
       : "Limpar o projeto? TODAS as calculadoras voltam ao estado inicial — incluindo as zonas do Ecrã Complexo e o Assistente de Projeto. Isto recarrega a página.";
     appConfirm(confirmMsg).then(function (ok) {
       if (!ok) return;
+      // As zonas do Ecrã Complexo persistem em localStorage (para não se
+      // perderem entre sessões) — sem isto, um simples reload trazia-as de
+      // volta tal como estavam. Preferências que não são dados de projeto
+      // (idioma, endereço do Worker) ficam guardadas de propósito.
+      try { localStorage.removeItem("calculadores-zonas-v1"); } catch (e) {}
       // Repor cada calculadora à mão (selects populados por JS a partir dos
       // JSON de dados, curvatura, zonas, etc.) seria replicar toda a lógica
       // de inicialização em duplicado e ficar sempre a arrastar-se atrás
       // dela. Recarregar a página aplica exatamente essa mesma inicialização
-      // de origem — preferências como idioma e o endereço do Worker (que
-      // vivem em localStorage) mantêm-se, por seres tu a configurá-las, não
-      // dados de um projeto.
+      // de origem.
       location.reload();
     });
   });
@@ -5542,6 +5545,14 @@
       });
     }
 
+    function checkAddProject(id) {
+      var cb = document.getElementById(id);
+      if (cb && !cb.checked) {
+        cb.checked = true;
+        cb.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+
     function fileToBase64(file) {
       return new Promise(function (resolve, reject) {
         var reader = new FileReader();
@@ -5662,6 +5673,7 @@
           var ledCurveCb = document.getElementById("l-curve-enabled");
           if (ledCurveCb && !ledCurveCb.checked) ledCurveCb.click();
         }
+        checkAddProject("l-addproject");
         showToast("Valores aplicados na aba Ecrã LED — confirma e escolhe o modelo de tile.");
       } else if (tipo === "projecao") {
         document.querySelector('.tab[data-mode="projecao"]').click();
@@ -5676,6 +5688,7 @@
           setFieldValAndFire("p-diag", diagonal);
         }
         if (!isNaN(distProjecao)) setFieldValAndFire("p-knowndist", distProjecao);
+        checkAddProject("p-addproject");
         showToast("Valores aplicados na aba Distância de Projeção — confirma o projetor e a lente.");
       } else if (tipo === "blend") {
         document.querySelector('.tab[data-mode="blend"]').click();
@@ -5687,6 +5700,7 @@
           var blendCurveCb = document.getElementById("b-curve-enabled");
           if (blendCurveCb && !blendCurveCb.checked) blendCurveCb.click();
         }
+        checkAddProject("b-addproject");
         showToast("Valores aplicados na aba Blending Multi-Projetor — confirma a grelha de projetores.");
       } else {
         showToast("Tipo \"" + (tipo === "misto" ? "Misto" : "Desconhecido") + "\" — aplica os valores manualmente na(s) aba(s) relevante(s).");
