@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.209</span>
+    <span class="mark">v1.210</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -129,6 +129,20 @@
             <p class="note" id="asst-detalhes"></p>
             <div class="warn" id="asst-avisos" style="display:none;"></div>
 
+            <div class="field">
+              <label for="asst-nome">Nome do projeto/evento</label>
+              <div class="inputgroup"><input id="asst-nome" type="text" autocomplete="off"></div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="asst-data-inicio">Data de início</label>
+                <div class="inputgroup"><input id="asst-data-inicio" type="date" autocomplete="off"></div>
+              </div>
+              <div class="field">
+                <label for="asst-data-fim">Data de fim</label>
+                <div class="inputgroup"><input id="asst-data-fim" type="date" autocomplete="off"></div>
+              </div>
+            </div>
             <div class="field">
               <label for="asst-tipoecra">Tipo de ecrã</label>
               <select id="asst-tipoecra" class="plain">
@@ -5661,6 +5675,9 @@
     }
 
     function renderRequisitos(r) {
+      setFieldVal("asst-nome", r.projeto && r.projeto.nome != null ? r.projeto.nome : "");
+      setFieldVal("asst-data-inicio", r.projeto && r.projeto.dataInicio != null ? r.projeto.dataInicio : "");
+      setFieldVal("asst-data-fim", r.projeto && r.projeto.dataFim != null ? r.projeto.dataFim : "");
       setFieldVal("asst-tipoecra", r.tipoEcra || "desconhecido");
       setFieldVal("asst-largura", r.dimensoes && r.dimensoes.larguraM != null ? r.dimensoes.larguraM : "");
       setFieldVal("asst-altura", r.dimensoes && r.dimensoes.alturaM != null ? r.dimensoes.alturaM : "");
@@ -5746,6 +5763,44 @@
       showToast("Análise limpa.");
     });
 
+    // O nome/data do evento não dependem do tipo de ecrã — aplicam-se
+    // sempre à aba Projeto, independentemente do resto.
+    function applyProjMeta() {
+      setFieldValAndFire("proj-nome", fieldVal("asst-nome"));
+      setFieldValAndFire("proj-data-inicio", fieldVal("asst-data-inicio"));
+      setFieldValAndFire("proj-data-fim", fieldVal("asst-data-fim"));
+    }
+
+    // Sinal & Data Rate, Media Server e Grafismo px↔cm pedem normalmente um
+    // clique manual em "↙ Projeto" para irem buscar a resolução — depois de
+    // "Aplicar" já se sabe a resolução do ecrã, por isso clica-se sozinho
+    // nesses mesmos botões (em vez de duplicar a lógica de cada um, que
+    // vive dentro do closure de cada aba e não é acessível daqui).
+    function syncResolutionEverywhere() {
+      ["sg-use-proj", "ms-use-proj", "gfx-use-proj"].forEach(function (id) {
+        var btn = document.getElementById(id);
+        if (btn) btn.click();
+      });
+    }
+
+    // A aba Distância de Visualização tem o mesmo modelo de formato/tamanho
+    // que a Projeção, mais um campo de distância — não tinha nenhuma ligação
+    // a outras abas, por isso aplica-se aqui diretamente a partir do que a
+    // IA extraiu.
+    function applyVisualizacao(largura, altura, diagonal, formato, distVisualizacao) {
+      var knownRatios = ["16:9", "16:10", "4:3", "21:9"];
+      if (!isNaN(largura) && !isNaN(altura)) {
+        setFieldValAndFire("v-ratio", "custom");
+        setFieldValAndFire("v-rw", largura);
+        setFieldValAndFire("v-rh", altura);
+      } else if (!isNaN(diagonal)) {
+        if (formato && knownRatios.indexOf(formato) >= 0) setFieldValAndFire("v-ratio", formato);
+        segClick("v-sizemode-seg", "sizemode", "diag");
+        setFieldValAndFire("v-diag", diagonal);
+      }
+      if (distVisualizacao != null && !isNaN(distVisualizacao)) setFieldValAndFire("v-avail", distVisualizacao);
+    }
+
     asstApply.addEventListener("click", function () {
       var tipo = fieldVal("asst-tipoecra");
       var largura = val("asst-largura");
@@ -5754,9 +5809,14 @@
       var distProjecao = val("asst-distprojecao");
       var curvo = !!(lastRequisitos && lastRequisitos.local && lastRequisitos.local.curvo);
       var formato = lastRequisitos && lastRequisitos.dimensoes && lastRequisitos.dimensoes.formato;
+      var distVisualizacao = lastRequisitos && lastRequisitos.local ? lastRequisitos.local.distanciaVisualizacaoM : null;
+
+      applyProjMeta();
+      applyVisualizacao(largura, altura, diagonal, formato, distVisualizacao);
 
       if (tipo === "led") {
         applyLedFromAssistente(null);
+        syncResolutionEverywhere();
         showToast("Valores aplicados na aba Ecrã LED — usa também a lista \"3 modelos mais próximos\" se preferires outro.");
       } else if (tipo === "projecao") {
         document.querySelector('.tab[data-mode="projecao"]').click();
@@ -5772,6 +5832,7 @@
         }
         if (!isNaN(distProjecao)) setFieldValAndFire("p-knowndist", distProjecao);
         checkAddProject("p-addproject");
+        syncResolutionEverywhere();
         showToast("Valores aplicados na aba Distância de Projeção — confirma o projetor e a lente.");
       } else if (tipo === "blend") {
         document.querySelector('.tab[data-mode="blend"]').click();
@@ -5784,6 +5845,7 @@
           if (blendCurveCb && !blendCurveCb.checked) blendCurveCb.click();
         }
         checkAddProject("b-addproject");
+        syncResolutionEverywhere();
         showToast("Valores aplicados na aba Blending Multi-Projetor — confirma a grelha de projetores.");
       } else {
         showToast("Tipo \"" + (tipo === "misto" ? "Misto" : "Desconhecido") + "\" — aplica os valores manualmente na(s) aba(s) relevante(s).");
