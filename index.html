@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.231</span>
+    <span class="mark">v1.232</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2033,7 +2033,7 @@
         <li>Sempre que souberes a referência da lente, escolhe-a pelo nome em vez de meter o throw ratio à mão — preenche-se sozinho e fica identificada no relatório.</li>
         <li>Ecrã LED com várias secções (ex: central + laterais + tiras espalhadas): usa a aba <strong>Ecrã Complexo</strong>, adiciona uma zona por secção com a sua posição X/Y para ver o diagrama e a dimensão total com gaps, e usa <strong>"Aplicar réplicas"</strong> para criar várias zonas iguais em fila de uma vez. Depois ativa <strong>"Usar total das zonas"</strong> na aba Projeto para somar tudo.</li>
         <li>Em Blending, escolhe <strong>"Calcular a partir do ecrã"</strong> para a app decidir o nº de projetores sozinha, ou <strong>"Eu defino nº e overlap"</strong> para controlares tu.</li>
-        <li>Equipamento marcado <strong>(stock)</strong> nos menus é o que a empresa já tem — prioriza sempre que der.</li>
+        <li>Equipamento a azul e a negrito nos menus é o que a empresa já tem — prioriza sempre que der.</li>
         <li>Todos os valores são para conferência antes de enviar ao cliente — a app não substitui medir no local.</li>
       </ul>
     </div>
@@ -2538,7 +2538,7 @@
       var brandOk = !brand || l.marca === brand || l.marca.indexOf(brand + " (") === 0;
       if (!brandOk) return;
       var ratioText = l.min === l.max ? fmt(l.min, 2) + " fixo" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
-      addOption(sel, String(idx), l.marca + " " + l.modelo + " (" + ratioText + ")", false, idx, true);
+      addOption(sel, String(idx), l.marca + " " + l.modelo + " (" + ratioText + ")", false, idx, false, true);
     });
     lzAttachModelSearch(sel);
     if (sel._modelSearchRefresh) sel._modelSearchRefresh();
@@ -2589,7 +2589,7 @@
     }
     list.forEach(function (i) {
       var p = PROJECTORS_DATA[i];
-      addOption(sel, p.lumens, p.modelo + " — " + fmtInt(p.lumens) + " lm", false, i);
+      addOption(sel, p.lumens, p.modelo + " — " + fmtInt(p.lumens) + " lm", false, i, !p.mercado);
     });
     var matchOpt = keepIdx != null
       ? Array.prototype.filter.call(sel.options, function (o) { return o.dataset.idx === String(keepIdx); })[0]
@@ -2959,7 +2959,7 @@
     }
     list.forEach(function (i) {
       var t = LED_TILES_DATA[i];
-      addOption(sel, String(i), t.modelo + " — " + t.label, false, i);
+      addOption(sel, String(i), t.modelo + " — " + t.label, false, i, !t.mercado);
     });
     var matchOpt = keepIdx != null
       ? Array.prototype.filter.call(sel.options, function (o) { return o.value === String(keepIdx); })[0]
@@ -5338,7 +5338,7 @@
     [projModelSel, blendProjModelSel].forEach(function (sel) {
       projOrder.forEach(function (i) {
         var p = projectors[i];
-        addOption(sel, p.lumens, p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj, i);
+        addOption(sel, p.lumens, p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj, i, !p.mercado);
       });
     });
     if (defaultProj) {
@@ -5347,7 +5347,7 @@
     }
     projOrder.forEach(function (i) {
       var p = projectors[i];
-      addOption(projProjModelSel, String(i), p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj);
+      addOption(projProjModelSel, String(i), p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj, undefined, !p.mercado);
     });
 
     var defaultTile = ledTiles.find(function (t) { return t.default; }) || ledTiles[0];
@@ -5355,7 +5355,7 @@
     [ledModelSel, projLedModelSel, sgLedTileSel].forEach(function (sel) {
       tileOrder.forEach(function (i) {
         var t = ledTiles[i];
-        addOption(sel, String(i), t.modelo + " — " + t.label, t === defaultTile);
+        addOption(sel, String(i), t.modelo + " — " + t.label, t === defaultTile, undefined, !t.mercado);
       });
     });
     if (defaultTile) {
@@ -5372,7 +5372,7 @@
     [tvModelSel, projDsmTvModelSel, projDelayTvModelSel, vTvModelSel].forEach(function (sel) {
       tvOrder.forEach(function (i) {
         var t = tvs[i];
-        addOption(sel, String(i), t.modelo + ' — ' + t.diag + '"' + (t.touchscreen ? " touchscreen" : ""), false, i);
+        addOption(sel, String(i), t.modelo + ' — ' + t.diag + '"' + (t.touchscreen ? " touchscreen" : ""), false, i, !t.mercado);
       });
       wireStockColor(sel);
       updateSelectStockColor(sel);
@@ -5739,8 +5739,8 @@
     }
 
     // As "3 melhores opções" de tile para um pitch pedido: mais próximo do
-    // pitch primeiro, com equipamento próprio da AVK ("(stock)" no nome, a
-    // mesma convenção já usada nos outros dados) sempre à frente do mercado.
+    // pitch primeiro, com equipamento próprio da AVK (entradas sem
+    // "mercado":true em led-tiles.json) sempre à frente do mercado.
     function topLedTilesByPitch(pitchMm, n) {
       if (typeof LED_TILES_DATA === "undefined" || !LED_TILES_DATA.length) return [];
       var candidates = [];
@@ -5748,7 +5748,7 @@
         var t = LED_TILES_DATA[i];
         if (!t.mw || !t.mh || !t.rx || !t.ry) continue;
         var pitch = (t.mw / t.rx + t.mh / t.ry) / 2;
-        candidates.push({ idx: i, tile: t, pitch: pitch, stock: t.modelo.indexOf("(stock)") !== -1 });
+        candidates.push({ idx: i, tile: t, pitch: pitch, stock: !t.mercado });
       }
       candidates.sort(function (a, b) {
         if (a.stock !== b.stock) return a.stock ? -1 : 1;
@@ -6094,7 +6094,7 @@
       if (typeof PROJECTORS_DATA !== "undefined" && PROJECTORS_DATA.length) {
         var projCandidates = PROJECTORS_DATA
           .map(function (p, i) { return { p: p, i: i }; })
-          .filter(function (x) { return x.p.modelo.indexOf("(stock)") !== -1; });
+          .filter(function (x) { return !x.p.mercado; });
         if (!projCandidates.length) projCandidates = PROJECTORS_DATA.map(function (p, i) { return { p: p, i: i }; });
         var smallestProj = projCandidates.reduce(function (best, x) { return (!best || x.p.lumens < best.p.lumens) ? x : best; }, null);
         if (smallestProj) {

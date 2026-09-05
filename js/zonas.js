@@ -25,7 +25,7 @@
     var order = stockFirstIndices(LED_TILES_DATA);
     order.forEach(function (i) {
       var t = LED_TILES_DATA[i];
-      addOption(sel, String(i), t.modelo + " — " + t.label, false, i);
+      addOption(sel, String(i), t.modelo + " — " + t.label, false, i, !t.mercado);
     });
     sel.selectedIndex = 0;
     updateSelectStockColor(sel);

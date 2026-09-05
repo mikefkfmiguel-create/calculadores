@@ -683,7 +683,6 @@
   // ---- Fragmentos recorrentes do catálogo (specs de equipamento) — cobrem
   // centenas de entradas de marca/modelo com poucas dezenas de chaves. ----
   var CATALOG_EN = {
-    "(stock)": "(owned)",
     "(mercado)": "(market)",
     " fixo": " fixed",
     "(fixo)": "(fixed)",

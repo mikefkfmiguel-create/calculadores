@@ -229,13 +229,15 @@ function appConfirm(message) {
 })();
 
 var STOCK_COLOR = "#5028C8";
-function addOption(select, value, text, isDefault, dataIdx, skipMarketTag) {
+// isStock vem de quem chama (normalmente "!item.mercado" dos dados em
+// data/*.json) — nada aqui faz sniffing de texto no nome do modelo.
+function addOption(select, value, text, isDefault, dataIdx, isStock, skipMarketTag) {
   var opt = document.createElement("option");
-  var isStock = text.indexOf("(stock)") !== -1;
   opt.value = value;
   opt.textContent = (!isStock && !skipMarketTag) ? text + " (mercado)" : text;
   if (isDefault) opt.selected = true;
   if (dataIdx !== undefined) opt.dataset.idx = dataIdx;
+  opt.dataset.stock = isStock ? "1" : "0";
   if (isStock) {
     opt.style.color = STOCK_COLOR;
     opt.style.fontWeight = "600";
@@ -249,8 +251,8 @@ function addOption(select, value, text, isDefault, dataIdx, skipMarketTag) {
 function stockFirstIndices(arr) {
   var order = arr.map(function (item, i) { return i; });
   order.sort(function (a, b) {
-    var as = arr[a].modelo.indexOf("(stock)") !== -1 ? 0 : 1;
-    var bs = arr[b].modelo.indexOf("(stock)") !== -1 ? 0 : 1;
+    var as = arr[a].mercado ? 1 : 0;
+    var bs = arr[b].mercado ? 1 : 0;
     return as !== bs ? as - bs : a - b;
   });
   return order;
@@ -258,7 +260,7 @@ function stockFirstIndices(arr) {
 
 function updateSelectStockColor(select) {
   var opt = select.options[select.selectedIndex];
-  var isStock = opt && opt.textContent.indexOf("(stock)") !== -1;
+  var isStock = opt && opt.dataset.stock === "1";
   select.style.color = isStock ? STOCK_COLOR : "";
   select.style.fontWeight = isStock ? "600" : "";
 }
