@@ -1,0 +1,45 @@
+# Calculadores (AVK Calculadores) — contexto para o Copilot
+
+PWA estática para cálculos de AV/produção de eventos, uso interno da AVK Portugal, publicada no GitHub Pages. Lê também `/CLAUDE.md` na raiz — as convenções aí (bump de versão, nunca inventar dados técnicos, publicar sempre via PR para `main`) aplicam-se da mesma forma aqui.
+
+## Arquitetura
+
+- `index.html` — a app quase toda: HTML de todas as calculadoras (tabs) + um `<script>` gigante no fundo com toda a lógica JS. Funções e `var` de topo (não dentro de nenhuma IIFE) são partilhadas por closure com o resto do ficheiro, incluindo com a IIFE do Assistente de Projeto perto do fim do ficheiro.
+- `sw.js` — service worker. `CACHE = "calculadores-vNN"` tem de subir sempre que `index.html` muda visivelmente para o utilizador, em sincronia com o `<span class="mark">vX.Y</span>` perto da linha 28 de `index.html`. Cache-first para a app shell, network-first para `data/*.json`.
+- `data/*.json` — inventário real (LED tiles, TVs, projetores, lentes, processadores/switchers) usado por todas as calculadoras. Nunca inventar valores aqui; entradas próprias da AVK têm `"(stock)"` no `modelo`, e essa convenção é usada em vários sítios do código para priorizar equipamento próprio sobre "mercado".
+- `worker/src/index.js` — Cloudflare Worker que faz de proxy seguro para a API da Anthropic (a chave nunca pode estar no código estático). **Importante: não há deploy automático.** Sempre que este ficheiro muda, tem de se dar o conteúdo completo ao utilizador para ele colar manualmente no dashboard da Cloudflare (Edit code → colar tudo → Save and deploy). Nunca assumir que uma alteração aqui já está "live" só por ter sido commitada.
+
+## Assistente de Projeto (a feature mais ativa deste repo)
+
+Fluxo: o utilizador cola texto/PDF de um briefing → `index.html` envia para o Worker → o Worker chama a Anthropic com `tool_choice` forçado sobre `EXTRACT_TOOL` (schema JSON) → devolve só dados extraídos, nunca uma recomendação em prosa livre. **Princípio de arquitetura estabelecido:** a IA só extrai factos do texto; todo o cálculo/recomendação (ângulos, tamanhos, equipamento) é feito em JS no cliente, contra dados reais — nunca pedir à IA para "recomendar" tecnologia diretamente, isso seria inventar/alucinar specs.
+
+### Schema de extração (`worker/src/index.js`, `EXTRACT_TOOL`)
+
+Campos principais: `tipoEcra` (led/projecao/blend/misto/desconhecido), `dimensoes` (tamanho do ECRÃ, nunca da sala — distinção crítica, já houve bug de confundir isto), `local` (`distanciaProjecaoM`, `distanciaVisualizacaoM`, `larguraPlateiaM`, `alturaSalaM`, `interior`, `curvo`), `led`, `orcamento`, `projeto` (nome/datas), `resumo`, `pontosPorConfirmar`.
+
+Comportamento importante já afinado: quando o texto só descreve a sala (largura × profundidade × altura) sem "plateia" explícita, `distanciaVisualizacaoM` e `larguraPlateiaM` devem ser estimados a partir da profundidade/largura da sala (não ficar `null`), sinalizando a suposição em `pontosPorConfirmar`. Isto é intencionalmente diferente de `dimensoes`, que continua estritamente proibida de usar medidas de sala.
+
+### Motor de sugestão de dimensionamento (client-side, em `index.html`)
+
+Quando `tipoEcra === "desconhecido"` mas já há `distanciaVisualizacaoM` (dada ou estimada), o painel do Assistente (`renderScreenRecommendation()`, perto do fim do `<script>`) calcula e mostra, sem pedir nada à IA:
+
+- **Nº de ecrãs** para ângulo lateral confortável (SMPTE EG-18-1994, ≤30°) via `screensNeededForAngle(audienceWidth, distance, maxAngleDeg)` — sobe N e testa o caso real a cada passo (mesmo padrão de `splitCanvasForClock`/`splitCanvasForCapacity` usados em Sinal & Data Rate para repartir sinal por várias ligações).
+- **Altura mínima de ecrã** para dois níveis de legibilidade AVIXA (`AVIXA_CONTENT.detailed` ×4, `AVIXA_CONTENT.basic` ×6) — nota: o veredito/opção TV usam sempre "leitura normal" (×6); não há deteção automática de "texto denso" vs "normal" a partir do texto (gap conhecido, ver secção abaixo).
+- **Opção TV**: procura em `TVS_DATA` (todo o inventário, não só a maior TV) a maior que ainda cabe em grelha dentro do pé-direito da sala (`local.alturaSalaM`). Se a contagem de unidades da grelha ultrapassar 4, é tratada como "não realista" (etiqueta muda, botão "Usar" desaparece) — um videowall de TVs de consumo com muitas unidades não é uma recomendação profissional por defeito.
+- **Frase de veredito** (`asst-rec-verdict`) junta tudo em linguagem simples para produção não-técnica, sempre a liderar com a tecnologia viável (LED/projeção) antes de explicar porque a TV foi descartada, quando aplicável.
+- **Botões "Usar"** (`asst-rec-use-led`, `asst-rec-use-proj`, `asst-rec-use-tv`) aplicam o tamanho de 1 ecrã à aba respetiva (LED, Distância de Projeção, TVs), tal como o "Aplicar" principal já faz para campos extraídos diretamente.
+
+### Gaps conhecidos / próximos passos possíveis
+
+- O nível de detalhe de conteúdo (AVIXA "detailed" ×4 vs "basic" ×6) não é escolhido automaticamente a partir da descrição do texto (ex: "texto muito denso" vs "apresentação normal") — usa sempre "leitura normal" para a opção TV/veredito. Seria preciso um novo campo extraído (algo como `local.densidadeConteudo`) e lógica para escolher o multiplicador certo.
+- `pontosPorConfirmar` por vezes devolve uma nota como "número e tamanho dos ecrãs ainda por definir", que pode parecer contraditória ao lado da sugestão de dimensionamento já calculada pela app — a IA não tem visibilidade sobre esse cálculo client-side. Se isto voltar a ser reportado, ajustar a instrução final do Worker (o texto grande passado como `content` de tipo `"text"` em `worker/src/index.js`) para não gerar esse aviso quando `tipoEcra` é `"desconhecido"`.
+- A comparação "3 tecnologias" (TV/LED/Projeção) pedida originalmente existe hoje só dentro do Assistente (quando `tipoEcra` é desconhecido); não há uma calculadora dedicada e reutilizável fora desse fluxo que aceite diretamente dimensões de sala/plateia.
+- **Nunca** construir "aprendizagem automática" para o Assistente — decisão tomada explicitamente com o utilizador. O modelo (Haiku) não retém nada entre pedidos; melhorias vêm de ajustar manualmente o schema/instruções do Worker quando um caso mal resolvido é reportado, nunca de um sistema que se auto-ajusta sem revisão.
+
+## Convenções operacionais
+
+- **Bump de versão obrigatório** em qualquer alteração visível: `<span class="mark">vX.Y</span>` em `index.html` E `const CACHE = "calculadores-vNN";` em `sw.js`, sempre os dois juntos, inteiro incrementado. Alterações só ao Worker não exigem bump.
+- **PR sempre para `main`**, sem pedir confirmação extra (draft → ready → merge) — ver `CLAUDE.md`.
+- **Conflitos de merge espúrios são frequentes** neste repo (histórico de squash-merge diverge a cada PR) mesmo sem alterações reais conflituantes. Resolver com: `git fetch origin main`, snapshot dos ficheiros locais, `git merge origin/main` (produz conflitos), copiar os snapshots por cima dos ficheiros conflituosos, confirmar `diff` vazio e zero marcadores de conflito, `git add` + commit do merge, push, tentar o merge do PR outra vez.
+- **Testar antes de publicar**: usar Playwright com `context.newContext({ serviceWorkers: 'block' })` (evita que o service worker interfira nos testes) e abrir `<details>` colapsados via `document.querySelectorAll('.panel[data-mode="X"] details').forEach(d => d.open = true)` antes de interagir com campos.
+- **Nunca inventar dados técnicos** — specs de equipamento, standards (SMPTE, AVIXA) ou thresholds têm de vir de fontes reais (procurar/confirmar antes de implementar), nunca assumidos.
