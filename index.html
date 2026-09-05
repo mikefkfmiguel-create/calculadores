@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.224</span>
+    <span class="mark">v1.225</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -136,7 +136,7 @@
                 <div class="item wide"><div class="k">Nº de ecrãs (ângulo confortável, SMPTE)</div><div class="v" id="asst-rec-screens">—</div></div>
                 <div class="item"><div class="k">Altura mín. — texto denso (AVIXA ×4)</div><div class="v" id="asst-rec-height-detailed">—</div></div>
                 <div class="item"><div class="k">Altura mín. — leitura normal (AVIXA ×6)</div><div class="v" id="asst-rec-height-basic">—</div></div>
-                <div class="item wide" id="asst-rec-tv-wrap" style="display:none;"><div class="k">Opção TV (grelha do maior modelo em stock, p/ leitura normal)</div><div class="v" id="asst-rec-tv">—</div></div>
+                <div class="item wide" id="asst-rec-tv-wrap" style="display:none;"><div class="k" id="asst-rec-tv-label">Opção TV (grelha do maior modelo em stock, p/ leitura normal)</div><div class="v" id="asst-rec-tv">—</div></div>
               </div>
               <div id="asst-rec-ceiling-warn" class="warn" style="display:none;"></div>
               <div id="asst-rec-tv-fit-warn" class="warn" style="display:none;"></div>
@@ -5915,11 +5915,27 @@
       var tvHint = document.getElementById("asst-rec-tv-hint");
       var tvFitWarn = document.getElementById("asst-rec-tv-fit-warn");
       var tvUseBtn = document.getElementById("asst-rec-use-tv");
-      var biggestTv = (typeof TVS_DATA !== "undefined" && TVS_DATA.length)
-        ? TVS_DATA.reduce(function (best, tv) { return (!best || tv.diag > best.diag) ? tv : best; }, null)
-        : null;
+      // Não faz sentido testar só a maior TV em stock e desistir se não
+      // couber — há sempre outros tamanhos no inventário. Procura, da maior
+      // para a mais pequena, a primeira cuja grelha (já arredondada ao nº
+      // inteiro de unidades) cabe mesmo no pé-direito da sala — menos
+      // unidades/juntas entre as que servem, em vez de nenhuma.
+      var biggestTv = null;
+      if (typeof TVS_DATA !== "undefined" && TVS_DATA.length) {
+        var tvsByDiagDesc = TVS_DATA.slice().sort(function (a, b) { return b.diag - a.diag; });
+        if (roomHeight != null && !isNaN(roomHeight) && roomHeight > 0) {
+          biggestTv = tvsByDiagDesc.find(function (tv) {
+            var s = tvSizeMeters(tv);
+            var rows = Math.max(1, Math.ceil(heightBasic / s.h));
+            return rows * s.h <= roomHeight;
+          }) || tvsByDiagDesc[0];
+        } else {
+          biggestTv = tvsByDiagDesc[0];
+        }
+      }
       var tvCount = null;
       var biggestTvIdx = null;
+      var tvLabel = document.getElementById("asst-rec-tv-label");
       if (biggestTv) {
         var tvSize = tvSizeMeters(biggestTv);
         var tvCols = Math.max(1, Math.ceil(widthBasic / tvSize.w));
@@ -5928,6 +5944,28 @@
         tvCount = tvCols * tvRows;
         biggestTvIdx = TVS_DATA.indexOf(biggestTv);
         var tvTotal = tvCount * nScreens;
+
+        // A grelha arredonda para cima ao nº inteiro de unidades — a altura
+        // real que sai daí (tvGridHeight) pode já não caber no pé-direito da
+        // sala, mesmo quando a altura "leitura normal" pedida cabia. Quando
+        // isso acontece, a etiqueta já diz "não é opção aqui" à partida — em
+        // vez de apresentar os números como se fosse uma sugestão normal e
+        // só depois, num aviso à parte, dizer que afinal não serve.
+        var tvFitsCeiling = !(roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && tvGridHeight > roomHeight);
+        // Um videowall de TVs de consumo com muitas unidades não é uma opção
+        // profissional real (é isso que já dizemos no veredito a partir de
+        // >4 unidades) — a etiqueta reflete o mesmo limite, em vez de
+        // apresentar a grelha como uma sugestão normal só porque cabe no
+        // teto. Continua a mostrar-se como referência de escala (é por isso
+        // que a pergunta original pedia para "devolver a opção de TVs"),
+        // mas já não como algo a considerar por defeito.
+        var tvIsRealisticCount = tvCount <= 4;
+        tvLabel.textContent = !tvFitsCeiling
+          ? "TV — não é opção aqui (grelha não cabe no teto)"
+          : !tvIsRealisticCount
+            ? "TV — não é opção realista aqui (grelha de " + tvCount + " unidades)"
+            : "Opção TV (grelha do maior modelo em stock, p/ leitura normal)";
+
         document.getElementById("asst-rec-tv").innerHTML = tvCols + "×" + tvRows + " = " + tvCount + "× " + escapeHtml(biggestTv.modelo) +
           " → " + fmt(tvCols * tvSize.w, 2) + "×" + fmt(tvGridHeight, 2) + "<small> m</small>" +
           (nScreens > 1 ? "<br><strong>Total para os " + nScreens + " ecrãs: " + tvTotal + " unidades</strong>" : "");
@@ -5937,19 +5975,13 @@
           : "Uma só unidade já cobre o tamanho recomendado.";
         tvWrap.style.display = "block";
 
-        // A grelha arredonda para cima ao nº inteiro de unidades — a altura
-        // real que sai daí (tvGridHeight) pode já não caber no pé-direito da
-        // sala, mesmo quando a altura "leitura normal" pedida cabia. Quando
-        // isso acontece, deixa de fazer sentido oferecer "Usar em TVs" como
-        // opção clicável — fica só o aviso, informativo.
-        var tvFitsCeiling = !(roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && tvGridHeight > roomHeight);
         if (!tvFitsCeiling) {
           tvFitWarn.style.display = "block";
-          tvFitWarn.textContent = "Esta grelha fica com " + fmt(tvGridHeight,2) + " m de altura — não cabe no pé-direito da sala (" + fmt(roomHeight,2) + " m). Não é opção viável aqui nesta configuração.";
+          tvFitWarn.textContent = "Esta grelha fica com " + fmt(tvGridHeight,2) + " m de altura — não cabe no pé-direito da sala (" + fmt(roomHeight,2) + " m).";
         } else {
           tvFitWarn.style.display = "none";
         }
-        tvUseBtn.style.display = tvFitsCeiling ? "inline-block" : "none";
+        tvUseBtn.style.display = (tvFitsCeiling && tvIsRealisticCount) ? "inline-block" : "none";
       } else {
         tvWrap.style.display = "none";
         tvHint.style.display = "none";
@@ -5968,7 +6000,7 @@
         var tvTotalTxt = nScreens > 1 ? ", " + (tvCount * nScreens) + " no total para os " + nScreens + " ecrãs" : "";
         var tvDoesntFitCeiling = roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && tvGridHeight > roomHeight;
         if (tvDoesntFitCeiling) {
-          verdictParts.push("TV não é opção aqui — a grelha (" + fmt(tvGridHeight,2) + " m) não cabe no pé-direito da sala (" + fmt(roomHeight,2) + " m) — LED ou projeção são as opções realistas.");
+          verdictParts.push("LED ou projeção são as opções aqui — TV não cabe (a grelha ficaria com " + fmt(tvGridHeight,2) + " m de altura, acima do pé-direito de " + fmt(roomHeight,2) + " m).");
         } else if (tvCount <= 1) {
           verdictParts.push("TV é viável a este tamanho.");
         } else if (tvCount <= 4) {
