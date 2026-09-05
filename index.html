@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.205</span>
+    <span class="mark">v1.206</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -115,6 +115,7 @@
               <div class="inputgroup"><input id="asst-pdf" type="file" accept="application/pdf"></div>
             </div>
             <button type="button" class="copy" id="asst-analyze">Analisar</button>
+            <button type="button" class="copy" id="asst-clear" title="Apaga o texto, o documento e os requisitos extraídos desta análise">Limpar</button>
             <div class="hint" id="asst-status"></div>
           </div>
         </details>
@@ -1129,7 +1130,7 @@
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
         <p>Junta tudo numa ficha técnica única para um evento. Podes preencher os campos aqui à mão, ou marcar <strong>"Adicionar ao projeto"</strong> nas calculadoras de Distância de Projeção, Ecrã LED ou Blending para os campos correspondentes virem preenchidos sozinhos — marcar uma dessas três desliga automaticamente as outras, porque um projeto só tem um tipo de ecrã de cada vez.</p>
-        <p>No fim, usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir depois com <strong>"Abrir projeto…"</strong>. Para começar um projeto novo do zero, usa <strong>"Limpar projeto"</strong> — repõe só os campos desta aba, não mexe nas calculadoras nem nas zonas do Ecrã Complexo.</p>
+        <p>No fim, usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir depois com <strong>"Abrir projeto…"</strong>. Para começar um projeto novo do zero, usa <strong>"Limpar projeto"</strong> — repõe <strong>todas</strong> as calculadoras (incluindo as zonas do Ecrã Complexo e o Assistente de Projeto) ao estado inicial.</p>
       </div>
     </details>
     <div style="margin-bottom:16px;" data-accent="projeto">
@@ -1535,7 +1536,7 @@
                   <button class="copy" id="proj-save">Guardar projeto</button>
                   <button class="copy" id="proj-open">Abrir projeto…</button>
                   <input type="file" id="proj-open-file" accept="application/json,.json" style="display:none;">
-                  <button class="copy" id="proj-clear" title="Repõe os campos desta aba em branco e desliga 'Adicionar ao projeto' em todas as calculadoras — não apaga as calculadoras em si nem as zonas do Ecrã Complexo">Limpar projeto</button>
+                  <button class="copy" id="proj-clear" title="Repõe TODAS as calculadoras (incluindo zonas do Ecrã Complexo e o Assistente de Projeto) ao estado inicial">Limpar projeto</button>
                 </div>
               </div>
               <pre class="sumbox" id="proj-sum"></pre>
@@ -4625,16 +4626,18 @@
   var PROJ_ADDPROJECT_IDS = ["p-addproject", "v-addproject", "l-addproject", "z-addproject", "b-addproject", "sg-addproject", "ms-addproject"];
   document.getElementById("proj-clear").addEventListener("click", function () {
     var confirmMsg = (typeof i18nGetLang === "function" && i18nGetLang() === "en")
-      ? "Clear the project? This tab's fields go back to their starting state and \"Add to project\" turns off in every calculator. The calculators themselves (and the Multi-Zone Screen zones) aren't affected."
-      : "Limpar o projeto? Os campos desta aba voltam ao estado inicial e \"Adicionar ao projeto\" desliga-se em todas as calculadoras. As calculadoras em si (e as zonas do Ecrã Complexo) não são afetadas.";
+      ? "Clear the project? ALL calculators go back to their starting state — including the Multi-Zone Screen zones and the Project Assistant. This reloads the page."
+      : "Limpar o projeto? TODAS as calculadoras voltam ao estado inicial — incluindo as zonas do Ecrã Complexo e o Assistente de Projeto. Isto recarrega a página.";
     appConfirm(confirmMsg).then(function (ok) {
       if (!ok) return;
-      PROJ_ADDPROJECT_IDS.forEach(function (id) {
-        var cb = document.getElementById(id);
-        if (cb) cb.checked = false;
-      });
-      applyProjState(projBlankState());
-      showToast("Projeto limpo.");
+      // Repor cada calculadora à mão (selects populados por JS a partir dos
+      // JSON de dados, curvatura, zonas, etc.) seria replicar toda a lógica
+      // de inicialização em duplicado e ficar sempre a arrastar-se atrás
+      // dela. Recarregar a página aplica exatamente essa mesma inicialização
+      // de origem — preferências como idioma e o endereço do Worker (que
+      // vivem em localStorage) mantêm-se, por seres tu a configurá-las, não
+      // dados de um projeto.
+      location.reload();
     });
   });
 
@@ -5513,6 +5516,7 @@
     var asstText = document.getElementById("asst-text");
     var asstPdf = document.getElementById("asst-pdf");
     var asstAnalyze = document.getElementById("asst-analyze");
+    var asstClear = document.getElementById("asst-clear");
     var asstStatus = document.getElementById("asst-status");
     var asstResultsCard = document.getElementById("asst-results-card");
     var asstApply = document.getElementById("asst-apply");
@@ -5624,6 +5628,16 @@
       }).finally(function () {
         asstAnalyze.disabled = false;
       });
+    });
+
+    asstClear.addEventListener("click", function () {
+      asstText.value = "";
+      asstPdf.value = "";
+      asstStatus.textContent = "";
+      asstResultsCard.style.display = "none";
+      asstResultsCard.open = false;
+      lastRequisitos = null;
+      showToast("Análise limpa.");
     });
 
     asstApply.addEventListener("click", function () {
