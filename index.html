@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.208</span>
+    <span class="mark">v1.209</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -169,7 +169,13 @@
                 <div class="inputgroup"><input id="asst-nits" type="number" autocomplete="off" inputmode="decimal" step="50"><span class="unit">nits</span></div>
               </div>
             </div>
-            <div class="hint">O pixel pitch pedido não é aplicado automaticamente — escolhe na aba Ecrã LED um modelo de tile com esse pitch (ou próximo).</div>
+            <div id="asst-led-tiles" style="display:none;">
+              <div class="field">
+                <label>3 modelos mais próximos deste pitch</label>
+                <div id="asst-led-tiles-list"></div>
+                <div class="hint">"Aplicar à calculadora" já usa o 1º (o mais próximo, com prioridade para equipamento próprio) — escolhe outro aqui se preferires.</div>
+              </div>
+            </div>
 
             <button type="button" class="copy" id="asst-apply" style="margin-top:10px;">Aplicar à calculadora</button>
           </div>
@@ -5517,6 +5523,12 @@
   // campos e clicar "Aplicar" — a leitura da IA pode falhar ou ser ambígua.
   (function () {
     var WORKER_URL_KEY = "calculadores-assistente-worker-url";
+    // Endereço público do Worker da AVK — não é secreto (é só um URL,
+    // protegido do lado do Worker pelo ALLOWED_ORIGINS), por isso pode
+    // viver aqui no código para toda a gente já o ter preenchido sem
+    // precisar de configurar nada. O campo continua editável para quem
+    // quiser apontar para outro Worker (ex: um de testes).
+    var DEFAULT_WORKER_URL = "https://calculadores-assistente.avkvideoshare.workers.dev";
     var asstWorkerUrl = document.getElementById("asst-worker-url");
     var asstText = document.getElementById("asst-text");
     var asstPdf = document.getElementById("asst-pdf");
@@ -5528,7 +5540,7 @@
     var lastRequisitos = null;
 
     var savedWorkerUrl = localStorage.getItem(WORKER_URL_KEY);
-    if (savedWorkerUrl) asstWorkerUrl.value = savedWorkerUrl;
+    asstWorkerUrl.value = savedWorkerUrl || DEFAULT_WORKER_URL;
     asstWorkerUrl.addEventListener("change", function () {
       localStorage.setItem(WORKER_URL_KEY, asstWorkerUrl.value.trim());
     });
@@ -5555,6 +5567,86 @@
       }
     }
 
+    // As "3 melhores opções" de tile para um pitch pedido: mais próximo do
+    // pitch primeiro, com equipamento próprio da AVK ("(stock)" no nome, a
+    // mesma convenção já usada nos outros dados) sempre à frente do mercado.
+    function topLedTilesByPitch(pitchMm, n) {
+      if (typeof LED_TILES_DATA === "undefined" || !LED_TILES_DATA.length) return [];
+      var candidates = [];
+      for (var i = 0; i < LED_TILES_DATA.length; i++) {
+        var t = LED_TILES_DATA[i];
+        if (!t.mw || !t.mh || !t.rx || !t.ry) continue;
+        var pitch = (t.mw / t.rx + t.mh / t.ry) / 2;
+        candidates.push({ idx: i, tile: t, pitch: pitch, stock: t.modelo.indexOf("(stock)") !== -1 });
+      }
+      candidates.sort(function (a, b) {
+        if (a.stock !== b.stock) return a.stock ? -1 : 1;
+        return Math.abs(a.pitch - pitchMm) - Math.abs(b.pitch - pitchMm);
+      });
+      return candidates.slice(0, n || 3);
+    }
+
+    function applyLedTileByIdx(tileIdx) {
+      var ledModelSel = document.getElementById("l-model");
+      if (!ledModelSel || typeof populateLedModelSelect !== "function") return;
+      populateLedModelSelect(ledModelSel, null, tileIdx);
+      ledModelSel.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    // Partilhada entre o botão "Aplicar à calculadora" (tileIdx nulo — escolhe
+    // sozinho o mais próximo do pitch pedido) e cada "Usar" da lista das
+    // "3 melhores opções" (tileIdx específico, escolhido à mão).
+    function applyLedFromAssistente(tileIdx) {
+      document.querySelector('.tab[data-mode="led"]').click();
+      var largura = val("asst-largura");
+      var altura = val("asst-altura");
+      var nits = val("asst-nits");
+      var pitch = val("asst-pitch");
+      var curvo = !!(lastRequisitos && lastRequisitos.local && lastRequisitos.local.curvo);
+      if (!isNaN(largura) && !isNaN(altura)) {
+        segClick("l-sizemode-seg", "sizemode", "meters");
+        setFieldValAndFire("l-target-w", largura);
+        setFieldValAndFire("l-target-h", altura);
+      }
+      var chosenIdx = tileIdx;
+      if (chosenIdx == null && !isNaN(pitch)) {
+        var best = topLedTilesByPitch(pitch, 1)[0];
+        if (best) chosenIdx = best.idx;
+      }
+      if (chosenIdx != null) applyLedTileByIdx(chosenIdx);
+      if (!isNaN(nits)) setFieldValAndFire("l-nits", nits);
+      if (curvo) {
+        var ledCurveCb = document.getElementById("l-curve-enabled");
+        if (ledCurveCb && !ledCurveCb.checked) ledCurveCb.click();
+      }
+      checkAddProject("l-addproject");
+    }
+
+    function renderLedTileOptions(r) {
+      var wrap = document.getElementById("asst-led-tiles");
+      var listEl = document.getElementById("asst-led-tiles-list");
+      var pitch = r.led && r.led.pixelPitchMm;
+      if ((r.tipoEcra !== "led" && r.tipoEcra !== "misto") || pitch == null) {
+        wrap.style.display = "none";
+        listEl.innerHTML = "";
+        return;
+      }
+      var top = topLedTilesByPitch(pitch, 3);
+      if (!top.length) { wrap.style.display = "none"; return; }
+      listEl.innerHTML = top.map(function (c) {
+        return '<div class="lm-item"><span><strong>' + escapeHtml(c.tile.modelo) + '</strong> — ' + fmt(c.pitch, 2) + ' mm</span>' +
+          '<button type="button" class="copy" data-tile-idx="' + c.idx + '">Usar</button></div>';
+      }).join("");
+      wrap.style.display = "block";
+    }
+
+    document.getElementById("asst-led-tiles-list").addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-tile-idx]");
+      if (!btn) return;
+      applyLedFromAssistente(parseInt(btn.dataset.tileIdx, 10));
+      showToast("Modelo e medidas aplicados na aba Ecrã LED.");
+    });
+
     function fileToBase64(file) {
       return new Promise(function (resolve, reject) {
         var reader = new FileReader();
@@ -5576,6 +5668,7 @@
       setFieldVal("asst-distprojecao", r.local && r.local.distanciaProjecaoM != null ? r.local.distanciaProjecaoM : "");
       setFieldVal("asst-pitch", r.led && r.led.pixelPitchMm != null ? r.led.pixelPitchMm : "");
       setFieldVal("asst-nits", r.led && r.led.brilhoNits != null ? r.led.brilhoNits : "");
+      renderLedTileOptions(r);
 
       document.getElementById("asst-resumo").textContent = r.resumo || "";
 
@@ -5659,24 +5752,12 @@
       var altura = val("asst-altura");
       var diagonal = val("asst-diagonal");
       var distProjecao = val("asst-distprojecao");
-      var nits = val("asst-nits");
       var curvo = !!(lastRequisitos && lastRequisitos.local && lastRequisitos.local.curvo);
       var formato = lastRequisitos && lastRequisitos.dimensoes && lastRequisitos.dimensoes.formato;
 
       if (tipo === "led") {
-        document.querySelector('.tab[data-mode="led"]').click();
-        if (!isNaN(largura) && !isNaN(altura)) {
-          segClick("l-sizemode-seg", "sizemode", "meters");
-          setFieldValAndFire("l-target-w", largura);
-          setFieldValAndFire("l-target-h", altura);
-        }
-        if (!isNaN(nits)) setFieldValAndFire("l-nits", nits);
-        if (curvo) {
-          var ledCurveCb = document.getElementById("l-curve-enabled");
-          if (ledCurveCb && !ledCurveCb.checked) ledCurveCb.click();
-        }
-        checkAddProject("l-addproject");
-        showToast("Valores aplicados na aba Ecrã LED — confirma e escolhe o modelo de tile.");
+        applyLedFromAssistente(null);
+        showToast("Valores aplicados na aba Ecrã LED — usa também a lista \"3 modelos mais próximos\" se preferires outro.");
       } else if (tipo === "projecao") {
         document.querySelector('.tab[data-mode="projecao"]').click();
         var knownRatios = ["16:9", "16:10", "4:3", "21:9"];
