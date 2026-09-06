@@ -1153,6 +1153,35 @@
   .app-confirm-yes { color: var(--rose-500); border-color: var(--rose-500); }
   .app-confirm-yes:hover { color: var(--rose-500); border-color: var(--rose-500); background: var(--paper); }
 
+  /* Popup de alarme — para valores/situações fisicamente impossíveis (ex:
+     nenhum tamanho de ecrã cabe no pé-direito indicado), não para simples
+     dúvidas de leitura (essas ficam na caixa inline "Confirma antes de
+     aplicar"). Mesma receita visual do app-confirm-dialog, com acento
+     vermelho e um campo de edição opcional para corrigir e tentar de novo
+     sem sair do popup. */
+  .app-alert-dialog {
+    width: min(460px, 92vw);
+    background: var(--paper-raised);
+    color: var(--ink);
+    border: 1px solid var(--danger-600);
+    border-radius: 14px;
+    padding: 0;
+    box-shadow: var(--shadow);
+  }
+  .app-alert-dialog::backdrop { background: rgba(0,0,0,0.55); }
+  .app-alert-body { padding: 20px; }
+  .app-alert-title { font-weight: 600; color: var(--danger-600); margin-bottom: 10px; }
+  .app-alert-msg { margin: 0 0 14px; line-height: 1.5; }
+  .app-alert-edit textarea {
+    width: 100%; box-sizing: border-box; resize: vertical;
+    font: inherit; padding: 10px; border-radius: 8px;
+    border: 1px solid var(--line-soft); background: var(--paper); color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .app-alert-actions { display: flex; justify-content: flex-end; gap: 10px; }
+  .app-alert-action { color: var(--danger-600); border-color: var(--danger-600); }
+  .app-alert-action:hover { color: var(--danger-600); border-color: var(--danger-600); background: var(--paper); }
+
   /* Vista ampliada de um diagrama (Vista do ecrã / Vista de cima) — um só
      <dialog> partilhado por todos os desenhos da app, populado por
      openDiagramZoom() com o viewBox+innerHTML do SVG pequeno que o abriu.

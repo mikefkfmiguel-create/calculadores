@@ -228,6 +228,51 @@ function appConfirm(message) {
   });
 })();
 
+// Popup de alarme para valores fisicamente impossíveis ou limites reais
+// ultrapassados (ex: tamanho mínimo não cabe no pé-direito indicado) — não
+// é para simples dúvidas de leitura, essas ficam nas caixas de aviso já
+// existentes em cada calculadora. opts: { title, message, editText,
+// actionLabel, onAction(newEditText) }. Sem editText, o campo de edição
+// fica escondido; sem actionLabel/onAction, só mostra "Fechar".
+function showAlarm(opts) {
+  opts = opts || {};
+  var dialog = document.getElementById("app-alert-dialog");
+  if (!dialog) { alert((opts.title ? opts.title + "\n\n" : "") + (opts.message || "")); return; }
+  document.getElementById("app-alert-title").textContent = opts.title || "⚠ Aviso";
+  document.getElementById("app-alert-msg").textContent = opts.message || "";
+  var editWrap = document.getElementById("app-alert-edit");
+  var editTextarea = document.getElementById("app-alert-edit-text");
+  if (opts.editText != null) {
+    editWrap.style.display = "block";
+    editTextarea.value = opts.editText;
+  } else {
+    editWrap.style.display = "none";
+    editTextarea.value = "";
+  }
+  var actionBtn = document.getElementById("app-alert-action-btn");
+  if (opts.actionLabel && opts.onAction) {
+    actionBtn.textContent = opts.actionLabel;
+    actionBtn.style.display = "inline-block";
+    actionBtn.onclick = function () {
+      dialog.close();
+      opts.onAction(editTextarea.value);
+    };
+  } else {
+    actionBtn.style.display = "none";
+    actionBtn.onclick = null;
+  }
+  dialog.showModal();
+}
+(function () {
+  var dialog = document.getElementById("app-alert-dialog");
+  if (!dialog) return;
+  dialog.addEventListener("click", function (e) {
+    if (e.target === dialog) dialog.close();
+  });
+  var closeBtn = document.getElementById("app-alert-close");
+  if (closeBtn) closeBtn.addEventListener("click", function () { dialog.close(); });
+})();
+
 var STOCK_COLOR = "#5028C8";
 // isStock vem de quem chama (normalmente "!item.mercado" dos dados em
 // data/*.json) — nada aqui faz sniffing de texto no nome do modelo.
