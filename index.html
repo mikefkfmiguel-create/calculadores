@@ -25,6 +25,10 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
+    <a class="mark" href="https://mikefkfmiguel-create.github.io/preview/"
+       target="_blank" rel="noopener"
+       title="Ver o projeto montado numa sala, em 3D"
+       style="text-decoration:none;">↗ Preview 3D</a>
     <span class="mark">v2.3</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -138,6 +142,44 @@
       </div>
 
       <div>
+        <details class="card sinal-block" id="asst-sala-card" open>
+          <summary>Sala — trazida do Preview</summary>
+          <div class="sinal-block-body">
+            <p class="hint" style="margin:0 0 10px;">As medidas da sala vivem no
+              <a href="https://mikefkfmiguel-create.github.io/preview/" target="_blank" rel="noopener">Preview 3D</a>,
+              onde se vê o projeto montado. Aqui traz-se o resultado: as duas apps partilham
+              o mesmo sítio de arrumação do browser, por isso não há nada para copiar à mão.</p>
+            <div class="summary-actions" style="margin-bottom:10px; flex-wrap:wrap;">
+              <button type="button" class="copy" id="asst-trazer-sala">Trazer sala do Preview</button>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="asst-sala-largura">Sala — largura</label>
+                <div class="inputgroup"><input id="asst-sala-largura" type="number" autocomplete="off" inputmode="decimal" step="0.5"><span class="unit">m</span></div>
+              </div>
+              <div class="field">
+                <label for="asst-sala-profundidade">Sala — profundidade</label>
+                <div class="inputgroup"><input id="asst-sala-profundidade" type="number" autocomplete="off" inputmode="decimal" step="0.5"><span class="unit">m</span></div>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="asst-sala-altura">Pé-direito</label>
+                <div class="inputgroup"><input id="asst-sala-altura" type="number" autocomplete="off" inputmode="decimal" step="0.5"><span class="unit">m</span></div>
+              </div>
+              <div class="field">
+                <label for="asst-sala-tipo">Conceito de sala</label>
+                <select id="asst-sala-tipo">
+                  <option value="">—</option>
+                  <option value="pavilhao">Pavilhão — chão plano</option>
+                  <option value="auditorio">Auditório — plateia sobe</option>
+                </select>
+              </div>
+            </div>
+            <div class="hint" id="asst-sala-nota" style="margin:6px 0 0;"></div>
+          </div>
+        </details>
+
         <details class="card sinal-block" id="asst-results-card" style="display:none;" open>
           <summary>Requisitos extraídos</summary>
           <div class="sinal-block-body">
@@ -214,6 +256,7 @@
                 <div class="inputgroup"><input id="asst-distprojecao" type="number" autocomplete="off" inputmode="decimal" step="0.1"><span class="unit">m</span></div>
               </div>
             </div>
+
             <div class="row2">
               <div class="field">
                 <label for="asst-pitch">Pixel pitch pedido (LED)</label>
@@ -5740,6 +5783,41 @@
   // aqui é aplicado às calculadoras sem o utilizador rever/confirmar os
   // campos e clicar "Aplicar" — a leitura da IA pode falhar ou ser ambígua.
   (function () {
+    // A sala vem do Preview. As duas apps vivem no mesmo dominio e partilham o
+    // localStorage, por isso nao ha nada para copiar a mao: o Preview guarda a
+    // sala sempre que ela muda, e aqui vai-se busca-la.
+    (function salaDoPreview() {
+      var CHAVE = "mikeapps-sala-v1";
+      var btn = document.getElementById("asst-trazer-sala");
+      var nota = document.getElementById("asst-sala-nota");
+      if (!btn) return;
+
+      btn.addEventListener("click", function () {
+        var dados = null;
+        try { dados = JSON.parse(localStorage.getItem(CHAVE) || "null"); } catch (e) {}
+        if (!dados) {
+          nota.textContent = "Ainda nao ha sala guardada. Abre o Preview, escreve as " +
+            "medidas da sala, e volta aqui — tem de ser no mesmo browser.";
+          return;
+        }
+        if (dados.largura) document.getElementById("asst-sala-largura").value = dados.largura;
+        if (dados.profundidade) document.getElementById("asst-sala-profundidade").value = dados.profundidade;
+        if (dados.altura) document.getElementById("asst-sala-altura").value = dados.altura;
+        var pub = dados.publico || {};
+        if (pub.tipo) document.getElementById("asst-sala-tipo").value = pub.tipo;
+
+        var partes = [];
+        if (pub.lugares) partes.push(pub.lugares + " lugares em " + pub.filas + " filas");
+        if (pub.corredores) partes.push(pub.corredores + " corredor(es)");
+        var palco = dados.palco || {};
+        if (palco.largura) partes.push("palco " + palco.largura + " x " + palco.profundidade +
+                                       " m a " + palco.altura + " m");
+        nota.textContent = partes.length
+          ? "Do Preview: " + partes.join(" - ") + "."
+          : "Sala trazida do Preview.";
+      });
+    })();
+
     var WORKER_URL_KEY = "calculadores-assistente-worker-url";
     // Endereço público do Worker da AVK — não é secreto (é só um URL,
     // protegido do lado do Worker pelo ALLOWED_ORIGINS), por isso pode

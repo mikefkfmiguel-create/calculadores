@@ -440,6 +440,16 @@
     };
   }
 
+  var LZ_CHAVE_PREVIEW = "mikeapps-projeto-v1";
+
+  function lzGuardarParaPreview() {
+    try {
+      var payload = lzPayloadPreview();
+      if (payload) localStorage.setItem(LZ_CHAVE_PREVIEW, JSON.stringify(payload));
+      else localStorage.removeItem(LZ_CHAVE_PREVIEW);
+    } catch (e) { /* sem localStorage os Calculadores funcionam na mesma */ }
+  }
+
   function lzParaBase64Url(texto) {
     var bytes = new TextEncoder().encode(texto);
     var binario = "";
@@ -1521,6 +1531,11 @@
       (pm ? "\nResolução final do canvas (sem gaps): " + canvasResNoGapsText + " — usada para o sinal/processo: " + (lzCanvasMode === "nogaps" ? "sem gaps" : "com gaps") : "");
 
     lzLastTotals = { zones: visibleZones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm, colorMap: colorMap };
+
+    // As duas apps vivem no mesmo dominio e partilham o localStorage: e por
+    // aqui que elas falam. O preview le isto ao abrir -- e, se estiver aberto
+    // noutra aba, o browser avisa-o e ele acompanha sem ninguem carregar nada.
+    lzGuardarParaPreview();
     lzSortCardsByPosition();
     lzSaveToStorage();
     if (typeof calcProjeto === "function") calcProjeto();
