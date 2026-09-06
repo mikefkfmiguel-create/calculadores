@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1379 512" width="1379" height="512">
+  <title>mike apps — uma cor</title>
+  <g fill="#FFFFFF">
+    <rect x="72" y="72" width="168" height="168" rx="30"/>
+    <rect x="272" y="72" width="168" height="168" rx="64"/>
+    <circle cx="156" cy="356" r="84"/>
+    <path d="M 306 296 L 306 416 L 410 356 Z" stroke="#FFFFFF" stroke-width="30" stroke-linejoin="round"/>
+  </g>
+  <text x="536" y="300" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="150" letter-spacing="2" fill="#FFFFFF">
+    <tspan font-weight="700">MIKE</tspan><tspan font-weight="300" opacity="0.75"> APPS</tspan>
+  </text>
+</svg>

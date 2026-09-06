@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 700" width="600" height="700">
+  <title>mike apps</title>
+<defs>
+    <linearGradient id="fundo" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#1246E6"/>
+      <stop offset="1" stop-color="#2E7BFF"/>
+    </linearGradient>
+    <linearGradient id="ciano" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#5FE9FF"/>
+    </linearGradient>
+    <linearGradient id="play" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2E7BFF"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <rect x="116" y="72" width="168" height="168" rx="30" fill="url(#fundo)"/>
+  <rect x="316" y="72" width="168" height="168" rx="64" fill="url(#ciano)"/>
+  <circle cx="200" cy="356" r="84" fill="#3B8CFF"/>
+  <path d="M 350 296 L 350 416 L 454 356 Z" fill="url(#play)" stroke="url(#play)"
+        stroke-width="30" stroke-linejoin="round"/>
+  <text x="300" y="608" text-anchor="middle" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="108" letter-spacing="2"><tspan font-weight="700" fill="#FFFFFF">MIKE</tspan><tspan font-weight="300" fill="#FFFFFF" opacity="0.78"> APPS</tspan></text>
+</svg>
