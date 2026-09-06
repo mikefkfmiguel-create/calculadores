@@ -29,7 +29,7 @@
        target="mikeapps-preview"
        title="Ver o projeto montado numa sala, em 3D"
        style="text-decoration:none;">↗ Preview 3D</a>
-    <span class="mark" id="app-versao">v2.4</span>
+    <span class="mark" id="app-versao">v2.5</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -6436,6 +6436,38 @@
       checkAddProject("p-addproject");
       showToast("Tamanho aplicado na aba Distância de Projeção (1 ecrã), com o projetor de menos lúmens em stock — confirma o brilho conforme a luz ambiente real da sala. Para o ver montado na sala, carrega em \"Ver no Preview 3D\".");
     });
+
+    // Um texto que veio do Preview: ele nao o percebe -- so sabe medidas -- e
+    // manda-o para ca, que e onde vive o assistente. Chega, enche o campo e
+    // segue para analise sozinho: quem carregou no botao do outro lado ja
+    // pediu isto, e obrigar a carregar outra vez do lado de ca era so mais um
+    // passo entre a pessoa e a resposta.
+    function trazerBriefingDoPreview() {
+      if (location.hash.indexOf("briefing") === -1) return;
+      var bruto = null;
+      try { bruto = localStorage.getItem("mikeapps-briefing-v1"); } catch (e) { return; }
+      if (!bruto) return;
+      var dados;
+      try { dados = JSON.parse(bruto); } catch (e) { return; }
+      if (!dados || !dados.texto) return;
+
+      var aba = document.querySelector('.tab[data-mode="assistente"]');
+      if (aba) aba.click();
+      asstText.value = dados.texto;
+      asstText.dispatchEvent(new Event("input", { bubbles: true }));
+      asstText.scrollIntoView({ block: "center", behavior: "smooth" });
+      showToast("Texto trazido do Preview — a analisar…");
+      try { localStorage.removeItem("mikeapps-briefing-v1"); } catch (e) {}
+      history.replaceState(null, "", location.pathname + location.search);
+      // Um instante para a aba trocar e o campo assentar antes de disparar.
+      setTimeout(function () { asstAnalyze.click(); }, 400);
+    }
+    // Depois de tudo o resto arrancar, e nao antes: a app restaura o rascunho
+    // do assistente e a ultima aba ao abrir, e fazia-o POR CIMA do texto que
+    // acabava de chegar -- o texto desaparecia e a aba voltava para tras, sem
+    // nada a dizer que tinha havido um texto.
+    setTimeout(trazerBriefingDoPreview, 800);
+    window.addEventListener("hashchange", trazerBriefingDoPreview);
 
     asstAnalyze.addEventListener("click", function () {
       var workerUrl = asstWorkerUrl.value.trim();
