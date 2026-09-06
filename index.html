@@ -207,6 +207,7 @@
               <div class="summary-actions" style="margin-top:10px; flex-wrap:wrap;">
                 <button type="button" class="copy" id="asst-rec-use-led">Usar em Ecrã LED</button>
                 <button type="button" class="copy" id="asst-rec-use-proj">Usar em Distância de Projeção</button>
+                <button type="button" class="copy" id="asst-rec-ver-3d">Ver em 3D ↗</button>
               </div>
               <div class="hint">Isto dá só o tamanho — a escolha da tecnologia (LED, projeção, TV) é a seguir, na aba respetiva: os botões acima aplicam o tamanho escolhido a Ecrã LED/Distância de Projeção; para TVs, usa o tamanho como referência e escolhe o modelo diretamente na aba TVs (o catálogo é de unidades discretas, não de tamanho contínuo). Se a sugestão for de mais do que 1 ecrã, repete a configuração para cada um.</div>
               <div class="hint">Estimativa a partir da distância/largura da plateia (linha acima) e das mesmas regras SMPTE (ângulo) e AVIXA (legibilidade) já usadas na aba Distância de Visualização — confirma sempre com a disposição real do espaço.</div>
@@ -6161,6 +6162,41 @@
       setFieldValAndFire("l-target-h", round2(size.height));
       checkAddProject("l-addproject");
       showToast("Tamanho aplicado na aba Ecrã LED (1 ecrã) — escolhe o tile e repete a configuração se a sugestão for de mais do que 1 ecrã.");
+    });
+
+    // A sugestao nascia aqui e nao tinha caminho para o Preview: era preciso
+    // aplica-la numa aba, montar as zonas e so entao ela chegava la. Este
+    // botao manda-a directamente -- um ecra do tamanho sugerido, na sala que
+    // veio de la -- para se poder OLHAR para a sugestao antes de a aceitar.
+    document.getElementById("asst-rec-ver-3d").addEventListener("click", function () {
+      var size = currentTierSize();
+      if (!size) { showToast("Ainda nao ha sugestao de tamanho."); return; }
+
+      var sala = null;
+      try { sala = JSON.parse(localStorage.getItem("mikeapps-sala-v1") || "null"); } catch (e) {}
+
+      var payload = {
+        v: 1,
+        origem: "assistente",
+        nome: "Sugestao do assistente",
+        zonas: [{
+          nome: "Ecra sugerido",
+          x: 0, y: 0,
+          w: round2(size.width), h: round2(size.height),
+          cor: "#22D3EE"
+        }]
+      };
+      if (sala) {
+        payload.sala = { largura: sala.largura, profundidade: sala.profundidade,
+                         altura: sala.altura };
+      }
+
+      var bytes = new TextEncoder().encode(JSON.stringify(payload));
+      var binario = "";
+      for (var i = 0; i < bytes.length; i++) binario += String.fromCharCode(bytes[i]);
+      var endereco = "https://mikefkfmiguel-create.github.io/preview/#p=" +
+        btoa(binario).replace(/\+/g, "-").replace(/\//g, "_");
+      window.open(endereco, "_blank", "noopener");
     });
 
     document.getElementById("asst-rec-use-proj").addEventListener("click", function () {
