@@ -22,7 +22,7 @@ const MODEL = "claude-haiku-4-5";
 const EXTRACT_TOOL = {
   name: "extrair_requisitos_projeto",
   description:
-    "Regista os requisitos de um projeto de AV (ecrã LED, projeção, ou blending multi-projetor) extraídos do texto/documento fornecido. Usa null em qualquer campo que não esteja explícito ou claramente implícito no texto — nunca adivinhes ou inventes valores técnicos.",
+    "Regista os requisitos de um projeto de AV (ecrã LED, projeção, ou blending multi-projetor) extraídos do texto/documento/imagem fornecidos. Usa null em qualquer campo que não esteja explícito ou claramente implícito no texto — nunca adivinhes ou inventes valores técnicos. Uma imagem (foto/render) nunca tem escala fiável — serve só para identificar visualmente o tipo de tecnologia, nunca para medir tamanhos, distâncias ou qualquer outro valor numérico.",
   input_schema: {
     type: "object",
     properties: {
@@ -91,7 +91,7 @@ const EXTRACT_TOOL = {
       },
       resumo: {
         type: "string",
-        description: "Resumo curto em português (2-4 frases) do que foi pedido, para o utilizador confirmar rapidamente que a leitura está correta.",
+        description: "Resumo curto em português (2-4 frases) do que foi pedido, para o utilizador confirmar rapidamente que a leitura está correta. Se houver uma imagem em anexo, descreve aqui o que ela mostra (ex: tipo de ecrã/montagem visível) — deixando claro que é uma leitura visual, sem medidas.",
       },
       pontosPorConfirmar: {
         type: "array",
@@ -156,9 +156,12 @@ export default {
 
     const text = typeof body.text === "string" ? body.text.trim() : "";
     const pdfBase64 = typeof body.pdfBase64 === "string" ? body.pdfBase64 : "";
+    const imageBase64 = typeof body.imageBase64 === "string" ? body.imageBase64 : "";
+    const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg"];
+    const imageMediaType = ALLOWED_IMAGE_TYPES.includes(body.imageMediaType) ? body.imageMediaType : "";
 
-    if (!text && !pdfBase64) {
-      return new Response(JSON.stringify({ error: "Falta o texto do projeto ou um documento PDF." }), {
+    if (!text && !pdfBase64 && !(imageBase64 && imageMediaType)) {
+      return new Response(JSON.stringify({ error: "Falta o texto do projeto, um documento PDF ou uma imagem (PNG/JPEG)." }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
       });
@@ -173,6 +176,12 @@ export default {
     }
     if (pdfBase64.length > 15 * 1024 * 1024) {
       return new Response(JSON.stringify({ error: "PDF demasiado grande (máx. ~10MB)." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+      });
+    }
+    if (imageBase64.length > 7 * 1024 * 1024) {
+      return new Response(JSON.stringify({ error: "Imagem demasiado grande (máx. ~5MB)." }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
       });
@@ -192,11 +201,17 @@ export default {
         source: { type: "base64", media_type: "application/pdf", data: pdfBase64 },
       });
     }
+    if (imageBase64 && imageMediaType) {
+      contentBlocks.push({
+        type: "image",
+        source: { type: "base64", media_type: imageMediaType, data: imageBase64 },
+      });
+    }
     contentBlocks.push({
       type: "text",
       text:
-        (text || "(sem texto adicional — ler o documento em anexo)") +
-        "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento, usa null — nunca adivinhes uma especificação técnica. Em pontosPorConfirmar, não repitas como 'aviso' cada campo que ficou null — só usa esse campo para contradições ou ambiguidades reais no texto; na maioria dos casos deve ficar vazio. Atenção especial a tipoEcra: só preenches 'led', 'projecao', 'blend' ou 'misto' se o texto pedir essa tecnologia explicitamente — um pedido de sugestão sem tecnologia indicada (ex: 'que ecrã devo usar?', 'quantos ecrãs preciso?') fica sempre 'desconhecido', mesmo que o resto do texto (sala, plateia, conteúdo) dê muitos detalhes; não escolhas a tecnologia 'mais provável' para o caso. Atenção especial a dimensoes: nunca uses medidas de sala/palco/espaço como se fossem do ecrã — se só houver medidas do local e um pedido de sugestão (ex: 'que ecrã devo usar?'), deixa dimensoes a null. Já em local.distanciaVisualizacaoM e local.larguraPlateiaM, quando não houver valor dado à parte mas o texto descrever as dimensões da sala/espaço, USA a profundidade e a largura da sala como estimativa dessa distância e dessa largura (respetivamente) — não deixes esses dois campos a null só por a sala não ter uma 'plateia' descrita à parte. Quando fizeres essa estimativa a partir das dimensões da sala (em vez de um valor dado diretamente para a plateia/distância), acrescenta um único item curto a pontosPorConfirmar a dizer isso (ex: 'Distância e largura da plateia estimadas a partir das dimensões da sala — confirma a disposição real do público').",
+        (text || "(sem texto adicional — ler o documento/imagem em anexo)") +
+        "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento/imagem, usa null — nunca adivinhes uma especificação técnica. Em pontosPorConfirmar, não repitas como 'aviso' cada campo que ficou null — só usa esse campo para contradições ou ambiguidades reais no texto; na maioria dos casos deve ficar vazio. Atenção especial a tipoEcra: só preenches 'led', 'projecao', 'blend' ou 'misto' se o texto pedir essa tecnologia explicitamente OU se uma imagem em anexo mostrar claramente essa tecnologia (ex: foto óbvia de um ledwall ou de uma projeção) — um pedido de sugestão sem tecnologia indicada nem imagem que a mostre (ex: 'que ecrã devo usar?', 'quantos ecrãs preciso?') fica sempre 'desconhecido'; não escolhas a tecnologia 'mais provável' para o caso. Atenção especial a dimensoes: nunca uses medidas de sala/palco/espaço como se fossem do ecrã — se só houver medidas do local e um pedido de sugestão (ex: 'que ecrã devo usar?'), deixa dimensoes a null. Já em local.distanciaVisualizacaoM e local.larguraPlateiaM, quando não houver valor dado à parte mas o texto descrever as dimensões da sala/espaço, USA a profundidade e a largura da sala como estimativa dessa distância e dessa largura (respetivamente) — não deixes esses dois campos a null só por a sala não ter uma 'plateia' descrita à parte. Quando fizeres essa estimativa a partir das dimensões da sala (em vez de um valor dado diretamente para a plateia/distância), acrescenta um único item curto a pontosPorConfirmar a dizer isso (ex: 'Distância e largura da plateia estimadas a partir das dimensões da sala — confirma a disposição real do público'). REGRA CRÍTICA para imagens: uma fotografia ou render NUNCA tem escala fiável — não estimes nem inventes nenhuma medida (dimensoes, distâncias, pixel pitch, nits) a partir do que vês numa imagem, mesmo que pareça óbvio a olho; usa a imagem só para identificar o tipo de tecnologia/formato visível (e nota isso em resumo, ex: 'A imagem mostra um ecrã LED em formato ecrã largo, sem escala visível'). Todas as medidas continuam a vir exclusivamente do texto (ex: as dimensões da sala nova onde o utilizador quer replicar o que a imagem mostra).",
     });
 
     let anthropicRes;
