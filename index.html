@@ -444,6 +444,7 @@
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="p-addproject">Adicionar ao projeto</label>
+              <button type="button" class="copy" id="p-ver-3d" title="Abre o Preview 3D com este projetor montado na sala">Ver no Preview 3D ↗</button>
               <select class="copy" id="p-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
                 <option value="" selected>↗ Partilhar/Guardar</option>
                 <option value="text">Como texto (mensagem)</option>
@@ -2814,9 +2815,55 @@
       "Lentes compatíveis a essa distância" + (lensBrand ? " (" + lensBrand + ")" : "") + ": " + (matchNames.length ? matchNames.join(", ") + (matchNames.length > 1 ? " — melhor: " + matchNames[0] : "") : "nenhuma na base") + "\n" +
       "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
 
+    // O que o Preview precisa de saber, e so isso: o tamanho da imagem, a
+    // distancia e quem e o projetor. O catalogo, os lumens e a escolha da
+    // lente ficam deste lado -- e o Preview nao tem uma tabela de projetores
+    // pela mesma razao por que nao tem uma de tiles de LED.
+    pUltimoProjetor = {
+      largura: w, altura: h, distancia: knownDist, racio: ratioNeeded,
+      modelo: selProj ? selProj.modelo : "",
+      lente: pLens ? (pLens.marca + " " + pLens.modelo)
+                   : (matchNames.length ? matchNames[0] : ""),
+      lumens: lumens
+    };
+
     renderProjectItems();
     if (document.getElementById("p-addproject").checked) syncProjecaoToProject();
   }
+
+  // A projeccao vai ver-se na sala.
+  //
+  // Escreve-se no localStorage -- que e por onde as duas apps falam quando
+  // estao as duas abertas -- e leva-se tambem no endereco, para o Preview que
+  // abre de novo ja aparecer com o projetor montado em vez de um botao a
+  // dizer que ha um projetor a espera.
+  var pUltimoProjetor = null;
+
+  document.getElementById("p-ver-3d").addEventListener("click", function () {
+    if (!pUltimoProjetor || !(pUltimoProjetor.largura > 0) || !(pUltimoProjetor.distancia > 0)) {
+      showToast("Faltam dados: escolhe o tamanho do ecra e a distancia primeiro.");
+      return;
+    }
+    var carga = {
+      v: 1,
+      racio: Math.round(pUltimoProjetor.racio * 1000) / 1000,
+      distancia: Math.round(pUltimoProjetor.distancia * 100) / 100,
+      largura: Math.round(pUltimoProjetor.largura * 100) / 100,
+      altura: Math.round(pUltimoProjetor.altura * 100) / 100,
+      modelo: pUltimoProjetor.modelo,
+      lente: pUltimoProjetor.lente,
+      lumens: pUltimoProjetor.lumens,
+      quando: new Date().toISOString()
+    };
+    try { localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga)); } catch (e) {}
+
+    var bytes = new TextEncoder().encode(JSON.stringify(carga));
+    var binario = "";
+    for (var i = 0; i < bytes.length; i++) binario += String.fromCharCode(bytes[i]);
+    var endereco = "https://mikefkfmiguel-create.github.io/preview/#proj=" +
+      btoa(binario).replace(/\+/g, "-").replace(/\//g, "_");
+    window.open(endereco, "_blank", "noopener");
+  });
 
   // Distância de Visualização
   var vRatioSel = document.getElementById("v-ratio");
