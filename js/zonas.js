@@ -396,6 +396,74 @@
   // posições. Não reordena enquanto o utilizador está a escrever num campo
   // de posição (perderia o foco a meio da edição); só quando o campo é
   // confirmado (blur) ou noutras ações (adicionar, duplicar, mover em bloco).
+  // ------------------------------------------------------------------ ver em 3D
+  //
+  // O preview vive noutro projeto e nao sabe nada de tiles, pitch nem
+  // catalogos -- de proposito. Quem sabe isso e este ficheiro, e por isso e
+  // daqui que saem as zonas JA EM METROS. Assim um modelo de LED novo nao
+  // obriga a mexer la, e nunca ha dois sitios a discordar sobre o tamanho da
+  // mesma parede.
+  var LZ_PREVIEW_URL = "https://mikefkfmiguel-create.github.io/preview/";
+
+  function lzPayloadPreview() {
+    if (!lzLastTotals || !lzLastTotals.zones || !lzLastTotals.zones.length) return null;
+    var zones = lzLastTotals.zones;
+    var colorMap = lzLastTotals.colorMap || lzGroupColorMap(zones);
+
+    return {
+      v: 1,
+      origem: "calculadores",
+      nome: "Ecrã LED — " + zones.length + " zona(s)",
+      zonas: zones.map(function (z) {
+        // A curvatura vem em graus POR TILE; o total sao os angulos entre
+        // paineis, que sao um a menos do que o numero de paineis.
+        var curva = null;
+        if (z.curve && z.curve.angleDeg && z.curve.n > 1) {
+          curva = {
+            modo: "angulo",
+            valor: z.curve.angleDeg * (z.curve.n - 1),
+            dir: z.curve.convex ? "convexo" : "concavo"
+          };
+        }
+        return {
+          nome: z.name,
+          x: z.posX, y: z.posY,
+          w: z.w, h: z.h,
+          cor: lzZoneColor(z, colorMap, zones),
+          curva: curva,
+          tiles: { x: z.mx, y: z.my },
+          res: { x: z.totalPx, y: z.totalPy },
+          peso: z.weight,
+          amp: z.amp
+        };
+      })
+    };
+  }
+
+  function lzParaBase64Url(texto) {
+    var bytes = new TextEncoder().encode(texto);
+    var binario = "";
+    for (var i = 0; i < bytes.length; i++) binario += String.fromCharCode(bytes[i]);
+    // base64url: o + e o / nao sobrevivem a uma barra de enderecos
+    return btoa(binario).replace(/\+/g, "-").replace(/\//g, "_");
+  }
+
+  function lzAbrirPreview() {
+    var payload = lzPayloadPreview();
+    if (!payload) {
+      alert("Nao ha zonas visiveis para mostrar. Cria uma zona primeiro.");
+      return;
+    }
+    var endereco = LZ_PREVIEW_URL + "#p=" + lzParaBase64Url(JSON.stringify(payload));
+    // Um endereco enorme nao chega ao outro lado: alguns browsers cortam.
+    if (endereco.length > 30000) {
+      alert("O projeto e grande de mais para viajar no endereco (" +
+            Math.round(endereco.length / 1024) + " KB). Abre o preview e cola la o JSON.");
+      return;
+    }
+    window.open(endereco, "_blank", "noopener");
+  }
+
   function lzSortCardsByPosition() {
     var active = document.activeElement;
     if (active && lzList.contains(active) && (active.classList.contains("lz-posx") || active.classList.contains("lz-posy"))) return;
@@ -1206,6 +1274,7 @@
 
   document.getElementById("lz-export-map").addEventListener("click", lzExportPixelMapPNG);
   document.getElementById("lz-export-mask").addEventListener("click", lzExportMaskPNG);
+  document.getElementById("lz-ver-3d").addEventListener("click", lzAbrirPreview);
 
   // As zonas ficam gravadas no localStorage a cada alteração e restauradas
   // ao abrir a app — um refresh acidental (ou o telemóvel a recarregar a
