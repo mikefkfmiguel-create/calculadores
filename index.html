@@ -203,6 +203,7 @@
                   <button type="button" class="seg-btn active" data-tier="basic">Leitura normal</button>
                   <button type="button" class="seg-btn" data-tier="passive">Pouco detalhe</button>
                 </div>
+                <div class="note" id="asst-rec-escolhido"></div>
               </div>
               <div class="summary-actions" style="margin-top:10px; flex-wrap:wrap;">
                 <button type="button" class="copy" id="asst-rec-use-led">Usar em Ecrã LED</button>
@@ -2940,6 +2941,10 @@
     mudarCampo("p-knowndist", b.getAttribute("data-por-distancia"));
   });
 
+  // O nome da janela do Preview. E o mesmo em toda a app: as zonas de LED, a
+  // projeccao e a sugestao do assistente vao todas para o MESMO sitio.
+  var JANELA_DO_PREVIEW = "mikeapps-preview";
+
   function verNoPreview3D() {
     if (!pUltimoProjetor || !(pUltimoProjetor.largura > 0) || !(pUltimoProjetor.distancia > 0)) {
       showToast("Faltam dados: escolhe o tamanho do ecra e a distancia primeiro.");
@@ -2964,7 +2969,10 @@
     for (var i = 0; i < bytes.length; i++) binario += String.fromCharCode(bytes[i]);
     var endereco = "https://mikefkfmiguel-create.github.io/preview/#proj=" +
       btoa(binario).replace(/\+/g, "-").replace(/\//g, "_");
-    window.open(endereco, "_blank", "noopener");
+    // Uma janela com NOME e reaproveitada. Com "noopener" o nome e ignorado e
+    // abre sempre uma nova -- era isso que enchia o ecra de separadores iguais.
+    // Sao a mesma origem, por isso nao ha aqui nada a proteger.
+    window.open(endereco, JANELA_DO_PREVIEW);
   }
 
   document.getElementById("p-ver-3d").addEventListener("click", verNoPreview3D);
@@ -6287,6 +6295,7 @@
       document.querySelector('#asst-recommend-block .summary-actions').style.display = anyTierFits ? "" : "none";
 
       lastRecommendation = { nScreens: nScreens, tiers: tierSize };
+      mostrarTierEscolhido();
 
       // Frase de veredito — só tamanhos, sem apontar nenhuma tecnologia.
       var verdictParts = [];
@@ -6331,10 +6340,26 @@
         document.querySelectorAll("#asst-rec-tier-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
         btn.classList.add("active");
         asstRecSelectedTier = btn.dataset.tier;
+        mostrarTierEscolhido();
       });
     });
     function currentTierSize() {
       return lastRecommendation ? lastRecommendation.tiers[asstRecSelectedTier] : null;
+    }
+
+    // Mudar de gama mudava um numero invisivel: o botao ficava marcado e mais
+    // nada mexia no ecra, porque o veredito lista as tres alturas ao mesmo
+    // tempo. Quem escolhia "pouco detalhe" nao tinha como saber o que ia
+    // aplicar -- so descobria depois, na aba do outro lado.
+    function mostrarTierEscolhido() {
+      var el = document.getElementById("asst-rec-escolhido");
+      if (!el) return;
+      var size = currentTierSize();
+      if (!size) { el.textContent = ""; return; }
+      var quantos = lastRecommendation && lastRecommendation.nScreens > 1
+        ? lastRecommendation.nScreens + " ecrãs de " : "";
+      el.innerHTML = "Os botões abaixo aplicam: " + quantos + "<b>" +
+        fmt(size.width, 2) + " × " + fmt(size.height, 2) + " m</b> (16:9).";
     }
 
     document.getElementById("asst-rec-use-led").addEventListener("click", function () {
@@ -6380,7 +6405,7 @@
       for (var i = 0; i < bytes.length; i++) binario += String.fromCharCode(bytes[i]);
       var endereco = "https://mikefkfmiguel-create.github.io/preview/#p=" +
         btoa(binario).replace(/\+/g, "-").replace(/\//g, "_");
-      window.open(endereco, "_blank", "noopener");
+      window.open(endereco, "mikeapps-preview");
     });
 
     document.getElementById("asst-rec-use-proj").addEventListener("click", function () {

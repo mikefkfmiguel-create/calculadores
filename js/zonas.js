@@ -471,7 +471,9 @@
             Math.round(endereco.length / 1024) + " KB). Abre o preview e cola la o JSON.");
       return;
     }
-    window.open(endereco, "_blank", "noopener");
+    // A mesma janela de todas as outras pontes para o Preview: um separador
+    // novo por cada clique era o que la estava, e nao e isso que se quer.
+    window.open(endereco, "mikeapps-preview");
   }
 
   function lzSortCardsByPosition() {
