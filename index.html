@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v2.1</span>
+    <span class="mark">v2.2</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -5470,6 +5470,10 @@
     // (high-dpi) slides from PowerPoint" ("By default, the export resolution
     // of a PowerPoint slide that you want to save as a picture is 96 dpi").
     var PPT_FIXED_DPI = 96;
+    // Só interrompe com popup uma vez por cada vez que o limite passa a ser
+    // ultrapassado — não a cada tecla premida enquanto o valor se mantém
+    // fora do limite (senão o popup reabria a cada dígito escrito).
+    var gfxPptAlarmShown = false;
 
     function calcGfx() {
       var wpx = val("gfx-w");
@@ -5552,6 +5556,18 @@
       // Marca o card de entrada com borda vermelha mesmo fechado, para
       // obrigar a abrir e ver o aviso mais abaixo no resultado.
       document.getElementById("gfx-input-card").classList.toggle("card-alert", pptExceeds);
+
+      // Popup de alarme — só na transição para "ultrapassa o limite", não
+      // em cada recálculo enquanto lá continuar.
+      if (pptExceeds && !gfxPptAlarmShown) {
+        gfxPptAlarmShown = true;
+        showAlarm({
+          title: "⚠ Tamanho acima do limite do PowerPoint",
+          message: [realWarnLine, ppt96WarnLine].filter(Boolean).join(" "),
+        });
+      } else if (!pptExceeds) {
+        gfxPptAlarmShown = false;
+      }
 
       document.getElementById("gfx-sum").textContent =
         "Resolução: " + Math.round(wpx) + " × " + Math.round(hpx) + " px  |  " + fmt(dpi, 2) + " DPI\n" +
