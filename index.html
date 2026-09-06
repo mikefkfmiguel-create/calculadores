@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v2.0</span>
+    <span class="mark">v2.1</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -45,6 +45,20 @@
         <button type="submit" value="no" class="copy">Cancelar</button>
         <button type="submit" value="yes" class="copy app-confirm-yes">Confirmar</button>
       </form>
+    </div>
+  </dialog>
+
+  <dialog id="app-alert-dialog" class="app-alert-dialog">
+    <div class="app-alert-body">
+      <div class="app-alert-title" id="app-alert-title">⚠ Aviso</div>
+      <p class="app-alert-msg" id="app-alert-msg"></p>
+      <div class="app-alert-edit" id="app-alert-edit" style="display:none;">
+        <textarea id="app-alert-edit-text" rows="5"></textarea>
+      </div>
+      <div class="app-alert-actions">
+        <button type="button" class="copy" id="app-alert-close">Fechar</button>
+        <button type="button" class="copy app-alert-action" id="app-alert-action-btn" style="display:none;"></button>
+      </div>
     </div>
   </dialog>
 
@@ -5982,6 +5996,23 @@
       }
       verdictParts.push("Escolhe a tecnologia (LED, projeção ou TV) na aba correspondente.");
       document.getElementById("asst-rec-verdict").textContent = "Sugestão: " + verdictParts.join(" ");
+
+      // Isto já não é uma simples dúvida de leitura — é um valor fisicamente
+      // impossível (nenhum tamanho mínimo cabe na altura indicada) — merece
+      // interromper com um popup em vez de só uma linha no veredito, com
+      // atalho para corrigir o pedido e analisar logo de novo.
+      if (!shownTierLabels.length && roomHeight != null && !isNaN(roomHeight) && roomHeight > 0) {
+        showAlarm({
+          title: "⚠ Pé-direito insuficiente",
+          message: "A altura de sala indicada (" + fmt(roomHeight, 2) + " m) é baixa demais — nem o tamanho mínimo menos exigente (pouco detalhe, AVIXA ×8) cabe nela para esta distância de visualização. Confirma a altura real da sala, ou edita o pedido abaixo e analisa de novo.",
+          editText: asstText.value,
+          actionLabel: "Reanalisar",
+          onAction: function (newText) {
+            asstText.value = newText;
+            asstAnalyze.click();
+          },
+        });
+      }
 
       block.style.display = "block";
     }
