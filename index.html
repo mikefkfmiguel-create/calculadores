@@ -402,6 +402,8 @@
               <div class="inputgroup"><input id="p-tmax" type="number" autocomplete="off" inputmode="decimal" value="1.87" min="0.1" step="0.01"></div>
             </div>
           </div>
+          <div class="warn" id="p-lens-warn" style="display:none;"></div>
+          <div class="note" id="p-lens-ok" style="display:none;"></div>
         </div>
         </div>
       </details>
@@ -2822,11 +2824,45 @@
     document.getElementById("p-shift-source").innerHTML =
       pShift && pShift.nota ? '<span class="srclink">' + pShift.nota + "</span>" : "";
 
+    // Os tres numeros -- ecra, distancia e lente -- ja estao todos aqui. Se
+    // discordarem, quem tem de o dizer e a app: a divisao 12 / 4,96 = 2,42
+    // ninguem a faz de cabeca ao escolher uma lente pela referencia.
+    var avisoLente = document.getElementById("p-lens-warn");
+    var okLente = document.getElementById("p-lens-ok");
+    avisoLente.style.display = "none";
+    okLente.style.display = "none";
+    if (pLens) {
+      if (ratioNeeded < tmin - 0.005 || ratioNeeded > tmax + 0.005) {
+        var precisa = ratioNeeded < tmin
+          ? "afastar o projetor" : "aproximar o projetor";
+        avisoLente.innerHTML =
+          "\u26a0 <b>Esta lente n\u00e3o d\u00e1 esta dist\u00e2ncia.</b> Para um ecr\u00e3 de " +
+          fmt(w, 2) + " m de largura, ela trabalha entre <b>" + fmt(dmin, 2) +
+          " m</b> e <b>" + fmt(dmax, 2) + " m</b> \u2014 e tens <b>" + fmt(knownDist, 2) +
+          " m</b>. A esta dist\u00e2ncia era precisa uma lente de <b>" + fmt(ratioNeeded, 2) +
+          ":1</b>" +
+          (matchNames.length
+            ? " (na base: " + matchNames.slice(0, 3).join(", ") + ")"
+            : " \u2014 n\u00e3o h\u00e1 nenhuma na base") +
+          ", ou " + precisa + ".";
+        avisoLente.style.display = "";
+      } else {
+        okLente.innerHTML = "Esta lente serve: com um ecr\u00e3 de " + fmt(w, 2) +
+          " m ela vai de " + fmt(dmin, 2) + " m a " + fmt(dmax, 2) +
+          " m, e a dist\u00e2ncia indicada \u00e9 " + fmt(knownDist, 2) + " m.";
+        okLente.style.display = "";
+      }
+    }
+
     var pLensLines = pLens
       ? "Lente: " + pLens.marca + " " + pLens.modelo + "\n" +
         (pShift ? "Shift dessa lente: " + shiftTexto + " (" + pShift.nota + ")\n" : "") +
         "Throw ratio (dessa lente): " + fmt(tmin,2) + " – " + fmt(tmax,2) + "\n" +
-        "Distância de projeção (com essa lente): " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n"
+        "Distância de projeção (com essa lente): " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n" +
+        (avisoLente.style.display !== "none"
+          ? "ATENÇÃO: a esta distância (" + fmt(knownDist,2) + " m) esta lente não serve; " +
+            "seria precisa uma de " + fmt(ratioNeeded,2) + ":1\n"
+          : "")
       : "";
     document.getElementById("p-sum").textContent =
       "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
