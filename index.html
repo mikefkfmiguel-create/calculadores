@@ -420,7 +420,9 @@
           <div class="readout">
             <div class="item"><div class="k">Mínima</div><div class="v" id="p-out-dmin">—</div></div>
             <div class="item"><div class="k">Máxima</div><div class="v" id="p-out-dmax">—</div></div>
+            <div class="item wide"><div class="k">Shift da lente</div><div class="v" id="p-out-shift">—</div></div>
           </div>
+          <div class="srclink-wrap" id="p-shift-source"></div>
         </div>
         <div id="p-throwmode-dist-output">
           <h2 style="margin-top:18px;">Lente necessária (à distância indicada)</h2>
@@ -2739,6 +2741,13 @@
     calcBlend();
   });
 
+  // "+/-58 %" quando e simetrico, "+45 % a +68 %" quando nao e -- e as lentes
+  // de tiro curto raramente sao simetricas: uma UST nem sequer centra.
+  function fmtShiftRange(min, max) {
+    if (min === -max) return "\u00b1" + max + " %";
+    return (min > 0 ? "+" : "") + min + " % a " + (max > 0 ? "+" : "") + max + " %";
+  }
+
   function calcProjecao() {
     var isCustom = ratioSel.value === "custom";
     var w, h, label;
@@ -2801,8 +2810,21 @@
     var pLens = pLensModelSel.value !== "custom" ? LENTES_DATA[parseInt(pLensModelSel.value, 10)] : null;
     document.getElementById("p-lens-ratio-detail").style.display = pLens ? "grid" : "none";
     document.getElementById("p-throwmode-ratio-output").style.display = pLens ? "block" : "none";
+    // O shift e do fabricante ou nao existe: uma lente sem shift publicado diz
+    // que nao tem, em vez de aparecer com um numero que ninguem verificou.
+    var pShift = pLens && pLens.shift ? pLens.shift : null;
+    var shiftTexto = pLens
+      ? (pShift ? fmtShiftRange(pShift.vMin, pShift.vMax) + " V \u00b7 " +
+                  fmtShiftRange(pShift.hMin, pShift.hMax) + " H"
+                : "o fabricante n\u00e3o o publica por lente")
+      : "\u2014";
+    document.getElementById("p-out-shift").textContent = shiftTexto;
+    document.getElementById("p-shift-source").innerHTML =
+      pShift && pShift.nota ? '<span class="srclink">' + pShift.nota + "</span>" : "";
+
     var pLensLines = pLens
       ? "Lente: " + pLens.marca + " " + pLens.modelo + "\n" +
+        (pShift ? "Shift dessa lente: " + shiftTexto + " (" + pShift.nota + ")\n" : "") +
         "Throw ratio (dessa lente): " + fmt(tmin,2) + " – " + fmt(tmax,2) + "\n" +
         "Distância de projeção (com essa lente): " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n"
       : "";
@@ -2824,6 +2846,10 @@
       modelo: selProj ? selProj.modelo : "",
       lente: pLens ? (pLens.marca + " " + pLens.modelo)
                    : (matchNames.length ? matchNames[0] : ""),
+      // O que o Preview faz com isto e avisar quando o shift que la se pediu
+      // passa o que esta lente da. Sem os limites, o desenho mostrava imagens
+      // que nenhuma lente conseguia por ali.
+      shift: pShift,
       lumens: lumens
     };
 
@@ -2852,6 +2878,7 @@
       altura: Math.round(pUltimoProjetor.altura * 100) / 100,
       modelo: pUltimoProjetor.modelo,
       lente: pUltimoProjetor.lente,
+      shift: pUltimoProjetor.shift,
       lumens: pUltimoProjetor.lumens,
       quando: new Date().toISOString()
     };
