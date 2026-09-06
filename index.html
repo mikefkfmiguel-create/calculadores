@@ -404,6 +404,10 @@
           </div>
           <div class="warn" id="p-lens-warn" style="display:none;"></div>
           <div class="note" id="p-lens-ok" style="display:none;"></div>
+          <div class="summary-actions" style="margin-top:14px;">
+            <button type="button" class="copy" id="p-ver-3d-topo"
+                    title="Abre o Preview 3D com este projetor montado na sala">Ver no Preview 3D ↗</button>
+          </div>
         </div>
         </div>
       </details>
@@ -2601,8 +2605,12 @@
     el.innerHTML = matches.map(function (l, i) {
       var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
       var bestBadge = i === 0 ? ' <span class="badge-match">melhor</span>' : "";
-      return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + bestBadge + '</span><span>' + ratioText + '</span></div>';
-    }).join("");
+      // O indice na base vai no atributo: e o que permite escolher a lente
+      // com um clique, em vez de a ir procurar ao menu pelo nome.
+      var idx = LENTES_DATA.indexOf(l);
+      return '<div class="lm-item lm-escolher" data-lente="' + idx +
+             '" title="Escolher esta lente"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + bestBadge + '</span><span>' + ratioText + '</span></div>';
+    }).join("") + '<div class="lm-note">Carrega numa lente para a escolher.</div>';
     return matches;
   }
 
@@ -2844,7 +2852,10 @@
           (matchNames.length
             ? " (na base: " + matchNames.slice(0, 3).join(", ") + ")"
             : " \u2014 n\u00e3o h\u00e1 nenhuma na base") +
-          ", ou " + precisa + ".";
+          ", ou " + precisa + "." +
+          '<div style="margin-top:8px"><button type="button" class="copy" data-por-distancia="' +
+          (ratioNeeded < tmin ? dmin : dmax).toFixed(2) + '">P\u00f4r a dist\u00e2ncia a ' +
+          fmt(ratioNeeded < tmin ? dmin : dmax, 2) + " m</button></div>";
         avisoLente.style.display = "";
       } else {
         okLente.innerHTML = "Esta lente serve: com um ecr\u00e3 de " + fmt(w, 2) +
@@ -2901,7 +2912,35 @@
   // dizer que ha um projetor a espera.
   var pUltimoProjetor = null;
 
-  document.getElementById("p-ver-3d").addEventListener("click", function () {
+  // Mexer num campo a partir do codigo tem de parecer que foi o utilizador a
+  // escreve-lo, senao as contas que dependem dele nao voltam a correr.
+  function mudarCampo(id, valor) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.value = valor;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  // A lente sugerida escolhe-se onde ela aparece. Antes era preciso ler o nome
+  // ali, ir ao menu e procura-lo -- com quatorze lentes da mesma marca e nomes
+  // que so diferem num digito, e onde se engana.
+  document.getElementById("p-lensmatch-list").addEventListener("click", function (e) {
+    if (e.target.closest("a")) return;             // o link da fonte abre a pagina
+    var item = e.target.closest("[data-lente]");
+    if (!item) return;
+    mudarCampo("p-lensmodel", item.getAttribute("data-lente"));
+    document.getElementById("p-lensmodel").scrollIntoView({ block: "center", behavior: "smooth" });
+  });
+
+  // E o contrario: a distancia salta para onde a lente escolhida trabalha.
+  document.getElementById("p-lens-warn").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-por-distancia]");
+    if (!b) return;
+    mudarCampo("p-knowndist", b.getAttribute("data-por-distancia"));
+  });
+
+  function verNoPreview3D() {
     if (!pUltimoProjetor || !(pUltimoProjetor.largura > 0) || !(pUltimoProjetor.distancia > 0)) {
       showToast("Faltam dados: escolhe o tamanho do ecra e a distancia primeiro.");
       return;
@@ -2926,7 +2965,10 @@
     var endereco = "https://mikefkfmiguel-create.github.io/preview/#proj=" +
       btoa(binario).replace(/\+/g, "-").replace(/\//g, "_");
     window.open(endereco, "_blank", "noopener");
-  });
+  }
+
+  document.getElementById("p-ver-3d").addEventListener("click", verNoPreview3D);
+  document.getElementById("p-ver-3d-topo").addEventListener("click", verNoPreview3D);
 
   // Distância de Visualização
   var vRatioSel = document.getElementById("v-ratio");
@@ -6367,7 +6409,7 @@
         }
       }
       checkAddProject("p-addproject");
-      showToast("Tamanho aplicado na aba Distância de Projeção (1 ecrã), com o projetor de menos lúmens em stock — confirma o brilho conforme a luz ambiente real da sala.");
+      showToast("Tamanho aplicado na aba Distância de Projeção (1 ecrã), com o projetor de menos lúmens em stock — confirma o brilho conforme a luz ambiente real da sala. Para o ver montado na sala, carrega em \"Ver no Preview 3D\".");
     });
 
     asstAnalyze.addEventListener("click", function () {

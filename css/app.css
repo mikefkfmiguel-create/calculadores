@@ -837,6 +837,8 @@
   .lensmatch-list .lm-note { flex-basis: 100%; font-size: 12px; color: var(--ink-faint); line-height: 1.5; margin-top: 2px; }
   .lensmatch-list .lm-model { color: var(--ink-soft); }
   .lensmatch-list .lm-empty { color: var(--ink-faint); font-style: italic; }
+  .lensmatch-list .lm-escolher { cursor: pointer; }
+  .lensmatch-list .lm-escolher:hover { background: var(--cyan-100); border-radius: 6px; }
   .lensmatch-list .lm-checkitem { align-items: center; cursor: pointer; }
   .lensmatch-list .lm-checkitem input[type="checkbox"] { flex-shrink: 0; margin: 0 10px 0 0; width: 16px; height: 16px; accent-color: var(--green-500); cursor: pointer; }
   .lensmatch-list .lm-row { display: flex; justify-content: space-between; gap: 10px; flex: 1; }
