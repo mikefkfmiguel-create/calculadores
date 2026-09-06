@@ -98,8 +98,26 @@ const EXTRACT_TOOL = {
         items: { type: "string" },
         description: "Lista MUITO curta (0 a 2 itens, idealmente vazia) — só ambiguidades reais ou contradições no texto que impedem escolher o equipamento certo (ex: o texto dá duas medidas diferentes para o mesmo ecrã). NÃO listes aqui um dado simplesmente não mencionado (orçamento, brilho, pixel pitch, se é curvo, formato) — isso fica null nos campos próprios, sem aviso; a pessoa já vê o que ficou em branco nos campos.",
       },
+      grupos: {
+        type: "array",
+        description: "Só quando o texto descrever MAIS DO QUE UM tamanho de ecrã dentro do mesmo projeto (ex: '2 ecrãs maiores para PowerPoint e 2 menores para imagem'). Cada item é um grupo de ecrãs do MESMO tamanho e finalidade. Deixa [] (vazio) quando o pedido só tem um tamanho, ou nenhum — nesse caso os campos 'dimensoes' normais já bastam. NUNCA inventes uma divisão em grupos que o texto não faça.",
+        items: {
+          type: "object",
+          properties: {
+            quantidade: { type: "integer", description: "Quantos ecrãs tem este grupo." },
+            tamanhoRelativo: {
+              type: "string",
+              enum: ["maior", "igual", "menor"],
+              description: "O tamanho deste grupo COMPARADO com os outros grupos do mesmo pedido — não um valor absoluto em metros. Usa 'igual' quando o texto não distinguir tamanhos entre os grupos, só finalidades diferentes.",
+            },
+            finalidade: { type: ["string", "null"], description: "Para que serve este grupo, tal como o texto descreve, em poucas palavras (ex: 'PowerPoint', 'imagem', 'vídeo secundário'). null se o texto não disser." },
+          },
+          required: ["quantidade", "tamanhoRelativo", "finalidade"],
+          additionalProperties: false,
+        },
+      },
     },
-    required: ["tipoEcra", "confianca", "dimensoes", "local", "led", "orcamento", "projeto", "resumo", "pontosPorConfirmar"],
+    required: ["tipoEcra", "confianca", "dimensoes", "local", "led", "orcamento", "projeto", "resumo", "pontosPorConfirmar", "grupos"],
     additionalProperties: false,
   },
 };
