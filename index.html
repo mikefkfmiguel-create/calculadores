@@ -25,7 +25,7 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v1.233</span>
+    <span class="mark">v1.234</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -62,13 +62,13 @@
       <button class="tab" data-mode="projecao" role="tab" aria-selected="true"><span class="swatch"></span>Distância de Projeção</button>
       <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
       <button class="tab" data-mode="visualizacao" role="tab" aria-selected="false"><span class="swatch"></span>Distância de Visualização</button>
+      <button class="tab" data-mode="tv" role="tab" aria-selected="false"><span class="swatch"></span>TVs</button>
       <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
       <button class="tab" data-mode="zonas" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã Complexo</button>
       <button class="tab" data-mode="sinal" role="tab" aria-selected="false"><span class="swatch"></span>Sinal &amp; Data Rate</button>
       <button class="tab" data-mode="mediaserver" role="tab" aria-selected="false"><span class="swatch"></span>Media Server</button>
       <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
       <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
-      <button class="tab" data-mode="tv" role="tab" aria-selected="false"><span class="swatch"></span>TVs</button>
       <button class="tab" data-mode="grafismo" role="tab" aria-selected="false"><span class="swatch"></span>Grafismo px↔cm</button>
       <button class="tab" data-mode="ajuda" role="tab" aria-selected="false"><span class="swatch"></span>Ajuda</button>
     </div>
@@ -134,20 +134,23 @@
               <p id="asst-rec-verdict" class="note" style="font-size:1.05em;"></p>
               <div class="readout">
                 <div class="item wide"><div class="k">Nº de ecrãs (ângulo confortável, SMPTE)</div><div class="v" id="asst-rec-screens">—</div></div>
-                <div class="item" id="asst-rec-height-detailed-wrap"><div class="k">Altura mín. — texto denso (AVIXA ×4)</div><div class="v" id="asst-rec-height-detailed">—</div></div>
-                <div class="item"><div class="k">Altura mín. — leitura normal (AVIXA ×6)</div><div class="v" id="asst-rec-height-basic">—</div></div>
-                <div class="item wide" id="asst-rec-tv-wrap" style="display:none;"><div class="k" id="asst-rec-tv-label">Opção TV (grelha do maior modelo em stock, p/ leitura normal)</div><div class="v" id="asst-rec-tv">—</div></div>
-                <div class="item wide" id="asst-rec-delay-wrap" style="display:none;"><div class="k">Alternativa: TVs "delay" distribuídas pela profundidade (1 unidade por posição, sem grelha)</div><div class="v" id="asst-rec-delay">—</div></div>
+                <div class="item" id="asst-rec-height-detailed-wrap"><div class="k">Texto denso, dados (AVIXA ×4)</div><div class="v" id="asst-rec-height-detailed">—</div></div>
+                <div class="item" id="asst-rec-height-basic-wrap"><div class="k">Leitura normal (AVIXA ×6)</div><div class="v" id="asst-rec-height-basic">—</div></div>
+                <div class="item" id="asst-rec-height-passive-wrap"><div class="k">Pouco detalhe, vídeo (AVIXA ×8)</div><div class="v" id="asst-rec-height-passive">—</div></div>
               </div>
-              <div id="asst-rec-tv-hint" class="hint" style="display:none;"></div>
-              <div id="asst-rec-delay-hint" class="hint" style="display:none;">Em vez de uma grelha grande a cobrir toda a distância a partir de um único ponto, distribui ecrãs repetidores (delay) mais pequenos ao longo da sala — cada um só tem de servir quem está por perto, tal como em torres de delay em eventos ao vivo.</div>
+              <div class="field" id="asst-rec-tier-field" style="margin-top:10px;">
+                <label>Tamanho a aplicar nos botões abaixo (escolhe conforme o conteúdo)</label>
+                <div class="seg" id="asst-rec-tier-seg">
+                  <button type="button" class="seg-btn" data-tier="detailed">Texto denso</button>
+                  <button type="button" class="seg-btn active" data-tier="basic">Leitura normal</button>
+                  <button type="button" class="seg-btn" data-tier="passive">Pouco detalhe</button>
+                </div>
+              </div>
               <div class="summary-actions" style="margin-top:10px; flex-wrap:wrap;">
                 <button type="button" class="copy" id="asst-rec-use-led">Usar em Ecrã LED</button>
                 <button type="button" class="copy" id="asst-rec-use-proj">Usar em Distância de Projeção</button>
-                <button type="button" class="copy" id="asst-rec-use-tv" style="display:none;">Usar em TVs</button>
-                <button type="button" class="copy" id="asst-rec-use-delay" style="display:none;">Usar em TVs (delay)</button>
               </div>
-              <div class="hint">Cada botão aplica o tamanho de 1 ecrã (leitura normal) à aba respetiva — se a sugestão acima for de mais do que 1 ecrã, repete a configuração nessa aba para cada um.</div>
+              <div class="hint">Isto dá só o tamanho — a escolha da tecnologia (LED, projeção, TV) é a seguir, na aba respetiva: os botões acima aplicam o tamanho escolhido a Ecrã LED/Distância de Projeção; para TVs, usa o tamanho como referência e escolhe o modelo diretamente na aba TVs (o catálogo é de unidades discretas, não de tamanho contínuo). Se a sugestão for de mais do que 1 ecrã, repete a configuração para cada um.</div>
               <div class="hint">Estimativa a partir da distância/largura da plateia (linha acima) e das mesmas regras SMPTE (ângulo) e AVIXA (legibilidade) já usadas na aba Distância de Visualização — confirma sempre com a disposição real do espaço.</div>
             </div>
 
@@ -1881,6 +1884,7 @@
           <div class="summary-head">
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
+              <label class="addproject"><input type="checkbox" id="tv-addproject">Adicionar ao projeto</label>
               <select class="copy" id="tv-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
                 <option value="" selected>↗ Partilhar/Guardar</option>
                 <option value="text">Como texto (mensagem)</option>
@@ -2005,12 +2009,12 @@
         <li><strong>Distância de Projeção</strong> — dado um projetor e um ecrã, diz que lente/distância precisas (ou o inverso).</li>
         <li><strong>Blending Multi-Projetor</strong> — junta vários projetores num ecrã maior, com overlap.</li>
         <li><strong>Distância de Visualização</strong> — tamanho de ecrã ideal consoante a distância da plateia (e vice-versa).</li>
+        <li><strong>TVs</strong> — lista de TVs/monitores da empresa com diagonal, resolução (quando confirmada) e distância de visualização ideal; "Adicionar ao projeto" junta o resumo à ficha técnica, e serve também de atalho para preencher DSM/delay na aba Projeto.</li>
         <li><strong>Ecrã LED &amp; Pixel Pitch</strong> — resolução, tamanho físico, peso e amperagem de um único ecrã LED.</li>
         <li><strong>Ecrã Complexo</strong> — o mesmo, mas para setups com várias secções (central + laterais + tiras), cada uma com posição, para ver o diagrama à escala e a dimensão total já com os gaps contemplados.</li>
         <li><strong>Lentes</strong> — consulta as lentes do mercado e o que cada uma cobre.</li>
         <li><strong>Projeto</strong> — junta tudo numa ficha técnica única para um evento.</li>
         <li><strong>Sinal &amp; Data Rate</strong> — largura de banda e ligação mínima para um sinal de vídeo.</li>
-        <li><strong>TVs</strong> — lista de TVs/monitores da empresa com diagonal, resolução (quando confirmada) e distância de visualização ideal; serve também de atalho para preencher DSM/delay na aba Projeto.</li>
         <li><strong>Grafismo px↔cm</strong> — referência física para criação de grafismo: dada a resolução e o DPI do ecrã, converte píxeis ↔ centímetros para criar apresentações e layouts à medida real do ecrã.</li>
       </ul>
     </div>
@@ -2137,6 +2141,7 @@
   // avisa se as duas divergirem em vez de assumir que estão alinhadas.
   var PROJECT_SOURCES = [
     { key: "visualizacao", label: "Distância de Visualização", sumId: "v-sum", checkboxId: "v-addproject" },
+    { key: "tv", label: "TVs", sumId: "tv-sum", checkboxId: "tv-addproject" },
     { key: "sinal", label: "Sinal & Data Rate", sumId: "sg-sum", checkboxId: "sg-addproject", conflict: sinalProjectConflict },
     { key: "mediaserver", label: "Media Server", sumId: "ms-sum", checkboxId: "ms-addproject" }
   ];
@@ -2362,7 +2367,7 @@
   // Atalho fixo de "Adicionar ao projeto" — espelha o checkbox real da
   // calculadora ativa (só uma tem de cada vez), para não ser preciso
   // descer até ao resumo em calculadoras longas só para marcar.
-  var ADDPROJECT_BY_MODE = { projecao: "p-addproject", visualizacao: "v-addproject", led: "l-addproject", zonas: "z-addproject", blend: "b-addproject", sinal: "sg-addproject", mediaserver: "ms-addproject" };
+  var ADDPROJECT_BY_MODE = { projecao: "p-addproject", visualizacao: "v-addproject", tv: "tv-addproject", led: "l-addproject", zonas: "z-addproject", blend: "b-addproject", sinal: "sg-addproject", mediaserver: "ms-addproject" };
   var addprojectFixed = document.getElementById("addproject-fixed");
   var addprojectFixedCb = document.getElementById("addproject-fixed-cb");
   function syncAddProjectFixed(mode) {
@@ -4805,7 +4810,7 @@
   // preencher isto sozinha) e repõe os campos da aba Projeto em branco.
   // Nunca mexe nas outras calculadoras nem nas zonas do Ecrã Complexo —
   // só desliga a ligação delas ao projeto.
-  var PROJ_ADDPROJECT_IDS = ["p-addproject", "v-addproject", "l-addproject", "z-addproject", "b-addproject", "sg-addproject", "ms-addproject"];
+  var PROJ_ADDPROJECT_IDS = ["p-addproject", "v-addproject", "tv-addproject", "l-addproject", "z-addproject", "b-addproject", "sg-addproject", "ms-addproject"];
   document.getElementById("proj-clear").addEventListener("click", function () {
     var confirmMsg = (typeof i18nGetLang === "function" && i18nGetLang() === "en")
       ? "Clear the project? ALL calculators go back to their starting state — including the Multi-Zone Screen zones and the Project Assistant. This reloads the page."
@@ -5295,6 +5300,8 @@
       "Resolução: " + resLabel + "\n" +
       "Standard: " + viewRuleDescription() + "\n" +
       "Distância de visualização ideal: " + fmt(range.min, 2) + " – " + fmt(range.max, 2) + " m";
+
+    renderProjectItems();
   }
 
   projDsmTvModelSel.addEventListener("change", function () {
@@ -5905,194 +5912,106 @@
         ? nScreens + " (lado a lado, ~" + fmt(audienceWidth / nScreens, 1) + " m de plateia cada)"
         : String(nScreens);
 
-      var heightDetailed = distance / AVIXA_CONTENT.detailed.mult;
-      var heightBasic = distance / AVIXA_CONTENT.basic.mult;
-      var widthDetailed = heightDetailed * (16 / 9);
-      var widthBasic = heightBasic * (16 / 9);
-      document.getElementById("asst-rec-height-basic").innerHTML = fmt(heightBasic, 2) + "<small> m alt. (" + fmt(widthBasic, 2) + " m larg., 16:9)</small>";
-
-      // Só mostra o nível "texto denso" (mais exigente) se ele próprio couber
-      // no pé-direito da sala — não faz sentido apresentar um resultado que
-      // já se sabe não caber, mesmo com uma nota a explicar porquê. Se não
-      // houver altura de sala conhecida, mostra-se sempre (não há como saber
-      // se cabe ou não).
-      var heightDetailedWrap = document.getElementById("asst-rec-height-detailed-wrap");
-      var heightDetailedFits = !(roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && heightDetailed >= roomHeight);
-      if (heightDetailedFits) {
-        document.getElementById("asst-rec-height-detailed").innerHTML = fmt(heightDetailed, 2) + "<small> m alt. (" + fmt(widthDetailed, 2) + " m larg., 16:9)</small>";
-        heightDetailedWrap.style.display = "";
-      } else {
-        heightDetailedWrap.style.display = "none";
-      }
-
-      // Opção TV: em vez de só LED/projeção, verifica também se dá para
-      // cobrir o tamanho recomendado (leitura normal) com uma grelha da
-      // maior TV disponível no inventário — dado real (tvs.json), não
-      // inventado. TVs em grelha ficam com juntas visíveis entre unidades
-      // (ao contrário de LED/videowall dedicado), por isso é só indicativo.
-      var tvWrap = document.getElementById("asst-rec-tv-wrap");
-      var tvHint = document.getElementById("asst-rec-tv-hint");
-      var tvUseBtn = document.getElementById("asst-rec-use-tv");
-      // Não faz sentido testar só a maior TV em stock e desistir se não
-      // couber — há sempre outros tamanhos no inventário. Procura, da maior
-      // para a mais pequena, a primeira cuja grelha (já arredondada ao nº
-      // inteiro de unidades) cabe mesmo no pé-direito da sala — menos
-      // unidades/juntas entre as que servem, em vez de nenhuma.
-      var biggestTv = null;
-      if (typeof TVS_DATA !== "undefined" && TVS_DATA.length) {
-        var tvsByDiagDesc = TVS_DATA.slice().sort(function (a, b) { return b.diag - a.diag; });
-        if (roomHeight != null && !isNaN(roomHeight) && roomHeight > 0) {
-          biggestTv = tvsByDiagDesc.find(function (tv) {
-            var s = tvSizeMeters(tv);
-            var rows = Math.max(1, Math.ceil(heightBasic / s.h));
-            return rows * s.h <= roomHeight;
-          }) || tvsByDiagDesc[0];
+      // Três tamanhos, um por nível AVIXA (4-6-8) — não uma tecnologia. A
+      // escolha de LED/projeção/TV é sempre a seguir, feita pela pessoa (nos
+      // botões abaixo ou diretamente na aba); esta secção só dá tamanhos.
+      var tiers = [
+        { key: "detailed", mult: AVIXA_CONTENT.detailed.mult, label: "texto denso" },
+        { key: "basic", mult: AVIXA_CONTENT.basic.mult, label: "leitura normal" },
+        { key: "passive", mult: AVIXA_CONTENT.passive.mult, label: "pouco detalhe" },
+      ];
+      var tierFits = {};
+      var tierSize = {};
+      var shownTierLabels = [];
+      tiers.forEach(function (t) {
+        var h = distance / t.mult;
+        var w = h * (16 / 9);
+        // Nunca apresentar um tamanho que já se sabe não caber no pé-direito
+        // da sala — sem altura de sala conhecida, mostra-se sempre.
+        var fits = !(roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && h >= roomHeight);
+        tierFits[t.key] = fits;
+        var wrap = document.getElementById("asst-rec-height-" + t.key + "-wrap");
+        if (fits) {
+          tierSize[t.key] = { width: w, height: h };
+          document.getElementById("asst-rec-height-" + t.key).innerHTML = fmt(h, 2) + "<small> m alt. (" + fmt(w, 2) + " m larg., 16:9)</small>";
+          wrap.style.display = "";
+          shownTierLabels.push(t.label + ": " + fmt(h, 2) + " m");
         } else {
-          biggestTv = tvsByDiagDesc[0];
+          tierSize[t.key] = null;
+          wrap.style.display = "none";
+        }
+      });
+
+      // O seletor de tamanho a aplicar só mostra as gamas que cabem — e
+      // troca a seleção para uma delas se a escolhida deixar de caber.
+      var anyTierFits = tiers.some(function (t) { return tierFits[t.key]; });
+      document.querySelectorAll("#asst-rec-tier-seg .seg-btn").forEach(function (btn) {
+        btn.style.display = tierFits[btn.dataset.tier] ? "" : "none";
+      });
+      if (!tierFits[asstRecSelectedTier]) {
+        var fallback = ["basic", "passive", "detailed"].find(function (k) { return tierFits[k]; });
+        if (fallback) {
+          asstRecSelectedTier = fallback;
+          document.querySelectorAll("#asst-rec-tier-seg .seg-btn").forEach(function (b) {
+            b.classList.toggle("active", b.dataset.tier === fallback);
+          });
         }
       }
-      var tvCount = null;
-      var tvFitsCeiling = null;
-      var tvIsRealisticCount = null;
-      var biggestTvIdx = null;
-      if (biggestTv) {
-        var tvSize = tvSizeMeters(biggestTv);
-        var tvCols = Math.max(1, Math.ceil(widthBasic / tvSize.w));
-        var tvRows = Math.max(1, Math.ceil(heightBasic / tvSize.h));
-        var tvGridHeight = tvRows * tvSize.h;
-        tvCount = tvCols * tvRows;
-        biggestTvIdx = TVS_DATA.indexOf(biggestTv);
-        var tvTotal = tvCount * nScreens;
+      document.getElementById("asst-rec-tier-field").style.display = anyTierFits ? "" : "none";
+      document.querySelector('#asst-recommend-block .summary-actions').style.display = anyTierFits ? "" : "none";
 
-        // A grelha arredonda para cima ao nº inteiro de unidades — a altura
-        // real que sai daí (tvGridHeight) pode já não caber no pé-direito da
-        // sala, mesmo quando a altura "leitura normal" pedida cabia.
-        tvFitsCeiling = !(roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && tvGridHeight > roomHeight);
-        // Um videowall de TVs de consumo com muitas unidades não é uma opção
-        // profissional real (mesmo limiar já usado no veredito).
-        tvIsRealisticCount = tvCount <= 4;
+      lastRecommendation = { nScreens: nScreens, tiers: tierSize };
 
-        // Só mostra a grelha (e o botão "Usar") quando é mesmo uma opção —
-        // cabe no teto E o nº de unidades é realista. Caso contrário não se
-        // apresenta nenhum número desta opção; fica só a frase do veredito
-        // a dizer, em termos gerais, que TV não é opção aqui.
-        if (tvFitsCeiling && tvIsRealisticCount) {
-          document.getElementById("asst-rec-tv").innerHTML = tvCols + "×" + tvRows + " = " + tvCount + "× " + escapeHtml(biggestTv.modelo) +
-            " → " + fmt(tvCols * tvSize.w, 2) + "×" + fmt(tvGridHeight, 2) + "<small> m</small>" +
-            (nScreens > 1 ? "<br><strong>Total para os " + nScreens + " ecrãs: " + tvTotal + " unidades</strong>" : "");
-          tvHint.style.display = "block";
-          tvHint.textContent = tvCount > 1
-            ? "Uma grelha de TVs fica com juntas visíveis entre unidades (ao contrário de LED/videowall dedicado) — indicativo de escala, não recomendação final."
-            : "Uma só unidade já cobre o tamanho recomendado.";
-          tvWrap.style.display = "block";
-          tvUseBtn.style.display = "inline-block";
-        } else {
-          tvWrap.style.display = "none";
-          tvHint.style.display = "none";
-          tvUseBtn.style.display = "none";
-        }
-      } else {
-        tvWrap.style.display = "none";
-        tvHint.style.display = "none";
-        tvUseBtn.style.display = "none";
-      }
-
-      // Alternativa "delay": em vez de uma grelha grande a cobrir toda a
-      // distância a partir de um único ponto, distribuir TVs repetidoras
-      // (1 unidade cada, sem grelha) a intervalos ao longo da profundidade
-      // da sala — cada posição só serve quem está por perto, por isso um
-      // ecrã mais pequeno já chega (mesma técnica de torres de delay em
-      // eventos ao vivo). Mesma regra AVIXA "leitura normal" (heightBasic),
-      // só que aplicada por posição em vez de à distância toda: distância
-      // máxima por posição = altura da própria TV × 6.
-      var delayWrap = document.getElementById("asst-rec-delay-wrap");
-      var delayHint = document.getElementById("asst-rec-delay-hint");
-      var delayIsShown = false;
-      var delayPositions = null, delayTotalUnits = null, delayTv = null;
-      if (biggestTv && typeof TVS_DATA !== "undefined" && TVS_DATA.length) {
-        delayTv = tvsByDiagDesc.find(function (tv) {
-          var s = tvSizeMeters(tv);
-          return roomHeight == null || isNaN(roomHeight) || roomHeight <= 0 || s.h <= roomHeight;
-        });
-        if (delayTv) {
-          var delaySize = tvSizeMeters(delayTv);
-          var maxDistPerPosition = delaySize.h * AVIXA_CONTENT.basic.mult;
-          delayPositions = Math.max(1, Math.ceil(distance / maxDistPerPosition));
-          delayTotalUnits = delayPositions * nScreens;
-          var gridNotViable = tvCount == null || !tvFitsCeiling || !tvIsRealisticCount;
-          if (delayPositions > 1 && (gridNotViable || delayTotalUnits < tvCount * nScreens)) {
-            document.getElementById("asst-rec-delay").innerHTML = delayPositions + " posições" + (nScreens > 1 ? " × " + nScreens + " ecrãs" : "") +
-              " = " + delayTotalUnits + "× " + escapeHtml(delayTv.modelo) + "<br><small>cada posição cobre até " + fmt(maxDistPerPosition,1) + " m de profundidade</small>";
-            delayWrap.style.display = "block";
-            delayHint.style.display = "block";
-            delayIsShown = true;
-          } else {
-            delayWrap.style.display = "none";
-            delayHint.style.display = "none";
-          }
-        } else {
-          delayWrap.style.display = "none";
-          delayHint.style.display = "none";
-        }
-      } else {
-        delayWrap.style.display = "none";
-        delayHint.style.display = "none";
-      }
-      document.getElementById("asst-rec-use-delay").style.display = delayIsShown ? "inline-block" : "none";
-
-      lastRecommendation = {
-        widthBasic: widthBasic, heightBasic: heightBasic, nScreens: nScreens, tvCount: tvCount, biggestTvIdx: biggestTvIdx,
-        tvTotalAll: tvCount != null ? tvCount * nScreens : null,
-        delayTvIdx: delayIsShown ? TVS_DATA.indexOf(delayTv) : null,
-        delayTotalUnits: delayIsShown ? delayTotalUnits : null,
-      };
-
-      // Frase de veredito, a juntar os números todos numa única sugestão em
-      // linguagem simples — em vez de deixar cada pessoa a interpretar os
-      // números soltos, dá logo o "usa isto" para produção não-técnica.
+      // Frase de veredito — só tamanhos, sem apontar nenhuma tecnologia.
       var verdictParts = [];
-      verdictParts.push((nScreens > 1 ? nScreens + " ecrãs lado a lado" : "1 ecrã") + ", ~" + fmt(heightBasic,2) + " m de altura cada (leitura normal).");
-      if (tvCount != null) {
-        var tvTotalTxt = nScreens > 1 ? ", " + (tvCount * nScreens) + " no total para os " + nScreens + " ecrãs" : "";
-        var tvDoesntFitCeiling = roomHeight != null && !isNaN(roomHeight) && roomHeight > 0 && tvGridHeight > roomHeight;
-        if (tvDoesntFitCeiling) {
-          verdictParts.push("LED ou projeção são as opções aqui — nenhum tamanho de TV em stock cabe no pé-direito desta sala.");
-        } else if (tvCount <= 1) {
-          verdictParts.push("TV é viável a este tamanho.");
-        } else if (tvCount <= 4) {
-          verdictParts.push("TV dá para cobrir com " + tvCount + " unidades por ecrã" + tvTotalTxt + ", mas com juntas visíveis — LED fica mais limpo.");
-        } else {
-          verdictParts.push("TV não é prático aqui — precisarias de " + tvCount + " unidades por ecrã" + tvTotalTxt + " — LED ou projeção são as opções mais realistas.");
-        }
+      verdictParts.push((nScreens > 1 ? nScreens + " ecrãs lado a lado" : "1 ecrã") + ".");
+      if (shownTierLabels.length) {
+        verdictParts.push("Altura mínima conforme o conteúdo — " + shownTierLabels.join(", ") + ".");
+      } else {
+        verdictParts.push("Nenhum dos tamanhos AVIXA cabe no pé-direito indicado — confirma a altura da sala.");
       }
-      if (delayIsShown) {
-        verdictParts.push("Alternativa: distribuir " + delayTotalUnits + " TVs \"delay\" (1 unidade cada, sem grelha) a " + delayPositions + " posições ao longo da profundidade, em vez de uma grelha grande a partir de um único ponto.");
-      }
+      verdictParts.push("Escolhe a tecnologia (LED, projeção ou TV) na aba correspondente.");
       document.getElementById("asst-rec-verdict").textContent = "Sugestão: " + verdictParts.join(" ");
 
       block.style.display = "block";
     }
 
-    // Botões "Usar" da sugestão de dimensionamento — aplicam o tamanho de 1
-    // ecrã (leitura normal) à aba correspondente, tal como o "Aplicar"
-    // principal já faz para os campos extraídos diretamente.
+    // Botões "Usar" da sugestão de dimensionamento — aplicam o tamanho da
+    // gama escolhida no seletor acima (texto denso/leitura normal/pouco
+    // detalhe) à aba correspondente, tal como o "Aplicar" principal já faz
+    // para os campos extraídos diretamente.
     function round2(n) { return Math.round(n * 100) / 100; }
 
+    var asstRecSelectedTier = "basic";
+    document.querySelectorAll("#asst-rec-tier-seg .seg-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll("#asst-rec-tier-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        asstRecSelectedTier = btn.dataset.tier;
+      });
+    });
+    function currentTierSize() {
+      return lastRecommendation ? lastRecommendation.tiers[asstRecSelectedTier] : null;
+    }
+
     document.getElementById("asst-rec-use-led").addEventListener("click", function () {
-      if (!lastRecommendation) return;
+      var size = currentTierSize();
+      if (!size) return;
       document.querySelector('.tab[data-mode="led"]').click();
       segClick("l-sizemode-seg", "sizemode", "meters");
-      setFieldValAndFire("l-target-w", round2(lastRecommendation.widthBasic));
-      setFieldValAndFire("l-target-h", round2(lastRecommendation.heightBasic));
+      setFieldValAndFire("l-target-w", round2(size.width));
+      setFieldValAndFire("l-target-h", round2(size.height));
+      checkAddProject("l-addproject");
       showToast("Tamanho aplicado na aba Ecrã LED (1 ecrã) — escolhe o tile e repete a configuração se a sugestão for de mais do que 1 ecrã.");
     });
 
     document.getElementById("asst-rec-use-proj").addEventListener("click", function () {
-      if (!lastRecommendation) return;
+      var size = currentTierSize();
+      if (!size) return;
       document.querySelector('.tab[data-mode="projecao"]').click();
       setFieldValAndFire("p-ratio", "custom");
-      setFieldValAndFire("p-rw", round2(lastRecommendation.widthBasic));
-      setFieldValAndFire("p-rh", round2(lastRecommendation.heightBasic));
+      setFieldValAndFire("p-rw", round2(size.width));
+      setFieldValAndFire("p-rh", round2(size.height));
       // Sem cálculo de lúmens necessários (precisaria de luz ambiente, que
       // não é extraída), a aba ficava sempre com o projetor "default" dela
       // — normalmente um dos mais potentes do inventário, exagerado para um
@@ -6111,27 +6030,8 @@
           projSel.dispatchEvent(new Event("change", { bubbles: true }));
         }
       }
+      checkAddProject("p-addproject");
       showToast("Tamanho aplicado na aba Distância de Projeção (1 ecrã), com o projetor de menos lúmens em stock — confirma o brilho conforme a luz ambiente real da sala.");
-    });
-
-    document.getElementById("asst-rec-use-tv").addEventListener("click", function () {
-      if (!lastRecommendation || lastRecommendation.biggestTvIdx == null) return;
-      document.querySelector('.tab[data-mode="tv"]').click();
-      var tvSel = document.getElementById("tv-model");
-      tvSel.value = String(lastRecommendation.biggestTvIdx);
-      tvSel.dispatchEvent(new Event("change", { bubbles: true }));
-      setFieldValAndFire("tv-qty", lastRecommendation.tvTotalAll || lastRecommendation.tvCount);
-      showToast("Modelo aplicado na aba TVs — precisas de " + lastRecommendation.tvCount + " unidade(s) em grelha para atingir o tamanho recomendado (quantidade já preenchida).");
-    });
-
-    document.getElementById("asst-rec-use-delay").addEventListener("click", function () {
-      if (!lastRecommendation || lastRecommendation.delayTvIdx == null) return;
-      document.querySelector('.tab[data-mode="tv"]').click();
-      var delaySel = document.getElementById("tv-model");
-      delaySel.value = String(lastRecommendation.delayTvIdx);
-      delaySel.dispatchEvent(new Event("change", { bubbles: true }));
-      setFieldValAndFire("tv-qty", lastRecommendation.delayTotalUnits);
-      showToast("Modelo aplicado na aba TVs — usa esta unidade repetida em cada posição de delay, sem grelha (quantidade já preenchida).");
     });
 
     asstAnalyze.addEventListener("click", function () {
