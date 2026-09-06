@@ -29,7 +29,10 @@
        target="mikeapps-preview"
        title="Ver o projeto montado numa sala, em 3D"
        style="text-decoration:none;">↗ Preview 3D</a>
-    <span class="mark" id="app-versao">v2.5</span>
+    <button type="button" class="mark" id="btSincronizarPreview"
+            title="Vai buscar já a sala e o tamanho de ecrã que o Preview tiver guardados — sem esperar pelo aviso automático"
+            style="background:none; border:1px solid currentColor; border-radius:6px; cursor:pointer; font:inherit; padding:2px 8px;">🔄 Sincronizar</button>
+    <span class="mark" id="app-versao">v2.6</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -4894,14 +4897,18 @@
   // sala, estica-se ou encolhe-se ate fazer sentido, e devolve-se -- e aqui
   // que ele vira tiles, porque e aqui que se sabe o que e um tile.
   (function tamanhoDoPreview() {
+    var CHAVE = "mikeapps-ecra-v1";
     var btn = document.getElementById("l-trazer-preview");
     if (!btn) return;
-    btn.addEventListener("click", function () {
+
+    function aplicar(avisar) {
       var d = null;
-      try { d = JSON.parse(localStorage.getItem("mikeapps-ecra-v1") || "null"); } catch (e) {}
+      try { d = JSON.parse(localStorage.getItem(CHAVE) || "null"); } catch (e) {}
       if (!d || !d.largura) {
-        alert("Ainda nao veio nada do Preview. La, ajusta o tamanho do ecra e " +
-              "carrega em \"Devolver aos Calculadores\" — tem de ser no mesmo browser.");
+        if (avisar) {
+          alert("Ainda nao veio nada do Preview. La, ajusta o tamanho do ecra e " +
+                "carrega em \"Devolver aos Calculadores\" — tem de ser no mesmo browser.");
+        }
         return;
       }
       segClick("l-sizemode-seg", "sizemode", "meters");
@@ -4916,7 +4923,22 @@
       btn.textContent = "Trazido: " + d.largura + " x " + d.altura + " m" +
         (quando ? " (" + quando.toLocaleTimeString("pt-PT").slice(0, 5) + ")" : "");
       setTimeout(function () { btn.textContent = "Trazer do Preview"; }, 6000);
+    }
+
+    btn.addEventListener("click", function () { aplicar(true); });
+
+    // Ao vivo: com as duas abas abertas, mexer no tamanho no Preview e
+    // carregar em "Devolver aos Calculadores" atualiza aqui sem precisar do
+    // clique — a mesma simetria que o projeto e o projetor já têm no sentido
+    // contrário (destes Calculadores para o Preview).
+    window.addEventListener("storage", function (e) {
+      if (e.key === CHAVE && e.newValue) aplicar(false);
     });
+
+    // Regista-se para o botão "Sincronizar agora" do cabeçalho poder forçar
+    // isto de uma vez, sem depender do evento silencioso.
+    window.__pontesDoPreview = window.__pontesDoPreview || [];
+    window.__pontesDoPreview.push(function () { aplicar(true); });
   }());
 
   function segClick(containerId, attr, value) {
@@ -5985,12 +6007,14 @@
       var nota = document.getElementById("asst-sala-nota");
       if (!btn) return;
 
-      btn.addEventListener("click", function () {
+      function aplicar(avisar) {
         var dados = null;
         try { dados = JSON.parse(localStorage.getItem(CHAVE) || "null"); } catch (e) {}
         if (!dados) {
-          nota.textContent = "Ainda nao ha sala guardada. Abre o Preview, escreve as " +
-            "medidas da sala, e volta aqui — tem de ser no mesmo browser.";
+          if (avisar) {
+            nota.textContent = "Ainda nao ha sala guardada. Abre o Preview, escreve as " +
+              "medidas da sala, e volta aqui — tem de ser no mesmo browser.";
+          }
           return;
         }
         if (dados.largura) document.getElementById("asst-sala-largura").value = dados.largura;
@@ -6030,6 +6054,41 @@
             nota.textContent += " (nao consegui pedir a sugestao de tamanho)";
           }
         }
+      }
+
+      btn.addEventListener("click", function () { aplicar(true); });
+
+      // Ao vivo: com as duas abas abertas, escrever a sala no Preview
+      // atualiza aqui sem precisar do clique -- a mesma simetria que o
+      // projeto e o projetor já têm no sentido contrário.
+      window.addEventListener("storage", function (e) {
+        if (e.key === CHAVE && e.newValue) aplicar(false);
+      });
+
+      // Regista-se para o botão "Sincronizar agora" do cabeçalho poder
+      // forçar isto de uma vez, sem depender do evento silencioso (que pode
+      // não disparar consoante como as janelas foram abertas).
+      window.__pontesDoPreview = window.__pontesDoPreview || [];
+      window.__pontesDoPreview.push(function () { aplicar(true); });
+    })();
+
+    // O botão do cabeçalho: força as duas pontes que vêm do Preview (sala e
+    // tamanho de ecrã) de uma só vez, em vez de se confiar só no evento
+    // "storage" -- que é silencioso, e se por alguma razão não disparar (as
+    // janelas não estavam as duas abertas no momento certo, por exemplo),
+    // não há como saber que ficou por fazer. Isto dá sempre uma resposta.
+    (function botaoSincronizar() {
+      var btn = document.getElementById("btSincronizarPreview");
+      if (!btn) return;
+      btn.addEventListener("click", function () {
+        var pontes = window.__pontesDoPreview || [];
+        pontes.forEach(function (f) { try { f(); } catch (e) {} });
+        var antes = btn.textContent;
+        btn.textContent = pontes.length ? "🔄 Trazido" : "🔄 Nada para trazer";
+        showToast(pontes.length
+          ? "Sala e tamanho de ecrã actualizados a partir do que o Preview tiver guardado."
+          : "Não há nada guardado do lado do Preview ainda.");
+        setTimeout(function () { btn.textContent = antes; }, 3000);
       });
     })();
 
