@@ -1,4 +1,4 @@
-# Calculadores (AVK Calculadores)
+# Calculadores (Mike Apps Calculadores)
 
 PWA estática para cálculos de AV/produção de eventos, uso interno da AVK Portugal.
 
