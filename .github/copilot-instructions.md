@@ -1,4 +1,4 @@
-# Calculadores (AVK Calculadores) — contexto para o Copilot
+# Calculadores (Mike Apps Calculadores) — contexto para o Copilot
 
 PWA estática para cálculos de AV/produção de eventos, uso interno da AVK Portugal, publicada no GitHub Pages. Lê também `/CLAUDE.md` na raiz — as convenções aí (bump de versão, nunca inventar dados técnicos, publicar sempre via PR para `main`) aplicam-se da mesma forma aqui.
 
