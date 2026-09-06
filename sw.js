@@ -1,4 +1,4 @@
-const CACHE = "calculadores-v275";
+const CACHE = "calculadores-v276";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -68,8 +68,21 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache-first for the app shell.
+  // Cache-first para a casca da app -- mas com a versao nova a ser buscada em
+  // segundo plano. Antes servia-se do cache e so se ia a rede quando la nao
+  // houvesse nada: quem abrisse a app ficava com essa versao ate alguem se
+  // lembrar de mexer no numero do CACHE aqui em cima, e quando isso falha o
+  // utilizador fica preso na app de ontem sem nada que lho diga.
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    caches.match(event.request).then((cached) => {
+      const daRede = fetch(event.request).then((resp) => {
+        if (resp && resp.ok) {
+          const copy = resp.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+        }
+        return resp;
+      }).catch(() => cached);
+      return cached || daRede;
+    })
   );
 });

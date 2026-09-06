@@ -5809,12 +5809,34 @@
         var partes = [];
         if (pub.lugares) partes.push(pub.lugares + " lugares em " + pub.filas + " filas");
         if (pub.corredores) partes.push(pub.corredores + " corredor(es)");
+        if (pub.ultimoEspectador) partes.push("ultimo espectador a " + pub.ultimoEspectador + " m");
         var palco = dados.palco || {};
         if (palco.largura) partes.push("palco " + palco.largura + " x " + palco.profundidade +
                                        " m a " + palco.altura + " m");
         nota.textContent = partes.length
           ? "Do Preview: " + partes.join(" - ") + "."
           : "Sala trazida do Preview.";
+
+        // E a parte que interessa: com a distancia do ultimo espectador, a
+        // largura da plateia e o pe-direito, o assistente ja consegue sugerir
+        // tamanho de ecra -- sao as mesmas contas da aba Distancia de
+        // Visualizacao (SMPTE para o angulo, AVIXA para a legibilidade), sem
+        // precisar de briefing nenhum para as fazer.
+        if (pub.ultimoEspectador > 0) {
+          try {
+            document.getElementById("asst-results-card").style.display = "";
+            renderScreenRecommendation({
+              dimensoes: null,
+              local: {
+                distanciaVisualizacaoM: pub.ultimoEspectador,
+                larguraPlateiaM: pub.larguraPlateia || dados.largura || null,
+                alturaSalaM: dados.altura || null
+              }
+            });
+          } catch (e) {
+            nota.textContent += " (nao consegui pedir a sugestao de tamanho)";
+          }
+        }
       });
     })();
 
