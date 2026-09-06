@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>mike apps</title>
+  <desc>Quatro apps numa grelha. Os cantos vão abrindo — quadrado, squircle,
+        círculo — até a última deixar de ser caixa e virar movimento.</desc>
+  <defs>
+    <linearGradient id="fundo" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#1246E6"/>
+      <stop offset="1" stop-color="#2E7BFF"/>
+    </linearGradient>
+    <linearGradient id="ciano" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#5FE9FF"/>
+    </linearGradient>
+    <linearGradient id="play" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2E7BFF"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="72" y="72" width="168" height="168" rx="30" fill="url(#fundo)"/>
+  <rect x="272" y="72" width="168" height="168" rx="64" fill="url(#ciano)"/>
+  <circle cx="156" cy="356" r="84" fill="#3B8CFF"/>
+
+  <path d="M 306 296 L 306 416 L 410 356 Z" fill="url(#play)" stroke="url(#play)"
+        stroke-width="30" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>mike apps — a grelha</title>
+<style>
+  body { margin: 0; font: 15px/1.6 "Segoe UI", system-ui, sans-serif; color: #0C1020; background: #fff; }
+  h2 { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #7a8296;
+       margin: 0 0 18px; font-weight: 600; }
+  section { padding: 34px 40px; border-bottom: 1px solid #eceef2; }
+  .linha { display: flex; align-items: center; gap: 46px; flex-wrap: wrap; }
+  .escuro { background: #0C1020; }
+  .escuro h2 { color: #7f8aa3; }
+  .caixa { background: #fff; border-radius: 14px; padding: 22px 26px; display: flex;
+           align-items: center; gap: 20px; }
+  .tamanhos { display: flex; align-items: flex-end; gap: 30px; }
+  .tamanhos figure { margin: 0; text-align: center; }
+  .tamanhos figcaption { font-size: 11px; color: #98a0b0; margin-top: 10px; }
+  .cores { display: flex; gap: 14px; }
+  .cor { width: 132px; border-radius: 12px; overflow: hidden; border: 1px solid #eceef2; }
+  .cor i { display: block; height: 74px; }
+  .cor b { display: block; font-size: 12px; padding: 9px 11px 2px; font-weight: 600; }
+  .cor span { display: block; font-size: 11px; padding: 0 11px 10px; color: #98a0b0;
+              font-family: Consolas, monospace; }
+  .mau { position: relative; opacity: .75; }
+  .mau::after { content: '✕'; position: absolute; right: -6px; top: -8px; color: #E0245E;
+                font-size: 22px; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<section>
+  <h2>A marca</h2>
+  <div class="linha">
+    <img src="mike-apps-horizontal.svg" height="96">
+    <img src="mike-apps-empilhado.svg" height="170">
+  </div>
+</section>
+
+<section class="escuro">
+  <h2>Sobre escuro</h2>
+  <div class="linha">
+    <div class="caixa"><img src="mike-apps-horizontal.svg" height="70"></div>
+    <img src="mike-apps-horizontal-branco.svg" height="70">
+  </div>
+</section>
+
+<section>
+  <h2>Ao tamanho a que ele vive mesmo</h2>
+  <div class="tamanhos">
+    <figure><img src="mike-apps-icone.svg" width="128"><figcaption>128 px</figcaption></figure>
+    <figure><img src="mike-apps-icone.svg" width="64"><figcaption>64 px</figcaption></figure>
+    <figure><img src="mike-apps-icone.svg" width="48"><figcaption>48 px · atalho</figcaption></figure>
+    <figure><img src="mike-apps-icone.svg" width="32"><figcaption>32 px</figcaption></figure>
+    <figure><img src="mike-apps-icone.svg" width="16"><figcaption>16 px · separador</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>As cores</h2>
+  <div class="cores">
+    <div class="cor"><i style="background:#1246E6"></i><b>Azul fundo</b><span>#1246E6</span></div>
+    <div class="cor"><i style="background:#2E7BFF"></i><b>Azul</b><span>#2E7BFF</span></div>
+    <div class="cor"><i style="background:#3B8CFF"></i><b>Azul claro</b><span>#3B8CFF</span></div>
+    <div class="cor"><i style="background:#22D3EE"></i><b>Ciano</b><span>#22D3EE</span></div>
+    <div class="cor"><i style="background:#0C1020"></i><b>Tinta</b><span>#0C1020</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Uma cor só, e o ar à volta</h2>
+  <div class="linha">
+    <img src="mike-apps-mono-tinta.svg" height="60">
+    <div style="background:#0C1020; padding:20px 26px; border-radius:12px">
+      <img src="mike-apps-mono-branco.svg" height="60">
+    </div>
+  </div>
+  <p style="color:#7a8296; font-size:13px; max-width:640px; margin-top:22px">
+    O ar à volta é a altura de uma app da grelha — nada entra nesse espaço.
+    Abaixo dos 16 px usa-se só o ícone, nunca a marca com as palavras.
+  </p>
+</section>
+
+<section>
+  <h2>O que não fazer</h2>
+  <div class="linha">
+    <div class="mau"><img src="mike-apps-icone.svg" height="72" style="transform:rotate(12deg)"></div>
+    <div class="mau"><img src="mike-apps-icone.svg" height="72" style="filter:grayscale(1) contrast(.5)"></div>
+    <div class="mau"><img src="mike-apps-icone.svg" height="72" style="transform:scaleX(1.5)"></div>
+    <div class="mau" style="background:#22D3EE; padding:12px; border-radius:10px">
+      <img src="mike-apps-icone.svg" height="72">
+    </div>
+  </div>
+  <p style="color:#7a8296; font-size:13px; max-width:640px; margin-top:22px">
+    Torto, desmaiado, esticado, e azul sobre azul. O último é o mais fácil de
+    fazer sem dar por isso — o ícone precisa de contraste com o que está atrás.
+  </p>
+</section>
+
+</body>
+</html>
