@@ -697,6 +697,9 @@
               <div class="inputgroup"><input id="l-target-h" type="number" autocomplete="off" inputmode="decimal" value="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
             </div>
           </div>
+          <div class="summary-actions" style="margin:2px 0 10px; flex-wrap:wrap;">
+            <button type="button" class="copy" id="l-trazer-preview">Trazer do Preview</button>
+          </div>
           <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida — o tamanho real fica no resultado. Para modelos com meio-tile disponível (ex: 100×50 + 50×50), a medida é afinada automaticamente com um meio-tile na borda quando isso bate mais certo.</div>
         </div>
 
@@ -4727,6 +4730,35 @@
     var el = document.querySelector("#" + containerId + " .seg-btn.active");
     return el ? el.dataset : {};
   }
+  // O tamanho que voltou do Preview. La olha-se para a sugestao montada na
+  // sala, estica-se ou encolhe-se ate fazer sentido, e devolve-se -- e aqui
+  // que ele vira tiles, porque e aqui que se sabe o que e um tile.
+  (function tamanhoDoPreview() {
+    var btn = document.getElementById("l-trazer-preview");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var d = null;
+      try { d = JSON.parse(localStorage.getItem("mikeapps-ecra-v1") || "null"); } catch (e) {}
+      if (!d || !d.largura) {
+        alert("Ainda nao veio nada do Preview. La, ajusta o tamanho do ecra e " +
+              "carrega em \"Devolver aos Calculadores\" — tem de ser no mesmo browser.");
+        return;
+      }
+      segClick("l-sizemode-seg", "sizemode", "meters");
+      var w = document.getElementById("l-target-w");
+      var h = document.getElementById("l-target-h");
+      w.value = d.largura; h.value = d.altura;
+      w.dispatchEvent(new Event("input", { bubbles: true }));
+      h.dispatchEvent(new Event("input", { bubbles: true }));
+      w.dispatchEvent(new Event("change", { bubbles: true }));
+      h.dispatchEvent(new Event("change", { bubbles: true }));
+      var quando = d.quando ? new Date(d.quando) : null;
+      btn.textContent = "Trazido: " + d.largura + " x " + d.altura + " m" +
+        (quando ? " (" + quando.toLocaleTimeString("pt-PT").slice(0, 5) + ")" : "");
+      setTimeout(function () { btn.textContent = "Trazer do Preview"; }, 6000);
+    });
+  }());
+
   function segClick(containerId, attr, value) {
     if (value == null) return;
     var btn = document.querySelector('#' + containerId + ' .seg-btn[data-' + attr + '="' + value + '"]');
