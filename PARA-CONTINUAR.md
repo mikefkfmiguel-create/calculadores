@@ -1,6 +1,8 @@
 # Para continuar
 
-Onde isto está, e o que falta. Escrito a 6 de setembro de 2026.
+Onde isto está, e o que falta. Escrito a 6 de setembro de 2026, atualizado a
+7 de setembro (sessão Claude Code, depois de sincronizar com o trabalho feito
+localmente entre 6 e 7 — ver "O que aconteceu depois" abaixo).
 
 Quem pegar nisto — pessoa ou agente — deve ler primeiro o `CLAUDE.md` (as
 convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
@@ -33,15 +35,34 @@ o **mesmo Worker** que o Assistente de Projeto usa aqui — o endereço vem do
 (`calculadores-assistente-worker-url`). Não duplica o catálogo; manda só o
 texto do pedido e a sala que já estiver desenhada, e aplica o que voltar.
 
+## O que aconteceu depois (6 tarde → 7 de setembro, feito localmente, fora desta sessão)
+
+Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
+substancial feito localmente (autor de commit "MIKE") que não estava refletido
+aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
+vivo com o Preview (`v2.6`–`v2.9`+), tipo de ecrã por zona (LED/TV/Projeção) +
+DSM do projeto, correções ao Ecrã Complexo, e por fim "Trazer o projeto
+inteiro do Preview" com o interruptor de sincronização automática (🔗 Auto).
+A tabela completa das chaves de `localStorage` da ponte, que este documento já
+prometia, está agora escrita em `.github/copilot-instructions.md`, secção
+"As pontes com o Preview" (não estava, até esta sessão notar a promessa por
+cumprir).
+
+**Lição repetida:** este documento também ficou desatualizado a meio — foi
+escrito a abrir uma sessão, não fechado no fim dela. Da próxima vez, atualizar
+isto ao terminar, não só ao começar.
+
 ## O que falta, do lado de cá
 
 1. **O shift das lentes que faltam.** Estão as 9 lentes Epson (publica-o por
    lente). Sony e Barco bloqueiam leitura automática das páginas — à mão, a
    partir das fichas técnicas. Panasonic, Christie e NEC publicam o shift **no
    corpo do projetor**, não na lente: esse número pertence a
-   `data/projectors.json`, não a `data/lenses.json`.
+   `data/projectors.json`, não a `data/lenses.json`. Ainda por fazer (verificado
+   a 7/9: só as 9 Epson têm `shift`, mais nenhuma marca).
 2. **TVs para o Preview**, como os projetores já vão (rácio, distância,
-   modelo — nunca o catálogo).
+   modelo — nunca o catálogo). Ainda por fazer (verificado a 7/9: não há
+   nenhum botão "Ver no Preview 3D" na aba TVs).
 3. Ver também os "Gaps conhecidos" no fim do `.github/copilot-instructions.md`
    — `pontosPorConfirmar` da IA por vezes contradiz a sugestão de
    dimensionamento já calculada no cliente; candidatos a `showAlarm()` ainda
