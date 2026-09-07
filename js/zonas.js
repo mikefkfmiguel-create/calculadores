@@ -134,6 +134,9 @@
     }
     lzApplyModel(card);
     if (!opts) return;
+    // Por omissão "led" (var declarado no <select> do template) — projetos
+    // antigos sem este campo no localStorage não mudam de comportamento.
+    if (opts.tipo != null) card.querySelector(".lz-tipo").value = opts.tipo;
     if (opts.visible != null) card.querySelector(".lz-visible").checked = opts.visible;
     if (opts.mw != null) card.querySelector(".lz-mw").value = opts.mw;
     if (opts.mh != null) card.querySelector(".lz-mh").value = opts.mh;
@@ -174,6 +177,7 @@
     return {
       visible: card.querySelector(".lz-visible").checked,
       modelValue: card.querySelector(".lz-model").value,
+      tipo: card.querySelector(".lz-tipo").value,
       sizeMode: activeSeg ? activeSeg.dataset.sizemode : "tiles",
       mx: card.querySelector(".lz-mx").value,
       my: card.querySelector(".lz-my").value,
@@ -253,6 +257,14 @@
         '<div class="field">' +
           '<label>Modelo de tile</label>' +
           '<select class="lz-model plain">' + lzZoneModelOptionsHtml() + '</select>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Tipo de ecrã</label>' +
+          '<select class="lz-tipo plain">' +
+            '<option value="led" selected>LED</option>' +
+            '<option value="tv">TV (delay)</option>' +
+            '<option value="projecao">Projeção (delay)</option>' +
+          '</select>' +
         '</div>' +
         '<div class="field">' +
           '<label>Como queres indicar o tamanho desta zona?</label>' +
@@ -414,6 +426,7 @@
       v: 1,
       origem: "calculadores",
       nome: "Ecrã LED — " + zones.length + " zona(s)",
+      dsm: (lzDsmN > 0) ? { n: lzDsmN, w: lzDsmW, h: lzDsmH } : null,
       zonas: zones.map(function (z) {
         // A curvatura vem em graus POR TILE; o total sao os angulos entre
         // paineis, que sao um a menos do que o numero de paineis.
@@ -431,6 +444,7 @@
           w: z.w, h: z.h,
           cor: lzZoneColor(z, colorMap, zones),
           curva: curva,
+          tipo: z.tipo || "led",
           tiles: { x: z.mx, y: z.my },
           res: { x: z.totalPx, y: z.totalPy },
           peso: z.weight,
@@ -1144,6 +1158,41 @@
       : { w: pm.canvasW, h: pm.canvasH };
   }
 
+  // DSM — monitores de confiança no palco. Ao contrário das zonas, isto não
+  // é um ecrã LED nem faz parte do conjunto: é só uma quantidade + tamanho
+  // guardado uma vez por projeto (não por zona), tal como o modo de canvas
+  // acima. Persiste entre esta página e ecra-complexo.html da mesma forma.
+  var LZ_DSM_KEY = "calculadores-dsm-v1";
+  var lzDsmN = 0, lzDsmW = 0.6, lzDsmH = 0.4;
+  (function () {
+    var nEl = document.getElementById("lz-dsm-n");
+    var wEl = document.getElementById("lz-dsm-w");
+    var hEl = document.getElementById("lz-dsm-h");
+    if (!nEl || !wEl || !hEl) return;
+    try {
+      var raw = localStorage.getItem(LZ_DSM_KEY);
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data && typeof data === "object") {
+          if (data.n != null) lzDsmN = parseInt(data.n, 10) || 0;
+          if (data.w != null) lzDsmW = parseFloat(data.w) || 0.6;
+          if (data.h != null) lzDsmH = parseFloat(data.h) || 0.4;
+        }
+      }
+    } catch (e) {}
+    nEl.value = lzDsmN;
+    wEl.value = lzDsmW;
+    hEl.value = lzDsmH;
+    function lzSaveDsm() {
+      lzDsmN = Math.max(0, parseInt(nEl.value, 10) || 0);
+      lzDsmW = parseFloat(wEl.value) || 0;
+      lzDsmH = parseFloat(hEl.value) || 0;
+      try { localStorage.setItem(LZ_DSM_KEY, JSON.stringify({ n: lzDsmN, w: lzDsmW, h: lzDsmH })); } catch (e) {}
+      lzGuardarParaPreview();
+    }
+    [nEl, wEl, hEl].forEach(function (el) { el.addEventListener("input", lzSaveDsm); });
+  })();
+
   function lzCanvasScale(pm) {
     var MAX_DIM = 4000;
     var longest = Math.max(pm.canvasW, pm.canvasH);
@@ -1490,7 +1539,7 @@
       }
       lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), curveInfo ? curveInfo.n : 0, curveInfo ? curveInfo.angleDeg : 0, curveInfo ? curveInfo.convex : false);
 
-      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, curveText: curveText, curve: curveInfo });
+      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, curveText: curveText, curve: curveInfo });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do
