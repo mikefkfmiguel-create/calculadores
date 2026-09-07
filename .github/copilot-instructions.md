@@ -70,6 +70,26 @@ A aba TVs ganhou "Adicionar ao projeto" (`tv-addproject`, checkbox junto ao resu
 
 A aba TVs também mudou de posição na navegação: agora vem logo a seguir a Distância de Visualização, antes de Ecrã LED & Pixel Pitch (pedido explícito do utilizador, já que TVs passou a ser uma opção de tecnologia escolhida cedo no fluxo, não um extra ao fundo).
 
+## As pontes com o Preview
+
+Existe um segundo projeto irmão, **Preview** (`mikefkfmiguel-create/preview`, publicado em `https://mikefkfmiguel-create.github.io/preview/`), que mostra em 3D o que aqui se calcula montado numa sala. Vivem no mesmo domínio (`mikefkfmiguel-create.github.io`) e por isso falam por **`localStorage` partilhado** — nada é enviado para nenhum servidor, é tudo local ao browser de quem usa. Referenciado no cabeçalho (`index.html`, ~linha 28-34): link "↗ Preview 3D" (abre sempre na mesma janela nomeada `mikeapps-preview`, `JANELA_DO_PREVIEW`), botão "🔄 Sincronizar" (vai buscar manualmente o que o Preview tiver guardado) e botão "🔗 Auto" (liga/desliga sincronização automática ao vivo — ver abaixo).
+
+**Chaves de `localStorage` da ponte** (todas com o prefixo `mikeapps-`, exceto a do Worker):
+
+| chave | sentido | o que leva |
+|---|---|---|
+| `mikeapps-projetor-v1` | Calculadores → Preview | projetor montado (rácio, distância, modelo — nunca o catálogo inteiro), escrito por `verNoPreview3D()` antes de abrir o link com `#proj=...` |
+| `mikeapps-ecra-v1` | Preview → Calculadores | tamanho de ecrã que o Preview tiver guardado; lido pelo botão "Trazer do Preview" na aba Ecrã LED (`l-trazer-preview`, `CHAVE` em ~linha 4917) |
+| `mikeapps-sala-v1` | Preview → Calculadores | dimensões da sala; lido pelo Assistente (`asst-trazer-sala`, `CHAVE` em ~linha 6069) e também usado para preencher `distanciaVisualizacaoM`/`larguraPlateiaM` quando faltam |
+| `mikeapps-projeto-v1` | Preview → Calculadores | o **projeto inteiro** (zonas do Ecrã Complexo já em metros); lido por `lzImportarProjetoDoPreview()` em `js/zonas.js` |
+| `mikeapps-briefing-v1` | Preview → Calculadores | texto de briefing escrito do lado do Preview, consumido uma vez pelo Assistente e depois apagado (`removeItem`) |
+| `mikeapps-sincronizacao-v1` (`SYNC_PREF_KEY`, `js/utils.js`) | partilhada | preferência on/off do botão "🔗 Auto" — a mesma chave e o mesmo valor são lidos pelas duas apps, por isso ligar/desligar num sítio reflete-se no outro |
+| `calculadores-assistente-worker-url` (`WORKER_URL_KEY`) | Calculadores → Preview | endereço do Worker; o botão "Analisar com a IA" do lado do Preview usa este valor para chamar o **mesmo Worker** que o Assistente de Projeto usa aqui, sem duplicar catálogo nem lógica |
+
+**Sincronização ao vivo**: com as duas abas abertas ao mesmo tempo e "🔗 Auto" ligado, o evento nativo `storage` do browser dispara nos dois lados quando uma escreve numa das chaves partilhadas. Cada painel que sabe reagir regista uma função em `window.__pontesDoPreview` (array partilhado, ex.: `index.html` ~linha 5004 e ~6135); quando o evento dispara, todas as funções registadas correm. Sem "Auto" ligado, nada passa sozinho — os botões manuais ("Trazer do Preview", "Ver no Preview 3D ↗", "🔄 Sincronizar") continuam sempre a funcionar, é só a parte automática que fica condicionada à preferência.
+
+**Isto não foi feito nesta sessão do Claude** — é trabalho feito localmente (PC do utilizador, fora deste ambiente) entre 6 e 7 de setembro de 2026, autor de commit "MIKE". Esta secção fecha uma referência que ficou por preencher: `PARA-CONTINUAR.md` (raiz do repo, também desse período) já apontava para "a tabela completa" aqui, mas a secção nunca tinha sido escrita. **`PARA-CONTINUAR.md` está desatualizado** a partir do commit "Documento de passagem" (6 de setembro, 16:44) — houve trabalho substancial depois disso (grupos de ecrãs no Worker, `v2.6`–`v2.9`+, tipo de ecrã por zona + DSM, importação do projeto inteiro do Preview) que não está refletido lá. Se for repositório de continuidade novamente, atualizar `PARA-CONTINUAR.md` a fechar a sessão, não só no início.
+
 ## Convenções operacionais
 
 - **Bump de versão obrigatório** em qualquer alteração visível: `<span class="mark">vX.Y</span>` em `index.html` E `const CACHE = "calculadores-vNN";` em `sw.js`, sempre os dois juntos, inteiro incrementado. Alterações só ao Worker não exigem bump.
