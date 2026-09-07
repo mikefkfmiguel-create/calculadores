@@ -1288,9 +1288,17 @@
     }, "image/png");
   }
 
-  document.getElementById("lz-export-map").addEventListener("click", lzExportPixelMapPNG);
-  document.getElementById("lz-export-mask").addEventListener("click", lzExportMaskPNG);
-  document.getElementById("lz-ver-3d").addEventListener("click", lzAbrirPreview);
+  // "Ver em 3D" só existe em index.html — ecra-complexo.html não o tem.
+  // getElementById devolve null nessa página, e um addEventListener direto
+  // num null rebentava aqui (TypeError), interrompendo toda a
+  // inicialização a partir daqui (undo stack, restauro do localStorage),
+  // por isso os três ficam protegidos por segurança e consistência.
+  var lzExportMapBtn = document.getElementById("lz-export-map");
+  if (lzExportMapBtn) lzExportMapBtn.addEventListener("click", lzExportPixelMapPNG);
+  var lzExportMaskBtn = document.getElementById("lz-export-mask");
+  if (lzExportMaskBtn) lzExportMaskBtn.addEventListener("click", lzExportMaskPNG);
+  var lzVer3dBtn = document.getElementById("lz-ver-3d");
+  if (lzVer3dBtn) lzVer3dBtn.addEventListener("click", lzAbrirPreview);
 
   // As zonas ficam gravadas no localStorage a cada alteração e restauradas
   // ao abrir a app — um refresh acidental (ou o telemóvel a recarregar a
