@@ -358,6 +358,13 @@
     // senão duplicar a zona de referência criava várias a competir.
     if (opts && opts.ref) card.querySelector(".lz-ref").checked = true;
     if (opts && opts.colorOverride) card.dataset.colorOverride = opts.colorOverride;
+    // Posição/rotação em 3D vinda do Preview — guardada tal e qual, para
+    // voltar de lá intacta. Fica no dataset (como a cor própria) e não em
+    // lzOptsFromCard de propósito: duplicar uma zona não deve criar duas
+    // zonas montadas exatamente no mesmo sítio da sala.
+    if (opts && opts.preview3d) {
+      try { card.dataset.preview3d = JSON.stringify(opts.preview3d); } catch (e) {}
+    }
     calcLedZones();
     if (startOpen) lzOpenZoneDialog(card.querySelector(".lz-details-dialog"));
     return card;
@@ -448,7 +455,12 @@
           tiles: { x: z.mx, y: z.my },
           res: { x: z.totalPx, y: z.totalPy },
           peso: z.weight,
-          amp: z.amp
+          amp: z.amp,
+          // Posição/rotação em 3D: não é nada que se calcule aqui (aqui só
+          // se sabe o alçado, em metros) — vem do Preview e volta lá
+          // intacta, para uma zona trazida de lá não perder o sítio onde
+          // estava montada só por ter passado pelos Calculadores.
+          preview: z.preview3d || null
         };
       })
     };
@@ -456,7 +468,142 @@
 
   var LZ_CHAVE_PREVIEW = "mikeapps-projeto-v1";
 
+  function lzPreview3dDoCard(card) {
+    var raw = card.dataset.preview3d;
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch (e) { return null; }
+  }
+
+  // ------------------------------------------------------- vir do Preview
+  //
+  // O sentido inverso de lzPayloadPreview(): as zonas chegam JA EM METROS
+  // (o Preview não sabe nada de tiles, pitch nem catálogos, de propósito) e
+  // é aqui que voltam a ser tiles. Nada de contas de pitch do outro lado:
+  // quando a zona traz tiles+resolução, deduz-se o tile que ela usava e
+  // procura-se esse tile no catálogo dos Calculadores — só se não houver
+  // nenhum igual é que fica "Personalizado" com essas medidas. Uma zona
+  // criada de raiz no Preview (só largura×altura) entra em metros e são
+  // estas calculadoras a decidir o nº de tiles, como sempre.
+  var LZ_TOL_MM = 0.6;
+
+  function lzModeloDoCatalogo(mw, mh, rx, ry) {
+    // Ordem com o stock da AVK à frente (mesma de lzPopulateModelSelect):
+    // havendo dois tiles iguais na base, o que a empresa tem é o certo.
+    var ordem = (typeof stockFirstIndices === "function")
+      ? stockFirstIndices(LED_TILES_DATA)
+      : LED_TILES_DATA.map(function (_, i) { return i; });
+    for (var k = 0; k < ordem.length; k++) {
+      var t = LED_TILES_DATA[ordem[k]];
+      if (Math.abs(t.mw - mw) <= LZ_TOL_MM && Math.abs(t.mh - mh) <= LZ_TOL_MM &&
+          t.rx === rx && t.ry === ry) return ordem[k];
+    }
+    return -1;
+  }
+
+  function lzOptsDeZonaDoPreview(z) {
+    var w = parseFloat(z.w), h = parseFloat(z.h);
+    var tiles = z.tiles || null;
+    var res = z.res || null;
+    var opts = {
+      name: z.nome || "Zona",
+      visible: true,
+      tipo: z.tipo || "led",
+      posX: z.x != null ? z.x : 0,
+      posY: z.y != null ? z.y : 0,
+      colorOverride: z.cor || null,
+      preview3d: z.preview || null
+    };
+
+    var mx = tiles ? parseInt(tiles.x, 10) : NaN;
+    var my = tiles ? parseInt(tiles.y, 10) : NaN;
+    var temTiles = mx > 0 && my > 0 && w > 0 && h > 0;
+
+    if (temTiles) {
+      opts.sizeMode = "tiles";
+      opts.mx = mx;
+      opts.my = my;
+      var mw = Math.round((w * 1000 / mx) * 10) / 10;
+      var mh = Math.round((h * 1000 / my) * 10) / 10;
+      var rx = res ? Math.round(parseFloat(res.x) / mx) : NaN;
+      var ry = res ? Math.round(parseFloat(res.y) / my) : NaN;
+      var idx = (rx > 0 && ry > 0) ? lzModeloDoCatalogo(mw, mh, rx, ry) : -1;
+      if (idx >= 0) {
+        // Modelo conhecido: pitch, peso e amperagem vêm do catálogo daqui,
+        // nunca do que veio do Preview — é este o sítio onde esses dados
+        // vivem, e não vale a pena ter dois a discordar.
+        opts.modelValue = String(idx);
+      } else {
+        opts.modelValue = "custom";
+        opts.mw = mw;
+        opts.mh = mh;
+        if (rx > 0) opts.rx = rx;
+        if (ry > 0) opts.ry = ry;
+        var numTiles = mx * my;
+        var peso = parseFloat(z.peso), amp = parseFloat(z.amp);
+        if (peso > 0) opts.weight = Math.round((peso / numTiles) * 100) / 100;
+        if (amp > 0) opts.amp = Math.round((amp / numTiles) * 1000) / 1000;
+      }
+    } else {
+      // Zona criada no Preview: só se sabe o tamanho em metros. O modelo
+      // fica o que estiver por omissão e o nº de tiles é conta destas
+      // calculadoras.
+      opts.sizeMode = "meters";
+      if (w > 0) opts.targetW = Math.round(w * 1000) / 1000;
+      if (h > 0) opts.targetH = Math.round(h * 1000) / 1000;
+    }
+
+    var curva = z.curva;
+    if (curva && parseFloat(curva.valor) > 0) {
+      var modo = String(curva.modo || "angulo").toLowerCase();
+      opts.curveEnabled = true;
+      opts.curveDir = (String(curva.dir || "").toLowerCase().indexOf("conv") === 0) ? "convex" : "concave";
+      if (modo === "raio" || modo === "radius") {
+        opts.curveMode = "radius";
+        opts.curveValue = curva.valor;
+      } else if (modo === "corda" || modo === "chord") {
+        opts.curveMode = "chord";
+        opts.curveValue = curva.valor;
+      } else {
+        // Saiu daqui como arco total (ângulos ENTRE painéis = nº de
+        // painéis − 1); volta a ser ângulo por tile.
+        opts.curveMode = "angle";
+        opts.curveValue = (mx > 1)
+          ? Math.round((parseFloat(curva.valor) / (mx - 1)) * 100) / 100
+          : curva.valor;
+      }
+    }
+    return opts;
+  }
+
+  // Devolve o nº de zonas trazidas (0 se não havia nada de jeito).
+  function lzImportarProjetoDoPreview(projeto) {
+    if (!projeto || !Array.isArray(projeto.zonas) || !projeto.zonas.length) return 0;
+    if (!lzList) return 0;
+    lzPushUndo();
+    lzList.innerHTML = "";
+    projeto.zonas.forEach(function (z) {
+      lzAddZone(z.nome || "Zona", lzOptsDeZonaDoPreview(z), false);
+    });
+    if (projeto.dsm) lzAplicarDsm(projeto.dsm);
+    calcLedZones();
+    var usezones = document.getElementById("proj-led-usezones");
+    if (usezones && !usezones.checked) {
+      usezones.checked = true;
+      usezones.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    return projeto.zonas.length;
+  }
+  window.lzImportarProjetoDoPreview = lzImportarProjetoDoPreview;
+
   function lzGuardarParaPreview() {
+    // Escrita automática (corre a cada recálculo): com a sincronização
+    // automática desligada não passa nada sozinho. O caminho manual ("Ver
+    // em 3D"/"Sincronizar") continua a escrever à mesma, por lzForcarParaPreview.
+    if (typeof syncAutoLigada === "function" && !syncAutoLigada()) return;
+    lzForcarParaPreview();
+  }
+
+  function lzForcarParaPreview() {
     try {
       var payload = lzPayloadPreview();
       if (payload) localStorage.setItem(LZ_CHAVE_PREVIEW, JSON.stringify(payload));
@@ -1164,6 +1311,9 @@
   // acima. Persiste entre esta página e ecra-complexo.html da mesma forma.
   var LZ_DSM_KEY = "calculadores-dsm-v1";
   var lzDsmN = 0, lzDsmW = 0.6, lzDsmH = 0.4;
+  // Preenchido pelo bloco abaixo — permite ao importador do Preview repor os
+  // DSM sem duplicar a leitura/escrita destes três campos.
+  var lzAplicarDsm = function () {};
   (function () {
     var nEl = document.getElementById("lz-dsm-n");
     var wEl = document.getElementById("lz-dsm-w");
@@ -1191,6 +1341,13 @@
       lzGuardarParaPreview();
     }
     [nEl, wEl, hEl].forEach(function (el) { el.addEventListener("input", lzSaveDsm); });
+    lzAplicarDsm = function (dsm) {
+      if (!dsm || typeof dsm !== "object") return;
+      if (dsm.n != null) nEl.value = Math.max(0, parseInt(dsm.n, 10) || 0);
+      if (dsm.w != null) wEl.value = parseFloat(dsm.w) || 0;
+      if (dsm.h != null) hEl.value = parseFloat(dsm.h) || 0;
+      lzSaveDsm();
+    };
   })();
 
   function lzCanvasScale(pm) {
@@ -1419,6 +1576,7 @@
       opts.posY = card.querySelector(".lz-posy").value;
       opts.ref = card.querySelector(".lz-ref").checked;
       opts.colorOverride = card.dataset.colorOverride || null;
+      opts.preview3d = lzPreview3dDoCard(card);
       return opts;
     });
   }
@@ -1539,7 +1697,7 @@
       }
       lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), curveInfo ? curveInfo.n : 0, curveInfo ? curveInfo.angleDeg : 0, curveInfo ? curveInfo.convex : false);
 
-      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, curveText: curveText, curve: curveInfo });
+      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: curveText, curve: curveInfo });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do

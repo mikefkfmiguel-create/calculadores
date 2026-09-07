@@ -25,20 +25,18 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <a class="mark" href="https://mikefkfmiguel-create.github.io/preview/"
+    <a class="mark topbtn" href="https://mikefkfmiguel-create.github.io/preview/"
        target="mikeapps-preview"
-       title="Ver o projeto montado numa sala, em 3D"
-       style="text-decoration:none;">↗ Preview 3D</a>
-    <button type="button" class="mark" id="btSincronizarPreview"
-            title="Vai buscar já a sala e o tamanho de ecrã que o Preview tiver guardados — sem esperar pelo aviso automático"
-            style="background:none; border:1px solid currentColor; border-radius:6px; cursor:pointer; font:inherit; padding:2px 8px;">🔄 Sincronizar</button>
-    <button type="button" class="mark" id="btGuardarProjetoTopo"
-            title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois"
-            style="background:none; border:1px solid currentColor; border-radius:6px; cursor:pointer; font:inherit; padding:2px 8px;">💾 Guardar</button>
-    <button type="button" class="mark" id="btAbrirProjetoTopo"
-            title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba"
-            style="background:none; border:1px solid currentColor; border-radius:6px; cursor:pointer; font:inherit; padding:2px 8px;">📂 Abrir</button>
-    <span class="mark" id="app-versao">v3.1</span>
+       title="Ver o projeto montado numa sala, em 3D">↗ Preview 3D</a>
+    <button type="button" class="mark topbtn" id="btSincronizarPreview"
+            title="Vai buscar já a sala e o tamanho de ecrã que o Preview tiver guardados — sem esperar pelo aviso automático">🔄 Sincronizar</button>
+    <button type="button" class="mark topbtn" id="btSincronizacaoAuto"
+            title="Sincronização automática com o Preview 3D — desligada, nada passa sozinho entre as duas apps; os botões manuais continuam a funcionar">🔗 Auto</button>
+    <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
+            title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
+    <button type="button" class="mark topbtn" id="btAbrirProjetoTopo"
+            title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
+    <span class="mark" id="app-versao">v3.2</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -159,7 +157,7 @@
               onde se vê o projeto montado. Aqui traz-se o resultado: as duas apps partilham
               o mesmo sítio de arrumação do browser, por isso não há nada para copiar à mão.</p>
             <div class="summary-actions" style="margin-bottom:10px; flex-wrap:wrap;">
-              <button type="button" class="copy" id="asst-trazer-sala">Trazer sala do Preview</button>
+              <button type="button" class="copy bridge-btn" id="asst-trazer-sala">Trazer sala do Preview</button>
             </div>
             <div class="row2">
               <div class="field">
@@ -217,7 +215,7 @@
               <div class="summary-actions" style="margin-top:10px; flex-wrap:wrap;">
                 <button type="button" class="copy" id="asst-rec-use-led">Usar em Ecrã LED</button>
                 <button type="button" class="copy" id="asst-rec-use-proj">Usar em Distância de Projeção</button>
-                <button type="button" class="copy" id="asst-rec-ver-3d">Ver em 3D ↗</button>
+                <button type="button" class="copy bridge-btn" id="asst-rec-ver-3d">Ver em 3D ↗</button>
               </div>
               <div class="hint">Isto dá só o tamanho — a escolha da tecnologia (LED, projeção, TV) é a seguir, na aba respetiva: os botões acima aplicam o tamanho escolhido a Ecrã LED/Distância de Projeção; para TVs, usa o tamanho como referência e escolhe o modelo diretamente na aba TVs (o catálogo é de unidades discretas, não de tamanho contínuo). Se a sugestão for de mais do que 1 ecrã, repete a configuração para cada um.</div>
               <div class="hint">Estimativa a partir da distância/largura da plateia (linha acima) e das mesmas regras SMPTE (ângulo) e AVIXA (legibilidade) já usadas na aba Distância de Visualização — confirma sempre com a disposição real do espaço.</div>
@@ -415,7 +413,7 @@
           <div class="warn" id="p-lens-warn" style="display:none;"></div>
           <div class="note" id="p-lens-ok" style="display:none;"></div>
           <div class="summary-actions" style="margin-top:14px;">
-            <button type="button" class="copy" id="p-ver-3d-topo"
+            <button type="button" class="copy bridge-btn" id="p-ver-3d-topo"
                     title="Abre o Preview 3D com este projetor montado na sala">Ver no Preview 3D ↗</button>
           </div>
         </div>
@@ -462,7 +460,7 @@
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="p-addproject">Adicionar ao projeto</label>
-              <button type="button" class="copy" id="p-ver-3d" title="Abre o Preview 3D com este projetor montado na sala">Ver no Preview 3D ↗</button>
+              <button type="button" class="copy bridge-btn" id="p-ver-3d" title="Abre o Preview 3D com este projetor montado na sala">Ver no Preview 3D ↗</button>
               <select class="copy" id="p-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
                 <option value="" selected>↗ Partilhar/Guardar</option>
                 <option value="text">Como texto (mensagem)</option>
@@ -717,7 +715,7 @@
             </div>
           </div>
           <div class="summary-actions" style="margin:2px 0 10px; flex-wrap:wrap;">
-            <button type="button" class="copy" id="l-trazer-preview">Trazer do Preview</button>
+            <button type="button" class="copy bridge-btn" id="l-trazer-preview">Trazer do Preview</button>
           </div>
           <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida — o tamanho real fica no resultado. Para modelos com meio-tile disponível (ex: 100×50 + 50×50), a medida é afinada automaticamente com um meio-tile na borda quando isso bate mais certo.</div>
         </div>
@@ -964,7 +962,7 @@
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
           <button type="button" class="copy" id="lz-export-map">Exportar mapa de píxeis (PNG)</button>
           <button type="button" class="copy" id="lz-export-mask">Exportar máscara (PNG)</button>
-          <button type="button" class="copy" id="lz-ver-3d">Ver em 3D ↗</button>
+          <button type="button" class="copy bridge-btn" id="lz-ver-3d">Ver em 3D ↗</button>
         </div>
         <p class="hint" style="margin-top:8px;">Canvas único em píxeis para importar num media server. Se as zonas tiverem pitches diferentes, a posição/tamanho no canvas é aproximada — usa como referência o pitch da zona com maior área (fica indicado no ficheiro). O "mapa" tem legendas com os valores; a "máscara" é só preto/branco (uma zona = branco), para usar como matte de conteúdo.</p>
       </div>
@@ -4920,16 +4918,37 @@
     var btn = document.getElementById("l-trazer-preview");
     if (!btn) return;
 
-    function aplicar(avisar) {
-      var d = null;
-      try { d = JSON.parse(localStorage.getItem(CHAVE) || "null"); } catch (e) {}
-      if (!d || !d.largura) {
-        if (avisar) {
-          alert("Ainda nao veio nada do Preview. La, ajusta o tamanho do ecra e " +
-                "carrega em \"Devolver aos Calculadores\" — tem de ser no mesmo browser.");
-        }
-        return;
-      }
+    function marcarBotao(texto) {
+      btn.textContent = texto;
+      setTimeout(function () { btn.textContent = "Trazer do Preview"; }, 6000);
+    }
+
+    function horaDe(d) {
+      var quando = d.quando ? new Date(d.quando) : null;
+      return quando ? " (" + quando.toLocaleTimeString("pt-PT").slice(0, 5) + ")" : "";
+    }
+
+    // O projeto inteiro que voltou do Preview: zonas já em metros, com
+    // posição, cor, curvatura e (quando existiram lá) tiles/resolução. Quem
+    // volta a transformar isso em tiles, pitch e modelos do catálogo é a aba
+    // Ecrã Complexo — ver lzImportarProjetoDoPreview em js/zonas.js. Aqui só
+    // se decide que é esse o caminho.
+    function aplicarProjeto(projeto, d) {
+      var n = 0;
+      try { n = window.lzImportarProjetoDoPreview(projeto); } catch (e) { n = 0; }
+      if (!n) return false;
+      var modo = document.querySelector('.tab[data-mode="zonas"]');
+      if (modo) modo.click();
+      var nome = projeto.nome ? " — “" + projeto.nome + "”" : "";
+      showToast("Trazido do Preview: " + n + (n === 1 ? " ecrã" : " ecrãs") +
+                " com tamanhos e posições" + nome + ".");
+      marcarBotao("Trazido: " + n + (n === 1 ? " ecrã" : " ecrãs") + horaDe(d));
+      return true;
+    }
+
+    // Só largura/altura (payload antigo, ou um tamanho solto vindo do
+    // Preview): continua a cair na aba Ecrã LED como sempre caiu.
+    function aplicarTamanho(d) {
       segClick("l-sizemode-seg", "sizemode", "meters");
       var w = document.getElementById("l-target-w");
       var h = document.getElementById("l-target-h");
@@ -4938,10 +4957,35 @@
       h.dispatchEvent(new Event("input", { bubbles: true }));
       w.dispatchEvent(new Event("change", { bubbles: true }));
       h.dispatchEvent(new Event("change", { bubbles: true }));
-      var quando = d.quando ? new Date(d.quando) : null;
-      btn.textContent = "Trazido: " + d.largura + " x " + d.altura + " m" +
-        (quando ? " (" + quando.toLocaleTimeString("pt-PT").slice(0, 5) + ")" : "");
-      setTimeout(function () { btn.textContent = "Trazer do Preview"; }, 6000);
+      marcarBotao("Trazido: " + d.largura + " x " + d.altura + " m" + horaDe(d));
+    }
+
+    // A sala e o palco que vêm no mesmo pacote: já existem campos para isso
+    // no Assistente (os mesmos que a ponte "mikeapps-sala-v1" preenche), por
+    // isso aproveitam-se — sem contas nenhumas, é só copiar o que veio.
+    function aplicarSala(sala) {
+      if (!sala || typeof sala !== "object") return;
+      [["largura", "asst-sala-largura"], ["profundidade", "asst-sala-profundidade"],
+       ["altura", "asst-sala-altura"]].forEach(function (par) {
+        var el = document.getElementById(par[1]);
+        if (el && sala[par[0]] > 0) el.value = sala[par[0]];
+      });
+    }
+
+    function aplicar(avisar) {
+      var d = null;
+      try { d = JSON.parse(localStorage.getItem(CHAVE) || "null"); } catch (e) {}
+      var temProjeto = d && d.projeto && Array.isArray(d.projeto.zonas) && d.projeto.zonas.length;
+      if (!d || (!d.largura && !temProjeto)) {
+        if (avisar) {
+          showToast("Ainda não veio nada do Preview. Lá, ajusta o ecrã e carrega em " +
+                    "\"Devolver aos Calculadores\" — tem de ser no mesmo browser.");
+        }
+        return;
+      }
+      aplicarSala(d.sala);
+      if (temProjeto && aplicarProjeto(d.projeto, d)) return;
+      if (d.largura) aplicarTamanho(d);
     }
 
     btn.addEventListener("click", function () { aplicar(true); });
@@ -4949,9 +4993,10 @@
     // Ao vivo: com as duas abas abertas, mexer no tamanho no Preview e
     // carregar em "Devolver aos Calculadores" atualiza aqui sem precisar do
     // clique — a mesma simetria que o projeto e o projetor já têm no sentido
-    // contrário (destes Calculadores para o Preview).
+    // contrário (destes Calculadores para o Preview). Com a sincronização
+    // automática desligada isto fica quieto; o botão continua a funcionar.
     window.addEventListener("storage", function (e) {
-      if (e.key === CHAVE && e.newValue) aplicar(false);
+      if (e.key === CHAVE && e.newValue && syncAutoLigada()) aplicar(false);
     });
 
     // Regista-se para o botão "Sincronizar agora" do cabeçalho poder forçar
@@ -6081,7 +6126,7 @@
       // atualiza aqui sem precisar do clique -- a mesma simetria que o
       // projeto e o projetor já têm no sentido contrário.
       window.addEventListener("storage", function (e) {
-        if (e.key === CHAVE && e.newValue) aplicar(false);
+        if (e.key === CHAVE && e.newValue && syncAutoLigada()) aplicar(false);
       });
 
       // Regista-se para o botão "Sincronizar agora" do cabeçalho poder
@@ -6102,6 +6147,9 @@
       btn.addEventListener("click", function () {
         var pontes = window.__pontesDoPreview || [];
         pontes.forEach(function (f) { try { f(); } catch (e) {} });
+        // Manual é manual: mesmo com a sincronização automática desligada,
+        // este clique também empurra as zonas daqui para o Preview.
+        if (typeof lzForcarParaPreview === "function") { try { lzForcarParaPreview(); } catch (e) {} }
         var antes = btn.textContent;
         btn.textContent = pontes.length ? "🔄 Trazido" : "🔄 Nada para trazer";
         showToast(pontes.length
@@ -6110,6 +6158,13 @@
         setTimeout(function () { btn.textContent = antes; }, 3000);
       });
     })();
+
+    // Interruptor da sincronização automática — a preferência
+    // ("mikeapps-sincronizacao-v1") é partilhada com o Preview, por isso
+    // desligar aqui desliga dos dois lados. Só trava o que é automático
+    // (eventos "storage" e escritas a cada recálculo); "Trazer do Preview",
+    // "Sincronizar" e "Ver em 3D" continuam iguais. O botão em si é ligado
+    // em js/utils.js, que o partilha com a página do Ecrã Complexo.
 
     // Guardar e Abrir o projeto viviam só dentro da aba Projeto, ao fundo de
     // um resumo -- quem estava a trabalhar em qualquer outra aba (a maioria

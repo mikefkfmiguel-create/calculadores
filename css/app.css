@@ -210,6 +210,61 @@
     color: var(--ink-faint);
     letter-spacing: 0.08em;
   }
+  /* Botões da barra superior (Sincronizar, Auto, Guardar, Abrir, Preview 3D)
+     — eram texto quase sem caixa, com um contorno em currentColor por cima
+     de um cinzento fraco, e passavam despercebidos. Ganham caixa própria,
+     mais respiro e um estado ligado/desligado que se lê de longe. */
+  .top .topbtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: 0;
+    color: var(--ink);
+    background: var(--paper-raised);
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: var(--shadow);
+    white-space: nowrap;
+  }
+  .top .topbtn:hover {
+    border-color: var(--focus);
+    color: var(--ink);
+    background: var(--paper);
+  }
+  .top .topbtn:active { transform: translateY(1px); }
+  .top .topbtn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  /* Ligado/desligado da sincronização automática — cor, não só o texto. */
+  .top .topbtn.is-on {
+    color: var(--green-600);
+    border-color: var(--green-500);
+    background: var(--green-100);
+  }
+  .top .topbtn.is-off {
+    color: var(--danger-600);
+    border-color: var(--danger-600);
+    background: var(--danger-100);
+  }
+  /* Botões manuais da ponte com o Preview ("Trazer do Preview", "Ver no
+     Preview 3D", "Trazer sala do Preview"): são caminhos de ida e volta
+     entre as duas apps, e com o automático desligado passam a ser a única
+     forma de o fazer — por isso não podem ficar iguais a um "copiar". */
+  button.copy.bridge-btn {
+    color: var(--cyan-600);
+    border: 1.5px solid var(--cyan-500);
+    background: var(--cyan-100);
+    padding: 7px 12px;
+  }
+  button.copy.bridge-btn:hover {
+    color: var(--ink);
+    border-color: var(--cyan-600);
+  }
   h1 {
     font-size: 26px;
     font-weight: 700;

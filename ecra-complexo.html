@@ -44,6 +44,8 @@
       <h1>Ecrã Complexo</h1>
     </div>
     <a href="index.html" class="srclink" style="white-space:nowrap;" title="Construtor de ecrãs LED com várias zonas/pitches — as zonas ficam guardadas no aparelho e também aparecem na aba &quot;Ecrã Complexo&quot; dos Calculadores.">← Calculadores</a>
+    <button type="button" class="topbtn" id="btSincronizacaoAuto"
+            title="Sincronização automática com o Preview 3D — desligada, nada passa sozinho entre as duas apps; os botões manuais continuam a funcionar">🔗 Auto</button>
   </div>
 
   <button type="button" id="lz-preview-bar">
@@ -162,8 +164,7 @@
     });
   });
 
-  var LED_TILES_DATA = [];
-  fetch("data/led-tiles.json").then(function (r) { return r.json(); }).then(function (data) {
+  var LED_TILES_DATA = [];  fetch("data/led-tiles.json").then(function (r) { return r.json(); }).then(function (data) {
     LED_TILES_DATA = data;
     lzRestoreFromStorage();
     calcLedZones();
