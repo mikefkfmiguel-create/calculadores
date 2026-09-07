@@ -391,9 +391,15 @@
     .tab:first-child { padding-left: 0; }
   }
   .tab .swatch, .tabs-current .swatch {
-    width: 9px; height: 9px;
-    border-radius: 2px;
+    width: 11px; height: 11px;
+    border-radius: 3px;
     flex: none;
+    /* Um quadrado de 9px, só com a cor de fundo, quase não se via ao lado do
+       texto -- ficava fino demais para o olho parar nele. O anel escuro
+       (claro no tema claro) dá-lhe uma borda que não depende da cor de cada
+       aba, e por isso ajuda tanto às cores mais claras (violeta, ciano) como
+       às mais escuras. */
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 25%, transparent);
   }
   .tab[data-mode="projecao"] .swatch, .tabs-current[data-mode="projecao"] .swatch { background: var(--amber-500); }
   .tab[data-mode="visualizacao"] .swatch, .tabs-current[data-mode="visualizacao"] .swatch { background: var(--cyan-500); }
