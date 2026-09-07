@@ -210,6 +210,61 @@
     color: var(--ink-faint);
     letter-spacing: 0.08em;
   }
+  /* Botões da barra superior (Sincronizar, Auto, Guardar, Abrir, Preview 3D)
+     — eram texto quase sem caixa, com um contorno em currentColor por cima
+     de um cinzento fraco, e passavam despercebidos. Ganham caixa própria,
+     mais respiro e um estado ligado/desligado que se lê de longe. */
+  .top .topbtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: 0;
+    color: var(--ink);
+    background: var(--paper-raised);
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: var(--shadow);
+    white-space: nowrap;
+  }
+  .top .topbtn:hover {
+    border-color: var(--focus);
+    color: var(--ink);
+    background: var(--paper);
+  }
+  .top .topbtn:active { transform: translateY(1px); }
+  .top .topbtn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  /* Ligado/desligado da sincronização automática — cor, não só o texto. */
+  .top .topbtn.is-on {
+    color: var(--green-600);
+    border-color: var(--green-500);
+    background: var(--green-100);
+  }
+  .top .topbtn.is-off {
+    color: var(--danger-600);
+    border-color: var(--danger-600);
+    background: var(--danger-100);
+  }
+  /* Botões manuais da ponte com o Preview ("Trazer do Preview", "Ver no
+     Preview 3D", "Trazer sala do Preview"): são caminhos de ida e volta
+     entre as duas apps, e com o automático desligado passam a ser a única
+     forma de o fazer — por isso não podem ficar iguais a um "copiar". */
+  button.copy.bridge-btn {
+    color: var(--cyan-600);
+    border: 1.5px solid var(--cyan-500);
+    background: var(--cyan-100);
+    padding: 7px 12px;
+  }
+  button.copy.bridge-btn:hover {
+    color: var(--ink);
+    border-color: var(--cyan-600);
+  }
   h1 {
     font-size: 26px;
     font-weight: 700;
@@ -391,9 +446,15 @@
     .tab:first-child { padding-left: 0; }
   }
   .tab .swatch, .tabs-current .swatch {
-    width: 9px; height: 9px;
-    border-radius: 2px;
+    width: 11px; height: 11px;
+    border-radius: 3px;
     flex: none;
+    /* Um quadrado de 9px, só com a cor de fundo, quase não se via ao lado do
+       texto -- ficava fino demais para o olho parar nele. O anel escuro
+       (claro no tema claro) dá-lhe uma borda que não depende da cor de cada
+       aba, e por isso ajuda tanto às cores mais claras (violeta, ciano) como
+       às mais escuras. */
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 25%, transparent);
   }
   .tab[data-mode="projecao"] .swatch, .tabs-current[data-mode="projecao"] .swatch { background: var(--amber-500); }
   .tab[data-mode="visualizacao"] .swatch, .tabs-current[data-mode="visualizacao"] .swatch { background: var(--cyan-500); }
@@ -837,6 +898,8 @@
   .lensmatch-list .lm-note { flex-basis: 100%; font-size: 12px; color: var(--ink-faint); line-height: 1.5; margin-top: 2px; }
   .lensmatch-list .lm-model { color: var(--ink-soft); }
   .lensmatch-list .lm-empty { color: var(--ink-faint); font-style: italic; }
+  .lensmatch-list .lm-escolher { cursor: pointer; }
+  .lensmatch-list .lm-escolher:hover { background: var(--cyan-100); border-radius: 6px; }
   .lensmatch-list .lm-checkitem { align-items: center; cursor: pointer; }
   .lensmatch-list .lm-checkitem input[type="checkbox"] { flex-shrink: 0; margin: 0 10px 0 0; width: 16px; height: 16px; accent-color: var(--green-500); cursor: pointer; }
   .lensmatch-list .lm-row { display: flex; justify-content: space-between; gap: 10px; flex: 1; }

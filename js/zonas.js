@@ -134,6 +134,9 @@
     }
     lzApplyModel(card);
     if (!opts) return;
+    // Por omissão "led" (var declarado no <select> do template) — projetos
+    // antigos sem este campo no localStorage não mudam de comportamento.
+    if (opts.tipo != null) card.querySelector(".lz-tipo").value = opts.tipo;
     if (opts.visible != null) card.querySelector(".lz-visible").checked = opts.visible;
     if (opts.mw != null) card.querySelector(".lz-mw").value = opts.mw;
     if (opts.mh != null) card.querySelector(".lz-mh").value = opts.mh;
@@ -174,6 +177,7 @@
     return {
       visible: card.querySelector(".lz-visible").checked,
       modelValue: card.querySelector(".lz-model").value,
+      tipo: card.querySelector(".lz-tipo").value,
       sizeMode: activeSeg ? activeSeg.dataset.sizemode : "tiles",
       mx: card.querySelector(".lz-mx").value,
       my: card.querySelector(".lz-my").value,
@@ -253,6 +257,14 @@
         '<div class="field">' +
           '<label>Modelo de tile</label>' +
           '<select class="lz-model plain">' + lzZoneModelOptionsHtml() + '</select>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Tipo de ecrã</label>' +
+          '<select class="lz-tipo plain">' +
+            '<option value="led" selected>LED</option>' +
+            '<option value="tv">TV (delay)</option>' +
+            '<option value="projecao">Projeção (delay)</option>' +
+          '</select>' +
         '</div>' +
         '<div class="field">' +
           '<label>Como queres indicar o tamanho desta zona?</label>' +
@@ -346,6 +358,13 @@
     // senão duplicar a zona de referência criava várias a competir.
     if (opts && opts.ref) card.querySelector(".lz-ref").checked = true;
     if (opts && opts.colorOverride) card.dataset.colorOverride = opts.colorOverride;
+    // Posição/rotação em 3D vinda do Preview — guardada tal e qual, para
+    // voltar de lá intacta. Fica no dataset (como a cor própria) e não em
+    // lzOptsFromCard de propósito: duplicar uma zona não deve criar duas
+    // zonas montadas exatamente no mesmo sítio da sala.
+    if (opts && opts.preview3d) {
+      try { card.dataset.preview3d = JSON.stringify(opts.preview3d); } catch (e) {}
+    }
     calcLedZones();
     if (startOpen) lzOpenZoneDialog(card.querySelector(".lz-details-dialog"));
     return card;
@@ -396,6 +415,228 @@
   // posições. Não reordena enquanto o utilizador está a escrever num campo
   // de posição (perderia o foco a meio da edição); só quando o campo é
   // confirmado (blur) ou noutras ações (adicionar, duplicar, mover em bloco).
+  // ------------------------------------------------------------------ ver em 3D
+  //
+  // O preview vive noutro projeto e nao sabe nada de tiles, pitch nem
+  // catalogos -- de proposito. Quem sabe isso e este ficheiro, e por isso e
+  // daqui que saem as zonas JA EM METROS. Assim um modelo de LED novo nao
+  // obriga a mexer la, e nunca ha dois sitios a discordar sobre o tamanho da
+  // mesma parede.
+  var LZ_PREVIEW_URL = "https://mikefkfmiguel-create.github.io/preview/";
+
+  function lzPayloadPreview() {
+    if (!lzLastTotals || !lzLastTotals.zones || !lzLastTotals.zones.length) return null;
+    var zones = lzLastTotals.zones;
+    var colorMap = lzLastTotals.colorMap || lzGroupColorMap(zones);
+
+    return {
+      v: 1,
+      origem: "calculadores",
+      nome: "Ecrã LED — " + zones.length + " zona(s)",
+      dsm: (lzDsmN > 0) ? { n: lzDsmN, w: lzDsmW, h: lzDsmH } : null,
+      zonas: zones.map(function (z) {
+        // A curvatura vem em graus POR TILE; o total sao os angulos entre
+        // paineis, que sao um a menos do que o numero de paineis.
+        var curva = null;
+        if (z.curve && z.curve.angleDeg && z.curve.n > 1) {
+          curva = {
+            modo: "angulo",
+            valor: z.curve.angleDeg * (z.curve.n - 1),
+            dir: z.curve.convex ? "convexo" : "concavo"
+          };
+        }
+        return {
+          nome: z.name,
+          x: z.posX, y: z.posY,
+          w: z.w, h: z.h,
+          cor: lzZoneColor(z, colorMap, zones),
+          curva: curva,
+          tipo: z.tipo || "led",
+          tiles: { x: z.mx, y: z.my },
+          res: { x: z.totalPx, y: z.totalPy },
+          peso: z.weight,
+          amp: z.amp,
+          // Posição/rotação em 3D: não é nada que se calcule aqui (aqui só
+          // se sabe o alçado, em metros) — vem do Preview e volta lá
+          // intacta, para uma zona trazida de lá não perder o sítio onde
+          // estava montada só por ter passado pelos Calculadores.
+          preview: z.preview3d || null
+        };
+      })
+    };
+  }
+
+  var LZ_CHAVE_PREVIEW = "mikeapps-projeto-v1";
+
+  function lzPreview3dDoCard(card) {
+    var raw = card.dataset.preview3d;
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch (e) { return null; }
+  }
+
+  // ------------------------------------------------------- vir do Preview
+  //
+  // O sentido inverso de lzPayloadPreview(): as zonas chegam JA EM METROS
+  // (o Preview não sabe nada de tiles, pitch nem catálogos, de propósito) e
+  // é aqui que voltam a ser tiles. Nada de contas de pitch do outro lado:
+  // quando a zona traz tiles+resolução, deduz-se o tile que ela usava e
+  // procura-se esse tile no catálogo dos Calculadores — só se não houver
+  // nenhum igual é que fica "Personalizado" com essas medidas. Uma zona
+  // criada de raiz no Preview (só largura×altura) entra em metros e são
+  // estas calculadoras a decidir o nº de tiles, como sempre.
+  var LZ_TOL_MM = 0.6;
+
+  function lzModeloDoCatalogo(mw, mh, rx, ry) {
+    // Ordem com o stock da AVK à frente (mesma de lzPopulateModelSelect):
+    // havendo dois tiles iguais na base, o que a empresa tem é o certo.
+    var ordem = (typeof stockFirstIndices === "function")
+      ? stockFirstIndices(LED_TILES_DATA)
+      : LED_TILES_DATA.map(function (_, i) { return i; });
+    for (var k = 0; k < ordem.length; k++) {
+      var t = LED_TILES_DATA[ordem[k]];
+      if (Math.abs(t.mw - mw) <= LZ_TOL_MM && Math.abs(t.mh - mh) <= LZ_TOL_MM &&
+          t.rx === rx && t.ry === ry) return ordem[k];
+    }
+    return -1;
+  }
+
+  function lzOptsDeZonaDoPreview(z) {
+    var w = parseFloat(z.w), h = parseFloat(z.h);
+    var tiles = z.tiles || null;
+    var res = z.res || null;
+    var opts = {
+      name: z.nome || "Zona",
+      visible: true,
+      tipo: z.tipo || "led",
+      posX: z.x != null ? z.x : 0,
+      posY: z.y != null ? z.y : 0,
+      colorOverride: z.cor || null,
+      preview3d: z.preview || null
+    };
+
+    var mx = tiles ? parseInt(tiles.x, 10) : NaN;
+    var my = tiles ? parseInt(tiles.y, 10) : NaN;
+    var temTiles = mx > 0 && my > 0 && w > 0 && h > 0;
+
+    if (temTiles) {
+      opts.sizeMode = "tiles";
+      opts.mx = mx;
+      opts.my = my;
+      var mw = Math.round((w * 1000 / mx) * 10) / 10;
+      var mh = Math.round((h * 1000 / my) * 10) / 10;
+      var rx = res ? Math.round(parseFloat(res.x) / mx) : NaN;
+      var ry = res ? Math.round(parseFloat(res.y) / my) : NaN;
+      var idx = (rx > 0 && ry > 0) ? lzModeloDoCatalogo(mw, mh, rx, ry) : -1;
+      if (idx >= 0) {
+        // Modelo conhecido: pitch, peso e amperagem vêm do catálogo daqui,
+        // nunca do que veio do Preview — é este o sítio onde esses dados
+        // vivem, e não vale a pena ter dois a discordar.
+        opts.modelValue = String(idx);
+      } else {
+        opts.modelValue = "custom";
+        opts.mw = mw;
+        opts.mh = mh;
+        if (rx > 0) opts.rx = rx;
+        if (ry > 0) opts.ry = ry;
+        var numTiles = mx * my;
+        var peso = parseFloat(z.peso), amp = parseFloat(z.amp);
+        if (peso > 0) opts.weight = Math.round((peso / numTiles) * 100) / 100;
+        if (amp > 0) opts.amp = Math.round((amp / numTiles) * 1000) / 1000;
+      }
+    } else {
+      // Zona criada no Preview: só se sabe o tamanho em metros. O modelo
+      // fica o que estiver por omissão e o nº de tiles é conta destas
+      // calculadoras.
+      opts.sizeMode = "meters";
+      if (w > 0) opts.targetW = Math.round(w * 1000) / 1000;
+      if (h > 0) opts.targetH = Math.round(h * 1000) / 1000;
+    }
+
+    var curva = z.curva;
+    if (curva && parseFloat(curva.valor) > 0) {
+      var modo = String(curva.modo || "angulo").toLowerCase();
+      opts.curveEnabled = true;
+      opts.curveDir = (String(curva.dir || "").toLowerCase().indexOf("conv") === 0) ? "convex" : "concave";
+      if (modo === "raio" || modo === "radius") {
+        opts.curveMode = "radius";
+        opts.curveValue = curva.valor;
+      } else if (modo === "corda" || modo === "chord") {
+        opts.curveMode = "chord";
+        opts.curveValue = curva.valor;
+      } else {
+        // Saiu daqui como arco total (ângulos ENTRE painéis = nº de
+        // painéis − 1); volta a ser ângulo por tile.
+        opts.curveMode = "angle";
+        opts.curveValue = (mx > 1)
+          ? Math.round((parseFloat(curva.valor) / (mx - 1)) * 100) / 100
+          : curva.valor;
+      }
+    }
+    return opts;
+  }
+
+  // Devolve o nº de zonas trazidas (0 se não havia nada de jeito).
+  function lzImportarProjetoDoPreview(projeto) {
+    if (!projeto || !Array.isArray(projeto.zonas) || !projeto.zonas.length) return 0;
+    if (!lzList) return 0;
+    lzPushUndo();
+    lzList.innerHTML = "";
+    projeto.zonas.forEach(function (z) {
+      lzAddZone(z.nome || "Zona", lzOptsDeZonaDoPreview(z), false);
+    });
+    if (projeto.dsm) lzAplicarDsm(projeto.dsm);
+    calcLedZones();
+    var usezones = document.getElementById("proj-led-usezones");
+    if (usezones && !usezones.checked) {
+      usezones.checked = true;
+      usezones.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    return projeto.zonas.length;
+  }
+  window.lzImportarProjetoDoPreview = lzImportarProjetoDoPreview;
+
+  function lzGuardarParaPreview() {
+    // Escrita automática (corre a cada recálculo): com a sincronização
+    // automática desligada não passa nada sozinho. O caminho manual ("Ver
+    // em 3D"/"Sincronizar") continua a escrever à mesma, por lzForcarParaPreview.
+    if (typeof syncAutoLigada === "function" && !syncAutoLigada()) return;
+    lzForcarParaPreview();
+  }
+
+  function lzForcarParaPreview() {
+    try {
+      var payload = lzPayloadPreview();
+      if (payload) localStorage.setItem(LZ_CHAVE_PREVIEW, JSON.stringify(payload));
+      else localStorage.removeItem(LZ_CHAVE_PREVIEW);
+    } catch (e) { /* sem localStorage os Calculadores funcionam na mesma */ }
+  }
+
+  function lzParaBase64Url(texto) {
+    var bytes = new TextEncoder().encode(texto);
+    var binario = "";
+    for (var i = 0; i < bytes.length; i++) binario += String.fromCharCode(bytes[i]);
+    // base64url: o + e o / nao sobrevivem a uma barra de enderecos
+    return btoa(binario).replace(/\+/g, "-").replace(/\//g, "_");
+  }
+
+  function lzAbrirPreview() {
+    var payload = lzPayloadPreview();
+    if (!payload) {
+      alert("Nao ha zonas visiveis para mostrar. Cria uma zona primeiro.");
+      return;
+    }
+    var endereco = LZ_PREVIEW_URL + "#p=" + lzParaBase64Url(JSON.stringify(payload));
+    // Um endereco enorme nao chega ao outro lado: alguns browsers cortam.
+    if (endereco.length > 30000) {
+      alert("O projeto e grande de mais para viajar no endereco (" +
+            Math.round(endereco.length / 1024) + " KB). Abre o preview e cola la o JSON.");
+      return;
+    }
+    // A mesma janela de todas as outras pontes para o Preview: um separador
+    // novo por cada clique era o que la estava, e nao e isso que se quer.
+    window.open(endereco, "mikeapps-preview");
+  }
+
   function lzSortCardsByPosition() {
     var active = document.activeElement;
     if (active && lzList.contains(active) && (active.classList.contains("lz-posx") || active.classList.contains("lz-posy"))) return;
@@ -650,11 +891,15 @@
       return;
     }
     if (e.target.classList.contains("lz-details-dialog")) {
-      // Clique fora do conteúdo (no próprio elemento <dialog>, que ocupa
-      // só a caixa do popup — clicar no fundo escurecido à volta conta
-      // como clicar no <dialog> em si) fecha, como clicar fora de
-      // qualquer popup costuma fazer.
-      e.target.close();
+      // O alvo ser o próprio elemento <dialog> não implica que o clique
+      // caiu fora da caixa do popup — cai também quando o alvo é o
+      // <dialog> mas o ponto clicado está dentro da caixa visível, num
+      // gap/padding entre campos (grelha CSS, margens entre labels e
+      // inputs). Por isso confirma-se com getBoundingClientRect() que o
+      // clique caiu mesmo fora da caixa antes de fechar.
+      var r = e.target.getBoundingClientRect();
+      var foraDaCaixa = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      if (foraDaCaixa) e.target.close();
       return;
     }
     var colorResetBtn = e.target.closest(".lz-color-reset");
@@ -1060,6 +1305,51 @@
       : { w: pm.canvasW, h: pm.canvasH };
   }
 
+  // DSM — monitores de confiança no palco. Ao contrário das zonas, isto não
+  // é um ecrã LED nem faz parte do conjunto: é só uma quantidade + tamanho
+  // guardado uma vez por projeto (não por zona), tal como o modo de canvas
+  // acima. Persiste entre esta página e ecra-complexo.html da mesma forma.
+  var LZ_DSM_KEY = "calculadores-dsm-v1";
+  var lzDsmN = 0, lzDsmW = 0.6, lzDsmH = 0.4;
+  // Preenchido pelo bloco abaixo — permite ao importador do Preview repor os
+  // DSM sem duplicar a leitura/escrita destes três campos.
+  var lzAplicarDsm = function () {};
+  (function () {
+    var nEl = document.getElementById("lz-dsm-n");
+    var wEl = document.getElementById("lz-dsm-w");
+    var hEl = document.getElementById("lz-dsm-h");
+    if (!nEl || !wEl || !hEl) return;
+    try {
+      var raw = localStorage.getItem(LZ_DSM_KEY);
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data && typeof data === "object") {
+          if (data.n != null) lzDsmN = parseInt(data.n, 10) || 0;
+          if (data.w != null) lzDsmW = parseFloat(data.w) || 0.6;
+          if (data.h != null) lzDsmH = parseFloat(data.h) || 0.4;
+        }
+      }
+    } catch (e) {}
+    nEl.value = lzDsmN;
+    wEl.value = lzDsmW;
+    hEl.value = lzDsmH;
+    function lzSaveDsm() {
+      lzDsmN = Math.max(0, parseInt(nEl.value, 10) || 0);
+      lzDsmW = parseFloat(wEl.value) || 0;
+      lzDsmH = parseFloat(hEl.value) || 0;
+      try { localStorage.setItem(LZ_DSM_KEY, JSON.stringify({ n: lzDsmN, w: lzDsmW, h: lzDsmH })); } catch (e) {}
+      lzGuardarParaPreview();
+    }
+    [nEl, wEl, hEl].forEach(function (el) { el.addEventListener("input", lzSaveDsm); });
+    lzAplicarDsm = function (dsm) {
+      if (!dsm || typeof dsm !== "object") return;
+      if (dsm.n != null) nEl.value = Math.max(0, parseInt(dsm.n, 10) || 0);
+      if (dsm.w != null) wEl.value = parseFloat(dsm.w) || 0;
+      if (dsm.h != null) hEl.value = parseFloat(dsm.h) || 0;
+      lzSaveDsm();
+    };
+  })();
+
   function lzCanvasScale(pm) {
     var MAX_DIM = 4000;
     var longest = Math.max(pm.canvasW, pm.canvasH);
@@ -1204,8 +1494,17 @@
     }, "image/png");
   }
 
-  document.getElementById("lz-export-map").addEventListener("click", lzExportPixelMapPNG);
-  document.getElementById("lz-export-mask").addEventListener("click", lzExportMaskPNG);
+  // "Ver em 3D" só existe em index.html — ecra-complexo.html não o tem.
+  // getElementById devolve null nessa página, e um addEventListener direto
+  // num null rebentava aqui (TypeError), interrompendo toda a
+  // inicialização a partir daqui (undo stack, restauro do localStorage),
+  // por isso os três ficam protegidos por segurança e consistência.
+  var lzExportMapBtn = document.getElementById("lz-export-map");
+  if (lzExportMapBtn) lzExportMapBtn.addEventListener("click", lzExportPixelMapPNG);
+  var lzExportMaskBtn = document.getElementById("lz-export-mask");
+  if (lzExportMaskBtn) lzExportMaskBtn.addEventListener("click", lzExportMaskPNG);
+  var lzVer3dBtn = document.getElementById("lz-ver-3d");
+  if (lzVer3dBtn) lzVer3dBtn.addEventListener("click", lzAbrirPreview);
 
   // As zonas ficam gravadas no localStorage a cada alteração e restauradas
   // ao abrir a app — um refresh acidental (ou o telemóvel a recarregar a
@@ -1277,6 +1576,7 @@
       opts.posY = card.querySelector(".lz-posy").value;
       opts.ref = card.querySelector(".lz-ref").checked;
       opts.colorOverride = card.dataset.colorOverride || null;
+      opts.preview3d = lzPreview3dDoCard(card);
       return opts;
     });
   }
@@ -1397,7 +1697,7 @@
       }
       lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), curveInfo ? curveInfo.n : 0, curveInfo ? curveInfo.angleDeg : 0, curveInfo ? curveInfo.convex : false);
 
-      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, curveText: curveText, curve: curveInfo });
+      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: curveText, curve: curveInfo });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do
@@ -1452,6 +1752,11 @@
       (pm ? "\nResolução final do canvas (sem gaps): " + canvasResNoGapsText + " — usada para o sinal/processo: " + (lzCanvasMode === "nogaps" ? "sem gaps" : "com gaps") : "");
 
     lzLastTotals = { zones: visibleZones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm, colorMap: colorMap };
+
+    // As duas apps vivem no mesmo dominio e partilham o localStorage: e por
+    // aqui que elas falam. O preview le isto ao abrir -- e, se estiver aberto
+    // noutra aba, o browser avisa-o e ele acompanha sem ninguem carregar nada.
+    lzGuardarParaPreview();
     lzSortCardsByPosition();
     lzSaveToStorage();
     if (typeof calcProjeto === "function") calcProjeto();

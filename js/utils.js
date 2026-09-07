@@ -183,6 +183,62 @@ function lzAttachModelSearch(select) {
   });
 }
 
+// Sincronização automática com o Preview 3D — preferência partilhada pelas
+// duas apps (mesma origem, mesmo localStorage). Desligada, nada passa
+// sozinho: nem o que chega do Preview pelo evento "storage", nem o que
+// estas calculadoras escrevem sem ninguém pedir. Os botões manuais
+// ("Trazer do Preview", "Sincronizar", "Ver em 3D") continuam sempre a
+// funcionar — o interruptor é só sobre o que acontece por si.
+var SYNC_PREF_KEY = "mikeapps-sincronizacao-v1";
+
+function syncAutoLigada() {
+  var raw;
+  try { raw = localStorage.getItem(SYNC_PREF_KEY); } catch (e) { return true; }
+  if (raw == null) return true;
+  // O valor tanto pode vir como JSON ("\"desligada\"") como em texto simples
+  // — as duas apps escrevem-no e não vale a pena obrigar a um formato só.
+  var valor = raw;
+  try { var parsed = JSON.parse(raw); if (typeof parsed === "string") valor = parsed; } catch (e) {}
+  return String(valor).trim().toLowerCase() !== "desligada";
+}
+
+function syncAutoDefinir(ligada) {
+  try { localStorage.setItem(SYNC_PREF_KEY, JSON.stringify(ligada ? "ligada" : "desligada")); } catch (e) {}
+  syncAutoNotificar();
+}
+
+// Quem desenha um interruptor regista-se aqui para se manter certo quando a
+// preferência muda — inclusive quando quem a mudou foi a outra app.
+var syncAutoOuvintes = [];
+function syncAutoAoMudar(fn) { syncAutoOuvintes.push(fn); fn(syncAutoLigada()); }
+function syncAutoNotificar() {
+  var ligada = syncAutoLigada();
+  syncAutoOuvintes.forEach(function (f) { try { f(ligada); } catch (e) {} });
+}
+window.addEventListener("storage", function (e) {
+  if (e.key === SYNC_PREF_KEY) syncAutoNotificar();
+});
+
+// O interruptor em si — as duas páginas (index.html e ecra-complexo.html)
+// só precisam de ter um <button id="btSincronizacaoAuto"> no cabeçalho.
+(function () {
+  var btn = document.getElementById("btSincronizacaoAuto");
+  if (!btn) return;
+  syncAutoAoMudar(function (ligada) {
+    btn.textContent = ligada ? "🔗 Auto: ligada" : "⛔ Auto: desligada";
+    btn.classList.toggle("is-on", ligada);
+    btn.classList.toggle("is-off", !ligada);
+    btn.setAttribute("aria-pressed", ligada ? "true" : "false");
+  });
+  btn.addEventListener("click", function () {
+    var novo = !syncAutoLigada();
+    syncAutoDefinir(novo);
+    showToast(novo
+      ? "Sincronização automática ligada — o que mudar no Preview passa a chegar sozinho."
+      : "Sincronização automática desligada — nada passa sozinho. Usa \"Trazer do Preview\" ou \"Sincronizar\".");
+  });
+})();
+
 // Notificação leve para avisos simples (substitui alert() nativo). Requer
 // um elemento #app-toast na página.
 var appToastTimer = null;
@@ -221,10 +277,15 @@ function appConfirm(message) {
 (function () {
   var dialog = document.getElementById("app-confirm-dialog");
   if (!dialog) return;
-  // Clicar fora do conteúdo (no próprio <dialog>, que ocupa só a caixa do
-  // popup) conta como cancelar — igual ao popup de edição de zona.
+  // O alvo ser o próprio <dialog> não implica que o clique caiu fora da
+  // caixa do popup — pode ter caído num gap/padding lá dentro. Só conta
+  // como "clicar fora" (cancelar) se o ponto clicado estiver mesmo fora
+  // da caixa — igual ao popup de edição de zona.
   dialog.addEventListener("click", function (e) {
-    if (e.target === dialog) dialog.close("no");
+    if (e.target !== dialog) return;
+    var r = dialog.getBoundingClientRect();
+    var foraDaCaixa = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    if (foraDaCaixa) dialog.close("no");
   });
 })();
 
@@ -266,8 +327,14 @@ function showAlarm(opts) {
 (function () {
   var dialog = document.getElementById("app-alert-dialog");
   if (!dialog) return;
+  // Mesma ressalva do popup de edição de zona: o alvo ser o próprio
+  // <dialog> não implica clique fora da caixa (pode ser um gap/padding
+  // lá dentro) — só fecha se o ponto clicado estiver mesmo fora dela.
   dialog.addEventListener("click", function (e) {
-    if (e.target === dialog) dialog.close();
+    if (e.target !== dialog) return;
+    var r = dialog.getBoundingClientRect();
+    var foraDaCaixa = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    if (foraDaCaixa) dialog.close();
   });
   var closeBtn = document.getElementById("app-alert-close");
   if (closeBtn) closeBtn.addEventListener("click", function () { dialog.close(); });

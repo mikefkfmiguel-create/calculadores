@@ -44,6 +44,8 @@
       <h1>Ecrã Complexo</h1>
     </div>
     <a href="index.html" class="srclink" style="white-space:nowrap;" title="Construtor de ecrãs LED com várias zonas/pitches — as zonas ficam guardadas no aparelho e também aparecem na aba &quot;Ecrã Complexo&quot; dos Calculadores.">← Calculadores</a>
+    <button type="button" class="topbtn" id="btSincronizacaoAuto"
+            title="Sincronização automática com o Preview 3D — desligada, nada passa sozinho entre as duas apps; os botões manuais continuam a funcionar">🔗 Auto</button>
   </div>
 
   <button type="button" id="lz-preview-bar">
@@ -130,6 +132,17 @@
         <pre class="sumbox" id="lz-sum"></pre>
       </div>
     </div>
+
+    <div class="card results" data-accent="zonas" id="lz-dsm-card">
+      <div class="stripe"></div>
+      <h2>DSM (monitor de confiança no palco)</h2>
+      <p class="hint">Monitores de confiança/preview no palco — não são uma zona de ecrã LED nem entram nas contas do conjunto acima; é só uma quantidade e um tamanho guardados uma vez para o projeto todo, que seguem para o Preview.</p>
+      <div class="field"><label>Quantidade</label><div class="inputgroup"><input type="number" id="lz-dsm-n" min="0" step="1" value="0"></div></div>
+      <div class="row2">
+        <div class="field"><label>Largura</label><div class="inputgroup"><input type="number" id="lz-dsm-w" inputmode="decimal" min="0.01" step="0.01" value="0.6"><span class="unit">m</span></div></div>
+        <div class="field"><label>Altura</label><div class="inputgroup"><input type="number" id="lz-dsm-h" inputmode="decimal" min="0.01" step="0.01" value="0.4"><span class="unit">m</span></div></div>
+      </div>
+    </div>
   </div>
 
   <footer>Calculadores — ferramenta interna, valores para conferência antes de envio ao cliente.</footer>
@@ -151,8 +164,7 @@
     });
   });
 
-  var LED_TILES_DATA = [];
-  fetch("data/led-tiles.json").then(function (r) { return r.json(); }).then(function (data) {
+  var LED_TILES_DATA = [];  fetch("data/led-tiles.json").then(function (r) { return r.json(); }).then(function (data) {
     LED_TILES_DATA = data;
     lzRestoreFromStorage();
     calcLedZones();

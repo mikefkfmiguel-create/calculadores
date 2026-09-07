@@ -165,14 +165,28 @@
     "modelo": "ELPLX02",
     "min": 0.34,
     "max": 0.34,
-    "fonte": "https://epson.com/Accessories/Projector-Accessories/ELPLX02-Ultra-Short-throw-Lens/p/V12H004X02"
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/ELPLX02-Ultra-Short-throw-Lens/p/V12H004X02",
+    "shift": {
+      "vMin": 45,
+      "vMax": 68,
+      "hMin": -10,
+      "hMax": 10,
+      "nota": "modelos 4K-UHD; noutras séries vai a +70 % V e ±15 % H. Não centra: é uma UST"
+    }
   },
   {
     "marca": "Epson",
     "modelo": "ELPLU03 (9–12k lm)",
     "min": 0.48,
     "max": 0.57,
-    "fonte": "https://epson.com/Accessories/Projector-Accessories/Short-Throw-%231-Zoom-Lens-(ELPLU03)/p/V12H004U03"
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Short-Throw-%231-Zoom-Lens-(ELPLU03)/p/V12H004U03",
+    "shift": {
+      "vMin": -24,
+      "vMax": 24,
+      "hMin": -10,
+      "hMax": 10,
+      "nota": "projetores de 9.000 a 12.000 lm"
+    }
   },
   {
     "marca": "Epson",
@@ -186,49 +200,98 @@
     "modelo": "ELPLU03 (≤8000lm)",
     "min": 0.65,
     "max": 0.78,
-    "fonte": "https://epson.com/Accessories/Projector-Accessories/Short-Throw-%231-Zoom-Lens-(ELPLU03)/p/V12H004U03"
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Short-Throw-%231-Zoom-Lens-(ELPLU03)/p/V12H004U03",
+    "shift": {
+      "vMin": -67,
+      "vMax": 67,
+      "hMin": -30,
+      "hMax": 30,
+      "nota": "projetores até 8.000 lm"
+    }
   },
   {
     "marca": "Epson",
     "modelo": "ELPLW05",
     "min": 1.04,
     "max": 1.46,
-    "fonte": "https://epson.com/Accessories/Projector-Accessories/Wide-Throw-%231-Zoom-Lens-(ELPLW05)/p/V12H004W05"
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Wide-Throw-%231-Zoom-Lens-(ELPLW05)/p/V12H004W05",
+    "shift": {
+      "vMin": -67,
+      "vMax": 67,
+      "hMin": -30,
+      "hMax": 30,
+      "nota": "projetores até 8.500 lm"
+    }
   },
   {
     "marca": "Epson",
     "modelo": "ELPLW06",
     "min": 1.15,
     "max": 1.57,
-    "fonte": "https://epson.com/Accessories/Projector-Accessories/Wide-Throw-%232-Zoom-Lens-(ELPLW06)/p/V12H004W06"
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Wide-Throw-%232-Zoom-Lens-(ELPLW06)/p/V12H004W06",
+    "shift": {
+      "vMin": -58,
+      "vMax": 58,
+      "hMin": -16,
+      "hMax": 16,
+      "nota": "série EB-PQ (4K)"
+    }
   },
   {
     "marca": "Epson",
     "modelo": "ELPLM08",
     "min": 1.42,
     "max": 2.28,
-    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%231-(ELPLM08)/p/V12H004M08"
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%231-(ELPLM08)/p/V12H004M08",
+    "shift": {
+      "vMin": -67,
+      "vMax": 67,
+      "hMin": -30,
+      "hMax": 30,
+      "nota": "projetores até 8.500 lm"
+    }
   },
   {
     "marca": "Epson",
     "modelo": "ELPLM15",
     "min": 1.52,
     "max": 2.47,
-    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%232-%28ELPLM15%29/p/V12H004M0F"
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%232-%28ELPLM15%29/p/V12H004M0F",
+    "shift": {
+      "vMin": -58,
+      "vMax": 58,
+      "hMin": -16,
+      "hMax": 16,
+      "nota": "série EB-PQ (4K)"
+    }
   },
   {
     "marca": "Epson",
     "modelo": "ELPLM10",
     "min": 3.32,
     "max": 5.06,
-    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%233-%28ELPLM10%29/p/V12H004M0A"
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%233-%28ELPLM10%29/p/V12H004M0A",
+    "shift": {
+      "vMin": -67,
+      "vMax": 67,
+      "hMin": -30,
+      "hMax": 30,
+      "nota": "projetores até 8.500 lm"
+    }
   },
   {
     "marca": "Epson",
     "modelo": "ELPLM11",
     "min": 3.42,
     "max": 5.23,
-    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%234-%28ELPLM11%29/p/V12H004M0B"
+    "fonte": "https://epson.com/Accessories/Projector-Accessories/Middle-Throw-Zoom-Lens-%234-%28ELPLM11%29/p/V12H004M0B",
+    "shift": {
+      "vMin": -58,
+      "vMax": 58,
+      "hMin": -16,
+      "hMax": 16,
+      "nota": "série EB-PQ (4K)"
+    }
   },
   {
     "marca": "NEC",

@@ -25,7 +25,18 @@
       <button type="button" class="seg-btn active" data-lang="pt">PT</button>
       <button type="button" class="seg-btn" data-lang="en">EN</button>
     </div>
-    <span class="mark">v2.3</span>
+    <a class="mark topbtn" href="https://mikefkfmiguel-create.github.io/preview/"
+       target="mikeapps-preview"
+       title="Ver o projeto montado numa sala, em 3D">↗ Preview 3D</a>
+    <button type="button" class="mark topbtn" id="btSincronizarPreview"
+            title="Vai buscar já a sala e o tamanho de ecrã que o Preview tiver guardados — sem esperar pelo aviso automático">🔄 Sincronizar</button>
+    <button type="button" class="mark topbtn" id="btSincronizacaoAuto"
+            title="Sincronização automática com o Preview 3D — desligada, nada passa sozinho entre as duas apps; os botões manuais continuam a funcionar">🔗 Auto</button>
+    <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
+            title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
+    <button type="button" class="mark topbtn" id="btAbrirProjetoTopo"
+            title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
+    <span class="mark" id="app-versao">v3.2</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -138,6 +149,44 @@
       </div>
 
       <div>
+        <details class="card sinal-block" id="asst-sala-card" open>
+          <summary>Sala — trazida do Preview</summary>
+          <div class="sinal-block-body">
+            <p class="hint" style="margin:0 0 10px;">As medidas da sala vivem no
+              <a href="https://mikefkfmiguel-create.github.io/preview/" target="_blank" rel="noopener">Preview 3D</a>,
+              onde se vê o projeto montado. Aqui traz-se o resultado: as duas apps partilham
+              o mesmo sítio de arrumação do browser, por isso não há nada para copiar à mão.</p>
+            <div class="summary-actions" style="margin-bottom:10px; flex-wrap:wrap;">
+              <button type="button" class="copy bridge-btn" id="asst-trazer-sala">Trazer sala do Preview</button>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="asst-sala-largura">Sala — largura</label>
+                <div class="inputgroup"><input id="asst-sala-largura" type="number" autocomplete="off" inputmode="decimal" step="0.5"><span class="unit">m</span></div>
+              </div>
+              <div class="field">
+                <label for="asst-sala-profundidade">Sala — profundidade</label>
+                <div class="inputgroup"><input id="asst-sala-profundidade" type="number" autocomplete="off" inputmode="decimal" step="0.5"><span class="unit">m</span></div>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="asst-sala-altura">Pé-direito</label>
+                <div class="inputgroup"><input id="asst-sala-altura" type="number" autocomplete="off" inputmode="decimal" step="0.5"><span class="unit">m</span></div>
+              </div>
+              <div class="field">
+                <label for="asst-sala-tipo">Conceito de sala</label>
+                <select id="asst-sala-tipo">
+                  <option value="">—</option>
+                  <option value="pavilhao">Pavilhão — chão plano</option>
+                  <option value="auditorio">Auditório — plateia sobe</option>
+                </select>
+              </div>
+            </div>
+            <div class="hint" id="asst-sala-nota" style="margin:6px 0 0;"></div>
+          </div>
+        </details>
+
         <details class="card sinal-block" id="asst-results-card" style="display:none;" open>
           <summary>Requisitos extraídos</summary>
           <div class="sinal-block-body">
@@ -161,10 +210,12 @@
                   <button type="button" class="seg-btn active" data-tier="basic">Leitura normal</button>
                   <button type="button" class="seg-btn" data-tier="passive">Pouco detalhe</button>
                 </div>
+                <div class="note" id="asst-rec-escolhido"></div>
               </div>
               <div class="summary-actions" style="margin-top:10px; flex-wrap:wrap;">
                 <button type="button" class="copy" id="asst-rec-use-led">Usar em Ecrã LED</button>
                 <button type="button" class="copy" id="asst-rec-use-proj">Usar em Distância de Projeção</button>
+                <button type="button" class="copy bridge-btn" id="asst-rec-ver-3d">Ver em 3D ↗</button>
               </div>
               <div class="hint">Isto dá só o tamanho — a escolha da tecnologia (LED, projeção, TV) é a seguir, na aba respetiva: os botões acima aplicam o tamanho escolhido a Ecrã LED/Distância de Projeção; para TVs, usa o tamanho como referência e escolhe o modelo diretamente na aba TVs (o catálogo é de unidades discretas, não de tamanho contínuo). Se a sugestão for de mais do que 1 ecrã, repete a configuração para cada um.</div>
               <div class="hint">Estimativa a partir da distância/largura da plateia (linha acima) e das mesmas regras SMPTE (ângulo) e AVIXA (legibilidade) já usadas na aba Distância de Visualização — confirma sempre com a disposição real do espaço.</div>
@@ -214,6 +265,7 @@
                 <div class="inputgroup"><input id="asst-distprojecao" type="number" autocomplete="off" inputmode="decimal" step="0.1"><span class="unit">m</span></div>
               </div>
             </div>
+
             <div class="row2">
               <div class="field">
                 <label for="asst-pitch">Pixel pitch pedido (LED)</label>
@@ -358,6 +410,12 @@
               <div class="inputgroup"><input id="p-tmax" type="number" autocomplete="off" inputmode="decimal" value="1.87" min="0.1" step="0.01"></div>
             </div>
           </div>
+          <div class="warn" id="p-lens-warn" style="display:none;"></div>
+          <div class="note" id="p-lens-ok" style="display:none;"></div>
+          <div class="summary-actions" style="margin-top:14px;">
+            <button type="button" class="copy bridge-btn" id="p-ver-3d-topo"
+                    title="Abre o Preview 3D com este projetor montado na sala">Ver no Preview 3D ↗</button>
+          </div>
         </div>
         </div>
       </details>
@@ -376,7 +434,9 @@
           <div class="readout">
             <div class="item"><div class="k">Mínima</div><div class="v" id="p-out-dmin">—</div></div>
             <div class="item"><div class="k">Máxima</div><div class="v" id="p-out-dmax">—</div></div>
+            <div class="item wide"><div class="k">Shift da lente</div><div class="v" id="p-out-shift">—</div></div>
           </div>
+          <div class="srclink-wrap" id="p-shift-source"></div>
         </div>
         <div id="p-throwmode-dist-output">
           <h2 style="margin-top:18px;">Lente necessária (à distância indicada)</h2>
@@ -400,6 +460,7 @@
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="p-addproject">Adicionar ao projeto</label>
+              <button type="button" class="copy bridge-btn" id="p-ver-3d" title="Abre o Preview 3D com este projetor montado na sala">Ver no Preview 3D ↗</button>
               <select class="copy" id="p-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
                 <option value="" selected>↗ Partilhar/Guardar</option>
                 <option value="text">Como texto (mensagem)</option>
@@ -653,6 +714,9 @@
               <div class="inputgroup"><input id="l-target-h" type="number" autocomplete="off" inputmode="decimal" value="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
             </div>
           </div>
+          <div class="summary-actions" style="margin:2px 0 10px; flex-wrap:wrap;">
+            <button type="button" class="copy bridge-btn" id="l-trazer-preview">Trazer do Preview</button>
+          </div>
           <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida — o tamanho real fica no resultado. Para modelos com meio-tile disponível (ex: 100×50 + 50×50), a medida é afinada automaticamente com um meio-tile na borda quando isso bate mais certo.</div>
         </div>
 
@@ -898,6 +962,7 @@
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
           <button type="button" class="copy" id="lz-export-map">Exportar mapa de píxeis (PNG)</button>
           <button type="button" class="copy" id="lz-export-mask">Exportar máscara (PNG)</button>
+          <button type="button" class="copy bridge-btn" id="lz-ver-3d">Ver em 3D ↗</button>
         </div>
         <p class="hint" style="margin-top:8px;">Canvas único em píxeis para importar num media server. Se as zonas tiverem pitches diferentes, a posição/tamanho no canvas é aproximada — usa como referência o pitch da zona com maior área (fica indicado no ficheiro). O "mapa" tem legendas com os valores; a "máscara" é só preto/branco (uma zona = branco), para usar como matte de conteúdo.</p>
       </div>
@@ -963,6 +1028,19 @@
             </div>
           </div>
           <pre class="sumbox" id="lz-sum"></pre>
+        </div>
+        </div>
+      </details>
+
+      <details class="card results sinal-block" data-accent="zonas" id="lz-dsm-card" open>
+        <div class="stripe"></div>
+        <summary>DSM (monitor de confiança no palco)</summary>
+        <div class="sinal-block-body">
+        <p class="hint">Monitores de confiança/preview no palco — não são uma zona de ecrã LED nem entram nas contas do conjunto acima; é só uma quantidade e um tamanho guardados uma vez para o projeto todo, que seguem para o Preview ("Ver em 3D").</p>
+        <div class="field"><label>Quantidade</label><div class="inputgroup"><input type="number" id="lz-dsm-n" min="0" step="1" value="0"></div></div>
+        <div class="row2">
+          <div class="field"><label>Largura</label><div class="inputgroup"><input type="number" id="lz-dsm-w" inputmode="decimal" min="0.01" step="0.01" value="0.6"><span class="unit">m</span></div></div>
+          <div class="field"><label>Altura</label><div class="inputgroup"><input type="number" id="lz-dsm-h" inputmode="decimal" min="0.01" step="0.01" value="0.4"><span class="unit">m</span></div></div>
         </div>
         </div>
       </details>
@@ -2548,8 +2626,12 @@
     el.innerHTML = matches.map(function (l, i) {
       var ratioText = l.min === l.max ? fmt(l.min, 2) + " (fixo)" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
       var bestBadge = i === 0 ? ' <span class="badge-match">melhor</span>' : "";
-      return '<div class="lm-item"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + bestBadge + '</span><span>' + ratioText + '</span></div>';
-    }).join("");
+      // O indice na base vai no atributo: e o que permite escolher a lente
+      // com um clique, em vez de a ir procurar ao menu pelo nome.
+      var idx = LENTES_DATA.indexOf(l);
+      return '<div class="lm-item lm-escolher" data-lente="' + idx +
+             '" title="Escolher esta lente"><span><strong>' + l.marca + '</strong> <span class="lm-model">' + l.modelo + '</span>' + srcLinkHtml(l.fonte) + bestBadge + '</span><span>' + ratioText + '</span></div>';
+    }).join("") + '<div class="lm-note">Carrega numa lente para a escolher.</div>';
     return matches;
   }
 
@@ -2690,6 +2772,13 @@
     calcBlend();
   });
 
+  // "+/-58 %" quando e simetrico, "+45 % a +68 %" quando nao e -- e as lentes
+  // de tiro curto raramente sao simetricas: uma UST nem sequer centra.
+  function fmtShiftRange(min, max) {
+    if (min === -max) return "\u00b1" + max + " %";
+    return (min > 0 ? "+" : "") + min + " % a " + (max > 0 ? "+" : "") + max + " %";
+  }
+
   function calcProjecao() {
     var isCustom = ratioSel.value === "custom";
     var w, h, label;
@@ -2752,10 +2841,60 @@
     var pLens = pLensModelSel.value !== "custom" ? LENTES_DATA[parseInt(pLensModelSel.value, 10)] : null;
     document.getElementById("p-lens-ratio-detail").style.display = pLens ? "grid" : "none";
     document.getElementById("p-throwmode-ratio-output").style.display = pLens ? "block" : "none";
+    // O shift e do fabricante ou nao existe: uma lente sem shift publicado diz
+    // que nao tem, em vez de aparecer com um numero que ninguem verificou.
+    var pShift = pLens && pLens.shift ? pLens.shift : null;
+    var shiftTexto = pLens
+      ? (pShift ? fmtShiftRange(pShift.vMin, pShift.vMax) + " V \u00b7 " +
+                  fmtShiftRange(pShift.hMin, pShift.hMax) + " H"
+                : "o fabricante n\u00e3o o publica por lente")
+      : "\u2014";
+    document.getElementById("p-out-shift").textContent = shiftTexto;
+    document.getElementById("p-shift-source").innerHTML =
+      pShift && pShift.nota ? '<span class="srclink">' + pShift.nota + "</span>" : "";
+
+    // Os tres numeros -- ecra, distancia e lente -- ja estao todos aqui. Se
+    // discordarem, quem tem de o dizer e a app: a divisao 12 / 4,96 = 2,42
+    // ninguem a faz de cabeca ao escolher uma lente pela referencia.
+    var avisoLente = document.getElementById("p-lens-warn");
+    var okLente = document.getElementById("p-lens-ok");
+    avisoLente.style.display = "none";
+    okLente.style.display = "none";
+    if (pLens) {
+      if (ratioNeeded < tmin - 0.005 || ratioNeeded > tmax + 0.005) {
+        var precisa = ratioNeeded < tmin
+          ? "afastar o projetor" : "aproximar o projetor";
+        avisoLente.innerHTML =
+          "\u26a0 <b>Esta lente n\u00e3o d\u00e1 esta dist\u00e2ncia.</b> Para um ecr\u00e3 de " +
+          fmt(w, 2) + " m de largura, ela trabalha entre <b>" + fmt(dmin, 2) +
+          " m</b> e <b>" + fmt(dmax, 2) + " m</b> \u2014 e tens <b>" + fmt(knownDist, 2) +
+          " m</b>. A esta dist\u00e2ncia era precisa uma lente de <b>" + fmt(ratioNeeded, 2) +
+          ":1</b>" +
+          (matchNames.length
+            ? " (na base: " + matchNames.slice(0, 3).join(", ") + ")"
+            : " \u2014 n\u00e3o h\u00e1 nenhuma na base") +
+          ", ou " + precisa + "." +
+          '<div style="margin-top:8px"><button type="button" class="copy" data-por-distancia="' +
+          (ratioNeeded < tmin ? dmin : dmax).toFixed(2) + '">P\u00f4r a dist\u00e2ncia a ' +
+          fmt(ratioNeeded < tmin ? dmin : dmax, 2) + " m</button></div>";
+        avisoLente.style.display = "";
+      } else {
+        okLente.innerHTML = "Esta lente serve: com um ecr\u00e3 de " + fmt(w, 2) +
+          " m ela vai de " + fmt(dmin, 2) + " m a " + fmt(dmax, 2) +
+          " m, e a dist\u00e2ncia indicada \u00e9 " + fmt(knownDist, 2) + " m.";
+        okLente.style.display = "";
+      }
+    }
+
     var pLensLines = pLens
       ? "Lente: " + pLens.marca + " " + pLens.modelo + "\n" +
+        (pShift ? "Shift dessa lente: " + shiftTexto + " (" + pShift.nota + ")\n" : "") +
         "Throw ratio (dessa lente): " + fmt(tmin,2) + " – " + fmt(tmax,2) + "\n" +
-        "Distância de projeção (com essa lente): " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n"
+        "Distância de projeção (com essa lente): " + fmt(dmin,2) + " – " + fmt(dmax,2) + " m\n" +
+        (avisoLente.style.display !== "none"
+          ? "ATENÇÃO: a esta distância (" + fmt(knownDist,2) + " m) esta lente não serve; " +
+            "seria precisa uma de " + fmt(ratioNeeded,2) + ":1\n"
+          : "")
       : "";
     document.getElementById("p-sum").textContent =
       "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m\n" +
@@ -2766,9 +2905,98 @@
       "Lentes compatíveis a essa distância" + (lensBrand ? " (" + lensBrand + ")" : "") + ": " + (matchNames.length ? matchNames.join(", ") + (matchNames.length > 1 ? " — melhor: " + matchNames[0] : "") : "nenhuma na base") + "\n" +
       "Luminosidade: " + fmtInt(lumens) + " lumens (100%) — " + fmtInt(lumens80) + " lumens úteis (80%) — " + fmtInt(lux) + " lux no ecrã";
 
+    // O que o Preview precisa de saber, e so isso: o tamanho da imagem, a
+    // distancia e quem e o projetor. O catalogo, os lumens e a escolha da
+    // lente ficam deste lado -- e o Preview nao tem uma tabela de projetores
+    // pela mesma razao por que nao tem uma de tiles de LED.
+    pUltimoProjetor = {
+      largura: w, altura: h, distancia: knownDist, racio: ratioNeeded,
+      modelo: selProj ? selProj.modelo : "",
+      lente: pLens ? (pLens.marca + " " + pLens.modelo)
+                   : (matchNames.length ? matchNames[0] : ""),
+      // O que o Preview faz com isto e avisar quando o shift que la se pediu
+      // passa o que esta lente da. Sem os limites, o desenho mostrava imagens
+      // que nenhuma lente conseguia por ali.
+      shift: pShift,
+      lumens: lumens
+    };
+
     renderProjectItems();
     if (document.getElementById("p-addproject").checked) syncProjecaoToProject();
   }
+
+  // A projeccao vai ver-se na sala.
+  //
+  // Escreve-se no localStorage -- que e por onde as duas apps falam quando
+  // estao as duas abertas -- e leva-se tambem no endereco, para o Preview que
+  // abre de novo ja aparecer com o projetor montado em vez de um botao a
+  // dizer que ha um projetor a espera.
+  var pUltimoProjetor = null;
+
+  // Mexer num campo a partir do codigo tem de parecer que foi o utilizador a
+  // escreve-lo, senao as contas que dependem dele nao voltam a correr.
+  function mudarCampo(id, valor) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.value = valor;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  // A lente sugerida escolhe-se onde ela aparece. Antes era preciso ler o nome
+  // ali, ir ao menu e procura-lo -- com quatorze lentes da mesma marca e nomes
+  // que so diferem num digito, e onde se engana.
+  document.getElementById("p-lensmatch-list").addEventListener("click", function (e) {
+    if (e.target.closest("a")) return;             // o link da fonte abre a pagina
+    var item = e.target.closest("[data-lente]");
+    if (!item) return;
+    mudarCampo("p-lensmodel", item.getAttribute("data-lente"));
+    document.getElementById("p-lensmodel").scrollIntoView({ block: "center", behavior: "smooth" });
+  });
+
+  // E o contrario: a distancia salta para onde a lente escolhida trabalha.
+  document.getElementById("p-lens-warn").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-por-distancia]");
+    if (!b) return;
+    mudarCampo("p-knowndist", b.getAttribute("data-por-distancia"));
+  });
+
+  // O nome da janela do Preview. E o mesmo em toda a app: as zonas de LED, a
+  // projeccao e a sugestao do assistente vao todas para o MESMO sitio.
+  var JANELA_DO_PREVIEW = "mikeapps-preview";
+
+  function verNoPreview3D() {
+    if (!pUltimoProjetor || !(pUltimoProjetor.largura > 0) || !(pUltimoProjetor.distancia > 0)) {
+      showToast("Faltam dados: escolhe o tamanho do ecra e a distancia primeiro.");
+      return;
+    }
+    var carga = {
+      v: 1,
+      racio: Math.round(pUltimoProjetor.racio * 1000) / 1000,
+      distancia: Math.round(pUltimoProjetor.distancia * 100) / 100,
+      largura: Math.round(pUltimoProjetor.largura * 100) / 100,
+      altura: Math.round(pUltimoProjetor.altura * 100) / 100,
+      modelo: pUltimoProjetor.modelo,
+      lente: pUltimoProjetor.lente,
+      shift: pUltimoProjetor.shift,
+      lumens: pUltimoProjetor.lumens,
+      quando: new Date().toISOString()
+    };
+    try { localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga)); } catch (e) {}
+
+    var bytes = new TextEncoder().encode(JSON.stringify(carga));
+    var binario = "";
+    for (var i = 0; i < bytes.length; i++) binario += String.fromCharCode(bytes[i]);
+    var endereco = "https://mikefkfmiguel-create.github.io/preview/#proj=" +
+      btoa(binario).replace(/\+/g, "-").replace(/\//g, "_");
+    // Uma janela com NOME e reaproveitada. Com "noopener" o nome e ignorado e
+    // abre sempre uma nova -- era isso que enchia o ecra de separadores iguais.
+    // Sao a mesma origem, por isso nao ha aqui nada a proteger.
+    window.open(endereco, JANELA_DO_PREVIEW);
+  }
+
+  document.getElementById("p-ver-3d").addEventListener("click", verNoPreview3D);
+  document.getElementById("p-ver-3d-topo").addEventListener("click", verNoPreview3D);
 
   // Distância de Visualização
   var vRatioSel = document.getElementById("v-ratio");
@@ -4682,6 +4910,101 @@
     var el = document.querySelector("#" + containerId + " .seg-btn.active");
     return el ? el.dataset : {};
   }
+  // O tamanho que voltou do Preview. La olha-se para a sugestao montada na
+  // sala, estica-se ou encolhe-se ate fazer sentido, e devolve-se -- e aqui
+  // que ele vira tiles, porque e aqui que se sabe o que e um tile.
+  (function tamanhoDoPreview() {
+    var CHAVE = "mikeapps-ecra-v1";
+    var btn = document.getElementById("l-trazer-preview");
+    if (!btn) return;
+
+    function marcarBotao(texto) {
+      btn.textContent = texto;
+      setTimeout(function () { btn.textContent = "Trazer do Preview"; }, 6000);
+    }
+
+    function horaDe(d) {
+      var quando = d.quando ? new Date(d.quando) : null;
+      return quando ? " (" + quando.toLocaleTimeString("pt-PT").slice(0, 5) + ")" : "";
+    }
+
+    // O projeto inteiro que voltou do Preview: zonas já em metros, com
+    // posição, cor, curvatura e (quando existiram lá) tiles/resolução. Quem
+    // volta a transformar isso em tiles, pitch e modelos do catálogo é a aba
+    // Ecrã Complexo — ver lzImportarProjetoDoPreview em js/zonas.js. Aqui só
+    // se decide que é esse o caminho.
+    function aplicarProjeto(projeto, d) {
+      var n = 0;
+      try { n = window.lzImportarProjetoDoPreview(projeto); } catch (e) { n = 0; }
+      if (!n) return false;
+      var modo = document.querySelector('.tab[data-mode="zonas"]');
+      if (modo) modo.click();
+      var nome = projeto.nome ? " — “" + projeto.nome + "”" : "";
+      showToast("Trazido do Preview: " + n + (n === 1 ? " ecrã" : " ecrãs") +
+                " com tamanhos e posições" + nome + ".");
+      marcarBotao("Trazido: " + n + (n === 1 ? " ecrã" : " ecrãs") + horaDe(d));
+      return true;
+    }
+
+    // Só largura/altura (payload antigo, ou um tamanho solto vindo do
+    // Preview): continua a cair na aba Ecrã LED como sempre caiu.
+    function aplicarTamanho(d) {
+      segClick("l-sizemode-seg", "sizemode", "meters");
+      var w = document.getElementById("l-target-w");
+      var h = document.getElementById("l-target-h");
+      w.value = d.largura; h.value = d.altura;
+      w.dispatchEvent(new Event("input", { bubbles: true }));
+      h.dispatchEvent(new Event("input", { bubbles: true }));
+      w.dispatchEvent(new Event("change", { bubbles: true }));
+      h.dispatchEvent(new Event("change", { bubbles: true }));
+      marcarBotao("Trazido: " + d.largura + " x " + d.altura + " m" + horaDe(d));
+    }
+
+    // A sala e o palco que vêm no mesmo pacote: já existem campos para isso
+    // no Assistente (os mesmos que a ponte "mikeapps-sala-v1" preenche), por
+    // isso aproveitam-se — sem contas nenhumas, é só copiar o que veio.
+    function aplicarSala(sala) {
+      if (!sala || typeof sala !== "object") return;
+      [["largura", "asst-sala-largura"], ["profundidade", "asst-sala-profundidade"],
+       ["altura", "asst-sala-altura"]].forEach(function (par) {
+        var el = document.getElementById(par[1]);
+        if (el && sala[par[0]] > 0) el.value = sala[par[0]];
+      });
+    }
+
+    function aplicar(avisar) {
+      var d = null;
+      try { d = JSON.parse(localStorage.getItem(CHAVE) || "null"); } catch (e) {}
+      var temProjeto = d && d.projeto && Array.isArray(d.projeto.zonas) && d.projeto.zonas.length;
+      if (!d || (!d.largura && !temProjeto)) {
+        if (avisar) {
+          showToast("Ainda não veio nada do Preview. Lá, ajusta o ecrã e carrega em " +
+                    "\"Devolver aos Calculadores\" — tem de ser no mesmo browser.");
+        }
+        return;
+      }
+      aplicarSala(d.sala);
+      if (temProjeto && aplicarProjeto(d.projeto, d)) return;
+      if (d.largura) aplicarTamanho(d);
+    }
+
+    btn.addEventListener("click", function () { aplicar(true); });
+
+    // Ao vivo: com as duas abas abertas, mexer no tamanho no Preview e
+    // carregar em "Devolver aos Calculadores" atualiza aqui sem precisar do
+    // clique — a mesma simetria que o projeto e o projetor já têm no sentido
+    // contrário (destes Calculadores para o Preview). Com a sincronização
+    // automática desligada isto fica quieto; o botão continua a funcionar.
+    window.addEventListener("storage", function (e) {
+      if (e.key === CHAVE && e.newValue && syncAutoLigada()) aplicar(false);
+    });
+
+    // Regista-se para o botão "Sincronizar agora" do cabeçalho poder forçar
+    // isto de uma vez, sem depender do evento silencioso.
+    window.__pontesDoPreview = window.__pontesDoPreview || [];
+    window.__pontesDoPreview.push(function () { aplicar(true); });
+  }());
+
   function segClick(containerId, attr, value) {
     if (value == null) return;
     var btn = document.querySelector('#' + containerId + ' .seg-btn[data-' + attr + '="' + value + '"]');
@@ -5739,6 +6062,128 @@
   // aqui é aplicado às calculadoras sem o utilizador rever/confirmar os
   // campos e clicar "Aplicar" — a leitura da IA pode falhar ou ser ambígua.
   (function () {
+    // A sala vem do Preview. As duas apps vivem no mesmo dominio e partilham o
+    // localStorage, por isso nao ha nada para copiar a mao: o Preview guarda a
+    // sala sempre que ela muda, e aqui vai-se busca-la.
+    (function salaDoPreview() {
+      var CHAVE = "mikeapps-sala-v1";
+      var btn = document.getElementById("asst-trazer-sala");
+      var nota = document.getElementById("asst-sala-nota");
+      if (!btn) return;
+
+      function aplicar(avisar) {
+        var dados = null;
+        try { dados = JSON.parse(localStorage.getItem(CHAVE) || "null"); } catch (e) {}
+        if (!dados) {
+          if (avisar) {
+            nota.textContent = "Ainda nao ha sala guardada. Abre o Preview, escreve as " +
+              "medidas da sala, e volta aqui — tem de ser no mesmo browser.";
+          }
+          return;
+        }
+        if (dados.largura) document.getElementById("asst-sala-largura").value = dados.largura;
+        if (dados.profundidade) document.getElementById("asst-sala-profundidade").value = dados.profundidade;
+        if (dados.altura) document.getElementById("asst-sala-altura").value = dados.altura;
+        var pub = dados.publico || {};
+        if (pub.tipo) document.getElementById("asst-sala-tipo").value = pub.tipo;
+
+        var partes = [];
+        if (pub.lugares) partes.push(pub.lugares + " lugares em " + pub.filas + " filas");
+        if (pub.corredores) partes.push(pub.corredores + " corredor(es)");
+        if (pub.ultimoEspectador) partes.push("ultimo espectador a " + pub.ultimoEspectador + " m");
+        var palco = dados.palco || {};
+        if (palco.largura) partes.push("palco " + palco.largura + " x " + palco.profundidade +
+                                       " m a " + palco.altura + " m");
+        nota.textContent = partes.length
+          ? "Do Preview: " + partes.join(" - ") + "."
+          : "Sala trazida do Preview.";
+
+        // E a parte que interessa: com a distancia do ultimo espectador, a
+        // largura da plateia e o pe-direito, o assistente ja consegue sugerir
+        // tamanho de ecra -- sao as mesmas contas da aba Distancia de
+        // Visualizacao (SMPTE para o angulo, AVIXA para a legibilidade), sem
+        // precisar de briefing nenhum para as fazer.
+        if (pub.ultimoEspectador > 0) {
+          try {
+            document.getElementById("asst-results-card").style.display = "";
+            renderScreenRecommendation({
+              dimensoes: null,
+              local: {
+                distanciaVisualizacaoM: pub.ultimoEspectador,
+                larguraPlateiaM: pub.larguraPlateia || dados.largura || null,
+                alturaSalaM: dados.altura || null
+              }
+            });
+          } catch (e) {
+            nota.textContent += " (nao consegui pedir a sugestao de tamanho)";
+          }
+        }
+      }
+
+      btn.addEventListener("click", function () { aplicar(true); });
+
+      // Ao vivo: com as duas abas abertas, escrever a sala no Preview
+      // atualiza aqui sem precisar do clique -- a mesma simetria que o
+      // projeto e o projetor já têm no sentido contrário.
+      window.addEventListener("storage", function (e) {
+        if (e.key === CHAVE && e.newValue && syncAutoLigada()) aplicar(false);
+      });
+
+      // Regista-se para o botão "Sincronizar agora" do cabeçalho poder
+      // forçar isto de uma vez, sem depender do evento silencioso (que pode
+      // não disparar consoante como as janelas foram abertas).
+      window.__pontesDoPreview = window.__pontesDoPreview || [];
+      window.__pontesDoPreview.push(function () { aplicar(true); });
+    })();
+
+    // O botão do cabeçalho: força as duas pontes que vêm do Preview (sala e
+    // tamanho de ecrã) de uma só vez, em vez de se confiar só no evento
+    // "storage" -- que é silencioso, e se por alguma razão não disparar (as
+    // janelas não estavam as duas abertas no momento certo, por exemplo),
+    // não há como saber que ficou por fazer. Isto dá sempre uma resposta.
+    (function botaoSincronizar() {
+      var btn = document.getElementById("btSincronizarPreview");
+      if (!btn) return;
+      btn.addEventListener("click", function () {
+        var pontes = window.__pontesDoPreview || [];
+        pontes.forEach(function (f) { try { f(); } catch (e) {} });
+        // Manual é manual: mesmo com a sincronização automática desligada,
+        // este clique também empurra as zonas daqui para o Preview.
+        if (typeof lzForcarParaPreview === "function") { try { lzForcarParaPreview(); } catch (e) {} }
+        var antes = btn.textContent;
+        btn.textContent = pontes.length ? "🔄 Trazido" : "🔄 Nada para trazer";
+        showToast(pontes.length
+          ? "Sala e tamanho de ecrã actualizados a partir do que o Preview tiver guardado."
+          : "Não há nada guardado do lado do Preview ainda.");
+        setTimeout(function () { btn.textContent = antes; }, 3000);
+      });
+    })();
+
+    // Interruptor da sincronização automática — a preferência
+    // ("mikeapps-sincronizacao-v1") é partilhada com o Preview, por isso
+    // desligar aqui desliga dos dois lados. Só trava o que é automático
+    // (eventos "storage" e escritas a cada recálculo); "Trazer do Preview",
+    // "Sincronizar" e "Ver em 3D" continuam iguais. O botão em si é ligado
+    // em js/utils.js, que o partilha com a página do Ecrã Complexo.
+
+    // Guardar e Abrir o projeto viviam só dentro da aba Projeto, ao fundo de
+    // um resumo -- quem estava a trabalhar em qualquer outra aba (a maioria
+    // do tempo) não tinha como lá chegar sem primeiro mudar de aba. Estes
+    // botões do cabeçalho fazem os MESMOS botões de sempre, só que
+    // alcançáveis de qualquer sítio -- não duplicam a lógica, só o clique.
+    (function botoesProjetoNoTopo() {
+      var btnGuardar = document.getElementById("btGuardarProjetoTopo");
+      var btnAbrir = document.getElementById("btAbrirProjetoTopo");
+      var original = document.getElementById("proj-save");
+      var originalAbrir = document.getElementById("proj-open");
+      if (btnGuardar && original) {
+        btnGuardar.addEventListener("click", function () { original.click(); });
+      }
+      if (btnAbrir && originalAbrir) {
+        btnAbrir.addEventListener("click", function () { originalAbrir.click(); });
+      }
+    })();
+
     var WORKER_URL_KEY = "calculadores-assistente-worker-url";
     // Endereço público do Worker da AVK — não é secreto (é só um URL,
     // protegido do lado do Worker pelo ALLOWED_ORIGINS), por isso pode
@@ -6001,6 +6446,7 @@
       document.querySelector('#asst-recommend-block .summary-actions').style.display = anyTierFits ? "" : "none";
 
       lastRecommendation = { nScreens: nScreens, tiers: tierSize };
+      mostrarTierEscolhido();
 
       // Frase de veredito — só tamanhos, sem apontar nenhuma tecnologia.
       var verdictParts = [];
@@ -6045,10 +6491,26 @@
         document.querySelectorAll("#asst-rec-tier-seg .seg-btn").forEach(function (b) { b.classList.remove("active"); });
         btn.classList.add("active");
         asstRecSelectedTier = btn.dataset.tier;
+        mostrarTierEscolhido();
       });
     });
     function currentTierSize() {
       return lastRecommendation ? lastRecommendation.tiers[asstRecSelectedTier] : null;
+    }
+
+    // Mudar de gama mudava um numero invisivel: o botao ficava marcado e mais
+    // nada mexia no ecra, porque o veredito lista as tres alturas ao mesmo
+    // tempo. Quem escolhia "pouco detalhe" nao tinha como saber o que ia
+    // aplicar -- so descobria depois, na aba do outro lado.
+    function mostrarTierEscolhido() {
+      var el = document.getElementById("asst-rec-escolhido");
+      if (!el) return;
+      var size = currentTierSize();
+      if (!size) { el.textContent = ""; return; }
+      var quantos = lastRecommendation && lastRecommendation.nScreens > 1
+        ? lastRecommendation.nScreens + " ecrãs de " : "";
+      el.innerHTML = "Os botões abaixo aplicam: " + quantos + "<b>" +
+        fmt(size.width, 2) + " × " + fmt(size.height, 2) + " m</b> (16:9).";
     }
 
     document.getElementById("asst-rec-use-led").addEventListener("click", function () {
@@ -6060,6 +6522,41 @@
       setFieldValAndFire("l-target-h", round2(size.height));
       checkAddProject("l-addproject");
       showToast("Tamanho aplicado na aba Ecrã LED (1 ecrã) — escolhe o tile e repete a configuração se a sugestão for de mais do que 1 ecrã.");
+    });
+
+    // A sugestao nascia aqui e nao tinha caminho para o Preview: era preciso
+    // aplica-la numa aba, montar as zonas e so entao ela chegava la. Este
+    // botao manda-a directamente -- um ecra do tamanho sugerido, na sala que
+    // veio de la -- para se poder OLHAR para a sugestao antes de a aceitar.
+    document.getElementById("asst-rec-ver-3d").addEventListener("click", function () {
+      var size = currentTierSize();
+      if (!size) { showToast("Ainda nao ha sugestao de tamanho."); return; }
+
+      var sala = null;
+      try { sala = JSON.parse(localStorage.getItem("mikeapps-sala-v1") || "null"); } catch (e) {}
+
+      var payload = {
+        v: 1,
+        origem: "assistente",
+        nome: "Sugestao do assistente",
+        zonas: [{
+          nome: "Ecra sugerido",
+          x: 0, y: 0,
+          w: round2(size.width), h: round2(size.height),
+          cor: "#22D3EE"
+        }]
+      };
+      if (sala) {
+        payload.sala = { largura: sala.largura, profundidade: sala.profundidade,
+                         altura: sala.altura };
+      }
+
+      var bytes = new TextEncoder().encode(JSON.stringify(payload));
+      var binario = "";
+      for (var i = 0; i < bytes.length; i++) binario += String.fromCharCode(bytes[i]);
+      var endereco = "https://mikefkfmiguel-create.github.io/preview/#p=" +
+        btoa(binario).replace(/\+/g, "-").replace(/\//g, "_");
+      window.open(endereco, "mikeapps-preview");
     });
 
     document.getElementById("asst-rec-use-proj").addEventListener("click", function () {
@@ -6088,8 +6585,40 @@
         }
       }
       checkAddProject("p-addproject");
-      showToast("Tamanho aplicado na aba Distância de Projeção (1 ecrã), com o projetor de menos lúmens em stock — confirma o brilho conforme a luz ambiente real da sala.");
+      showToast("Tamanho aplicado na aba Distância de Projeção (1 ecrã), com o projetor de menos lúmens em stock — confirma o brilho conforme a luz ambiente real da sala. Para o ver montado na sala, carrega em \"Ver no Preview 3D\".");
     });
+
+    // Um texto que veio do Preview: ele nao o percebe -- so sabe medidas -- e
+    // manda-o para ca, que e onde vive o assistente. Chega, enche o campo e
+    // segue para analise sozinho: quem carregou no botao do outro lado ja
+    // pediu isto, e obrigar a carregar outra vez do lado de ca era so mais um
+    // passo entre a pessoa e a resposta.
+    function trazerBriefingDoPreview() {
+      if (location.hash.indexOf("briefing") === -1) return;
+      var bruto = null;
+      try { bruto = localStorage.getItem("mikeapps-briefing-v1"); } catch (e) { return; }
+      if (!bruto) return;
+      var dados;
+      try { dados = JSON.parse(bruto); } catch (e) { return; }
+      if (!dados || !dados.texto) return;
+
+      var aba = document.querySelector('.tab[data-mode="assistente"]');
+      if (aba) aba.click();
+      asstText.value = dados.texto;
+      asstText.dispatchEvent(new Event("input", { bubbles: true }));
+      asstText.scrollIntoView({ block: "center", behavior: "smooth" });
+      showToast("Texto trazido do Preview — a analisar…");
+      try { localStorage.removeItem("mikeapps-briefing-v1"); } catch (e) {}
+      history.replaceState(null, "", location.pathname + location.search);
+      // Um instante para a aba trocar e o campo assentar antes de disparar.
+      setTimeout(function () { asstAnalyze.click(); }, 400);
+    }
+    // Depois de tudo o resto arrancar, e nao antes: a app restaura o rascunho
+    // do assistente e a ultima aba ao abrir, e fazia-o POR CIMA do texto que
+    // acabava de chegar -- o texto desaparecia e a aba voltava para tras, sem
+    // nada a dizer que tinha havido um texto.
+    setTimeout(trazerBriefingDoPreview, 800);
+    window.addEventListener("hashchange", trazerBriefingDoPreview);
 
     asstAnalyze.addEventListener("click", function () {
       var workerUrl = asstWorkerUrl.value.trim();
