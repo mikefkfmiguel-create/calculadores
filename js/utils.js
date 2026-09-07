@@ -221,10 +221,15 @@ function appConfirm(message) {
 (function () {
   var dialog = document.getElementById("app-confirm-dialog");
   if (!dialog) return;
-  // Clicar fora do conteúdo (no próprio <dialog>, que ocupa só a caixa do
-  // popup) conta como cancelar — igual ao popup de edição de zona.
+  // O alvo ser o próprio <dialog> não implica que o clique caiu fora da
+  // caixa do popup — pode ter caído num gap/padding lá dentro. Só conta
+  // como "clicar fora" (cancelar) se o ponto clicado estiver mesmo fora
+  // da caixa — igual ao popup de edição de zona.
   dialog.addEventListener("click", function (e) {
-    if (e.target === dialog) dialog.close("no");
+    if (e.target !== dialog) return;
+    var r = dialog.getBoundingClientRect();
+    var foraDaCaixa = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    if (foraDaCaixa) dialog.close("no");
   });
 })();
 
@@ -266,8 +271,14 @@ function showAlarm(opts) {
 (function () {
   var dialog = document.getElementById("app-alert-dialog");
   if (!dialog) return;
+  // Mesma ressalva do popup de edição de zona: o alvo ser o próprio
+  // <dialog> não implica clique fora da caixa (pode ser um gap/padding
+  // lá dentro) — só fecha se o ponto clicado estiver mesmo fora dela.
   dialog.addEventListener("click", function (e) {
-    if (e.target === dialog) dialog.close();
+    if (e.target !== dialog) return;
+    var r = dialog.getBoundingClientRect();
+    var foraDaCaixa = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    if (foraDaCaixa) dialog.close();
   });
   var closeBtn = document.getElementById("app-alert-close");
   if (closeBtn) closeBtn.addEventListener("click", function () { dialog.close(); });

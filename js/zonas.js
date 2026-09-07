@@ -730,11 +730,15 @@
       return;
     }
     if (e.target.classList.contains("lz-details-dialog")) {
-      // Clique fora do conteúdo (no próprio elemento <dialog>, que ocupa
-      // só a caixa do popup — clicar no fundo escurecido à volta conta
-      // como clicar no <dialog> em si) fecha, como clicar fora de
-      // qualquer popup costuma fazer.
-      e.target.close();
+      // O alvo ser o próprio elemento <dialog> não implica que o clique
+      // caiu fora da caixa do popup — cai também quando o alvo é o
+      // <dialog> mas o ponto clicado está dentro da caixa visível, num
+      // gap/padding entre campos (grelha CSS, margens entre labels e
+      // inputs). Por isso confirma-se com getBoundingClientRect() que o
+      // clique caiu mesmo fora da caixa antes de fechar.
+      var r = e.target.getBoundingClientRect();
+      var foraDaCaixa = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      if (foraDaCaixa) e.target.close();
       return;
     }
     var colorResetBtn = e.target.closest(".lz-color-reset");
