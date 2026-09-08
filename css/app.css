@@ -197,7 +197,15 @@
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
-    margin-bottom: 6px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin: -28px -20px 18px;
+    padding: 12px 20px;
+    background: color-mix(in srgb, var(--paper) 94%, transparent);
+    border-bottom: 1px solid var(--line-soft);
+    box-shadow: 0 4px 14px rgba(16, 24, 31, 0.08);
+    backdrop-filter: blur(8px);
   }
   .brand {
     display: flex;
