@@ -35,6 +35,17 @@ o **mesmo Worker** que o Assistente de Projeto usa aqui — o endereço vem do
 (`calculadores-assistente-worker-url`). Não duplica o catálogo; manda só o
 texto do pedido e a sala que já estiver desenhada, e aplica o que voltar.
 
+**Susto corrigido (8 de setembro): loop contínuo de sincronização.** O
+Preview passou a devolver o tamanho do ecrã/zonas sozinho (v2.48) sempre
+que "Auto" está ligado — mas isso, combinado com `calcLedZones()` já
+reescrever `mikeapps-projeto-v1` sem guarda nenhuma a cada recálculo
+(mesmo os causados só por ACABAR de aplicar algo vindo do Preview), abriu
+um ciclo fechado entre as duas apps, a cada ~700ms, sem parar sozinho.
+Corrigido nos dois lados no mesmo dia (`lzAImportarDoPreview` aqui,
+`ignorarProximoDevolver` no Preview — nenhum dos dois volta a ecoar de
+volta uma alteração que acabou de chegar de fora). Detalhe técnico
+completo no `PARA-CONTINUAR.md` do Preview.
+
 ## O que aconteceu depois (6 tarde → 7 de setembro, feito localmente, fora desta sessão)
 
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
