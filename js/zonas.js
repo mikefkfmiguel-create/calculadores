@@ -33,6 +33,14 @@
   }
 
   function lzCardWH(card) {
+    // TV/Projeção não são feitas de tiles — a largura/altura é a que se
+    // escreveu, sem arredondar a um nº de módulos de um catálogo de LED que
+    // nem se aplica a este tipo de ecrã.
+    if (card.querySelector(".lz-tipo").value !== "led") {
+      var w = parseFloat(card.querySelector(".lz-target-w").value);
+      var h = parseFloat(card.querySelector(".lz-target-h").value);
+      return { w: isNaN(w) ? 0 : w, h: isNaN(h) ? 0 : h };
+    }
     var mw = parseFloat(card.querySelector(".lz-mw").value);
     var mh = parseFloat(card.querySelector(".lz-mh").value);
     var activeSeg = card.querySelector(".lz-sizemode-seg .seg-btn.active");
@@ -133,6 +141,7 @@
       updateSelectStockColor(modelSel);
     }
     lzApplyModel(card);
+    lzApplyTipoVisibility(card);
     if (!opts) return;
     // Por omissão "led" (var declarado no <select> do template) — projetos
     // antigos sem este campo no localStorage não mudam de comportamento.
@@ -144,7 +153,13 @@
     if (opts.ry != null) card.querySelector(".lz-ry").value = opts.ry;
     if (opts.weight != null) card.querySelector(".lz-weight").value = opts.weight;
     if (opts.amp != null) card.querySelector(".lz-amp").value = opts.amp;
-    var isMeters = opts.sizeMode === "meters";
+    // TV/Projeção não têm o seletor de "tiles vs metros" (está escondido,
+    // ver lzApplyTipoVisibility) — para esses tipos o tamanho É sempre a
+    // largura/altura em metros, se não isto ficava a restaurar o "nº de
+    // tiles" por omissão (4x3) em vez do que a pessoa escreveu, sempre que a
+    // gravação antiga trazia "sizeMode: tiles" de antes de mudar o tipo.
+    var tipoRestaurado = opts.tipo != null ? opts.tipo : card.querySelector(".lz-tipo").value;
+    var isMeters = tipoRestaurado !== "led" || opts.sizeMode === "meters";
     card.querySelectorAll(".lz-sizemode-seg .seg-btn").forEach(function (b) { b.classList.toggle("active", (b.dataset.sizemode === "meters") === isMeters); });
     card.querySelector(".lz-tiles-inputs").style.display = isMeters ? "none" : "grid";
     card.querySelector(".lz-meters-inputs").style.display = isMeters ? "grid" : "none";
@@ -169,6 +184,36 @@
     }
     if (opts.curveValue != null) card.querySelector(".lz-curve-value").value = opts.curveValue;
     if (opts.curveDir != null) card.querySelector(".lz-curve-dir").value = opts.curveDir;
+    lzApplyTipoVisibility(card);
+  }
+
+  // TV e Projeção não são tiles de LED — não têm catálogo, não têm
+  // "personalizado" (mm/px/peso/amp) e não se contam por tile nem se
+  // curvam. Escondem-se os campos que só fazem sentido para LED, e o
+  // tamanho da zona passa a vir direto da largura/altura em metros, sem
+  // arredondar a um nº de tiles (ver lzCardWH e calcLedZones).
+  function lzApplyTipoVisibility(card) {
+    var isLed = card.querySelector(".lz-tipo").value === "led";
+    // O curva-fields tem lógica própria (liga/desliga com a checkbox "Zona
+    // curva") — aqui só se decide se aparece a hipótese de todo, não o
+    // estado dela; por isso fica de fora do reset genérico de baixo.
+    card.querySelectorAll(".lz-led-only:not(.lz-curve-fields)").forEach(function (el) {
+      el.style.display = isLed ? "" : "none";
+    });
+    if (isLed) {
+      lzApplyModel(card);
+      var activeSeg = card.querySelector(".lz-sizemode-seg .seg-btn.active");
+      var isMeters = activeSeg && activeSeg.dataset.sizemode === "meters";
+      card.querySelector(".lz-tiles-inputs").style.display = isMeters ? "none" : "grid";
+      card.querySelector(".lz-meters-inputs").style.display = isMeters ? "grid" : "none";
+      var curveEnabled = card.querySelector(".lz-curve-enabled").checked;
+      card.querySelector(".lz-curve-fields").style.display = curveEnabled ? "block" : "none";
+    } else {
+      card.querySelectorAll(".lz-custom-fields").forEach(function (el) { el.style.display = "none"; });
+      card.querySelector(".lz-tiles-inputs").style.display = "none";
+      card.querySelector(".lz-meters-inputs").style.display = "grid";
+      card.querySelector(".lz-curve-fields").style.display = "none";
+    }
   }
 
   function lzOptsFromCard(card) {
@@ -254,7 +299,7 @@
           '<div class="field"><label>Posição X (horizontal)</label><div class="inputgroup"><input class="lz-posx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
           '<div class="field"><label>Posição Y (vertical)</label><div class="inputgroup"><input class="lz-posy" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
         '</div>' +
-        '<div class="field">' +
+        '<div class="field lz-led-only">' +
           '<label>Modelo de tile</label>' +
           '<select class="lz-model plain">' + lzZoneModelOptionsHtml() + '</select>' +
         '</div>' +
@@ -266,7 +311,7 @@
             '<option value="projecao">Projeção (delay)</option>' +
           '</select>' +
         '</div>' +
-        '<div class="field">' +
+        '<div class="field lz-led-only">' +
           '<label>Como queres indicar o tamanho desta zona?</label>' +
           '<div class="seg lz-sizemode-seg">' +
             '<button type="button" class="seg-btn active" data-sizemode="tiles">Nº de tiles</button>' +
@@ -293,13 +338,13 @@
           '<div class="field"><label>Peso por tile</label><div class="inputgroup"><input class="lz-weight" type="number" inputmode="decimal" value="6.0" min="0" step="0.1"><span class="unit">kg</span></div></div>' +
           '<div class="field"><label>Amp máx. por tile</label><div class="inputgroup"><input class="lz-amp" type="number" inputmode="decimal" value="0.52" min="0" step="0.01"><span class="unit">A</span></div></div>' +
         '</div>' +
-        '<div class="field">' +
+        '<div class="field lz-led-only">' +
           '<label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:400;">' +
             '<input type="checkbox" class="lz-curve-enabled" style="width:auto;">' +
             'Zona curva' +
           '</label>' +
         '</div>' +
-        '<div class="lz-curve-fields" style="display:none;">' +
+        '<div class="lz-curve-fields lz-led-only" style="display:none;">' +
           '<div class="field">' +
             '<label>Como queres indicar a curvatura?</label>' +
             '<div class="seg lz-curve-mode-seg">' +
@@ -1003,6 +1048,9 @@
     if (e.target.classList.contains("lz-curve-enabled")) {
       e.target.closest(".card").querySelector(".lz-curve-fields").style.display = e.target.checked ? "block" : "none";
     }
+    if (e.target.classList.contains("lz-tipo")) {
+      lzApplyTipoVisibility(e.target.closest(".card"));
+    }
     calcLedZones();
   });
   lzList.addEventListener("input", function (e) {
@@ -1627,6 +1675,33 @@
       var posY = parseFloat(card.querySelector(".lz-posy").value);
       if (isNaN(posX)) posX = 0;
       if (isNaN(posY)) posY = 0;
+      var tipo = card.querySelector(".lz-tipo").value;
+      var visible = card.querySelector(".lz-visible").checked;
+      card.style.opacity = visible ? "" : "0.5";
+      var isRef = card.querySelector(".lz-ref").checked;
+
+      // TV e projeção não são tiles: sem catálogo, sem peso/amperagem "por
+      // tile" (isso é sabido dum ecrã LED, não dum monitor ou dum canhão) e
+      // sem curvatura. Nunca inventar esses números a partir dum tile de LED
+      // que por acaso ficou selecionado de antes — ficam a zero/omissos, tal
+      // e qual o resto da app faz quando não sabe algo (ver CLAUDE.md).
+      if (tipo !== "led") {
+        var whDelay = lzCardWH(card);
+        var zoneAreaDelay = whDelay.w * whDelay.h;
+        var readoutDelay = card.querySelector(".lz-readout");
+        var rotuloDelay = tipo === "tv" ? "TV (delay)" : "Projeção (delay)";
+        if (!whDelay.w || !whDelay.h) {
+          readoutDelay.textContent = "Preenche a largura e a altura desta zona.";
+        } else {
+          readoutDelay.textContent = rotuloDelay + " — " + fmt(whDelay.w,2) + " x " + fmt(whDelay.h,2) + " m (" + fmt(zoneAreaDelay,2) + " m²)";
+        }
+        var curveReadoutDelay = card.querySelector(".lz-curve-readout");
+        if (curveReadoutDelay) curveReadoutDelay.textContent = "Curvatura: não aplicável a este tipo de ecrã.";
+        lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), 0, 0, false);
+        zones.push({ id: card.dataset.zoneId, name: name, model: rotuloDelay, tipo: tipo, mx: 0, my: 0, numTiles: 0, w: whDelay.w, h: whDelay.h, area: zoneAreaDelay, totalPx: 0, totalPy: 0, pixels: 0, weight: 0, amp: 0, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: null, curve: null });
+        return;
+      }
+
       var modelSel = card.querySelector(".lz-model");
       var modelLabel = modelSel.value === "custom" ? "Personalizado" : (LED_TILES_DATA[parseInt(modelSel.value, 10)] || {}).modelo || "Personalizado";
       var mw = parseFloat(card.querySelector(".lz-mw").value);
@@ -1665,10 +1740,6 @@
       } else {
         readout.innerHTML = modelLabel + " — " + fmtInt(totalPx) + "×" + fmtInt(totalPy) + " px — " + fmt(wM,2) + " x " + fmt(hM,2) + " m (" + fmt(zoneArea,2) + " m²) — " + fmtInt(numTiles) + " tiles" + (isNaN(weight) ? "" : " — " + fmt(zoneWeight,1) + " kg") + (isNaN(amp) ? "" : " — " + fmt(zoneAmp,2) + " A");
       }
-
-      var visible = card.querySelector(".lz-visible").checked;
-      card.style.opacity = visible ? "" : "0.5";
-      var isRef = card.querySelector(".lz-ref").checked;
 
       var curveReadout = card.querySelector(".lz-curve-readout");
       var curveText = null;
