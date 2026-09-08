@@ -127,7 +127,7 @@ const EXTRACT_TOOL = {
 function corsHeaders(origin) {
   return {
     "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
   };
@@ -135,6 +135,95 @@ function corsHeaders(origin) {
 
 function isAllowedOrigin(origin, allowedOrigins) {
   return !!origin && allowedOrigins.includes(origin);
+}
+
+// ---------------------------------------------------------- link "só para ver"
+//
+// O Preview manda cá o projeto todo (sala, palco, público, ajustes — o mesmo
+// que "Guardar projeto" grava num ficheiro) e recebe um id curto de volta.
+// Quem tiver o link lê o projeto por esse id, sem falar com o aparelho de
+// quem o criou nem com os Calculadores — só o Worker fica no meio, e só até o
+// KV apagar sozinho passados os dias da validade. O id é o único segredo (60
+// bits de aleatoriedade): como um link do Drive "quem tiver o link, vê".
+
+const PARTILHA_VALIDADE_SEGUNDOS = 7 * 24 * 60 * 60; // 7 dias
+const PARTILHA_TAMANHO_MAXIMO = 300 * 1024; // um projeto sem imagens não passa disto perto
+// Sem 0/O/1/l/I — para ninguém confundir letra com número a ditar um link.
+const ALFABETO_ID = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+
+function novoIdPartilha() {
+  const bytes = new Uint8Array(10);
+  crypto.getRandomValues(bytes);
+  let id = "";
+  for (const b of bytes) id += ALFABETO_ID[b % ALFABETO_ID.length];
+  return id;
+}
+
+async function criarPartilha(request, env, origin) {
+  if (!env.PARTILHAS) {
+    return new Response(JSON.stringify({ error: "Worker sem armazenamento configurado (KV PARTILHAS)." }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return new Response(JSON.stringify({ error: "Pedido inválido (JSON em falta ou mal formado)." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+  const estado = body && body.estado;
+  if (!estado || typeof estado !== "object") {
+    return new Response(JSON.stringify({ error: "Falta o projeto a partilhar." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+  const texto = JSON.stringify(estado);
+  if (texto.length > PARTILHA_TAMANHO_MAXIMO) {
+    return new Response(JSON.stringify({ error: "Projeto demasiado grande para partilhar." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+  const id = novoIdPartilha();
+  await env.PARTILHAS.put(id, texto, { expirationTtl: PARTILHA_VALIDADE_SEGUNDOS });
+  return new Response(JSON.stringify({ id }), {
+    status: 200,
+    headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+  });
+}
+
+async function lerPartilha(id, env, origin) {
+  if (!env.PARTILHAS) {
+    return new Response(JSON.stringify({ error: "Worker sem armazenamento configurado (KV PARTILHAS)." }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+  const texto = id ? await env.PARTILHAS.get(id) : null;
+  if (!texto) {
+    return new Response(JSON.stringify({ error: "Este link já não existe — ou passou a validade (7 dias), ou nunca existiu." }), {
+      status: 404,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+  let estado;
+  try {
+    estado = JSON.parse(texto);
+  } catch (e) {
+    return new Response(JSON.stringify({ error: "Este link ficou com dados corrompidos." }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+  return new Response(JSON.stringify({ estado }), {
+    status: 200,
+    headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+  });
 }
 
 export default {
@@ -145,6 +234,7 @@ export default {
       .filter(Boolean);
     const origin = request.headers.get("Origin") || "";
     const allowed = isAllowedOrigin(origin, allowedOrigins);
+    const url = new URL(request.url);
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: allowed ? corsHeaders(origin) : {} });
@@ -155,6 +245,29 @@ export default {
         status: 403,
         headers: { "Content-Type": "application/json" },
       });
+    }
+
+    // Rotas do link "só para ver" — à parte do assistente de IA que ocupa a
+    // raiz "/" (ver mais abaixo). Vivem aqui em cima para não se misturarem
+    // com os limites e validações do texto/PDF/imagem, que não lhes dizem
+    // respeito nenhum.
+    if (url.pathname === "/partilha") {
+      if (request.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Método não suportado." }), {
+          status: 405,
+          headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+        });
+      }
+      return criarPartilha(request, env, origin);
+    }
+    if (url.pathname.startsWith("/partilha/")) {
+      if (request.method !== "GET") {
+        return new Response(JSON.stringify({ error: "Método não suportado." }), {
+          status: 405,
+          headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+        });
+      }
+      return lerPartilha(url.pathname.slice("/partilha/".length), env, origin);
     }
 
     if (request.method !== "POST") {
