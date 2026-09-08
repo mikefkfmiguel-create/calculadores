@@ -14,6 +14,7 @@
   // zona em si ter mudado.
   var lzColorAssignments = {};
   var lzNextColorIndex = 0;
+  var lzPopupFechadoEm = 0;
 
   function lzZoneModelOptionsHtml() {
     return '<option value="custom">Personalizado…</option>';
@@ -129,6 +130,12 @@
     dialog.style.top = "";
     dialog.style.margin = "";
     dialog.showModal();
+  }
+
+  function lzFecharZoneDialog(dialog) {
+    if (!dialog) return;
+    lzPopupFechadoEm = Date.now();
+    dialog.close();
   }
 
   // Arrastar o popup de edição pelo cabeçalho (lz-dialog-head) — pedido
@@ -783,6 +790,7 @@
 
   document.querySelectorAll("#lz-add, #lz-add-top, #lz-add-canvas").forEach(function (btn) {
     btn.addEventListener("click", function () {
+      if (document.querySelector(".lz-details-dialog[open]") || Date.now() - lzPopupFechadoEm < 400) return;
       lzPushUndo();
       lzAddZone();
       lzRecentrarZonas();
@@ -1002,19 +1010,13 @@
     }
     var dialogCloseBtn = e.target.closest(".lz-dialog-close");
     if (dialogCloseBtn) {
-      dialogCloseBtn.closest(".lz-details-dialog").close();
+      lzFecharZoneDialog(dialogCloseBtn.closest(".lz-details-dialog"));
       return;
     }
     if (e.target.classList.contains("lz-details-dialog")) {
-      // O alvo ser o próprio elemento <dialog> não implica que o clique
-      // caiu fora da caixa do popup — cai também quando o alvo é o
-      // <dialog> mas o ponto clicado está dentro da caixa visível, num
-      // gap/padding entre campos (grelha CSS, margens entre labels e
-      // inputs). Por isso confirma-se com getBoundingClientRect() que o
-      // clique caiu mesmo fora da caixa antes de fechar.
-      var r = e.target.getBoundingClientRect();
-      var foraDaCaixa = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
-      if (foraDaCaixa) e.target.close();
+      // No avançado, o botão "+ Adicionar zona" pode ficar por trás do
+      // popup. Fechar por clique no fundo ficava demasiado sensível em
+      // touchpads/ecrãs táteis e parecia criar outra zona por engano.
       return;
     }
     var colorResetBtn = e.target.closest(".lz-color-reset");
