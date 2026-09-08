@@ -39,7 +39,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.14</span>
+    <span class="mark" id="app-versao">v3.15</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -1542,6 +1542,7 @@
               </select>
             </div>
           </div>
+          <button type="button" class="copy" id="proj-use-ecra-dsm" style="margin-top:8px;" title="Usa a contagem de DSM já configurada na aba Ecrã Complexo (o mesmo DSM que vai e volta do Preview), para não escrever o número outra vez">↙ Trazer da Ecrã Complexo</button>
           <div class="row2" id="proj-dsm-custom-res" style="display:none;">
             <div class="field">
               <label for="proj-dsm-w">Largura</label>
@@ -1581,6 +1582,7 @@
               </select>
             </div>
           </div>
+          <button type="button" class="copy" id="proj-use-ecra-delay" style="margin-top:8px;" title="Conta as zonas tipo TV (delay)/Projeção (delay) já criadas na aba Ecrã Complexo, para não escrever o número outra vez">↙ Trazer da Ecrã Complexo</button>
           <div class="row2" id="proj-delay-custom-res" style="display:none;">
             <div class="field">
               <label for="proj-delay-w">Largura</label>
@@ -4707,6 +4709,33 @@
     input.value = document.getElementById("sg-fps").value;
     input.dispatchEvent(new Event("input", { bubbles: true }));
     input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  // Estes dois contadores (DSM/Delay aqui em "Adicionais") são só para o
+  // cálculo de "Pixel usage total" desta aba — nunca leram a Ecrã Complexo
+  // nem viajam para o Preview, ao contrário do DSM/das zonas tipo delay de
+  // lá (esses sim vão e voltam). Reportado como "não traz os delays/DSM do
+  // Preview": era este par de campos com o mesmo nome, sem ligação nenhuma
+  // ao outro. Em vez de ligar os dois automaticamente (perderia o uso de
+  // estimar antes de montar as zonas a sério), um botão para trazer a
+  // contagem real com um clique — mesmo padrão do "↙ Sinal & Data Rate" ali em cima.
+  document.getElementById("proj-use-ecra-dsm").addEventListener("click", function () {
+    var origem = document.getElementById("lz-dsm-n");
+    if (!origem) return;
+    var input = document.getElementById("proj-dsm-count");
+    input.value = origem.value || 0;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    showToast("Trazido da Ecrã Complexo: " + (origem.value || 0) + " DSM.");
+  });
+  document.getElementById("proj-use-ecra-delay").addEventListener("click", function () {
+    var n = document.querySelectorAll('#lz-list .card .lz-tipo').length
+      ? Array.prototype.filter.call(document.querySelectorAll('#lz-list .card .lz-tipo'), function (sel) { return sel.value !== "led"; }).length
+      : 0;
+    var input = document.getElementById("proj-delay-count");
+    input.value = n;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    showToast("Trazido da Ecrã Complexo: " + n + (n === 1 ? " zona delay." : " zonas delay."));
   });
   document.querySelectorAll('.panel[data-mode="mediaserver"] input').forEach(function (el) {
     el.addEventListener("input", calcMediaServer);
