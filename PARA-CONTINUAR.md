@@ -46,6 +46,19 @@ Corrigido nos dois lados no mesmo dia (`lzAImportarDoPreview` aqui,
 volta uma alteração que acabou de chegar de fora). Detalhe técnico
 completo no `PARA-CONTINUAR.md` do Preview.
 
+**Cabeçalho sempre visível (8 de setembro, v3.6).** Pedido direto do mike
+a seguir ao susto do loop: sem ver o botão "Auto" sem subir ao topo, não
+dá para desligar a sincronização depressa numa emergência destas. A linha
+`.top` (Preview 3D / Sincronizar / Auto / Guardar / Abrir) ficou sticky,
+tal como a barra de abas (`.tabs-wrap`) já era — as duas empilham-se uma
+por baixo da outra (`--top-h`, medido em JS via ResizeObserver, o mesmo
+padrão que já existia para `--tabswrap-h`). `#lz-add-top` e `.results`
+(Ecrã Complexo) ganharam o mesmo `--top-h` somado ao seu "top" de sempre,
+só para continuarem a ficar por baixo da barra nova — testado com
+Playwright em desktop e em telemóvel (aí a linha `.top` quebra em várias
+linhas por causa dos botões, por isso a altura sticky cresce bastante;
+aceite como o preço de ficar sempre alcançável).
+
 ## O que aconteceu depois (6 tarde → 7 de setembro, feito localmente, fora desta sessão)
 
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho

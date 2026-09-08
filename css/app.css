@@ -191,6 +191,14 @@
   h1, h2, h3 { text-wrap: balance; }
 
   /* Header */
+  /* Sticky, tal como a barra de abas por baixo (.tabs-wrap) — pedido direto
+     do mike depois de um susto com o sync em loop: sem ver o botão "Auto"
+     sem subir ao topo, não dá para desligar a sincronização depressa numa
+     emergência destas. z-index mais alto que o do .tabs-wrap (20) porque
+     fica por cima dele quando ambos estão colados; o .tabs-wrap desce a
+     sua posição sticky para o "top" ficar exatamente por baixo desta barra
+     (--top-h, medido em JS via ResizeObserver, tal como já se fazia para o
+     próprio .tabs-wrap — ver index.html). */
   .top {
     display: flex;
     align-items: baseline;
@@ -198,6 +206,11 @@
     gap: 16px;
     flex-wrap: wrap;
     margin-bottom: 6px;
+    position: sticky;
+    top: 0;
+    z-index: 25;
+    background: var(--paper);
+    padding-top: 10px;
   }
   .brand {
     display: flex;
@@ -383,7 +396,7 @@
      a tapá-los. */
   .tabs-wrap {
     position: sticky;
-    top: 0;
+    top: var(--top-h, 0px);
     z-index: 20;
     background: var(--paper);
     margin-bottom: 26px;
@@ -961,7 +974,10 @@
   }
 
   /* Results */
-  .results { position: sticky; top: 16px; }
+  /* top soma --top-h (barra .top, agora sticky) ao valor de sempre — só
+     desloca mais para baixo, nunca menos, por isso não muda nada em quem já
+     estava a funcionar sem a barra .top sticky. */
+  .results { position: sticky; top: calc(var(--top-h, 0px) + 16px); }
   /* Em telemóvel o .grid de 2 colunas passa a 1 coluna só — quando uma aba
      (ex: Projeto) tem 2 cards ".results" empilhados nessa coluna única
      (checklist + relatório), ambos tentam colar-se ao mesmo "top:16px" ao
@@ -1005,7 +1021,7 @@
          ResizeObserver (ver index.html), porque a barra pode aparecer/
          desaparecer consoante a aba. 116px é só o valor de recurso caso o
          JS ainda não tenha corrido. */
-      top: calc(var(--tabswrap-h, 108px) + 12px);
+      top: calc(var(--top-h, 0px) + var(--tabswrap-h, 108px) + 12px);
       right: 16px;
       z-index: 40;
       box-shadow: var(--shadow);
