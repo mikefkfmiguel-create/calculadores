@@ -15,6 +15,7 @@
   var lzColorAssignments = {};
   var lzNextColorIndex = 0;
   var lzPopupFechadoEm = 0;
+  var lzPopupEmArrasto = false;
 
   function lzZoneModelOptionsHtml() {
     return '<option value="custom">Personalizado…</option>';
@@ -138,6 +139,10 @@
     dialog.close();
   }
 
+  function lzTemPopupAberto() {
+    return !!document.querySelector(".lz-details-dialog[open]");
+  }
+
   // Arrastar o popup de edição pelo cabeçalho (lz-dialog-head) — pedido
   // direto: sem isto o popup, sempre centrado, tapa o diagrama por baixo e
   // não há como ver os dois ao mesmo tempo. Só o cabeçalho arrasta (não o
@@ -152,14 +157,22 @@
       var dialog = head.closest(".lz-details-dialog");
       if (!dialog || !dialog.open) return;
       var rect = dialog.getBoundingClientRect();
-      drag = { dialog: dialog, startX: e.clientX, startY: e.clientY, startLeft: rect.left, startTop: rect.top };
+      drag = { dialog: dialog, head: head, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, startLeft: rect.left, startTop: rect.top };
+      lzPopupEmArrasto = true;
+      dialog.classList.add("lz-popup-dragging");
+      document.body.classList.add("lz-popup-dragging");
       dialog.style.margin = "0";
       dialog.style.left = rect.left + "px";
       dialog.style.top = rect.top + "px";
+      if (head.setPointerCapture) {
+        try { head.setPointerCapture(e.pointerId); } catch (err) {}
+      }
       e.preventDefault();
+      e.stopPropagation();
     });
     document.addEventListener("pointermove", function (e) {
       if (!drag) return;
+      if (e.pointerId != null && e.pointerId !== drag.pointerId) return;
       var rect = drag.dialog.getBoundingClientRect();
       var margin = 24;
       var maxLeft = window.innerWidth - margin, maxTop = window.innerHeight - margin;
@@ -167,8 +180,22 @@
       var newTop = Math.min(Math.max(drag.startTop + (e.clientY - drag.startY), 0), maxTop - margin);
       drag.dialog.style.left = newLeft + "px";
       drag.dialog.style.top = newTop + "px";
+      e.preventDefault();
+      e.stopPropagation();
     });
-    document.addEventListener("pointerup", function () { drag = null; });
+    function endDrag(e) {
+      if (e && drag && e.pointerId != null && e.pointerId !== drag.pointerId) return;
+      if (drag && drag.head && drag.head.releasePointerCapture) {
+        try { drag.head.releasePointerCapture(drag.pointerId); } catch (err) {}
+      }
+      if (drag && drag.dialog) drag.dialog.classList.remove("lz-popup-dragging");
+      document.body.classList.remove("lz-popup-dragging");
+      drag = null;
+      lzPopupEmArrasto = false;
+    }
+    document.addEventListener("pointerup", endDrag);
+    document.addEventListener("pointercancel", endDrag);
+    window.addEventListener("blur", endDrag);
   })();
 
   // Aplica modelo/tamanho (mas nunca posição — cada zona mantém a sua) a um
@@ -755,6 +782,10 @@
   }
 
   function lzSortCardsByPosition() {
+    // Reordenar o card que contém um <dialog> aberto retira o popup do sítio
+    // (e em alguns browsers fecha-o). Enquanto se está a editar, a ordem da
+    // lista fica quieta; ao fechar/novo recálculo volta a ordenar normalmente.
+    if (lzTemPopupAberto() || lzPopupEmArrasto) return;
     var active = document.activeElement;
     if (active && lzList.contains(active) && (active.classList.contains("lz-posx") || active.classList.contains("lz-posy"))) return;
     var cards = Array.from(lzList.querySelectorAll(".card"));
@@ -790,7 +821,7 @@
 
   document.querySelectorAll("#lz-add, #lz-add-top, #lz-add-canvas").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      if (document.querySelector(".lz-details-dialog[open]") || Date.now() - lzPopupFechadoEm < 400) return;
+      if (lzTemPopupAberto() || Date.now() - lzPopupFechadoEm < 400) return;
       lzPushUndo();
       lzAddZone();
       lzRecentrarZonas();

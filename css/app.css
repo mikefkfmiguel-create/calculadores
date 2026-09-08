@@ -734,9 +734,13 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 16px;
-    cursor: move;
+    cursor: grab;
     touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
   }
+  .lz-details-dialog.lz-popup-dragging .lz-dialog-head,
+  body.lz-popup-dragging { cursor: grabbing; }
   .lz-dialog-head .lz-dialog-title { flex: 1; }
   /* Grelha de pontos — sinal visual de que o cabeçalho se arrasta (pedido
      depois de o arrasto em si já existir, para não ficar escondido). */
