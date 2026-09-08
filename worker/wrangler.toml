@@ -9,6 +9,17 @@ compatibility_date = "2025-01-01"
 [vars]
 ALLOWED_ORIGINS = "https://mikefkfmiguel-create.github.io"
 
+# Guarda os projetos partilhados pelo botão "🔗 Link para ver" do Preview,
+# por 7 dias, e depois apaga-os sozinho (expirationTtl, no código). Cria-se
+# UMA vez, antes do primeiro deploy desta versão:
+#   wrangler kv namespace create PARTILHAS
+# Esse comando devolve um bloco com um "id" — troca "cola-aqui-o-id" por ele
+# e faz `wrangler deploy` a seguir. Sem isto, o link de partilha não funciona
+# (o resto do Worker continua a funcionar na mesma).
+[[kv_namespaces]]
+binding = "PARTILHAS"
+id = "cola-aqui-o-id"
+
 # A chave da Anthropic NUNCA vai aqui nem em nenhum ficheiro do repositório —
 # define-se como secret depois do primeiro deploy:
 #   wrangler secret put ANTHROPIC_API_KEY
