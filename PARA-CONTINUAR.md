@@ -46,18 +46,18 @@ Corrigido nos dois lados no mesmo dia (`lzAImportarDoPreview` aqui,
 volta uma alteração que acabou de chegar de fora). Detalhe técnico
 completo no `PARA-CONTINUAR.md` do Preview.
 
-**Cabeçalho sempre visível (8 de setembro, v3.6).** Pedido direto do mike
-a seguir ao susto do loop: sem ver o botão "Auto" sem subir ao topo, não
-dá para desligar a sincronização depressa numa emergência destas. A linha
-`.top` (Preview 3D / Sincronizar / Auto / Guardar / Abrir) ficou sticky,
-tal como a barra de abas (`.tabs-wrap`) já era — as duas empilham-se uma
-por baixo da outra (`--top-h`, medido em JS via ResizeObserver, o mesmo
-padrão que já existia para `--tabswrap-h`). `#lz-add-top` e `.results`
-(Ecrã Complexo) ganharam o mesmo `--top-h` somado ao seu "top" de sempre,
-só para continuarem a ficar por baixo da barra nova — testado com
-Playwright em desktop e em telemóvel (aí a linha `.top` quebra em várias
-linhas por causa dos botões, por isso a altura sticky cresce bastante;
-aceite como o preço de ficar sempre alcançável).
+**Cabeçalho sempre visível (8 de setembro).** Pedido direto do mike a
+seguir ao susto do loop: sem ver o botão "Auto" sem subir ao topo, não dá
+para desligar a sincronização depressa numa emergência destas. A linha
+`.top` (Preview 3D / Sincronizar / Auto / Guardar / Abrir / Limpar) ficou
+sticky, tal como a barra de abas (`.tabs-wrap`) já era — as duas
+empilham-se uma por baixo da outra (`--top-h`, medido em JS via
+ResizeObserver). Esta parte foi feita pelo GitHub Copilot directamente no
+`main`, sem passar por aqui. O que faltava e foi corrigido nesta sessão:
+`.results` (sidebar de resultados, usada em várias abas) ainda tinha
+`top: 16px` fixo, ficando escondida atrás do novo cabeçalho sticky ao
+descer a página — passou a somar `--top-h` também, tal como `#lz-add-top`
+já fazia.
 
 ## O que aconteceu depois (6 tarde → 7 de setembro, feito localmente, fora desta sessão)
 
