@@ -632,27 +632,46 @@
     return opts;
   }
 
+  // SUSTO: com a v2.48 do Preview a passar a devolver sozinho (mikeapps-ecra-v1)
+  // sempre que o Auto está ligado, isto entrou num loop -- importar um projeto
+  // do Preview chama calcLedZones(), que sempre escrevia de volta para o
+  // Preview (mikeapps-projeto-v1) mesmo quando a "alteração" era só ACABAR de
+  // aplicar o que tinha chegado de lá. Com os dois lados automáticos ao mesmo
+  // tempo, cada um ecoava de volta o que o outro tinha acabado de mandar, para
+  // sempre. Esta bandeira fica ligada durante toda a importação (não só o
+  // primeiro recálculo -- lzAddZone chama calcLedZones() por zona) para
+  // lzGuardarParaPreview() saber que não é uma alteração local.
+  var lzAImportarDoPreview = false;
+
   // Devolve o nº de zonas trazidas (0 se não havia nada de jeito).
   function lzImportarProjetoDoPreview(projeto) {
     if (!projeto || !Array.isArray(projeto.zonas) || !projeto.zonas.length) return 0;
     if (!lzList) return 0;
-    lzPushUndo();
-    lzList.innerHTML = "";
-    projeto.zonas.forEach(function (z) {
-      lzAddZone(z.nome || "Zona", lzOptsDeZonaDoPreview(z), false);
-    });
-    if (projeto.dsm) lzAplicarDsm(projeto.dsm);
-    calcLedZones();
-    var usezones = document.getElementById("proj-led-usezones");
-    if (usezones && !usezones.checked) {
-      usezones.checked = true;
-      usezones.dispatchEvent(new Event("change", { bubbles: true }));
+    lzAImportarDoPreview = true;
+    try {
+      lzPushUndo();
+      lzList.innerHTML = "";
+      projeto.zonas.forEach(function (z) {
+        lzAddZone(z.nome || "Zona", lzOptsDeZonaDoPreview(z), false);
+      });
+      if (projeto.dsm) lzAplicarDsm(projeto.dsm);
+      calcLedZones();
+      var usezones = document.getElementById("proj-led-usezones");
+      if (usezones && !usezones.checked) {
+        usezones.checked = true;
+        usezones.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    } finally {
+      lzAImportarDoPreview = false;
     }
     return projeto.zonas.length;
   }
   window.lzImportarProjetoDoPreview = lzImportarProjetoDoPreview;
 
   function lzGuardarParaPreview() {
+    // A meio de aplicar o que acabou de chegar do Preview — não ecoar de
+    // volta, é a mesma alteração que ele já tem.
+    if (lzAImportarDoPreview) return;
     // Escrita automática (corre a cada recálculo): com a sincronização
     // automática desligada não passa nada sozinho. O caminho manual ("Ver
     // em 3D"/"Sincronizar") continua a escrever à mesma, por lzForcarParaPreview.
