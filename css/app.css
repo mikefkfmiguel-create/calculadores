@@ -240,6 +240,11 @@
   }
   .top .topbtn:active { transform: translateY(1px); }
   .top .topbtn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .top .topbtn-danger {
+    color: var(--danger-600);
+    border-color: var(--danger-600);
+  }
+  .top .topbtn-danger:hover { background: var(--danger-100); }
   /* Ligado/desligado da sincronização automática — cor, não só o texto. */
   .top .topbtn.is-on {
     color: var(--green-600);

@@ -36,7 +36,9 @@
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
     <button type="button" class="mark topbtn" id="btAbrirProjetoTopo"
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
-    <span class="mark" id="app-versao">v3.5</span>
+    <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
+            title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
+    <span class="mark" id="app-versao">v3.6</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -6176,13 +6178,18 @@
     (function botoesProjetoNoTopo() {
       var btnGuardar = document.getElementById("btGuardarProjetoTopo");
       var btnAbrir = document.getElementById("btAbrirProjetoTopo");
+      var btnLimpar = document.getElementById("btLimparProjetoTopo");
       var original = document.getElementById("proj-save");
       var originalAbrir = document.getElementById("proj-open");
+      var originalLimpar = document.getElementById("proj-clear");
       if (btnGuardar && original) {
         btnGuardar.addEventListener("click", function () { original.click(); });
       }
       if (btnAbrir && originalAbrir) {
         btnAbrir.addEventListener("click", function () { originalAbrir.click(); });
+      }
+      if (btnLimpar && originalLimpar) {
+        btnLimpar.addEventListener("click", function () { originalLimpar.click(); });
       }
     })();
 
