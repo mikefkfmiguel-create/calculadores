@@ -147,7 +147,11 @@ function isAllowedOrigin(origin, allowedOrigins) {
 // bits de aleatoriedade): como um link do Drive "quem tiver o link, vê".
 
 const PARTILHA_VALIDADE_SEGUNDOS = 7 * 24 * 60 * 60; // 7 dias
-const PARTILHA_TAMANHO_MAXIMO = 300 * 1024; // um projeto sem imagens não passa disto perto
+// As imagens que se põe nos ecrãs/DSM (Preview) viajam aqui dentro como data
+// URL, dentro do próprio projeto -- um projeto sem nenhuma cabia perto de
+// 300KB, mas uma foto ou dois "conteúdo" já passam disso facilmente. 8MB dá
+// espaço a isso sem se aproximar do limite de corpo de pedido do Worker.
+const PARTILHA_TAMANHO_MAXIMO = 8 * 1024 * 1024;
 // Sem 0/O/1/l/I — para ninguém confundir letra com número a ditar um link.
 const ALFABETO_ID = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 
