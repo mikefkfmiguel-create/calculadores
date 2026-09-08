@@ -985,10 +985,13 @@
   }
 
   /* Results */
-  /* top soma --top-h (barra .top, agora sticky) ao valor de sempre — só
-     desloca mais para baixo, nunca menos, por isso não muda nada em quem já
-     estava a funcionar sem a barra .top sticky. */
-  .results { position: sticky; top: calc(var(--top-h, 58px) + 16px); }
+  /* top tinha ficado só "16px" (bem menos que a altura de .tabs-wrap, já
+     sticky nessa altura) — em qualquer aba com conteúdo alto que empurre o
+     .results a colar de verdade, ficava metade escondido por baixo das
+     abas, tapado pelo z-index mais alto delas. Agora soma a altura real
+     dos dois blocos sticky de cima (--top-h + --tabswrap-h, medidos em JS
+     via ResizeObserver) para o .results só colar mesmo por baixo deles. */
+  .results { position: sticky; top: calc(var(--top-h, 58px) + var(--tabswrap-h, 108px) + 16px); }
   /* Em telemóvel o .grid de 2 colunas passa a 1 coluna só — quando uma aba
      (ex: Projeto) tem 2 cards ".results" empilhados nessa coluna única
      (checklist + relatório), ambos tentam colar-se ao mesmo "top:16px" ao
