@@ -46,6 +46,19 @@ Corrigido nos dois lados no mesmo dia (`lzAImportarDoPreview` aqui,
 volta uma alteração que acabou de chegar de fora). Detalhe técnico
 completo no `PARA-CONTINUAR.md` do Preview.
 
+**Cabeçalho sempre visível (8 de setembro).** Pedido direto do mike a
+seguir ao susto do loop: sem ver o botão "Auto" sem subir ao topo, não dá
+para desligar a sincronização depressa numa emergência destas. A linha
+`.top` (Preview 3D / Sincronizar / Auto / Guardar / Abrir / Limpar) ficou
+sticky, tal como a barra de abas (`.tabs-wrap`) já era — as duas
+empilham-se uma por baixo da outra (`--top-h`, medido em JS via
+ResizeObserver). Esta parte foi feita pelo GitHub Copilot directamente no
+`main`, sem passar por aqui. O que faltava e foi corrigido nesta sessão:
+`.results` (sidebar de resultados, usada em várias abas) ainda tinha
+`top: 16px` fixo, ficando escondida atrás do novo cabeçalho sticky ao
+descer a página — passou a somar `--top-h` também, tal como `#lz-add-top`
+já fazia.
+
 ## O que aconteceu depois (6 tarde → 7 de setembro, feito localmente, fora desta sessão)
 
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho

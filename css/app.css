@@ -191,6 +191,14 @@
   h1, h2, h3 { text-wrap: balance; }
 
   /* Header */
+  /* Sticky, tal como a barra de abas por baixo (.tabs-wrap) — pedido direto
+     do mike depois de um susto com o sync em loop: sem ver o botão "Auto"
+     sem subir ao topo, não dá para desligar a sincronização depressa numa
+     emergência destas. z-index (30) acima do .tabs-wrap para ficar por
+     cima dele quando ambos estão colados; o .tabs-wrap desce a sua posição
+     sticky para o "top" ficar exatamente por baixo desta barra (--top-h,
+     medido em JS via ResizeObserver, tal como já se fazia para o próprio
+     .tabs-wrap — ver index.html). */
   .top {
     display: flex;
     align-items: baseline;
@@ -977,7 +985,13 @@
   }
 
   /* Results */
-  .results { position: sticky; top: 16px; }
+  /* top tinha ficado só "16px" (bem menos que a altura de .tabs-wrap, já
+     sticky nessa altura) — em qualquer aba com conteúdo alto que empurre o
+     .results a colar de verdade, ficava metade escondido por baixo das
+     abas, tapado pelo z-index mais alto delas. Agora soma a altura real
+     dos dois blocos sticky de cima (--top-h + --tabswrap-h, medidos em JS
+     via ResizeObserver) para o .results só colar mesmo por baixo deles. */
+  .results { position: sticky; top: calc(var(--top-h, 58px) + var(--tabswrap-h, 108px) + 16px); }
   /* Em telemóvel o .grid de 2 colunas passa a 1 coluna só — quando uma aba
      (ex: Projeto) tem 2 cards ".results" empilhados nessa coluna única
      (checklist + relatório), ambos tentam colar-se ao mesmo "top:16px" ao
