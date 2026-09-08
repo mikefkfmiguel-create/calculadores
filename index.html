@@ -38,7 +38,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.7</span>
+    <span class="mark" id="app-versao">v3.8</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2509,17 +2509,19 @@
   }
   updateTabsCurrent(document.querySelector('.tab[aria-selected="true"]'));
 
-  // Altura real do cabeçalho sticky (abas + barra "Adicionar ao projeto",
-  // quando visível) para outros elementos fixos (ex: #lz-add-top na aba
-  // Ecrã Complexo) saberem exatamente por baixo de onde ficar — a barra
-  // aparece/desaparece consoante a aba, por isso a altura não é fixa.
+  // Altura real dos blocos sticky: o cabeçalho pode quebrar em várias linhas
+  // e as abas têm de ficar por baixo dele em todas as calculadoras, não por
+  // cima dos botões.
   (function () {
+    var topo = document.querySelector(".top");
     var tabsWrap = document.getElementById("tabs-wrap");
-    if (!tabsWrap || typeof ResizeObserver === "undefined") return;
+    if ((!topo && !tabsWrap) || typeof ResizeObserver === "undefined") return;
     var update = function () {
-      document.documentElement.style.setProperty("--tabswrap-h", tabsWrap.getBoundingClientRect().height + "px");
+      if (topo) document.documentElement.style.setProperty("--top-h", topo.getBoundingClientRect().height + "px");
+      if (tabsWrap) document.documentElement.style.setProperty("--tabswrap-h", tabsWrap.getBoundingClientRect().height + "px");
     };
-    new ResizeObserver(update).observe(tabsWrap);
+    if (topo) new ResizeObserver(update).observe(topo);
+    if (tabsWrap) new ResizeObserver(update).observe(tabsWrap);
     update();
   })();
   syncAddProjectFixed("projecao");

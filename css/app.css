@@ -199,7 +199,7 @@
     flex-wrap: wrap;
     position: sticky;
     top: 0;
-    z-index: 20;
+    z-index: 30;
     margin: -28px -20px 18px;
     padding: 12px 20px;
     background: color-mix(in srgb, var(--paper) 94%, transparent);
@@ -391,13 +391,12 @@
      — antes a barra flutuava solta num canto por cima do conteúdo
      (position:fixed independente), o que parecia bug com cards a rolar
      por baixo dela; agora fica presa mesmo por baixo das abas, como teto
-     fixo do cabeçalho. z-index baixo (20) para ficar sempre por baixo dos
-     elementos fixos específicos de cada aba (ex: #lz-add-top a 40), nunca
-     a tapá-los. */
+     fixo do cabeçalho. Fica abaixo da altura real da barra de topo, senão
+     ao descer a página as abas tapam Guardar/Abrir/Limpar. */
   .tabs-wrap {
     position: sticky;
-    top: 0;
-    z-index: 20;
+    top: var(--top-h, 58px);
+    z-index: 25;
     background: var(--paper);
     margin-bottom: 26px;
   }
@@ -1013,12 +1012,10 @@
   @media (min-width: 760px) {
     #lz-add-top {
       position: fixed;
-      /* Altura real do .tabs-wrap sticky (abas + barra "Adicionar ao
-         projeto", quando visível) + folga — medida em JS via
-         ResizeObserver (ver index.html), porque a barra pode aparecer/
-         desaparecer consoante a aba. 116px é só o valor de recurso caso o
-         JS ainda não tenha corrido. */
-      top: calc(var(--tabswrap-h, 108px) + 12px);
+      /* Altura real do topo + .tabs-wrap sticky (abas + barra "Adicionar
+         ao projeto", quando visível) + folga — medida em JS via
+         ResizeObserver (ver index.html), porque ambas podem mudar de altura. */
+      top: calc(var(--top-h, 58px) + var(--tabswrap-h, 108px) + 12px);
       right: 16px;
       z-index: 40;
       box-shadow: var(--shadow);
