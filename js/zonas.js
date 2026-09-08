@@ -193,12 +193,19 @@
   // tamanho da zona passa a vir direto da largura/altura em metros, sem
   // arredondar a um nº de tiles (ver lzCardWH e calcLedZones).
   function lzApplyTipoVisibility(card) {
-    var isLed = card.querySelector(".lz-tipo").value === "led";
+    var tipo = card.querySelector(".lz-tipo").value;
+    var isLed = tipo === "led";
     // O curva-fields tem lógica própria (liga/desliga com a checkbox "Zona
     // curva") — aqui só se decide se aparece a hipótese de todo, não o
     // estado dela; por isso fica de fora do reset genérico de baixo.
     card.querySelectorAll(".lz-led-only:not(.lz-curve-fields)").forEach(function (el) {
       el.style.display = isLed ? "" : "none";
+    });
+    // A diagonal em polegadas só faz sentido para uma TV a sério — uma
+    // projeção não se vende em polegadas, é a imagem que um projetor lança
+    // num ecrã, do tamanho que a distância/lente derem.
+    card.querySelectorAll(".lz-tv-only").forEach(function (el) {
+      el.style.display = (tipo === "tv") ? "" : "none";
     });
     if (isLed) {
       lzApplyModel(card);
@@ -322,6 +329,11 @@
           '<div class="field"><label>Tiles na horizontal</label><div class="inputgroup"><input class="lz-mx" type="number" value="4" min="1" step="1"></div></div>' +
           '<div class="field"><label>Tiles na vertical</label><div class="inputgroup"><input class="lz-my" type="number" value="3" min="1" step="1"></div></div>' +
         '</div>' +
+        '<div class="field lz-tv-only" style="display:none;">' +
+          '<label>Diagonal (uma TV vende-se assim, não por largura × altura)</label>' +
+          '<div class="inputgroup"><input class="lz-tv-polegadas" type="number" inputmode="decimal" min="1" step="1" placeholder="ex: 55"><span class="unit">"</span></div>' +
+        '</div>' +
+        '<p class="hint lz-tv-only" style="display:none; margin-top:-6px;">Escreve a diagonal e a largura/altura abaixo calculam-se sozinhas (ecrã 16:9 — o formato de qualquer TV à venda hoje). Só mexas na largura/altura se for mesmo um caso fora do 16:9.</p>' +
         '<div class="row2 lz-meters-inputs" style="display:none;">' +
           '<div class="field"><label>Largura desejada</label><div class="inputgroup"><input class="lz-target-w" type="number" inputmode="decimal" value="2.0" min="0.1" step="0.1"><span class="unit">m</span></div></div>' +
           '<div class="field"><label>Altura desejada</label><div class="inputgroup"><input class="lz-target-h" type="number" inputmode="decimal" value="1.5" min="0.1" step="0.1"><span class="unit">m</span></div></div>' +
@@ -1057,6 +1069,14 @@
     if (e.target.classList.contains("lz-color-input")) {
       e.target.closest(".card").dataset.colorOverride = e.target.value;
     }
+    if (e.target.classList.contains("lz-tv-polegadas")) {
+      var medidas = lzMedidasDePolegadas16x9(e.target.value);
+      if (medidas) {
+        var card = e.target.closest(".card");
+        card.querySelector(".lz-target-w").value = medidas.w.toFixed(3);
+        card.querySelector(".lz-target-h").value = medidas.h.toFixed(3);
+      }
+    }
     calcLedZones();
   });
 
@@ -1357,6 +1377,21 @@
   // é um ecrã LED nem faz parte do conjunto: é só uma quantidade + tamanho
   // guardado uma vez por projeto (não por zona), tal como o modo de canvas
   // acima. Persiste entre esta página e ecra-complexo.html da mesma forma.
+  // Um monitor ou TV a sério vende-se pela diagonal (polegadas), não por
+  // largura x altura — é o número que está na ficha técnica e na fatura.
+  // 16:9 é o formato de qualquer ecrã de confiança/consumo à venda hoje
+  // (a Pitágoras: largura = D*16/raiz(16²+9²), altura = D*9/raiz(16²+9²)),
+  // por isso converte-se sempre nesse formato; quem tiver um caso a sério
+  // fora do 16:9 continua a poder escrever a largura/altura à mão por
+  // cima do que isto calculou.
+  function lzMedidasDePolegadas16x9(polegadas) {
+    var d = parseFloat(polegadas);
+    if (!(d > 0)) return null;
+    var dM = d * 0.0254;
+    var diagonalUnidades = Math.sqrt(16 * 16 + 9 * 9);
+    return { w: (dM * 16 / diagonalUnidades), h: (dM * 9 / diagonalUnidades) };
+  }
+
   var LZ_DSM_KEY = "calculadores-dsm-v1";
   var lzDsmN = 0, lzDsmW = 0.6, lzDsmH = 0.4;
   // Preenchido pelo bloco abaixo — permite ao importador do Preview repor os
@@ -1366,6 +1401,7 @@
     var nEl = document.getElementById("lz-dsm-n");
     var wEl = document.getElementById("lz-dsm-w");
     var hEl = document.getElementById("lz-dsm-h");
+    var polEl = document.getElementById("lz-dsm-pol");
     if (!nEl || !wEl || !hEl) return;
     try {
       var raw = localStorage.getItem(LZ_DSM_KEY);
@@ -1389,11 +1425,25 @@
       lzGuardarParaPreview();
     }
     [nEl, wEl, hEl].forEach(function (el) { el.addEventListener("input", lzSaveDsm); });
+    if (polEl) {
+      polEl.addEventListener("input", function () {
+        var medidas = lzMedidasDePolegadas16x9(polEl.value);
+        if (!medidas) return;
+        wEl.value = medidas.w.toFixed(3);
+        hEl.value = medidas.h.toFixed(3);
+        lzSaveDsm();
+      });
+    }
     lzAplicarDsm = function (dsm) {
       if (!dsm || typeof dsm !== "object") return;
       if (dsm.n != null) nEl.value = Math.max(0, parseInt(dsm.n, 10) || 0);
       if (dsm.w != null) wEl.value = parseFloat(dsm.w) || 0;
       if (dsm.h != null) hEl.value = parseFloat(dsm.h) || 0;
+      // O que vem do Preview é sempre largura/altura (não sabe de
+      // polegadas) — limpa-se o campo de polegadas para não ficar a
+      // mostrar um valor que já não corresponde ao que está nos outros
+      // dois, em vez de inventar uma diagonal que ninguém escreveu.
+      if (polEl) polEl.value = "";
       lzSaveDsm();
     };
   })();
