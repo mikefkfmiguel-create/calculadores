@@ -63,17 +63,51 @@
   // não fica encostada ao topo visualmente, só coincide com esse valor
   // por acaso. Sem zonas ainda, cai em 0.
   function lzNextDefaultPos() {
-    var maxRight = 0;
+    var maxRight = null;
     var minY = null;
     document.querySelectorAll("#lz-list .card").forEach(function (card) {
       var posX = parseFloat(card.querySelector(".lz-posx").value) || 0;
       var posY = parseFloat(card.querySelector(".lz-posy").value);
       if (isNaN(posY)) posY = 0;
       var wh = lzCardWH(card);
-      if (!isNaN(wh.w)) maxRight = Math.max(maxRight, posX + wh.w);
+      if (!isNaN(wh.w)) maxRight = maxRight === null ? posX + wh.w : Math.max(maxRight, posX + wh.w);
       minY = minY === null ? posY : Math.min(minY, posY);
     });
-    return { x: maxRight > 0 ? Math.round((maxRight + 0.1) * 100) / 100 : 0, y: minY === null ? 0 : minY };
+    return { x: maxRight === null ? 0 : Math.round((maxRight + 0.1) * 100) / 100, y: minY === null ? 0 : minY };
+  }
+
+  function lzCardsParaCentro() {
+    var cards = Array.from(document.querySelectorAll("#lz-list .card"));
+    var visiveis = cards.filter(function (card) {
+      var cb = card.querySelector(".lz-visible");
+      return !cb || cb.checked;
+    });
+    return visiveis.length ? visiveis : cards;
+  }
+
+  function lzRecentrarZonas() {
+    var base = lzCardsParaCentro().filter(function (card) {
+      var wh = lzCardWH(card);
+      return wh.w > 0;
+    });
+    if (!base.length) return;
+    var minX = null;
+    var maxX = null;
+    base.forEach(function (card) {
+      var posX = parseFloat(card.querySelector(".lz-posx").value);
+      if (isNaN(posX)) posX = 0;
+      var wh = lzCardWH(card);
+      minX = minX === null ? posX : Math.min(minX, posX);
+      maxX = maxX === null ? posX + wh.w : Math.max(maxX, posX + wh.w);
+    });
+    var centro = (minX + maxX) / 2;
+    if (Math.abs(centro) < 0.005) return;
+    document.querySelectorAll("#lz-list .card").forEach(function (card) {
+      var input = card.querySelector(".lz-posx");
+      var posX = parseFloat(input.value);
+      if (isNaN(posX)) posX = 0;
+      input.value = Math.round((posX - centro) * 100) / 100;
+    });
   }
 
   // Rótulo/unidade/valor por omissão de cada modo de indicar a curvatura —
@@ -748,7 +782,12 @@
   }
 
   document.querySelectorAll("#lz-add, #lz-add-top, #lz-add-canvas").forEach(function (btn) {
-    btn.addEventListener("click", function () { lzPushUndo(); lzAddZone(); });
+    btn.addEventListener("click", function () {
+      lzPushUndo();
+      lzAddZone();
+      lzRecentrarZonas();
+      calcLedZones();
+    });
   });
   var lzClearZonesBtn = document.getElementById("lz-clear-zones");
   if (lzClearZonesBtn) {
