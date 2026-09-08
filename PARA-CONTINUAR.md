@@ -59,6 +59,22 @@ ResizeObserver). Esta parte foi feita pelo GitHub Copilot directamente no
 descer a página — passou a somar `--top-h` também, tal como `#lz-add-top`
 já fazia.
 
+**Dois "DSM"/"Delay" com o mesmo nome, sem ligação nenhuma (8 de
+setembro).** Reportado como "puxar o projeto não traz os delays/DSM do
+Preview". Testei a ponte a sério (as duas apps a partilhar `localStorage`,
+`/tmp/.../scratchpad/site` com symlinks para simular o mesmo domínio da
+produção) — a sincronização em si está bem: zonas LED, zonas tipo TV/
+Projeção (delay) e o DSM da Ecrã Complexo vão e voltam do Preview sem
+perder nada, nos dois sentidos. O que não está ligado é outra coisa: a
+aba **Projeto → Adicionais → DSM/Delay** (`proj-dsm-count`,
+`proj-delay-count`) é um par de contadores manuais, só para o "Pixel
+usage total" dessa aba — nunca leu a Ecrã Complexo nem via para o
+Preview, mesmo com "Usar total das zonas" marcado. Em vez de ligar os
+dois automaticamente (perderia o uso de estimar antes de montar as zonas
+a sério), acrescentei um botão "↙ Trazer da Ecrã Complexo" em cada um
+(mesmo padrão do "↙ Sinal & Data Rate" que já lá estava), que copia a
+contagem real com um clique.
+
 ## O que aconteceu depois (6 tarde → 7 de setembro, feito localmente, fora desta sessão)
 
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
