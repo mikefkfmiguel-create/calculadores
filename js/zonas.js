@@ -59,23 +59,34 @@
     return { w: (mx * mw) / 1000, h: (my * mh) / 1000 };
   }
 
-  // Y por omissão = o Y mínimo já usado (o topo real do conjunto), não 0
-  // fixo — se já houver zonas deslocadas verticalmente (ex: alinhadas ao
-  // centro, cada uma com uma altura diferente), uma zona nova em Y=0
-  // não fica encostada ao topo visualmente, só coincide com esse valor
-  // por acaso. Sem zonas ainda, cai em 0.
+  function lzLeftCard(card) {
+    var x = parseFloat(card.querySelector(".lz-posx").value);
+    var wh = lzCardWH(card);
+    return (isNaN(x) ? 0 : x) - (wh.w || 0) / 2;
+  }
+
+  function lzTopCard(card) {
+    var y = parseFloat(card.querySelector(".lz-posy").value);
+    var wh = lzCardWH(card);
+    return (isNaN(y) ? 0 : y) - (wh.h || 0) / 2;
+  }
+
+  function lzLeftZona(z) { return z.posX - z.w / 2; }
+  function lzTopZona(z) { return z.posY - z.h / 2; }
+
+  // X/Y são o centro da zona. A zona nova nasce à direita da caixa total
+  // existente, mas logo a seguir o conjunto todo é recentrado para o zero
+  // continuar a ser o centro visual.
   function lzNextDefaultPos() {
     var maxRight = null;
-    var minY = null;
     document.querySelectorAll("#lz-list .card").forEach(function (card) {
-      var posX = parseFloat(card.querySelector(".lz-posx").value) || 0;
-      var posY = parseFloat(card.querySelector(".lz-posy").value);
-      if (isNaN(posY)) posY = 0;
       var wh = lzCardWH(card);
-      if (!isNaN(wh.w)) maxRight = maxRight === null ? posX + wh.w : Math.max(maxRight, posX + wh.w);
-      minY = minY === null ? posY : Math.min(minY, posY);
+      if (!isNaN(wh.w)) {
+        var right = lzLeftCard(card) + wh.w;
+        maxRight = maxRight === null ? right : Math.max(maxRight, right);
+      }
     });
-    return { x: maxRight === null ? 0 : Math.round((maxRight + 0.1) * 100) / 100, y: minY === null ? 0 : minY };
+    return { x: maxRight === null ? 0 : Math.round((maxRight + 1.1) * 100) / 100, y: 0 };
   }
 
   function lzCardsParaCentro() {
@@ -93,22 +104,24 @@
       return wh.w > 0;
     });
     if (!base.length) return;
-    var minX = null;
-    var maxX = null;
+    var minX = null, minY = null, maxX = null, maxY = null;
     base.forEach(function (card) {
-      var posX = parseFloat(card.querySelector(".lz-posx").value);
-      if (isNaN(posX)) posX = 0;
       var wh = lzCardWH(card);
-      minX = minX === null ? posX : Math.min(minX, posX);
-      maxX = maxX === null ? posX + wh.w : Math.max(maxX, posX + wh.w);
+      var left = lzLeftCard(card), top = lzTopCard(card);
+      minX = minX === null ? left : Math.min(minX, left);
+      minY = minY === null ? top : Math.min(minY, top);
+      maxX = maxX === null ? left + wh.w : Math.max(maxX, left + wh.w);
+      maxY = maxY === null ? top + wh.h : Math.max(maxY, top + wh.h);
     });
-    var centro = (minX + maxX) / 2;
-    if (Math.abs(centro) < 0.005) return;
+    var centroX = (minX + maxX) / 2, centroY = (minY + maxY) / 2;
+    if (Math.abs(centroX) < 0.005 && Math.abs(centroY) < 0.005) return;
     document.querySelectorAll("#lz-list .card").forEach(function (card) {
-      var input = card.querySelector(".lz-posx");
-      var posX = parseFloat(input.value);
+      var xInput = card.querySelector(".lz-posx"), yInput = card.querySelector(".lz-posy");
+      var posX = parseFloat(xInput.value), posY = parseFloat(yInput.value);
       if (isNaN(posX)) posX = 0;
-      input.value = Math.round((posX - centro) * 100) / 100;
+      if (isNaN(posY)) posY = 0;
+      xInput.value = Math.round((posX - centroX) * 100) / 100;
+      yInput.value = Math.round((posY - centroY) * 100) / 100;
     });
   }
 
@@ -298,6 +311,7 @@
       visible: card.querySelector(".lz-visible").checked,
       modelValue: card.querySelector(".lz-model").value,
       tipo: card.querySelector(".lz-tipo").value,
+      posMode: "center",
       sizeMode: activeSeg ? activeSeg.dataset.sizemode : "tiles",
       mx: card.querySelector(".lz-mx").value,
       my: card.querySelector(".lz-my").value,
@@ -371,8 +385,8 @@
           '<div class="inputgroup"><input type="text" class="lz-name" value="' + (name || ("Zona " + (lzNextId - 1))) + '"></div>' +
         '</div>' +
         '<div class="row2 lz-position-inputs">' +
-          '<div class="field"><label>Posição X (horizontal)</label><div class="inputgroup"><input class="lz-posx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
-          '<div class="field"><label>Posição Y (vertical)</label><div class="inputgroup"><input class="lz-posy" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
+          '<div class="field"><label>Centro X (horizontal)</label><div class="inputgroup"><input class="lz-posx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
+          '<div class="field"><label>Centro Y (vertical)</label><div class="inputgroup"><input class="lz-posy" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
         '</div>' +
         '<div class="field lz-led-only">' +
           '<label>Modelo de tile</label>' +
@@ -475,8 +489,17 @@
     lzList.appendChild(card);
     lzPopulateModelSelect(card.querySelector(".lz-model"));
     lzApplyOptsToCard(card, opts);
-    card.querySelector(".lz-posx").value = (opts && opts.posX != null) ? opts.posX : defaultPos.x;
-    card.querySelector(".lz-posy").value = (opts && opts.posY != null) ? opts.posY : defaultPos.y;
+    var posX = (opts && opts.posX != null) ? parseFloat(opts.posX) : defaultPos.x;
+    var posY = (opts && opts.posY != null) ? parseFloat(opts.posY) : defaultPos.y;
+    if (isNaN(posX)) posX = 0;
+    if (isNaN(posY)) posY = 0;
+    if (opts && opts.posX != null && opts.posMode !== "center") {
+      var whInicial = lzCardWH(card);
+      posX += (whInicial.w || 0) / 2;
+      posY += (whInicial.h || 0) / 2;
+    }
+    card.querySelector(".lz-posx").value = Math.round(posX * 100) / 100;
+    card.querySelector(".lz-posy").value = Math.round(posY * 100) / 100;
     // "ref" fica de fora de lzOptsFromCard/lzApplyOptsToCard de propósito —
     // só se aplica ao restaurar do localStorage, nunca a duplicar ("Aplicar
     // réplicas") ou a "Atualizar réplicas" (essas usam essas duas funções),
@@ -572,7 +595,7 @@
         }
         return {
           nome: z.name,
-          x: z.posX, y: z.posY,
+          x: lzLeftZona(z), y: lzTopZona(z),
           w: z.w, h: z.h,
           cor: lzZoneColor(z, colorMap, zones),
           curva: curva,
@@ -627,14 +650,16 @@
 
   function lzOptsDeZonaDoPreview(z) {
     var w = parseFloat(z.w), h = parseFloat(z.h);
+    var x = parseFloat(z.x), y = parseFloat(z.y);
     var tiles = z.tiles || null;
     var res = z.res || null;
     var opts = {
       name: z.nome || "Zona",
       visible: true,
       tipo: z.tipo || "led",
-      posX: z.x != null ? z.x : 0,
-      posY: z.y != null ? z.y : 0,
+      posX: !isNaN(x) && w > 0 ? x + w / 2 : 0,
+      posY: !isNaN(y) && h > 0 ? y + h / 2 : 0,
+      posMode: "center",
       colorOverride: z.cor || null,
       preview3d: z.preview || null
     };
@@ -886,8 +911,9 @@
   });
 
   // Arrastar uma zona diretamente no diagrama — atalho visual para o
-  // posicionamento; os campos Posição X/Y continuam a ser a forma de fazer
-  // o ajuste fino (ficam sincronizados ao vivo durante o arrasto). Usa
+  // posicionamento; os campos Centro X/Y continuam a ser a forma de fazer
+  // o ajuste fino. Ctrl durante o arrasto reduz o movimento para 20%,
+  // sem salto ao ligar/desligar o modificador a meio. Usa
   // Pointer Events (rato, caneta e touch no mesmo código) com os
   // listeners de movimento/soltar no document, não no próprio <rect> —
   // esse elemento é destruído e recriado a cada redesenho do SVG, por
@@ -919,8 +945,8 @@
     lzDrag = {
       svg: svg, xInput: xInput, yInput: yInput,
       startClientX: e.clientX, startClientY: e.clientY,
-      startSvgX: start.x, startSvgY: start.y,
-      startPosX: parseFloat(xInput.value) || 0, startPosY: parseFloat(yInput.value) || 0,
+      lastSvgX: start.x, lastSvgY: start.y,
+      currentPosX: parseFloat(xInput.value) || 0, currentPosY: parseFloat(yInput.value) || 0,
       moved: false, pending: false
     };
     // Mantém a lista sem reordenar durante o arrasto (mesma proteção já
@@ -939,15 +965,18 @@
       lzPushUndo();
     }
     var cur = lzSvgPoint(lzDrag.svg, e.clientX, e.clientY);
-    lzDrag.dx = cur.x - lzDrag.startSvgX;
-    lzDrag.dy = cur.y - lzDrag.startSvgY;
+    var fino = e.ctrlKey ? 0.2 : 1;
+    lzDrag.currentPosX += (cur.x - lzDrag.lastSvgX) * fino;
+    lzDrag.currentPosY += (cur.y - lzDrag.lastSvgY) * fino;
+    lzDrag.lastSvgX = cur.x;
+    lzDrag.lastSvgY = cur.y;
     if (lzDrag.pending) return;
     lzDrag.pending = true;
     requestAnimationFrame(function () {
       if (!lzDrag) return;
       lzDrag.pending = false;
-      var newX = Math.round((lzDrag.startPosX + lzDrag.dx) * 100) / 100;
-      var newY = Math.round((lzDrag.startPosY + lzDrag.dy) * 100) / 100;
+      var newX = Math.round(lzDrag.currentPosX * 100) / 100;
+      var newY = Math.round(lzDrag.currentPosY * 100) / 100;
       lzDrag.xInput.value = newX.toFixed(2);
       lzDrag.yInput.value = newY.toFixed(2);
       calcLedZones();
@@ -969,39 +998,10 @@
       // genuíno de saltar para outra zona.
       setTimeout(function () { lzJustDragged = false; }, 300);
       xInput.blur(); // liberta a proteção de "não reordenar" e aplica o sort final
-      lzNormalizeZonePositions();
       calcLedZones();
     }
   }
 
-  // A posição é sempre "a partir do canto superior esquerdo do conjunto" —
-  // arrastar uma zona para lá do que hoje é o canto (X ou Y negativo) desloca
-  // TODAS as zonas pela mesma quantidade, para a mais à esquerda/acima ficar
-  // outra vez em 0 e as posições nunca ficarem negativas. É um deslocamento
-  // uniforme (a disposição relativa entre zonas mantém-se sempre igual).
-  function lzNormalizeZonePositions() {
-    var cards = Array.from(lzList.querySelectorAll(".card"));
-    if (!cards.length) return;
-    var minX = 0, minY = 0;
-    cards.forEach(function (c) {
-      var x = parseFloat(c.querySelector(".lz-posx").value);
-      var y = parseFloat(c.querySelector(".lz-posy").value);
-      if (!isNaN(x)) minX = Math.min(minX, x);
-      if (!isNaN(y)) minY = Math.min(minY, y);
-    });
-    if (minX >= 0 && minY >= 0) return;
-    cards.forEach(function (c) {
-      var xInput = c.querySelector(".lz-posx"), yInput = c.querySelector(".lz-posy");
-      if (minX < 0) {
-        var nx = (parseFloat(xInput.value) || 0) - minX;
-        xInput.value = (Math.round(nx * 100) / 100).toFixed(2);
-      }
-      if (minY < 0) {
-        var ny = (parseFloat(yInput.value) || 0) - minY;
-        yInput.value = (Math.round(ny * 100) / 100).toFixed(2);
-      }
-    });
-  }
   document.addEventListener("pointerup", lzEndDrag);
   document.addEventListener("pointercancel", lzEndDrag);
   document.getElementById("lz-diagram-details").addEventListener("click", function (e) {
@@ -1245,10 +1245,10 @@
     // de ficar exatamente iguais a uma zona reta com o mesmo w/h; a
     // curvatura é só uma referência visual, à parte, no popup de cada
     // zona (ver lzRenderCurvePreview), nunca mexe nestas contas.
-    var minX = Math.min.apply(null, valid.map(function (z) { return z.posX; }));
-    var minY = Math.min.apply(null, valid.map(function (z) { return z.posY; }));
-    var maxX = Math.max.apply(null, valid.map(function (z) { return z.posX + z.w; }));
-    var maxY = Math.max.apply(null, valid.map(function (z) { return z.posY + z.h; }));
+    var minX = Math.min.apply(null, valid.map(lzLeftZona));
+    var minY = Math.min.apply(null, valid.map(lzTopZona));
+    var maxX = Math.max.apply(null, valid.map(function (z) { return lzLeftZona(z) + z.w; }));
+    var maxY = Math.max.apply(null, valid.map(function (z) { return lzTopZona(z) + z.h; }));
     var totalW = maxX - minX, totalH = maxY - minY;
     var unit = Math.max(totalW, totalH) || 1;
     var fontSize = unit * 0.028;
@@ -1269,7 +1269,7 @@
     });
     var maxLabelRight = 0;
     labels.forEach(function (l) {
-      maxLabelRight = Math.max(maxLabelRight, (l.z.posX - minX) + l.textW);
+      maxLabelRight = Math.max(maxLabelRight, (lzLeftZona(l.z) - minX) + l.textW);
     });
     var padRight = Math.max(padSide, maxLabelRight - totalW + padSide);
 
@@ -1290,9 +1290,9 @@
     // deixa de repetir por cima do desenho quando já não cabe legível.
     var maxStackLevel = 2;
     var placedBoxes = [];
-    labels.slice().sort(function (a, b) { return (a.z.posX - minX) - (b.z.posX - minX); }).forEach(function (l) {
-      var x0 = l.z.posX - minX, x1 = x0 + l.textW;
-      var baseY = l.z.posY - minY;
+    labels.slice().sort(function (a, b) { return (lzLeftZona(a.z) - minX) - (lzLeftZona(b.z) - minX); }).forEach(function (l) {
+      var x0 = lzLeftZona(l.z) - minX, x1 = x0 + l.textW;
+      var baseY = lzTopZona(l.z) - minY;
       var lvl = 0;
       while (true) {
         var y1 = baseY - labelGap - lvl * rowH, y0 = y1 - fontSize;
@@ -1329,10 +1329,10 @@
     // distingue de imediato o que é pixel do que é só espaço vazio, e
     // agrupa visualmente zonas relacionadas (ex: as várias tiras).
     var parts = ['<rect x="' + padSide + '" y="' + padTop + '" width="' + totalW + '" height="' + totalH + '" fill="' + rose + '" fill-opacity="0.12" stroke="' + rose + '" stroke-width="' + strokeW + '" stroke-dasharray="' + (strokeW * 2.5) + ' ' + (strokeW * 2.5) + '"/>'];
-    var zoneTitle = "Clicar para saltar para esta zona na lista, ou arrastar para mover (os campos Posição X/Y ficam para o ajuste fino)";
+    var zoneTitle = "Clicar para saltar para esta zona na lista, ou arrastar para mover (Ctrl = movimento fino; os campos Centro X/Y ficam para o ajuste fino)";
     labels.forEach(function (l) {
       var z = l.z;
-      var x = z.posX - minX + padSide, y = z.posY - minY + padTop;
+      var x = lzLeftZona(z) - minX + padSide, y = lzTopZona(z) - minY + padTop;
       var color = lzZoneColor(z, colorMap, zones);
       // A curvatura (quando ligada) é só referência, vista à parte no
       // popup de edição da zona (lzRenderCurvePreview) — no desenho do
@@ -1365,8 +1365,9 @@
     // desenho (tamanho e ponto de início/fim em metros).
     var details = document.getElementById("lz-diagram-details");
     details.innerHTML = valid.slice().sort(function (a, b) { return a.posX - b.posX || a.posY - b.posY; }).map(function (z) {
-      var meta = fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m — " + fmtInt(z.totalPx) + "×" + fmtInt(z.totalPy) + "px — X:" + fmt(z.posX, 2) + "→" + fmt(z.posX + z.w, 2) +
-        (z.posY ? ", Y:" + fmt(z.posY, 2) + "→" + fmt(z.posY + z.h, 2) : "") + "m";
+      var left = lzLeftZona(z), top = lzTopZona(z);
+      var meta = fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m — " + fmtInt(z.totalPx) + "×" + fmtInt(z.totalPy) + "px — centro X:" + fmt(z.posX, 2) + " Y:" + fmt(z.posY, 2) +
+        "m — limites X:" + fmt(left, 2) + "→" + fmt(left + z.w, 2) + ", Y:" + fmt(top, 2) + "→" + fmt(top + z.h, 2) + "m";
       return '<div class="lz-detail-row" data-zone-id="' + escapeXml(z.id || "") + '">' +
         '<span class="lz-detail-dot" style="background:' + lzZoneColor(z, colorMap, zones) + ';"></span>' +
         '<div><div class="lz-detail-name">' + escapeXml(z.name) + '</div><div class="lz-detail-meta">' + escapeXml(meta) + '</div></div>' +
@@ -1403,11 +1404,11 @@
     var refPitch = (ref.pitchX + ref.pitchY) / 2;
     var mixedPitch = valid.some(function (z) { return Math.abs((z.pitchX + z.pitchY) / 2 - refPitch) > 0.05; });
 
-    var minX = Math.min.apply(null, valid.map(function (z) { return z.posX; }));
-    var minY = Math.min.apply(null, valid.map(function (z) { return z.posY; }));
+    var minX = Math.min.apply(null, valid.map(lzLeftZona));
+    var minY = Math.min.apply(null, valid.map(lzTopZona));
     valid.forEach(function (z) {
-      z.pxX = Math.round(((z.posX - minX) * 1000) / refPitch);
-      z.pxY = Math.round(((z.posY - minY) * 1000) / refPitch);
+      z.pxX = Math.round(((lzLeftZona(z) - minX) * 1000) / refPitch);
+      z.pxY = Math.round(((lzTopZona(z) - minY) * 1000) / refPitch);
       z.pxW = Math.max(1, Math.round((z.w * 1000) / refPitch));
       z.pxH = Math.max(1, Math.round((z.h * 1000) / refPitch));
     });
@@ -1957,7 +1958,7 @@
     document.getElementById("lz-preview-bar-text").textContent = (pm ? canvasResText : "—") + " · " + fmtInt(totalTiles) + " tiles · " + visibleZones.length + " zona(s)" + (hiddenCount ? " (" + hiddenCount + " escondida(s))" : "");
 
     document.getElementById("lz-sum").textContent = visibleZones.map(function (z) {
-      return z.name + " (X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A" + (z.curveText ? "\nCurvatura: " + z.curveText : "");
+      return z.name + " (centro X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A" + (z.curveText ? "\nCurvatura: " + z.curveText : "");
     }).join("\n") + (hiddenCount ? "\n\n(" + hiddenCount + " zona(s) escondida(s), fora destas contas)" : "") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos de cada zona), " + fmt(totalArea,2) + " m² (soma das zonas), " + fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A máx. (" + fmt(totalAmp/3,2) + " A/fase)" +
       (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "") +
       (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, zona mais alta") + ")" : "") : "") +
