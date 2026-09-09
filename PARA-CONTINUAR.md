@@ -151,7 +151,7 @@ uma a outra". Decisão tomada com o mike: sem fundir código (as duas apps
 continuam separadas, cada uma no seu repositório) — só uma "casca" por
 cima, uma marca comum. Nasceu o repositório `AvPlanner`
 (`mikefkfmiguel-create/av-planner`, publicado em
-`mikefkfmiguel-create.github.io/avplanner/`), uma página só com a marca da
+`mikefkfmiguel-create.github.io/AvPlanner/`), uma página só com a marca da
 Mike Apps e um botão — "Abrir AV Planner" — que entra directamente aqui
 nos Cálculos (o Preview 3D já está a um clique, no botão que já existe no
 topo). O logótipo aqui (`#brand-logo`) passa a link para essa página, com
