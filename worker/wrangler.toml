@@ -8,6 +8,12 @@ compatibility_date = "2025-01-01"
 # isso continua a bloquear pedidos diretos (curl/scripts) de outras origens.
 [vars]
 ALLOWED_ORIGINS = "https://mikefkfmiguel-create.github.io"
+# Email de destino do feedback do AV Planner — não é secreto, é só um
+# endereço (protegido da mesma forma que o resto: só o domínio em
+# ALLOWED_ORIGINS pode chamar este Worker). Se ficar vazio, usa
+# avkvideoshare@gmail.com por omissão (ver FEEDBACK_PARA_EMAIL_OMISSAO
+# em src/index.js).
+FEEDBACK_PARA_EMAIL = "avkvideoshare@gmail.com"
 
 # Guarda os projetos partilhados pelo botão "🔗 Link para ver" do Preview,
 # por 7 dias, e depois apaga-os sozinho (expirationTtl, no código). Cria-se
@@ -20,6 +26,20 @@ ALLOWED_ORIGINS = "https://mikefkfmiguel-create.github.io"
 binding = "PARTILHAS"
 id = "cola-aqui-o-id"
 
+# Guarda o feedback do AV Planner (bug/sugestão) até haver 5 por enviar —
+# nessa altura junta-se tudo num só email e limpa-se (ver criarFeedback()
+# em src/index.js). Cria-se UMA vez, do mesmo jeito que a PARTILHAS acima:
+#   wrangler kv namespace create FEEDBACK
+# Troca "cola-aqui-o-id-feedback" pelo "id" que esse comando devolver, e
+# faz `wrangler deploy` a seguir. Sem isto, o formulário de feedback do AV
+# Planner não funciona (o resto do Worker continua na mesma).
+[[kv_namespaces]]
+binding = "FEEDBACK"
+id = "cola-aqui-o-id-feedback"
+
 # A chave da Anthropic NUNCA vai aqui nem em nenhum ficheiro do repositório —
 # define-se como secret depois do primeiro deploy:
 #   wrangler secret put ANTHROPIC_API_KEY
+
+# Idem para a chave do Resend (envia o email do feedback do AV Planner):
+#   wrangler secret put RESEND_API_KEY
