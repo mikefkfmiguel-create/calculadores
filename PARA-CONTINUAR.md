@@ -90,6 +90,34 @@ payload gravado para o Preview (`mikeapps-projeto-v1`) sai com esse nome;
 com o campo vazio, continua a sair "Ecrã LED — N zona(s)"; na página
 avançada (sem o campo), sai a descrição genérica sem nenhum erro na consola.
 
+**A correcção de cima "não estava a pegar" (9 de setembro, mesmo dia) —
+causa a sério: cache-first também no `js/zonas.js` e na navegação.**
+Publicado o v3.16, recarregado, e o nome do projeto continuava errado no
+Preview ("olha que não"). Confirmado por `curl` directo à produção que o
+código do v3.16 já lá estava (não era falha de deploy) — a causa era o
+`sw.js`: **tudo** (incluindo o próprio `index.html` na navegação e o
+`js/zonas.js`, o ficheiro que mais muda) servia sempre a versão em cache
+primeiro, só indo à rede em segundo plano para a PRÓXIMA vez. Um só
+recarregar depois de publicar continuava a mostrar o bug de antes — era
+preciso recarregar duas vezes, sem nada que o dissesse. É a mesma classe de
+susto que o Preview já tinha tido com `app.js`/`cena.js`, agora do lado de
+cá.
+Corrigido com a mesma receita: `js/zonas.js` e os pedidos de navegação
+(`event.request.mode === "navigate"`, cobre tanto `index.html` como
+`ecra-complexo.html`) passam a ir **primeiro à rede**, com o cache só como
+reserva para quando não há net — o resto da casca (CSS, ícones, ficheiros
+de dados, os outros `.js`, bem menos mexidos) continua cache-first, que é o
+que garante o arranque num pavilhão sem wifi.
+Testado com Playwright, simulando o cenário a sério (um marcador falso
+posto directamente no cache, a fingir ser uma versão velha presa lá):
+um `fetch` a `js/zonas.js` já não devolve essa versão falsa, vem sempre da
+rede; recarregar a página com um `index.html` falso em cache mostra a
+página real, não a mentira; e a app continua a abrir e a funcionar OFFLINE
+(desliguei a rede a sério no teste) — a correcção não custou o "abre sem
+rede" que é a razão de isto ser uma PWA. Confirmei também que o `sw.js` de
+ANTES desta correcção falha exactamente estes três testes, para a
+correcção não ser só "parece que sim".
+
 ## O que aconteceu depois (6 tarde → 7 de setembro, feito localmente, fora desta sessão)
 
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
