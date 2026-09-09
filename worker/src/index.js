@@ -239,6 +239,51 @@ async function lerPartilha(id, env, origin) {
   });
 }
 
+// ------------------------------------------------------- registo de pedidos
+//
+// Cada pedido ao Assistente (texto + o que a IA extraiu) fica guardado aqui
+// por um tempo -- não para nada automático, é para revisão manual: sítios
+// onde o pedido real difere do que a IA percebeu ficam visíveis, e viram
+// regras novas no EXTRACT_TOOL (como aconteceu com "de pé" e "300 pessoas").
+// Pedido directo do mike: "tem de ir aprendendo... podemos montar uma skill
+// para isso". A imagem em si NUNCA fica guardada aqui (só se foi ou não
+// anexada) -- só o texto e o que saiu da IA.
+const REGISTO_VALIDADE_SEGUNDOS = 30 * 24 * 60 * 60; // 30 dias
+
+async function listarRegistos(request, env) {
+  const auth = request.headers.get("Authorization") || "";
+  if (!env.ADMIN_TOKEN || auth !== "Bearer " + env.ADMIN_TOKEN) {
+    return new Response(JSON.stringify({ error: "Não autorizado." }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  if (!env.REGISTOS) {
+    return new Response(JSON.stringify({ error: "Worker sem armazenamento configurado (KV REGISTOS)." }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  const lista = await env.REGISTOS.list({ limit: 500 });
+  const registos = await Promise.all(
+    lista.keys.map(async (k) => {
+      const bruto = await env.REGISTOS.get(k.name);
+      try {
+        return JSON.parse(bruto);
+      } catch (e) {
+        return null;
+      }
+    })
+  );
+  // Mais recentes primeiro -- as chaves começam pela data ISO, por isso a
+  // ordem alfabética que o KV já devolve é também a ordem cronológica.
+  const validos = registos.filter(Boolean).reverse();
+  return new Response(JSON.stringify({ total: validos.length, registos: validos }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 // ------------------------------------------------- feedback (AV Planner)
 //
 // Pedido direto: "cria um report bug/sugestions no av planer que junte 5
@@ -331,14 +376,28 @@ async function criarFeedback(request, env, origin) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    // Rota de administração — chamada de fora do browser (sem Origin, com
+    // um token seu), por isso fica ANTES do bloqueio de CORS abaixo, que
+    // é só para os pedidos que a app faz.
+    if (url.pathname === "/registos") {
+      if (request.method !== "GET") {
+        return new Response(JSON.stringify({ error: "Método não suportado." }), {
+          status: 405,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return listarRegistos(request, env);
+    }
+
     const allowedOrigins = (env.ALLOWED_ORIGINS || "")
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
     const origin = request.headers.get("Origin") || "";
     const allowed = isAllowedOrigin(origin, allowedOrigins);
-    const url = new URL(request.url);
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: allowed ? corsHeaders(origin) : {} });
@@ -499,6 +558,23 @@ export default {
         status: 502,
         headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
       });
+    }
+
+    // Fica registado depois de responder (waitUntil) -- nunca deve atrasar
+    // nem falhar a resposta a quem pediu. A imagem em si não viaja para
+    // aqui, só se uma foi ou não anexada.
+    if (env.REGISTOS) {
+      const registo = {
+        quando: new Date().toISOString(),
+        texto: text || null,
+        temPdf: !!pdfBase64,
+        temImagem: !!(imageBase64 && imageMediaType),
+        requisitos: toolUse.input,
+      };
+      const chave = registo.quando + "-" + crypto.randomUUID();
+      ctx.waitUntil(
+        env.REGISTOS.put(chave, JSON.stringify(registo), { expirationTtl: REGISTO_VALIDADE_SEGUNDOS }).catch(() => {})
+      );
     }
 
     return new Response(JSON.stringify({ requisitos: toolUse.input }), {

@@ -16,7 +16,7 @@ ALLOWED_ORIGINS = "https://mikefkfmiguel-create.github.io"
 FEEDBACK_PARA_EMAIL = "avkvideoshare@gmail.com"
 
 # Guarda os projetos partilhados pelo botão "🔗 Link para ver" do Preview,
-# por 7 dias, e depois apaga-os sozinho (expirationTtl, no código). Cria-se
+# por 1 dia, e depois apaga-os sozinho (expirationTtl, no código). Cria-se
 # UMA vez, antes do primeiro deploy desta versão:
 #   wrangler kv namespace create PARTILHAS
 # Esse comando devolve um bloco com um "id" — troca "cola-aqui-o-id" por ele
@@ -25,6 +25,18 @@ FEEDBACK_PARA_EMAIL = "avkvideoshare@gmail.com"
 [[kv_namespaces]]
 binding = "PARTILHAS"
 id = "cola-aqui-o-id"
+
+# Guarda cada pedido ao Assistente (texto + o que a IA extraiu, nunca a
+# imagem em si) por 30 dias, para revisão semanal — ver REGISTO_VALIDADE_SEGUNDOS
+# e listarRegistos() em src/index.js. Cria-se UMA vez, do mesmo jeito que a
+# PARTILHAS acima:
+#   wrangler kv namespace create REGISTOS
+# Troca "cola-aqui-o-id-registos" pelo "id" que esse comando devolver, e faz
+# `wrangler deploy` a seguir. Sem isto, o Assistente continua a funcionar
+# na mesma — só fica sem histórico para a revisão.
+[[kv_namespaces]]
+binding = "REGISTOS"
+id = "cola-aqui-o-id-registos"
 
 # Guarda o feedback do AV Planner (bug/sugestão) até haver 5 por enviar —
 # nessa altura junta-se tudo num só email e limpa-se (ver criarFeedback()
@@ -40,6 +52,10 @@ id = "cola-aqui-o-id-feedback"
 # A chave da Anthropic NUNCA vai aqui nem em nenhum ficheiro do repositório —
 # define-se como secret depois do primeiro deploy:
 #   wrangler secret put ANTHROPIC_API_KEY
+
+# Idem para o token que protege a rota /registos (revisão semanal) — nunca
+# aqui, define-se como secret:
+#   wrangler secret put ADMIN_TOKEN
 
 # Idem para a chave do Resend (envia o email do feedback do AV Planner):
 #   wrangler secret put RESEND_API_KEY
