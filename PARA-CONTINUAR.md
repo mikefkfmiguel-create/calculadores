@@ -188,6 +188,28 @@ estimativa de ~14×14 m com o aviso completo; a mesma pessoa com sala REAL
 indicada (20m fundo, 12m plateia) ignora a estimativa e usa os valores
 reais, sem aviso nenhum.
 
+**v3.21: tradução partida do Assistente, e densidade certa para gente de
+pé.** Dois reportes seguidos do mesmo teste. Primeiro: a aba mudava para
+inglês mostrava "Assistente de Project" — um híbrido quebrado. Causa:
+`js/i18n.js` não tinha entrada nenhuma para a frase completa "Assistente
+de Projeto"; o tradutor (`translateString()`, por substituição de
+palavras/frases com fronteira de palavra) encontrava só a entrada curta
+"Projeto"→"Project" e trocava essa palavra sozinha dentro da frase maior.
+Corrigido com uma entrada de frase completa ("Assistente de
+Projeto"→"Project Assistant"), que por ser mais comprida entra primeiro
+na lista ordenada por tamanho — nota para o resto do painel do Assistente
+(campos, botões, textos de ajuda): continuam SEM tradução nenhuma
+para inglês, gap pré-existente que ainda não foi tratado a sério (só o
+rótulo da aba, que era o que estava visivelmente partido).
+Segundo: pediu-se "300 pessoas de pé" e a sugestão de tamanho saiu com a
+densidade de gente SENTADA (a da v3.20). Corrigido com um segundo campo no
+Worker, `local.publicoEmPe` (true só se o texto o disser explicitamente),
+que troca a densidade IBC usada na estimativa: 0,65 m²/pessoa sentada
+(Tabela 1004.5, "concentrated, chairs only") vs 0,46 m²/pessoa de pé
+("standing space") — gente de pé ocupa menos chão. O mesmo campo viaja
+também para o Preview (ver `PARA-CONTINUAR.md` de lá) para corrigir uma
+sala desenhada errada lá do outro lado do mesmo teste.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao

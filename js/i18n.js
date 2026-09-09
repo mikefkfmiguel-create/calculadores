@@ -14,6 +14,7 @@
     "Instala esta app": "Install this app",
     "acesso direto no ecrã principal, sem andares à procura do link.": "direct access from your home screen, no hunting for the link.",
     "Instalar": "Install",
+    "Assistente de Projeto": "Project Assistant",
     "Distância de Projeção": "Projection Distance",
     "Blending Multi-Projetor": "Multi-Projector Blending",
     "Distância de Visualização": "Viewing Distance",
