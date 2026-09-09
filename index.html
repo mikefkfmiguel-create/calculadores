@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.21</span>
+    <span class="mark" id="app-versao">v3.22</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2709,7 +2709,15 @@
     var matchOpt = keepIdx != null
       ? Array.prototype.filter.call(sel.options, function (o) { return o.dataset.idx === String(keepIdx); })[0]
       : null;
-    sel.value = matchOpt ? matchOpt.value : "custom";
+    // O valor da opção são os lúmens (reaproveitado mais abaixo para
+    // preencher "p-lumens" sozinho) — DOIS projetores diferentes podem ter
+    // os mesmos lúmens (ex: Panasonic PT-RZ120B e Christie Roadster HD12K,
+    // ambos 12000). "sel.value = X" seleciona sempre a PRIMEIRA opção com
+    // esse valor, nunca necessariamente a que se queria manter — reportado
+    // direto: "ao escolher o Panasonic 12k está a saltar para o Christie
+    // 12k". Selecionar o elemento em si (`.selected`) não sofre disto.
+    if (matchOpt) matchOpt.selected = true;
+    else sel.value = "custom";
     updateSelectStockColor(sel);
   }
 
