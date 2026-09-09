@@ -118,6 +118,32 @@ rede" que é a razão de isto ser uma PWA. Confirmei também que o `sw.js` de
 ANTES desta correcção falha exactamente estes três testes, para a
 correcção não ser só "parece que sim".
 
+**Duas peças a mais, a seguir a esta tarde inteira à volta do nome do
+projeto (9 de setembro, mesmo dia).**
+
+1. **"Não segue o nome que lhe dou".** Escrever no campo "Nome do
+   projeto" (aba Projeto) só entrava na sincronização automática para o
+   Preview no recálculo SEGUINTE das zonas — se a pessoa só mudasse o
+   nome, sem tocar em zona nenhuma a seguir, o payload ficava preso no
+   nome antigo (ou na descrição genérica) até algo mais mexer numa zona.
+   `js/zonas.js` passou a ligar `#proj-nome` directamente a
+   `lzGuardarParaPreview()` (`input`/`change`), o mesmo caminho que os
+   campos do DSM já usavam. Testado com Playwright: criar uma zona, ir à
+   aba Projeto, escrever só o nome (sem tocar em zonas outra vez) — o
+   payload em `mikeapps-projeto-v1` já sai com o nome novo de imediato.
+
+2. **De onde veio isto, e com que versão.** Sugestão directa a seguir a
+   uma tarde a adivinhar por `curl` se uma correcção já estava publicada:
+   "deviamos ter forma de identificar se são da calculadores ou do
+   preview". `lzPayloadPreview()` passou a mandar `origemVersao` (lido de
+   `#app-versao`) a par de `origem: "calculadores"`; do lado do Preview,
+   `lerProjeto()` (`js/projeto.js`) guarda esse campo, e um projeto criado
+   directamente no Preview (`garantirProjeto()`) estampa-se a si próprio
+   como `origem: "preview"` com a SUA versão. O viewport do Preview mostra
+   isto no `title` (só ao pairar o rato) — "Calculadores v3.18" ou
+   "Preview v2.7x", conforme o caso. Detalhe completo do lado do Preview
+   no `PARA-CONTINUAR.md` de lá.
+
 ## O que aconteceu depois (6 tarde → 7 de setembro, feito localmente, fora desta sessão)
 
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
