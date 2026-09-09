@@ -583,10 +583,18 @@
     // mesmo vazio (projeto ainda sem nome).
     var nomeProjetoEl = document.getElementById("proj-nome");
     var nomeProjeto = nomeProjetoEl ? nomeProjetoEl.value.trim() : "";
+    // A versão de quem escreveu isto -- pedido direto a seguir a uma tarde a
+    // adivinhar, por curl à produção, se um bug já tinha sido publicado ou
+    // não. Sem isto, um ficheiro/link não diz de que versão dos Calculadores
+    // veio, e "já corrigi, porque é que ainda aparece o de antes?" fica sem
+    // resposta rápida.
+    var versaoEl = document.getElementById("app-versao");
+    var origemVersao = versaoEl ? versaoEl.textContent.trim() : null;
 
     return {
       v: 1,
       origem: "calculadores",
+      origemVersao: origemVersao,
       nome: nomeProjeto || ("Ecrã LED — " + zones.length + " zona(s)"),
       dsm: (lzDsmN > 0) ? { n: lzDsmN, w: lzDsmW, h: lzDsmH } : null,
       zonas: zones.map(function (z) {
@@ -786,6 +794,18 @@
       else localStorage.removeItem(LZ_CHAVE_PREVIEW);
     } catch (e) { /* sem localStorage os Calculadores funcionam na mesma */ }
   }
+
+  // Escrever o nome (aba Projeto, "#proj-nome") só entrava no que vai para o
+  // Preview no recálculo SEGUINTE das zonas -- se a pessoa só mudasse o nome
+  // (sem tocar em zona nenhuma a seguir), a sincronização automática ficava
+  // presa no nome antigo. Reportado direto: "não segue o nome que lhe dou".
+  // Escrever aqui o mesmo caminho que o DSM já usa (ver lzSaveDsm acima).
+  (function ligarNomeAoPreview() {
+    var el = document.getElementById("proj-nome");
+    if (!el) return;
+    el.addEventListener("input", lzGuardarParaPreview);
+    el.addEventListener("change", lzGuardarParaPreview);
+  })();
 
   function lzParaBase64Url(texto) {
     var bytes = new TextEncoder().encode(texto);
