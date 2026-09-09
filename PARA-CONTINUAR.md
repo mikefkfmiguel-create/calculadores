@@ -251,6 +251,21 @@ pedidos para revisão semanal.** Dois pedidos seguidos.
    semanal combinada — ver skill própria (`.claude/skills/`) e a rotina
    agendada.
 
+**v3.23: o ficheiro guardado não dizia de onde era, só pelo nome.**
+Pergunta directa a seguir a tudo isto: "não tínhamos ficado com os dois a
+abrir o mesmo ficheiro?" — não, ficou por decidir (unificar o formato
+continua por fazer, é trabalho a sério, os dois guardam coisas
+fundamentalmente diferentes). Mas o Preview já grava como
+`<nome>.preview.json` desde sempre; os Cálculos gravavam só `<nome>.json`,
+sem nada a distinguir. Sugestão directa: "podiam ao menos ter o caminho
+calc.json para calculador e pvw.json para o 3d". Corrigido para
+`<nome>.calculadores.json` (nome por extenso, a condizer com o
+`.preview.json` já existente, em vez de abreviado) — cada app já recusa
+abrir o ficheiro errado pelo conteúdo (`_app`/`tipo` dentro do JSON, não
+pelo nome), isto é só para se ver logo na pasta de downloads qual é qual.
+Testado com Playwright: "Guardar projeto" com o nome "Evento Teste XPTO"
+descarrega `evento-teste-xpto.calculadores.json`.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
