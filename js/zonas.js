@@ -576,11 +576,18 @@
     if (!lzLastTotals || !lzLastTotals.zones || !lzLastTotals.zones.length) return null;
     var zones = lzLastTotals.zones;
     var colorMap = lzLastTotals.colorMap || lzGroupColorMap(zones);
+    // O nome do projeto (aba Projeto, "#proj-nome") é o que aparece no
+    // viewport do Preview -- ignorá-lo e mandar sempre uma descrição
+    // genérica ("Ecrã LED — 3 zona(s)") tornava o nome do evento invisível
+    // lá, mesmo já escrito aqui. Só cai na descrição quando o campo estiver
+    // mesmo vazio (projeto ainda sem nome).
+    var nomeProjetoEl = document.getElementById("proj-nome");
+    var nomeProjeto = nomeProjetoEl ? nomeProjetoEl.value.trim() : "";
 
     return {
       v: 1,
       origem: "calculadores",
-      nome: "Ecrã LED — " + zones.length + " zona(s)",
+      nome: nomeProjeto || ("Ecrã LED — " + zones.length + " zona(s)"),
       dsm: (lzDsmN > 0) ? { n: lzDsmN, w: lzDsmW, h: lzDsmH } : null,
       zonas: zones.map(function (z) {
         // A curvatura vem em graus POR TILE; o total sao os angulos entre

@@ -75,6 +75,21 @@ a sério), acrescentei um botão "↙ Trazer da Ecrã Complexo" em cada um
 (mesmo padrão do "↙ Sinal & Data Rate" que já lá estava), que copia a
 contagem real com um clique.
 
+**Nome do projeto não chegava ao Preview (9 de setembro).** Reportado com
+um screenshot: no viewport do Preview, em vez do nome do evento
+("PCMA 2026 - FIL"), aparecia "Ecrã LED — 3 zona(s)". Causa: `lzPayloadPreview()`
+(`js/zonas.js`, usada tanto pelo "Ver em 3D" como pela sincronização
+automática) sempre mandou essa descrição genérica como `nome` — nunca lia o
+campo **"Nome do projeto"** da aba Projeto (`#proj-nome`), por mais que
+estivesse preenchido lá. Corrigido para usar esse campo quando não estiver
+vazio, caindo na descrição genérica só quando o projeto ainda não tem nome
+nenhum (inclui a página `ecra-complexo.html`, que não tem esse campo — cai
+sempre na descrição, como antes, sem erro).
+Testado com Playwright: com "PCMA 2026 - FIL" escrito na aba Projeto, o
+payload gravado para o Preview (`mikeapps-projeto-v1`) sai com esse nome;
+com o campo vazio, continua a sair "Ecrã LED — N zona(s)"; na página
+avançada (sem o campo), sai a descrição genérica sem nenhum erro na consola.
+
 ## O que aconteceu depois (6 tarde → 7 de setembro, feito localmente, fora desta sessão)
 
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
