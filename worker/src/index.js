@@ -284,6 +284,97 @@ async function listarRegistos(request, env) {
   });
 }
 
+// ------------------------------------------------- feedback (AV Planner)
+//
+// Pedido direto: "cria um report bug/sugestions no av planer que junte 5
+// mensagens e envie para o meu mail para os feedbacks da malta". Cada
+// mensagem fica em KV até haver 5 por enviar; nessa altura junta-se tudo
+// num só email (via Resend) e limpa-se — sem cron nem worker à parte, é o
+// próprio pedido que faz a conta e dispara o envio quando calha ser o 5º.
+const FEEDBACK_LOTE = 5;
+const FEEDBACK_DE_EMAIL = "AV Planner <onboarding@resend.dev>";
+const FEEDBACK_PARA_EMAIL_OMISSAO = "avkvideoshare@gmail.com";
+
+async function criarFeedback(request, env, origin) {
+  if (!env.FEEDBACK) {
+    return new Response(JSON.stringify({ error: "Worker sem armazenamento configurado (KV FEEDBACK)." }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return new Response(JSON.stringify({ error: "Pedido inválido (JSON em falta ou mal formado)." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+  const mensagem = typeof body.mensagem === "string" ? body.mensagem.trim() : "";
+  const nome = typeof body.nome === "string" ? body.nome.trim().slice(0, 100) : "";
+  if (!mensagem) {
+    return new Response(JSON.stringify({ error: "Falta a mensagem." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+  if (mensagem.length > 4000) {
+    return new Response(JSON.stringify({ error: "Mensagem demasiado longa (máx. 4000 caracteres)." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+    });
+  }
+
+  const quando = new Date().toISOString();
+  const chave = "pendente-" + quando + "-" + crypto.randomUUID();
+  await env.FEEDBACK.put(chave, JSON.stringify({ quando, nome: nome || null, mensagem }));
+
+  // Isto NUNCA deve impedir a resposta a quem mandou o feedback — se o
+  // envio falhar (chave errada, Resend em baixo), a mensagem fica guardada
+  // na mesma, por enviar, à espera da próxima vez que o lote fechar.
+  try {
+    if (env.RESEND_API_KEY) {
+      const lista = await env.FEEDBACK.list({ prefix: "pendente-" });
+      if (lista.keys.length >= FEEDBACK_LOTE) {
+        const chaves = lista.keys.slice(0, FEEDBACK_LOTE).map((k) => k.name);
+        const brutos = await Promise.all(chaves.map((k) => env.FEEDBACK.get(k)));
+        const registos = brutos
+          .map((t) => { try { return JSON.parse(t); } catch (e) { return null; } })
+          .filter(Boolean);
+        if (registos.length) {
+          const corpo = registos
+            .map((r, i) => (i + 1) + ". " + (r.nome || "(sem nome)") + " — " + r.quando + "\n" + r.mensagem)
+            .join("\n\n---\n\n");
+          const enviado = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + env.RESEND_API_KEY,
+            },
+            body: JSON.stringify({
+              from: FEEDBACK_DE_EMAIL,
+              to: [env.FEEDBACK_PARA_EMAIL || FEEDBACK_PARA_EMAIL_OMISSAO],
+              subject: "AV Planner — " + registos.length + " novos feedbacks",
+              text: corpo,
+            }),
+          });
+          if (enviado.ok) {
+            await Promise.all(chaves.map((k) => env.FEEDBACK.delete(k)));
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // Silencioso de propósito — ver comentário acima.
+  }
+
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+  });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -340,6 +431,15 @@ export default {
         });
       }
       return lerPartilha(url.pathname.slice("/partilha/".length), env, origin);
+    }
+    if (url.pathname === "/feedback") {
+      if (request.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Método não suportado." }), {
+          status: 405,
+          headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+        });
+      }
+      return criarFeedback(request, env, origin);
     }
 
     if (request.method !== "POST") {
