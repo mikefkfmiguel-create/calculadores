@@ -164,6 +164,30 @@ três ao mesmo tempo sem fundir os manifests/service workers a sério, o
 que fica de fora de propósito (mais uma vez, é código dos dois lados a
 mudar, não só isto).
 
+**v3.20: sugestão de tamanho a partir do nº de pessoas, sem sala nenhuma
+indicada.** Reportado direto a seguir a um teste real: pediu-se ao
+Assistente "opções para um evento como o exemplo [de uma foto anexada] para
+300 pessoas" — a IA leu a imagem correctamente, mas como não havia sala nem
+distância nenhuma no texto, só devolveu perguntas ("faltam as dimensões da
+sala..."), sem sugerir tamanho nenhum. Pedido directo a seguir: "esperava
+uma sugestão prática, não só perguntas". A regra do projeto proíbe inventar
+dados técnicos sem fonte real — por isso a IA continua proibida de adivinhar
+uma sala a partir de gente (`worker/src/index.js`, novo campo
+`local.numeroParticipantes`, com instrução explícita de nunca o usar para
+calcular medida nenhuma, só para o extrair do texto tal como está). Quem faz
+essa conta agora é o próprio `index.html`
+(`renderScreenRecommendation()`): sem distância/largura de plateia mas com
+nº de participantes, estima-se uma plateia QUADRADA a partir de uma
+densidade real e publicada — Tabela 1004.5 do IBC (International Building
+Code), "assembleia concentrada, só cadeiras soltas": 7 pés²/pessoa (~0,65
+m²/pessoa) — a única suposição sem norma nenhuma é a forma quadrada em si
+(uma sala real raramente é um quadrado perfeito), por isso o resultado fica
+sempre marcado com "⚠ Estimativa..." no veredito, nunca misturado com uma
+medida a sério. Testado com Playwright: 300 pessoas sem sala dá uma
+estimativa de ~14×14 m com o aviso completo; a mesma pessoa com sala REAL
+indicada (20m fundo, 12m plateia) ignora a estimativa e usa os valores
+reais, sem aviso nenhum.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
