@@ -10,6 +10,7 @@
   var DICT_EN = {
     // ---- Cabeçalho / navegação / instalação ----
     "Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.": "Projection distance and LED pixel pitch, calculated precisely for production spec sheets.",
+    "AV Planner — Cálculos e Preview 3D, num só lugar": "AV Planner — Calculators and 3D Preview, in one place",
     "Instala esta app": "Install this app",
     "acesso direto no ecrã principal, sem andares à procura do link.": "direct access from your home screen, no hunting for the link.",
     "Instalar": "Install",

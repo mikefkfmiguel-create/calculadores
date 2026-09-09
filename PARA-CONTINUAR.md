@@ -144,7 +144,25 @@ projeto (9 de setembro, mesmo dia).**
    "Preview v2.7x", conforme o caso. Detalhe completo do lado do Preview
    no `PARA-CONTINUAR.md` de lá.
 
-## O que aconteceu depois (6 tarde → 7 de setembro, feito localmente, fora desta sessão)
+**v3.19: AV Planner — uma marca a envolver as duas apps (9 de setembro,
+ainda o mesmo dia).** Pedido directo: "o que achas de fazermos um rename
+radical nestes dois meninos... ter apenas uma unificada, já que elas abrem
+uma a outra". Decisão tomada com o mike: sem fundir código (as duas apps
+continuam separadas, cada uma no seu repositório) — só uma "casca" por
+cima, uma marca comum. Nasceu o repositório `AvPlanner`
+(`mikefkfmiguel-create/av-planner`, publicado em
+`mikefkfmiguel-create.github.io/AvPlanner/`), uma página só com a marca da
+Mike Apps e um botão — "Abrir AV Planner" — que entra directamente aqui
+nos Cálculos (o Preview 3D já está a um clique, no botão que já existe no
+topo). O logótipo aqui (`#brand-logo`) passa a link para essa página, com
+um `title` traduzido também para inglês (`js/i18n.js`).
+Nota sobre instalar como app: as três continuam PWAs distintas — instalar
+a partir da página AV Planner dá um ícone "AV Planner"; instalar
+directamente daqui (o botão "Instalar" já existente) continua a dar
+"Calculadores", como sempre deu. Não há um único ícone que represente as
+três ao mesmo tempo sem fundir os manifests/service workers a sério, o
+que fica de fora de propósito (mais uma vez, é código dos dois lados a
+mudar, não só isto).
 
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
