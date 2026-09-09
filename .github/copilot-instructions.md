@@ -17,9 +17,11 @@ Fluxo: o utilizador cola texto e/ou carrega um PDF/imagem (PNG/JPEG) de um brief
 
 ### Schema de extração (`worker/src/index.js`, `EXTRACT_TOOL`)
 
-Campos principais: `tipoEcra` (led/projecao/blend/misto/desconhecido), `dimensoes` (tamanho do ECRÃ, nunca da sala — distinção crítica, já houve bug de confundir isto), `local` (`distanciaProjecaoM`, `distanciaVisualizacaoM`, `larguraPlateiaM`, `alturaSalaM`, `interior`, `curvo`), `led`, `orcamento`, `projeto` (nome/datas), `resumo`, `pontosPorConfirmar`.
+Campos principais: `tipoEcra` (led/projecao/blend/misto/desconhecido), `dimensoes` (tamanho do ECRÃ, nunca da sala — distinção crítica, já houve bug de confundir isto), `local` (`distanciaProjecaoM`, `distanciaVisualizacaoM`, `larguraPlateiaM`, `alturaSalaM`, `interior`, `curvo`, `numeroParticipantes`), `led`, `orcamento`, `projeto` (nome/datas), `resumo`, `pontosPorConfirmar`.
 
 Comportamento importante já afinado: quando o texto só descreve a sala (largura × profundidade × altura) sem "plateia" explícita, `distanciaVisualizacaoM` e `larguraPlateiaM` devem ser estimados a partir da profundidade/largura da sala (não ficar `null`), sinalizando a suposição em `pontosPorConfirmar`. Isto é intencionalmente diferente de `dimensoes`, que continua estritamente proibida de usar medidas de sala.
+
+`local.numeroParticipantes` (v3.20) é só uma contagem de gente lida do texto (ex: "300 pessoas") — a IA está explicitamente instruída a NUNCA o usar para calcular nenhuma medida (mesma regra de "a IA só extrai, o cálculo é sempre client-side"). Quem faz a conta é `renderScreenRecommendation()` em `index.html`: sem `distanciaVisualizacaoM`/`larguraPlateiaM` mas com `numeroParticipantes`, estima uma plateia QUADRADA com uma densidade real e citada (Tabela 1004.5 do IBC — assembleia concentrada, só cadeiras soltas — 7 pés²/~0,65 m² por pessoa, `ASST_M2_POR_PESSOA`). A forma quadrada em si não vem de norma nenhuma (é a única suposição não coberta por fonte real), por isso o resultado fica sempre com "⚠ Estimativa..." no veredito — nunca silenciosamente misturado com uma medida a sério. Nasceu de feedback direto do utilizador ("esperava uma sugestão prática, não só perguntas") depois de testar com "300 pessoas" sem sala nenhuma indicada.
 
 ### Motor de sugestão de dimensionamento (client-side, em `index.html`) — REDESENHADO
 

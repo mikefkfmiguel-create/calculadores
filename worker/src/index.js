@@ -59,8 +59,9 @@ const EXTRACT_TOOL = {
           curvo: { type: ["boolean", "null"], description: "Se o ecrã deve ser curvo." },
           salaLarguraM: { type: ["number", "null"], description: "Largura do próprio ESPAÇO/SALA em metros, só quando o texto a der DIRETAMENTE (ex: 'sala de 24 por 18 metros', 'espaço com 24m de largura'). Distinta de larguraPlateiaM: a plateia pode ocupar só parte da sala, e este campo é sempre a sala inteira. null quando o texto só der a largura da plateia/audiência, sem falar da sala em si." },
           salaProfundidadeM: { type: ["number", "null"], description: "Profundidade do próprio ESPAÇO/SALA em metros, só quando o texto a der DIRETAMENTE. Distinta de distanciaVisualizacaoM (que é a distância até ao público mais afastado, não a profundidade total da sala — a sala costuma ter mais alguns metros para além da última fila)." },
+          numeroParticipantes: { type: ["number", "null"], description: "Número de PESSOAS/participantes/lugares para o evento, se o texto o disser (ex: 'evento para 300 pessoas', '150 convidados'). É só uma contagem de gente — NUNCA uses isto para calcular ou adivinhar nenhuma medida física (sala, plateia, distância); quem faz essa conta, com uma norma real, é a calculadora do lado de lá. Fica null se o texto não der nenhum número de pessoas." },
         },
-        required: ["distanciaProjecaoM", "distanciaVisualizacaoM", "larguraPlateiaM", "alturaSalaM", "interior", "curvo", "salaLarguraM", "salaProfundidadeM"],
+        required: ["distanciaProjecaoM", "distanciaVisualizacaoM", "larguraPlateiaM", "alturaSalaM", "interior", "curvo", "salaLarguraM", "salaProfundidadeM", "numeroParticipantes"],
         additionalProperties: false,
       },
       led: {
