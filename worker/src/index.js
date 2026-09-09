@@ -146,12 +146,19 @@ function isAllowedOrigin(origin, allowedOrigins) {
 // KV apagar sozinho passados os dias da validade. O id é o único segredo (60
 // bits de aleatoriedade): como um link do Drive "quem tiver o link, vê".
 
-const PARTILHA_VALIDADE_SEGUNDOS = 7 * 24 * 60 * 60; // 7 dias
+// 1 dia, não 7 -- pedido direto depois de o Preview passar a mandar
+// projetos com várias fotos (mesmo reduzidas, um projeto de 11 ecrãs com
+// imagem em cada um ainda pode somar alguns MB): uma validade mais curta
+// mantém o KV com menos partilhas antigas por apagar, sem o link deixar de
+// servir o que é para servir -- mandar a alguém ver a sala num dia ou dois.
+const PARTILHA_VALIDADE_SEGUNDOS = 1 * 24 * 60 * 60; // 1 dia
 // As imagens que se põe nos ecrãs/DSM (Preview) viajam aqui dentro como data
 // URL, dentro do próprio projeto -- um projeto sem nenhuma cabia perto de
-// 300KB, mas uma foto ou dois "conteúdo" já passam disso facilmente. 8MB dá
-// espaço a isso sem se aproximar do limite de corpo de pedido do Worker.
-const PARTILHA_TAMANHO_MAXIMO = 8 * 1024 * 1024;
+// 300KB, mas várias fotos (mesmo reduzidas e convertidas para JPEG do lado
+// do Preview) ainda podem somar alguns MB num projeto com muitos ecrãs.
+// 16MB dá espaço a isso com folga, ainda bem abaixo do limite de valor do
+// KV (25MB) e do limite de corpo de pedido do Worker.
+const PARTILHA_TAMANHO_MAXIMO = 16 * 1024 * 1024;
 // Sem 0/O/1/l/I — para ninguém confundir letra com número a ditar um link.
 const ALFABETO_ID = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 
@@ -210,7 +217,7 @@ async function lerPartilha(id, env, origin) {
   }
   const texto = id ? await env.PARTILHAS.get(id) : null;
   if (!texto) {
-    return new Response(JSON.stringify({ error: "Este link já não existe — ou passou a validade (7 dias), ou nunca existiu." }), {
+    return new Response(JSON.stringify({ error: "Este link já não existe — ou passou a validade (1 dia), ou nunca existiu." }), {
       status: 404,
       headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
     });
