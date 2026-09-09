@@ -228,6 +228,29 @@ só fix cobre as duas abas. Testado com Playwright: escolher o Panasonic
 mantém o Panasonic escolhido; escolher a seguir o Christie muda
 correctamente para o Christie (não ficava preso no primeiro).
 
+**Só no Worker (sem bump de versão, por convenção — ver
+`.github/copilot-instructions.md`): feedback do AV Planner e registo de
+pedidos para revisão semanal.** Dois pedidos seguidos.
+
+1. **`POST /feedback`.** Pedido direto: "cria um report bug/sugestions no
+   av planer que junte 5 mensagens e envie para o meu mail para os
+   feedbacks da malta". Cada mensagem (`nome?`, `mensagem`) fica em KV
+   (`FEEDBACK`) até haver 5 por enviar — aí junta-se tudo num só email
+   (via Resend, de `onboarding@resend.dev`, sem domínio verificado) e
+   limpa-se o lote; sem cron nenhum, é o próprio pedido (o 5º) que dispara
+   o envio. O formulário do lado do AV Planner é nesse repositório
+   (`index.html` + `sw.js` — push direto a `main`, como é hábito lá).
+   Testado em produção: 6 pedidos reais, o email de lote chegou.
+2. **`GET /registos`, protegido por `ADMIN_TOKEN`.** Pedido direto a
+   seguir: "ela tem de ir aprendendo... podemos montar uma skill para
+   isso... e marcávamos de semana a semana a revisão para ajustar o
+   worker". Cada pedido ao Assistente (texto + o que a IA extraiu — nunca
+   a imagem em si) fica em KV (`REGISTOS`) por 30 dias. A rota de leitura
+   fica fora do bloqueio de CORS normal (é chamada de fora do browser, sem
+   `Origin`) e fecha a 401 sem o token certo. Serve de base à revisão
+   semanal combinada — ver skill própria (`.claude/skills/`) e a rotina
+   agendada.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
