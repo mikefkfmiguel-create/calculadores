@@ -210,6 +210,24 @@ que troca a densidade IBC usada na estimativa: 0,65 m²/pessoa sentada
 também para o Preview (ver `PARA-CONTINUAR.md` de lá) para corrigir uma
 sala desenhada errada lá do outro lado do mesmo teste.
 
+**v3.22: escolher o Panasonic 12k saltava sozinho para o Christie 12k.**
+Reportado direto: "na calculadora de projetores ao escolher o panasonic
+12k está a saltar para o christie 12k". Causa em
+`populateProjectorSelect()`: o `value` de cada `<option>` é os lúmens do
+projetor (reaproveitado logo a seguir para preencher "p-lumens" sozinho),
+não um identificador único — e dois projetores diferentes podem ter os
+mesmos lúmens (Panasonic PT-RZ120B e Christie Roadster HD12K, ambos
+12000). Ao repor a seleção depois de repopular a lista, `sel.value =
+matchOpt.value` seleciona sempre a PRIMEIRA opção da lista com esse
+valor — nunca necessariamente a que se queria manter, mesmo já tendo sido
+encontrada correctamente por índice (`matchOpt`) um instante antes.
+Corrigido selecionando o elemento em si (`matchOpt.selected = true`), que
+não sofre desta ambiguidade. A mesma função serve as duas listas de
+projetor (Distância de Projeção e Blending Multi-Projetor), por isso um
+só fix cobre as duas abas. Testado com Playwright: escolher o Panasonic
+mantém o Panasonic escolhido; escolher a seguir o Christie muda
+correctamente para o Christie (não ficava preso no primeiro).
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
