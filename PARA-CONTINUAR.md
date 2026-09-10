@@ -376,6 +376,49 @@ o nº de unidades certo (4x para a WATCHPAX 64, 3x para a W6800),
 enquanto as outras entradas (disguise, Resolume, Mitti, Millumin —
 sem `escalavel`) continuam só com "Não aconselhado", sem o selo novo.
 
+**v3.27: frame rate universal entre abas, e DSM da aba Projeto passa a
+criar DSM a sério.** Dois pedidos seguidos na mesma sessão.
+
+*"O frame rate não fica universal, tenho sempre de voltar a
+escrever."* Havia 3 campos de frame rate independentes (Sinal & Data
+Rate, Media Server, "Refresh rate" da aba Projeto), cada um com o seu
+próprio 60Hz por omissão, sem ligação nenhuma entre eles. Confirmado
+com o mike: quer os três ligados nos dois sentidos — mudar QUALQUER um
+actualiza logo os outros dois (e dispara o recálculo deles, como se a
+pessoa tivesse escrito lá o mesmo número), *"para não andar sempre a
+escrever e talvez fazer erros"*. Nova `syncFpsFrom(sourceId)` em
+`index.html`, com guarda contra recursão infinita (`syncingFps`).
+Reabrir um projeto gravado também passou a propagar o refresh rate
+restaurado para os outros dois campos (antes só o `proj-refresh` era
+guardado/restaurado — os outros dois voltavam sempre ao 60Hz por
+omissão nessa altura, mesma causa do problema reportado).
+
+*"Estou a meter DSM no projeto e não aparecem no 3D, apenas se for ao
+ecrã complexo."* O campo "Ecrãs DSM" da aba Projeto só alimentava a
+ficha técnica em texto — nunca criava DSM a sério na aba Ecrã Complexo
+(que é o único caminho que chega ao Preview). Havia já um botão manual
+só no sentido contrário ("↙ Trazer da Ecrã Complexo"), criado
+deliberadamente separado para permitir uma estimativa rápida antes de
+configurar os DSM a sério — mas confirmado com o mike que, tal como
+nas TVs (v3.25), prefere ligação automática. Escrever/mudar a
+quantidade em "Ecrãs DSM" (ou escolher um modelo de TV real, com
+diagonal confirmada) passa a criar/actualizar esse nº de DSM a sério na
+Ecrã Complexo, reaproveitando `lzAplicarDsm()` — a mesma função já
+usada quando um DSM chega do Preview, agora exposta em `window` para a
+aba Projeto poder chamá-la. Só a QUANTIDADE tem correspondência directa
+(o campo na aba Projeto é resolução em píxeis, não tamanho físico) — o
+tamanho físico (largura/altura em metros) só se actualiza quando um
+modelo real da AVK com diagonal confirmada está escolhido; sem modelo,
+o tamanho que já estiver na Ecrã Complexo fica intocado, nunca se
+inventa um valor a partir de píxeis.
+
+Testado com Playwright: escrever 50 em Sinal & Data Rate propagou para
+Media Server e Projeto; escrever 25 em Media Server propagou de volta
+para os outros dois; escrever 3 em "Ecrãs DSM" (Projeto) criou 3 DSM a
+sério na Ecrã Complexo, que chegaram ao payload do Preview
+(`{n:3,w:0.6,h:0.4}`, tamanho físico intocado por não haver modelo
+escolhido) — sem erros de consola em nenhum passo.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
