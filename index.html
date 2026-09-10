@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.30</span>
+    <span class="mark" id="app-versao">v3.31</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2444,7 +2444,9 @@
   }
 
   document.getElementById("p-addproject").addEventListener("change", function () {
-    if (this.checked) { setExclusiveAddProject("p-addproject"); syncProjecaoToProject(); }
+    // Marcar a caixa é, por si só, a decisão de levar isto para o projeto --
+    // sem esta chamada só ia para o Preview no PRÓXIMO toque num campo da aba.
+    if (this.checked) { setExclusiveAddProject("p-addproject"); syncProjecaoToProject(); guardarProjetorParaPreview(); }
     else { updateProjTypeFromAddProject(); calcProjeto(); }
   });
   document.getElementById("l-addproject").addEventListener("change", function () {
@@ -2979,6 +2981,7 @@
 
     renderProjectItems();
     if (document.getElementById("p-addproject").checked) syncProjecaoToProject();
+    guardarProjetorParaPreview();
   }
 
   // A projeccao vai ver-se na sala.
@@ -3028,12 +3031,11 @@
   // projeccao e a sugestao do assistente vao todas para o MESMO sitio.
   var JANELA_DO_PREVIEW = "mikeapps-preview";
 
-  function verNoPreview3D() {
-    if (!pUltimoProjetor || !(pUltimoProjetor.largura > 0) || !(pUltimoProjetor.distancia > 0)) {
-      showToast("Faltam dados: escolhe o tamanho do ecra e a distancia primeiro.");
-      return;
-    }
-    var carga = {
+  // A carga que viaja para o Preview pela ponte do projetor. Vive à parte do
+  // botão porque também se escreve sozinha (ver guardarProjetorParaPreview).
+  function cargaDoProjetor() {
+    if (!pUltimoProjetor || !(pUltimoProjetor.largura > 0) || !(pUltimoProjetor.distancia > 0)) return null;
+    return {
       v: 1,
       racio: Math.round(pUltimoProjetor.racio * 1000) / 1000,
       distancia: Math.round(pUltimoProjetor.distancia * 100) / 100,
@@ -3045,6 +3047,31 @@
       lumens: pUltimoProjetor.lumens,
       quando: new Date().toISOString()
     };
+  }
+
+  // Uma projeção não cria zonas nenhumas -- viaja só por esta ponte. Antes só
+  // se escrevia ao carregar em "Ver no Preview 3D", e por isso quem marcava
+  // "Adicionar ao projeto" com a sincronização automática ligada ia ao Preview
+  // e ouvia "ainda não há nada guardado" -- reportado direto, com razão. Agora,
+  // com as duas coisas ligadas, a projeção segue sozinha como as zonas já
+  // seguiam. Sem "Adicionar ao projeto" marcado não passa nada: mexer nos
+  // campos desta aba é o que se faz a experimentar, e não deve mudar o 3D de
+  // quem ainda não decidiu nada.
+  function guardarProjetorParaPreview() {
+    if (typeof syncAutoLigada === "function" && !syncAutoLigada()) return;
+    var addProject = document.getElementById("p-addproject");
+    if (!addProject || !addProject.checked) return;
+    var carga = cargaDoProjetor();
+    if (!carga) return;
+    try { localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga)); } catch (e) {}
+  }
+
+  function verNoPreview3D() {
+    var carga = cargaDoProjetor();
+    if (!carga) {
+      showToast("Faltam dados: escolhe o tamanho do ecra e a distancia primeiro.");
+      return;
+    }
     try { localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga)); } catch (e) {}
 
     var bytes = new TextEncoder().encode(JSON.stringify(carga));
