@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.28</span>
+    <span class="mark" id="app-versao">v3.29</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -436,7 +436,7 @@
           <div class="item wide"><div class="k">Resolução do projetor</div><div class="v" id="p-out-projres">—</div></div>
         </div>
         <div id="p-throwmode-ratio-output" style="display:none;">
-          <h2 style="margin-top:18px;">Distância de projeção (com a lente indicada)</h2>
+          <h2 style="margin-top:18px;" id="p-throwmode-ratio-title">Distância de projeção (com a lente indicada)</h2>
           <div class="readout">
             <div class="item"><div class="k">Mínima</div><div class="v" id="p-out-dmin">—</div></div>
             <div class="item"><div class="k">Máxima</div><div class="v" id="p-out-dmax">—</div></div>
@@ -1662,7 +1662,7 @@
                 <div class="item" id="proj-out-overlap-wrap" style="display:none;"><div class="k">Overlap por junção</div><div class="v" id="proj-out-overlap">—</div></div>
                 <div class="item wide" id="proj-out-totalpx-wrap" style="display:none;"><div class="k">Total de píxeis no ecrã</div><div class="v" id="proj-out-totalpx">—</div></div>
                 <div class="item"><div class="k">Throw ratio necessário</div><div class="v" id="proj-out-ratio">—</div></div>
-                <div class="item" id="proj-out-lensdist-wrap"><div class="k">Distância de projeção (com a lente indicada)</div><div class="v" id="proj-out-lensdist">—</div></div>
+                <div class="item" id="proj-out-lensdist-wrap"><div class="k" id="proj-out-lensdist-title">Distância de projeção (com a lente indicada)</div><div class="v" id="proj-out-lensdist">—</div></div>
                 <div class="item"><div class="k">Luminosidade útil</div><div class="v" id="proj-out-lumens">—</div></div>
                 <div class="item"><div class="k">Lux no ecrã</div><div class="v" id="proj-out-lux">—</div></div>
               </div>
@@ -2861,16 +2861,27 @@
     var lensMatches = renderLensMatches(ratioNeeded, lensBrand);
     var matchNames = lensMatches.map(function (l) { return l.marca + " " + l.modelo; });
 
+    var pLens = pLensModelSel.value !== "custom" ? LENTES_DATA[parseInt(pLensModelSel.value, 10)] : null;
+    // Sem lente escolhida \u00e0 m\u00e3o, mas j\u00e1 h\u00e1 ecr\u00e3 + projetor + dist\u00e2ncia --
+    // usa-se a mesma "melhor" sugest\u00e3o que j\u00e1 vai para a lista de lentes
+    // compat\u00edveis logo abaixo, em vez de esconder esta sec\u00e7\u00e3o inteira \u00e0
+    // espera de uma escolha manual. Pedido direto: "n\u00e3o est\u00e1 a apresentar a
+    // lente quando j\u00e1 tem toda a info, tamanho de ecr\u00e3, projetor e dist\u00e2ncia".
+    var pLensSugerida = !pLens && lensMatches.length ? lensMatches[0] : null;
+    var pLensParaDistancia = pLens || pLensSugerida;
     var dmin = tmin * w, dmax = tmax * w;
+    if (pLensSugerida) { dmin = pLensSugerida.min * w; dmax = pLensSugerida.max * w; }
     document.getElementById("p-out-dmin").innerHTML = fmt(dmin, 2) + "<small>m</small>";
     document.getElementById("p-out-dmax").innerHTML = fmt(dmax, 2) + "<small>m</small>";
-    var pLens = pLensModelSel.value !== "custom" ? LENTES_DATA[parseInt(pLensModelSel.value, 10)] : null;
     document.getElementById("p-lens-ratio-detail").style.display = pLens ? "grid" : "none";
-    document.getElementById("p-throwmode-ratio-output").style.display = pLens ? "block" : "none";
+    document.getElementById("p-throwmode-ratio-output").style.display = pLensParaDistancia ? "block" : "none";
+    document.getElementById("p-throwmode-ratio-title").textContent = pLensSugerida
+      ? "Dist\u00e2ncia de proje\u00e7\u00e3o (com a lente sugerida \u2014 " + pLensSugerida.marca + " " + pLensSugerida.modelo + ")"
+      : "Dist\u00e2ncia de proje\u00e7\u00e3o (com a lente indicada)";
     // O shift e do fabricante ou nao existe: uma lente sem shift publicado diz
     // que nao tem, em vez de aparecer com um numero que ninguem verificou.
-    var pShift = pLens && pLens.shift ? pLens.shift : null;
-    var shiftTexto = pLens
+    var pShift = pLensParaDistancia && pLensParaDistancia.shift ? pLensParaDistancia.shift : null;
+    var shiftTexto = pLensParaDistancia
       ? (pShift ? fmtShiftRange(pShift.vMin, pShift.vMax) + " V \u00b7 " +
                   fmtShiftRange(pShift.hMin, pShift.hMax) + " H"
                 : "o fabricante n\u00e3o o publica por lente")
@@ -4533,6 +4544,11 @@
       var lensDistHtml = "—", lensLine = "", lensRatioLine = "", lensDistLine = "";
       var projProjLensChosen = !isBlend && projProjLensModelSel.value !== "custom";
       document.getElementById("proj-lens-ratio-detail").style.display = projProjLensChosen ? "grid" : "none";
+      // Sem lente escolhida à mão, mas já há ecrã + projetor + distância --
+      // usa-se a mesma "melhor" sugestão que já vai para "Lentes compatíveis"
+      // logo abaixo, em vez de esconder este item à espera de uma escolha
+      // manual. Mesma correção da aba Distância de Projeção (ver calcProjecao()).
+      var projLensSugerida = !projProjLensChosen && !isBlend && matches.length ? matches[0] : null;
       if (projProjLensChosen) {
         var tmin = val("proj-proj-tmin"), tmax = val("proj-proj-tmax");
         var lensDmin = tmin * w, lensDmax = tmax * w;
@@ -4541,9 +4557,20 @@
         if (projProjLens) lensLine = "Lente: " + projProjLens.marca + " " + projProjLens.modelo + "\n";
         lensRatioLine = "Throw ratio (dessa lente): " + fmt(tmin, 2) + " – " + fmt(tmax, 2) + "\n";
         lensDistLine = "Distância de projeção (com essa lente): " + fmt(lensDmin, 2) + " – " + fmt(lensDmax, 2) + " m\n";
+        document.getElementById("proj-out-lensdist-title").textContent = "Distância de projeção (com a lente indicada)";
+      } else if (projLensSugerida) {
+        var lensDminS = projLensSugerida.min * widthPerProj, lensDmaxS = projLensSugerida.max * widthPerProj;
+        lensDistHtml = fmt(lensDminS, 2) + "–" + fmt(lensDmaxS, 2) + "<small>m</small>";
+        lensLine = "Lente sugerida: " + projLensSugerida.marca + " " + projLensSugerida.modelo + "\n";
+        lensRatioLine = "Throw ratio (dessa lente): " + fmt(projLensSugerida.min, 2) + " – " + fmt(projLensSugerida.max, 2) + "\n";
+        lensDistLine = "Distância de projeção (com a lente sugerida): " + fmt(lensDminS, 2) + " – " + fmt(lensDmaxS, 2) + " m\n";
+        document.getElementById("proj-out-lensdist-title").textContent =
+          "Distância de projeção (com a lente sugerida — " + projLensSugerida.marca + " " + projLensSugerida.modelo + ")";
+      } else {
+        document.getElementById("proj-out-lensdist-title").textContent = "Distância de projeção (com a lente indicada)";
       }
       document.getElementById("proj-out-lensdist").innerHTML = lensDistHtml;
-      document.getElementById("proj-out-lensdist-wrap").style.display = projProjLensChosen ? "block" : "none";
+      document.getElementById("proj-out-lensdist-wrap").style.display = isBlend ? "none" : "block";
 
       var projRes = effectiveProjRes(proj, projProjResMode);
       document.getElementById("proj-out-screensize").innerHTML = fmt(w, 2) + " x " + fmt(h, 2) + "<small>m</small>";

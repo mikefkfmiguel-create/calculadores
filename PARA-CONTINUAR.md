@@ -457,6 +457,38 @@ confortáveis contra 101 com o standard por omissão (altura-base,
 6 alturas de imagem) — a mesma sala, só a regra a mudar, confirma que
 a base largura/altura está mesmo a ser aplicada e não só o texto.
 
+**v3.29: a lente deixa de ficar escondida quando já há ecrã + projetor +
+distância, nas abas Distância de Projeção e Projeto.** Pedido direto: "na
+parte de projeção não está a apresentar a lente quando já tem toda a info,
+tamanho de ecrã, projetor e distância".
+
+Em ambas as abas, o item "Distância de projeção (com a lente indicada)"
+só aparecia depois de escolher manualmente uma lente da base (secção "Já
+sabes a lente?") — mesmo já sabendo tudo o resto, a app ficava à espera
+dessa escolha extra, enquanto a lista "Lentes compatíveis" logo abaixo já
+calculava sozinha qual seria a melhor. Sem lente escolhida à mão, mas
+havendo pelo menos uma lente compatível com a marca do projetor a essa
+distância, o item passa a mostrar essa mesma "melhor" sugestão — título
+muda para "(com a lente sugerida — Marca Modelo)" para não se confundir
+com uma escolha confirmada; ao escolher a lente à mão, volta a "(com a
+lente indicada)" e mostra os números exatos dessa lente.
+
+Apanhado no caminho: a primeira versão deste código tinha um erro por
+apanhar — quando NENHUMA lente da marca cobre o throw ratio necessário
+(caso real, não hipotético: aconteceu logo no primeiro teste com um
+projetor Epson a uma certa distância), o acesso a uma lente sugerida
+inexistente rebentava a função a meio, deixando o ecrã com texto
+desatualizado de um cálculo anterior. Corrigido antes de publicar — sem
+lente nenhuma (escolhida ou sugerida), o item volta a ficar escondido tal
+como antes, sem rebentar nada.
+
+Testado com Playwright nas duas abas: sugestão automática aparece com
+ecrã+projetor+distância preenchidos; escolher uma lente à mão substitui
+pela informação exata dela; um projetor sem nenhuma lente compatível na
+base a essa distância não rebenta e esconde o item correctamente; voltar
+a uma distância com match restaura a sugestão sem texto preso de uma
+distância anterior.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
