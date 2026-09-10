@@ -266,6 +266,40 @@ pelo nome), isto é só para se ver logo na pasta de downloads qual é qual.
 Testado com Playwright: "Guardar projeto" com o nome "Evento Teste XPTO"
 descarrega `evento-teste-xpto.calculadores.json`.
 
+**v3.24: Blending Multi-Projetor manda todos os projetores para o
+Preview.** Pedido combinado numa sessão só: *"o 3D não está a trazer os
+projetores do projeto"* — confirmado no código, a aba Blending nunca
+mandava nada, nem sequer tinha o botão "Ver no Preview 3D" que a aba
+simples (Distância de Projeção) já tinha. Fase 6 de um plano maior (as
+fases 1-5, do lado do Preview, já tinham ido: base do formato, projetor
+arrastável, vários palcos/régies/passarelas). Novo campo `#b-knowndist`
+(mesma distância para todos os projetores do blend — sem ela não há
+como calcular o rácio de cada um). A matemática de posição da grelha
+(já usada por `renderBlendDiagram()`) saiu para `blendGridPositions()`,
+reaproveitada tanto pelo diagrama SVG como pelo botão novo, para os dois
+nunca poderem discordar. Novo botão "Ver no Preview 3D" escreve um
+envelope novo em `mikeapps-projetor-v1`: `{v:2, projetores:[...]}` — a
+aba simples continua a escrever `{v:1, ...}`, sem tocar nesse caminho
+(o Preview aceita as duas formas). Ecrãs curvos ficam de fora do v1: a
+distância de tiro varia ao longo do arco, uma só distância partilhada
+seria inventar um número — o botão fica desligado nesse caso.
+
+Cada projetor da grelha leva `lateral`/`alturaOffset` **relativos ao
+primeiro projetor da grelha**, nunca uma posição absoluta na sala — isso
+os Calculadores não sabem (confirmado no código do Preview: a posição
+da instância principal nunca vem de lá, "a altura da lente é daqui").
+Do lado do Preview, essas ofertas somam-se ao que já lá estava para dar
+a posição de cada projetor extra.
+
+Testado com Playwright, dos dois lados: no Calculadores, um blend 2×1
+por omissão gera dois projetores com o mesmo rácio/distância e
+`lateral` simétrico (±2.63 m); no Preview, "Trazer projetor dos
+Calculadores" aplica o primeiro à instância #0 (como sempre) e cria um
+projetor extra arrastável/editável/removível na cena, com a lotação e a
+lista a condizerem; um payload antigo (`v:1`, um só projetor) continua a
+aplicar-se à instância #0 e agora limpa os extras que lá estivessem —
+sem erros de consola em nenhum passo.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
