@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.25</span>
+    <span class="mark" id="app-versao">v3.26</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -4155,6 +4155,18 @@
     var item = x.s || x.p;
     return item && item.estimated ? '<span class="lm-estimated" title="Capacidade estimada, não é um teto de hardware fixo publicado pelo fabricante — depende da configuração real (ex: GPU da máquina). Ver nota.">Estimado</span>' : '';
   }
+  // Alguns sistemas (ex: Watchout) não têm teto de saídas por software —
+  // escalam juntando mais unidades/nós. Quando uma unidade só não chega
+  // mas o fabricante confirma essa escala (campo "escalavel" na base),
+  // mostra-se quantas unidades seriam precisas em vez de só dizer "não
+  // aconselhado" — pedido direto. Não afirma que há esse nº de unidades
+  // disponíveis (na AVK ou no mercado), só a conta de quantas a
+  // resolução pedida precisaria.
+  function stackBadgeHtml(x, totalMP) {
+    if (!x.s.escalavel || !x.cap || x.fits) return '';
+    var unidades = Math.ceil(totalMP / (x.cap * SWITCHER_SAFETY_MARGIN));
+    return '<span class="lm-priority lm-priority-mid" title="O fabricante confirma que este sistema escala juntando mais unidades — não é o mesmo que ter essas unidades disponíveis, confirmar sempre.">Empilhável · ' + unidades + 'x unidades</span>';
+  }
 
   var projLedModelSel = document.getElementById("proj-led-model");
   var sgLedTileSel = document.getElementById("sg-led-tile");
@@ -4909,7 +4921,7 @@
           var checked = selectedMsKeys.has(x.key) ? " checked" : "";
           var io = x.s.maxOutputs ? " · " + fmtInt(x.s.maxOutputs) + " saídas" : "";
           var capTxt = x.cap ? (fmt(x.cap, 1) + ' MP — ' + x.pct + '%' + io) : 'Sem capacidade máxima publicada' + io;
-          return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + estimatedBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + capTxt + '</span></span></label>';
+          return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span>' + priorityBadgeHtml(x) + stackBadgeHtml(x, totalMP) + marketBadgeHtml(x) + estimatedBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + capTxt + '</span></span></label>';
         }).join("")
       : '<div class="lm-item"><span>Nenhum media server da base cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>') +
       (msChosen.length

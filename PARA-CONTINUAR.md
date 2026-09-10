@@ -343,6 +343,39 @@ intacta; o payload para o Preview trouxe as duas zonas correctamente.
 Confirmado também do lado do Preview: uma zona `tipo:"tv"` vinda deste
 payload desenha-se na cena sem nenhuma mudança de código lá.
 
+**v3.26: Watchout com placa AMD (6 saídas), e "empilhável" no Media
+Server.** Pedido direto: *"nos media servers, no Datatom, existe a
+opção de gráfica AMD com 6 saídas"*. A placa indicada inicialmente
+(Radeon Pro W6600) afinal só tem 4 saídas DisplayPort — confirmado na
+ficha oficial da AMD; a que tem mesmo 6 é a **Radeon Pro W6800** (6×
+Mini-DisplayPort 1.4), aviso dado antes de escrever o número errado
+na base. Nova entrada em `data/processors.json` → `mediaServers`:
+"Dataton — Watchout 7 (PC próprio, placa AMD Radeon Pro W6800)", 6
+saídas × 4K = 49,77 MP, `estimated:true` (o teto real é da GPU/
+máquina, como as outras entradas Watchout/Resolume/Mitti/Millumin já
+marcadas assim) — fonte: ficha técnica oficial da AMD (o cálculo de MP
+é nosso, a partir da contagem de saídas; a AMD não publica um total).
+
+A seguir, pedido relacionado: *"deve dar a opção de stack quando a
+resolução não cabe só num mas o sistema permite"* — o Watchout já diz
+na própria nota que escala juntando mais nós WATCHPAX, mas a
+calculadora só olhava para 1 unidade de cada vez. Novo campo
+`escalavel: true` nas duas entradas Dataton/Watchout (WATCHPAX 64 e a
+nova com a W6800) — confirmado com o mike que isto não é exclusivo do
+inventário da AVK (*"pode sugerir sempre, não será apenas para AVK"*):
+quando uma unidade só não chega mas o fabricante confirma que o
+software escala por nós, a lista mostra agora um selo "Empilhável ·
+Nx unidades" com a conta de quantas fariam falta — sem afirmar que
+essas unidades existem disponíveis (nem na AVK, nem no mercado), só
+o cálculo. Nova `stackBadgeHtml(x, totalMP)` em `index.html`.
+
+Testado com Playwright: a entrada W6800 aparece na lista com "6
+saídas" e o link para a fonte; pedindo 90MP (acima de 1 unidade de
+qualquer Watchout), as duas entradas Dataton mostram "Empilhável" com
+o nº de unidades certo (4x para a WATCHPAX 64, 3x para a W6800),
+enquanto as outras entradas (disguise, Resolume, Mitti, Millumin —
+sem `escalavel`) continuam só com "Não aconselhado", sem o selo novo.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
