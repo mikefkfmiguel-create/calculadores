@@ -690,6 +690,14 @@ app saiu aquele número. Confirmado que nenhum dos 11 alvos de cópia é JSON
 nada. O caminho de recurso (fora de HTTPS, que não é onde a app está
 publicada) selecciona o que está no ecrã e por isso não leva a marca.
 
+**v3.35: a marca nos resumos passa a ser o termo legal.** *"Mike apps todos
+os direitos reservados — acho que é o termo."* A marca da v3.34 identificava
+a app mas não reservava nada; passa a `© 2026 Mike Apps — todos os direitos
+reservados · Calculadores v3.35`, com o ano a vir do relógio (não fica preso
+a 2026) e a versão mantida pela razão de sempre: estes resumos vão parar a
+emails e fichas técnicas, e meses depois é preciso saber de que versão saiu
+aquele número. Continua no handler único de cópia, não no texto de cada aba.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
