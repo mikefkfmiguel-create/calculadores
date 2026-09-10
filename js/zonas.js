@@ -547,7 +547,19 @@
     if (spec && spec.ativo && spec.qty > 0 && spec.w > 0 && spec.h > 0) {
       var gap = 0.05;
       var totalW = spec.qty * spec.w + (spec.qty - 1) * gap;
-      var inicioX = -totalW / 2;
+      // Centrada quando é a única coisa no projeto -- que é o sítio certo para
+      // uma fila de delays sozinha. Havendo já outra coisa (um ecrã LED, por
+      // exemplo), a fila arranca à direita dela: centrar às cegas punha as TVs
+      // exatamente por cima do ecrã principal, e sair daí à mão é pior do que
+      // recebê-las já ao lado. Ver lzNextDefaultPos(), mesmo critério.
+      var maxRight = null;
+      lzList.querySelectorAll(".card").forEach(function (outro) {
+        var wh = lzCardWH(outro);
+        if (isNaN(wh.w)) return;
+        var right = lzLeftCard(outro) + wh.w;
+        maxRight = maxRight === null ? right : Math.max(maxRight, right);
+      });
+      var inicioX = maxRight === null ? -totalW / 2 : maxRight + 1.1;
       for (var i = 0; i < spec.qty; i++) {
         var nome = spec.nomeBase + (spec.qty > 1 ? " " + (i + 1) : "");
         var card = lzAddZone(nome, {

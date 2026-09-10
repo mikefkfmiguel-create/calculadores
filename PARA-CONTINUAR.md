@@ -664,6 +664,32 @@ o nome novo (`delays: { "Delay lateral A": { dx: 2.5 ... } }`), quando antes
 se perdia. E um projeto colado à mão, sem ids, carrega as 3 zonas na mesma,
 sem um erro de consola.
 
+**v3.34 (fases 3 e 4, e a marca nos resumos): as peças deixam de aterrar
+umas em cima das outras, e tudo o que se copia leva a marca da app.**
+
+**Fase 3.** A suspeita do plano confirmou-se num teste, e era pior do que
+parecia: marcar Ecrã LED e depois 4 TVs punha a fila das TVs (centrada, de
+-2,51 a 2,51) exatamente por cima do ecrã LED (também centrado, -4 a 4) —
+quatro sobreposições. `lzSincronizarTVs` centrava a fila às cegas, sem
+olhar ao que já lá estava. Passa a centrar só quando é a única coisa no
+projeto (o sítio certo para uma fila de delays sozinha) e, havendo já outra
+coisa, arranca à direita dela — o mesmo critério do `lzNextDefaultPos()`
+que as zonas normais já usavam. Testado: com o ecrã LED presente, a fila
+passa a começar em 5,1 (zero sobreposições); sozinha, continua centrada em
+0,00 exatamente como antes.
+
+**A marca nos resumos** (pedido direto: *"vais ter de marcar o copy em
+todas as abas disto pois está a crescer"*). Todos os botões "Copiar"
+passam por um único handler (`button.copy[data-target]`), e é lá que a
+marca é acrescentada — não repetida no texto de cada aba. Assim uma aba
+nova nasce já marcada, sem ninguém se lembrar de o fazer. Leva a versão
+junto (`— Mike Apps Calculadores v3.34`) porque estes resumos vão parar a
+emails e fichas técnicas, e meses depois é preciso saber de que versão da
+app saiu aquele número. Confirmado que nenhum dos 11 alvos de cópia é JSON
+— são todos resumos legíveis, portanto acrescentar uma linha não parte
+nada. O caminho de recurso (fora de HTTPS, que não é onde a app está
+publicada) selecciona o que está no ecrã e por isso não leva a marca.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
