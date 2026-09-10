@@ -518,6 +518,13 @@
     // senão duplicar a zona de referência criava várias a competir.
     if (opts && opts.ref) card.querySelector(".lz-ref").checked = true;
     if (opts && opts.colorOverride) card.dataset.colorOverride = opts.colorOverride;
+    // De que aba veio esta zona (TVs, Ecrã LED). Sem isto, uma ida e volta ao
+    // Preview devolvia cartões sem marca, e a sincronização seguinte dessa aba
+    // -- que começa por remover "os seus" cartões -- não encontrava nenhum e
+    // ACRESCENTAVA outra fila: 4 TVs viravam 8. Bug real, apanhado a testar o
+    // depósito.
+    if (opts && opts.origem === "tv") card.dataset.origemTv = "1";
+    if (opts && opts.origem === "led") card.dataset.origemLed = "1";
     // Posição/rotação em 3D vinda do Preview — guardada tal e qual, para
     // voltar de lá intacta. Fica no dataset (como a cor própria) e não em
     // lzOptsFromCard de propósito: duplicar uma zona não deve criar duas
@@ -543,7 +550,16 @@
   // ANTERIOR (marcadas no dataset), senão mudar de 2 para 4 unidades ia
   // empilhando as antigas em vez de as substituir.
   function lzSincronizarTVs(spec) {
-    lzList.querySelectorAll('.card[data-origem-tv="1"]').forEach(function (card) { card.remove(); });
+    // Os ids da fila anterior, pela ordem em que estavam. Recriar a fila do
+    // zero dava a cada TV um id novo -- e para quem está do outro lado (o 3D)
+    // isso são peças NOVAS de cada vez que se mexe na quantidade: a arrumação
+    // perde-se e, com o depósito, tudo volta a ficar por montar. A 3ª TV de
+    // antes continua a ser a 3ª TV de agora.
+    var idsAnteriores = [];
+    lzList.querySelectorAll('.card[data-origem-tv="1"]').forEach(function (card) {
+      idsAnteriores.push(card.dataset.zoneId);
+      card.remove();
+    });
     if (spec && spec.ativo && spec.qty > 0 && spec.w > 0 && spec.h > 0) {
       var gap = 0.05;
       var totalW = spec.qty * spec.w + (spec.qty - 1) * gap;
@@ -563,6 +579,7 @@
       for (var i = 0; i < spec.qty; i++) {
         var nome = spec.nomeBase + (spec.qty > 1 ? " " + (i + 1) : "");
         var card = lzAddZone(nome, {
+          zid: idsAnteriores[i] || null,
           tipo: "tv",
           sizeMode: "meters",
           targetW: Math.round(spec.w * 1000) / 1000,
@@ -740,6 +757,10 @@
           // arrumação por este id, não pelo nome -- assim renomear aqui, ou
           // trocar o modelo da TV, deixa de deitar fora o que lá foi posto.
           id: z.id || null,
+          // De que aba veio -- para a marca sobreviver à ida e volta ao 3D
+          // (ver lzAddZone). Sem ela, a fila de TVs duplicava no sync
+          // seguinte.
+          origem: z.origem || null,
           x: lzLeftZona(z), y: lzTopZona(z),
           w: z.w, h: z.h,
           cor: lzZoneColor(z, colorMap, zones),
@@ -803,6 +824,7 @@
       // O id que foi daqui volta de lá intacto -- é o que faz a zona ser "a
       // mesma zona" depois de uma ida e volta ao 3D.
       zid: z.id || null,
+      origem: z.origem || null,
       visible: true,
       tipo: z.tipo || "led",
       posX: !isNaN(x) && w > 0 ? x + w / 2 : 0,
@@ -1930,6 +1952,7 @@
       var opts = lzOptsFromCard(card);
       opts.name = card.querySelector(".lz-name").value;
       opts.zid = card.dataset.zoneId || null;
+      opts.origem = card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null);
       opts.posX = card.querySelector(".lz-posx").value;
       opts.posY = card.querySelector(".lz-posy").value;
       opts.ref = card.querySelector(".lz-ref").checked;
@@ -2008,7 +2031,7 @@
         var curveReadoutDelay = card.querySelector(".lz-curve-readout");
         if (curveReadoutDelay) curveReadoutDelay.textContent = "Curvatura: não aplicável a este tipo de ecrã.";
         lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), 0, 0, false);
-        zones.push({ id: card.dataset.zoneId, name: name, model: rotuloDelay, tipo: tipo, mx: 0, my: 0, numTiles: 0, w: whDelay.w, h: whDelay.h, area: zoneAreaDelay, totalPx: 0, totalPy: 0, pixels: 0, weight: 0, amp: 0, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: null, curve: null });
+        zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: rotuloDelay, tipo: tipo, mx: 0, my: 0, numTiles: 0, w: whDelay.w, h: whDelay.h, area: zoneAreaDelay, totalPx: 0, totalPy: 0, pixels: 0, weight: 0, amp: 0, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: null, curve: null });
         return;
       }
 
@@ -2078,7 +2101,7 @@
       }
       lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), curveInfo ? curveInfo.n : 0, curveInfo ? curveInfo.angleDeg : 0, curveInfo ? curveInfo.convex : false);
 
-      zones.push({ id: card.dataset.zoneId, name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: curveText, curve: curveInfo });
+      zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: curveText, curve: curveInfo });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do

@@ -698,6 +698,30 @@ a 2026) e a versão mantida pela razão de sempre: estes resumos vão parar a
 emails e fichas técnicas, e meses depois é preciso saber de que versão saiu
 aquele número. Continua no handler único de cópia, não no texto de cada aba.
 
+**v3.36: a identidade das zonas passa a aguentar mesmo, e corrigida uma
+duplicação de material que já existia.** Apanhado a testar o depósito do
+Preview (v2.92), mas são dois bugs deste lado, independentes dele:
+
+1. **A fila de TVs trocava de identidade a cada sync.** `lzSincronizarTVs`
+   apaga e recria os cartões (é como lida com a quantidade a mudar), e cada
+   cartão novo nascia com um `zid` novo. Do outro lado, isso são peças
+   NOVAS de cada vez que se mexe numa TV — a arrumação feita no 3D perdia-se
+   toda. A fase 2 tinha resolvido isto para renomear uma zona, mas não para
+   este caminho. Agora os ids da fila anterior são reutilizados pela ordem
+   em que estavam: a 3ª TV de antes continua a ser a 3ª TV de agora.
+2. **A fila de TVs DUPLICAVA depois de uma ida e volta ao 3D.** O
+   `lzImportarProjetoDoPreview` reconstrói os cartões a partir do que o
+   Preview devolve — e os cartões reconstruídos vinham sem a marca de
+   origem (`data-origem-tv`). Na sincronização seguinte, a aba TVs começa
+   por remover "os seus" cartões, não encontrava nenhum, e ACRESCENTAVA
+   outra fila: 4 TVs viravam 8. A marca de origem passa a viajar no payload
+   e a ser reposta no regresso (e a ficar gravada, como o resto).
+
+Testado com Playwright: subir de 2 para 4 TVs deixa as duas primeiras
+montadas e manda só as duas novas para o depósito (antes iam as quatro); e
+depois de uma volta completa pelo 3D, o Ecrã Complexo fica com 4 cartões,
+não com 8.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
