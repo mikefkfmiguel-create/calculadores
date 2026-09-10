@@ -546,6 +546,39 @@ do corte de 2), e 0 (excluído) para um festival ao ar livre sem nada em
 comum — confirma que a pontuação distingue exemplos relevantes de
 ruído antes de gastar tokens a enviá-los à Anthropic.
 
+**v3.31: uma projeção marcada "Adicionar ao projeto" passa a seguir
+sozinha para o Preview.** Reportado com duas capturas de ecrã: com
+"Adicionar ao projeto" marcado na aba Distância de Projeção e
+"Auto: ligada", o Preview respondia *"Ainda não há nada guardado"* ao
+carregar em "Trazer projeto dos Calculadores".
+
+Causa: há DUAS pontes, e uma projeção só viaja por uma delas. As zonas
+(Ecrã Complexo, TVs) vão em `mikeapps-projeto-v1`, escrita sozinha a cada
+recálculo. A projeção vai em `mikeapps-projetor-v1` — que só era escrita
+ao carregar em "Ver no Preview 3D". Marcar "Adicionar ao projeto" ali não
+escrevia ponte nenhuma (só preenchia os campos da aba Projeto, para o
+relatório em texto), e como uma projeção nunca cria zonas, o Preview via
+mesmo o armazenamento vazio. O aviso dele até prometia "ou qualquer outra
+com Adicionar ao projeto" — uma promessa que o código não cumpria.
+
+Agora, com "Adicionar ao projeto" marcado E sincronização automática
+ligada, a projeção é escrita na ponte a cada recálculo (nova
+`guardarProjetorParaPreview()`, e também no próprio momento de marcar a
+caixa — senão só ia no toque seguinte num campo). Sem a caixa marcada não
+passa nada: mexer nos campos desta aba é o que se faz a experimentar, e
+não deve mexer no 3D de quem ainda não decidiu. A construção da carga saiu
+do botão para uma `cargaDoProjetor()` partilhada pelos dois caminhos.
+
+Do lado do Preview (v2.89), o botão "Trazer projeto dos Calculadores"
+deixa de mentir: sem zonas, tenta a ponte do projetor antes de desistir, e
+diz *"Não havia zonas guardadas, mas veio a projeção dos Calculadores"*.
+
+Testado com Playwright, com as duas apps servidas da MESMA origem (é o que
+faz o `localStorage` ser partilhado — em produção estão as duas em
+`mikefkfmiguel-create.github.io`; em portas diferentes o teste nunca
+funcionaria): marcar a caixa escreve a carga (`distancia: 17`), e o botão
+do Preview aplica-a (`projDist` fica a 17.00) com a mensagem nova.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
