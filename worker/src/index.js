@@ -284,6 +284,78 @@ async function listarRegistos(request, env) {
   });
 }
 
+// -------------------------------------------- exemplos parecidos (memória)
+//
+// Pedido direto: "deve ir guardando os projetos criados como referência para
+// sugerir e fazer menos perguntas". Reaproveita o mesmo REGISTOS que já
+// existia só para revisão manual (30 dias) -- em vez de servir só a pessoa a
+// olhar depois, passa a servir também a própria extração seguinte: antes de
+// perguntar à Anthropic, procuram-se aqui pedidos anteriores com texto
+// parecido, e esses exemplos (texto + o que foi extraído deles) entram no
+// pedido como referência de padrão -- nunca como fonte de valores para o
+// projeto atual (isso continua proibido, ver EXTRACT_TOOL e o aviso que
+// acompanha os exemplos mais abaixo).
+//
+// Sem pesquisa semântica nem índice à parte (nada de Vectorize/embeddings) --
+// só sobreposição de palavras entre o texto novo e o texto de cada registo
+// recente, que chega para apanhar "mesmo local", "mesmo tipo de evento", "case
+// idêntico repetido" sem infraestrutura nova nem custo extra por pedido.
+const EXEMPLOS_A_CONSIDERAR = 30; // registos recentes a ler (não os 500 todos — custaria 500 leituras KV por pedido)
+const EXEMPLOS_A_USAR = 3; // no máximo, dos que tiverem alguma sobreposição real
+const PALAVRAS_IGNORAR = new Set([
+  "de", "da", "do", "das", "dos", "um", "uma", "uns", "umas", "o", "a", "os", "as",
+  "e", "ou", "para", "com", "em", "no", "na", "nos", "nas", "que", "se", "por",
+  "como", "mais", "menos", "este", "esta", "esse", "essa", "isso", "isto", "tem",
+  "ter", "vai", "são", "ser", "estar", "está", "ao", "aos", "à", "às", "um", "the",
+  "and", "for", "with",
+]);
+
+function palavrasSignificativas(texto) {
+  const semAcentos = (texto || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const palavras = semAcentos.match(/[a-z0-9]+/g) || [];
+  return new Set(palavras.filter((p) => p.length > 2 && !PALAVRAS_IGNORAR.has(p)));
+}
+
+async function buscarExemplosParecidos(env, textoAtual) {
+  if (!env.REGISTOS || !textoAtual) return [];
+  const palavrasAtual = palavrasSignificativas(textoAtual);
+  if (!palavrasAtual.size) return [];
+
+  let lista;
+  try {
+    lista = await env.REGISTOS.list({ limit: EXEMPLOS_A_CONSIDERAR });
+  } catch (e) {
+    return []; // nunca deve impedir a extração normal por causa disto
+  }
+  if (!lista.keys.length) return [];
+
+  const registos = await Promise.all(
+    lista.keys.map(async (k) => {
+      try {
+        const bruto = await env.REGISTOS.get(k.name);
+        return bruto ? JSON.parse(bruto) : null;
+      } catch (e) {
+        return null;
+      }
+    })
+  );
+
+  const pontuados = registos
+    .filter((r) => r && typeof r.texto === "string" && r.texto && r.requisitos)
+    .map((r) => {
+      const palavrasR = palavrasSignificativas(r.texto);
+      let sobrepostas = 0;
+      for (const p of palavrasAtual) if (palavrasR.has(p)) sobrepostas++;
+      return { registo: r, pontuacao: sobrepostas };
+    })
+    // Pelo menos 2 palavras significativas em comum -- uma só é fácil de
+    // calhar por acaso ("ecrã", "sala") e não indica um caso parecido a sério.
+    .filter((p) => p.pontuacao >= 2)
+    .sort((a, b) => b.pontuacao - a.pontuacao);
+
+  return pontuados.slice(0, EXEMPLOS_A_USAR).map((p) => p.registo);
+}
+
 // ------------------------------------------------- feedback (AV Planner)
 //
 // Pedido direto: "cria um report bug/sugestions no av planer que junte 5
@@ -499,6 +571,28 @@ export default {
       });
     }
 
+    // Pedidos anteriores parecidos, se houver -- ver buscarExemplosParecidos()
+    // acima. Nunca deve impedir a extração normal se falhar por algum motivo.
+    let exemplosParecidos = [];
+    try {
+      exemplosParecidos = await buscarExemplosParecidos(env, text);
+    } catch (e) {
+      exemplosParecidos = [];
+    }
+    let blocoExemplos = "";
+    if (exemplosParecidos.length) {
+      blocoExemplos =
+        "Para referência, aqui estão pedidos anteriores com texto parecido, e o que foi extraído deles — usa-os só " +
+        "para reconhecer o padrão de como este tipo de caso costuma ser preenchido (ex: que campos costumam ficar " +
+        "null, que tipo de ambiguidade não costuma precisar de entrar em pontosPorConfirmar). NUNCA copies um valor " +
+        "técnico destes exemplos para o projeto de agora — cada projeto é independente, e um valor só entra no " +
+        "resultado se estiver também no texto/documento/imagem do pedido atual.\n\n" +
+        exemplosParecidos
+          .map((r, i) => "Exemplo " + (i + 1) + " — texto: \"" + r.texto.slice(0, 400) + "\"\nExtraído: " + JSON.stringify(r.requisitos))
+          .join("\n\n") +
+        "\n\n---\n\nPedido atual a extrair:\n\n";
+    }
+
     const contentBlocks = [];
     if (pdfBase64) {
       contentBlocks.push({
@@ -515,8 +609,9 @@ export default {
     contentBlocks.push({
       type: "text",
       text:
+        blocoExemplos +
         (text || "(sem texto adicional — ler o documento/imagem em anexo)") +
-        "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento/imagem, usa null — nunca adivinhes uma especificação técnica. Em pontosPorConfirmar, não repitas como 'aviso' cada campo que ficou null — só usa esse campo para contradições ou ambiguidades reais no texto; na maioria dos casos deve ficar vazio. Atenção especial a tipoEcra: só preenches 'led', 'projecao', 'blend' ou 'misto' se o texto pedir essa tecnologia explicitamente OU se uma imagem em anexo mostrar claramente essa tecnologia (ex: foto óbvia de um ledwall ou de uma projeção) — um pedido de sugestão sem tecnologia indicada nem imagem que a mostre (ex: 'que ecrã devo usar?', 'quantos ecrãs preciso?') fica sempre 'desconhecido'; não escolhas a tecnologia 'mais provável' para o caso. Atenção especial a dimensoes: nunca uses medidas de sala/palco/espaço como se fossem do ecrã — se só houver medidas do local e um pedido de sugestão (ex: 'que ecrã devo usar?'), deixa dimensoes a null. Já em local.distanciaVisualizacaoM e local.larguraPlateiaM, quando não houver valor dado à parte mas o texto descrever as dimensões da sala/espaço, USA a profundidade e a largura da sala como estimativa dessa distância e dessa largura (respetivamente) — não deixes esses dois campos a null só por a sala não ter uma 'plateia' descrita à parte. Quando fizeres essa estimativa a partir das dimensões da sala (em vez de um valor dado diretamente para a plateia/distância), acrescenta um único item curto a pontosPorConfirmar a dizer isso (ex: 'Distância e largura da plateia estimadas a partir das dimensões da sala — confirma a disposição real do público'). Já local.salaLarguraM e local.salaProfundidadeM são OUTRA coisa: só se preenchem quando o texto der a largura/profundidade do PRÓPRIO ESPAÇO diretamente (ex: 'sala de 24 por 18 metros') — nunca como estimativa a partir de outra coisa, e nunca copiados de larguraPlateiaM/distanciaVisualizacaoM (mesmo quando esses dois foram estimados a partir da sala, como no caso acima). Ficam null sempre que o texto não disser as medidas da sala em si. REGRA CRÍTICA para imagens: uma fotografia ou render NUNCA tem escala fiável — não estimes nem inventes nenhuma medida (dimensoes, distâncias, pixel pitch, nits) a partir do que vês numa imagem, mesmo que pareça óbvio a olho; usa a imagem só para identificar o tipo de tecnologia/formato visível (e nota isso em resumo, ex: 'A imagem mostra um ecrã LED em formato ecrã largo, sem escala visível'). Todas as medidas continuam a vir exclusivamente do texto (ex: as dimensões da sala nova onde o utilizador quer replicar o que a imagem mostra).",
+        "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento/imagem, usa null — nunca adivinhes uma especificação técnica. Em pontosPorConfirmar, não repitas como 'aviso' cada campo que ficou null — só usa esse campo para contradições ou ambiguidades reais no texto; na maioria dos casos deve ficar vazio. Atenção especial a tipoEcra: só preenches 'led', 'projecao', 'blend' ou 'misto' se o texto pedir essa tecnologia explicitamente OU se uma imagem em anexo mostrar claramente essa tecnologia (ex: foto óbvia de um ledwall ou de uma projeção) — um pedido de sugestão sem tecnologia indicada nem imagem que a mostre (ex: 'que ecrã devo usar?', 'quantos ecrãs preciso?') fica sempre 'desconhecido'; não escolhas a tecnologia 'mais provável' para o caso. Atenção especial a dimensoes: nunca uses medidas de sala/palco/espaço como se fossem do ecrã — se só houver medidas do local e um pedido de sugestão (ex: 'que ecrã devo usar?'), deixa dimensoes a null. Já em local.distanciaVisualizacaoM e local.larguraPlateiaM, quando não houver valor dado à parte mas o texto descrever as dimensões da sala/espaço, USA a profundidade e a largura da sala como estimativa dessa distância e dessa largura (respetivamente) — não deixes esses dois campos a null só por a sala não ter uma 'plateia' descrita à parte. Quando fizeres essa estimativa a partir das dimensões da sala (em vez de um valor dado diretamente para a plateia/distância), acrescenta um único item curto a pontosPorConfirmar a dizer isso (ex: 'Distância e largura da plateia estimadas a partir das dimensões da sala — confirma a disposição real do público'). Já local.salaLarguraM e local.salaProfundidadeM são OUTRA coisa: só se preenchem quando o texto der a largura/profundidade do PRÓPRIO ESPAÇO diretamente (ex: 'sala de 24 por 18 metros') — nunca como estimativa a partir de outra coisa, e nunca copiados de larguraPlateiaM/distanciaVisualizacaoM (mesmo quando esses dois foram estimados a partir da sala, como no caso acima). Ficam null sempre que o texto não disser as medidas da sala em si. REGRA CRÍTICA para imagens: uma fotografia ou render NUNCA tem escala fiável — não estimes nem inventes nenhuma medida (dimensoes, distâncias, pixel pitch, nits) a partir do que vês numa imagem, mesmo que pareça óbvio a olho; usa a imagem só para identificar o tipo de tecnologia/formato visível (e nota isso em resumo, ex: 'A imagem mostra um ecrã LED em formato ecrã largo, sem escala visível'). Todas as medidas continuam a vir exclusivamente do texto (ex: as dimensões da sala nova onde o utilizador quer replicar o que a imagem mostra). Se houver exemplos de pedidos anteriores acima, e um deles mostrar um padrão claro de como preencher um caso parecido a este (ex: que campos costumam ficar null nesse tipo de pedido, ou que esse tipo de ambiguidade normalmente não precisa de entrar em pontosPorConfirmar), segue o mesmo padrão — sem nunca copiar um valor técnico em concreto desses exemplos.",
     });
 
     let anthropicRes;

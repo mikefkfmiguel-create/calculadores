@@ -489,6 +489,36 @@ base a essa distância não rebenta e esconde o item correctamente; voltar
 a uma distância com match restaura a sugestão sem texto preso de uma
 distância anterior.
 
+**Só no Worker (sem bump de versão, por convenção — ver
+`.github/copilot-instructions.md`): o Assistente passa a ter memória dos
+pedidos anteriores.** Pedido direto: "deve ir guardando os projetos
+criados como referência para sugerir e fazer menos perguntas". Reverte a
+regra antiga "nunca aprendizagem automática" — confirmado de propósito
+antes de avançar, por ser uma decisão já documentada — ver a nota
+atualizada em `.github/copilot-instructions.md`.
+
+Reaproveita os mesmos `REGISTOS` que já existiam só para revisão manual
+(30 dias): antes de perguntar à Anthropic, `buscarExemplosParecidos()`
+lê os últimos 30 registos e pontua-os por sobreposição de palavras
+significativas com o texto do pedido atual (sem embeddings nem serviço à
+parte — só contagem de palavras em comum, ≥2 para entrar) — até 3 dos
+melhores entram no pedido como exemplos de referência ("aqui estão
+pedidos anteriores parecidos, e o que foi extraído deles"), com uma
+instrução explícita a proibir copiar valores técnicos de um exemplo para
+o projeto atual — um exemplo só ensina o PADRÃO (que campos costumam
+ficar null, que tipo de ambiguidade não precisa de `pontosPorConfirmar`),
+nunca um número. Continua sem estado persistente nem ajuste de modelo —
+é few-shot por pedido, determinístico e inspecionável.
+
+Testado com um harness isolado (a função de pontuação copiada para fora
+do Worker, já que corre em Cloudflare e não há deploy nesta sessão): um
+pedido novo para "Hotel Marriott, 300 pessoas" contra três registos de
+exemplo pontuou 5 para um pedido anterior no mesmo hotel, 2 para uma sala
+pequena não relacionada (abaixo do limite de utilidade mas ainda dentro
+do corte de 2), e 0 (excluído) para um festival ao ar livre sem nada em
+comum — confirma que a pontuação distingue exemplos relevantes de
+ruído antes de gastar tokens a enviá-los à Anthropic.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
