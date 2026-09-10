@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.29</span>
+    <span class="mark" id="app-versao">v3.30</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -404,6 +404,7 @@
               <option value="custom">Nenhuma / não sei ainda</option>
             </select>
             <div class="hint">Escolhe a lente pela referência — preenche o throw ratio automaticamente e fica identificada no relatório.</div>
+            <div class="note" id="p-lensmodel-sugestao" style="display:none;"><span id="p-lensmodel-sugestao-txt"></span> <button type="button" class="copy" id="p-lensmodel-sugestao-usar">Usar esta lente</button></div>
           </div>
           <div class="row2" id="p-lens-ratio-detail" style="display:none;">
             <div class="field">
@@ -1504,6 +1505,7 @@
                 <option value="custom">Nenhuma / não sei ainda</option>
               </select>
               <div class="hint">Escolhe a lente pela referência — preenche o throw ratio automaticamente e fica identificada no relatório.</div>
+              <div class="note" id="proj-proj-lensmodel-sugestao" style="display:none;"><span id="proj-proj-lensmodel-sugestao-txt"></span> <button type="button" class="copy" id="proj-proj-lensmodel-sugestao-usar">Usar esta lente</button></div>
             </div>
             <div class="row2" id="proj-lens-ratio-detail" style="display:none;">
               <div class="field">
@@ -2878,6 +2880,23 @@
     document.getElementById("p-throwmode-ratio-title").textContent = pLensSugerida
       ? "Dist\u00e2ncia de proje\u00e7\u00e3o (com a lente sugerida \u2014 " + pLensSugerida.marca + " " + pLensSugerida.modelo + ")"
       : "Dist\u00e2ncia de proje\u00e7\u00e3o (com a lente indicada)";
+    // Mostrar a sugest\u00e3o s\u00f3 no resultado, l\u00e1 mais abaixo, obrigava a ir \u00e0
+    // procura dela -- pedido direto ("podia apresentar aqui") para aparecer
+    // logo junto ao pr\u00f3prio campo "Lente", com um bot\u00e3o a escolh\u00ea-la sem
+    // precisar de a procurar na lista.
+    // O bot\u00e3o \u00e9 fixo no HTML de prop\u00f3sito: reconstru\u00ed-lo aqui a cada c\u00e1lculo
+    // destru\u00eda-o entre o mousedown e o mouseup (o rec\u00e1lculo dispara logo no
+    // blur do campo anterior) e o clique perdia-se. S\u00f3 o texto e o \u00edndice da
+    // lente mudam.
+    var pLensmodelSugestaoEl = document.getElementById("p-lensmodel-sugestao");
+    if (pLensSugerida) {
+      document.getElementById("p-lensmodel-sugestao-txt").innerHTML =
+        "Sugest\u00e3o autom\u00e1tica (ainda n\u00e3o escolhida): <b>" + pLensSugerida.marca + " " + pLensSugerida.modelo + "</b>";
+      document.getElementById("p-lensmodel-sugestao-usar").setAttribute("data-usar-lente", LENTES_DATA.indexOf(pLensSugerida));
+      pLensmodelSugestaoEl.style.display = "block";
+    } else {
+      pLensmodelSugestaoEl.style.display = "none";
+    }
     // O shift e do fabricante ou nao existe: uma lente sem shift publicado diz
     // que nao tem, em vez de aparecer com um numero que ninguem verificou.
     var pShift = pLensParaDistancia && pLensParaDistancia.shift ? pLensParaDistancia.shift : null;
@@ -2989,6 +3008,13 @@
     if (!item) return;
     mudarCampo("p-lensmodel", item.getAttribute("data-lente"));
     document.getElementById("p-lensmodel").scrollIntoView({ block: "center", behavior: "smooth" });
+  });
+
+  // O botão "Usar esta lente" da sugestão automática, junto ao próprio campo
+  // "Lente" — mesma ideia da lista acima, sem ter de lá ir.
+  document.getElementById("p-lensmodel-sugestao-usar").addEventListener("click", function () {
+    var idx = this.getAttribute("data-usar-lente");
+    if (idx) mudarCampo("p-lensmodel", idx);
   });
 
   // E o contrario: a distancia salta para onde a lente escolhida trabalha.
@@ -4204,6 +4230,10 @@
     projProjTmaxInput.value = l.max;
     calcProjeto();
   });
+  document.getElementById("proj-proj-lensmodel-sugestao-usar").addEventListener("click", function () {
+    var idx = this.getAttribute("data-usar-lente");
+    if (idx) mudarCampo("proj-proj-lensmodel", idx);
+  });
   [projProjTminInput, projProjTmaxInput].forEach(function (el) {
     el.addEventListener("input", function () { projProjLensModelSel.value = "custom"; });
   });
@@ -4571,6 +4601,17 @@
       }
       document.getElementById("proj-out-lensdist").innerHTML = lensDistHtml;
       document.getElementById("proj-out-lensdist-wrap").style.display = isBlend ? "none" : "block";
+      // Mesma sugestão junto ao campo "Lente" -- ver o equivalente em
+      // calcProjecao() (aba Distância de Projeção).
+      var projLensmodelSugestaoEl = document.getElementById("proj-proj-lensmodel-sugestao");
+      if (projLensSugerida) {
+        document.getElementById("proj-proj-lensmodel-sugestao-txt").innerHTML =
+          "Sugestão automática (ainda não escolhida): <b>" + projLensSugerida.marca + " " + projLensSugerida.modelo + "</b>";
+        document.getElementById("proj-proj-lensmodel-sugestao-usar").setAttribute("data-usar-lente", LENTES_DATA.indexOf(projLensSugerida));
+        projLensmodelSugestaoEl.style.display = "block";
+      } else {
+        projLensmodelSugestaoEl.style.display = "none";
+      }
 
       var projRes = effectiveProjRes(proj, projProjResMode);
       document.getElementById("proj-out-screensize").innerHTML = fmt(w, 2) + " x " + fmt(h, 2) + "<small>m</small>";
