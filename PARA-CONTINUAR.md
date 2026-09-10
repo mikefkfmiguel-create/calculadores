@@ -625,6 +625,45 @@ projetores. E o que interessa: dar posição (3,5) e nome ("Palco principal")
 à zona e depois mudar a grelha na aba LED de 16 para 20 tiles — a grelha
 muda, a posição e o nome ficam.
 
+**v3.33 (fase 2): as zonas passam a ter identidade própria.** É a fase que
+faz o resto do plano valer alguma coisa — sem ela, "eu arrumo no 3D e depois
+volto a sincronizar" era uma aposta.
+
+Os ajustes de posição/rotação do Preview guardavam-se pelo NOME da zona.
+Renomear uma zona aqui, ou trocar o modelo da TV (que muda o nome-base de
+toda a fila), deitava fora a arrumação toda do outro lado. Havia um `__id`
+no Preview, mas é `enumerable: false` e só serve para o foco dos campos —
+não sobrevive a gravar, reabrir nem sincronizar.
+
+As zonas já viajavam com um `id`, mas era o `dataset.zoneId`: uma sequência
+(z1, z2...) refeita a cada arranque. Passou a ser um id aleatório e
+persistente (`lzNovoZid()`), gravado no `localStorage` das zonas, no ficheiro
+do projeto e no payload para o Preview. O Preview também gera id para as
+zonas que nascem lá ("+ Ecrã", "+ Delay"), e devolve-o intacto — quem cria a
+peça dá-lhe o id, mais ninguém lhe toca.
+
+**Como se usou o id, e porque não se mudou tudo de chave.** A tentação era
+passar `ajustes.delays` a ser indexado por id. Mas o nome não é só a chave
+dos ajustes: é também o nome do objecto na cena (`delay-<nome>`), a chave do
+arrasto e o que o `fazerZonas` procura — mudá-los todos era um refactor
+grande com muito por onde partir. Em vez disso, o id **persegue o nome**:
+`reconciliarAjustesPorId()` (`preview/js/app.js`) guarda o último nome
+conhecido de cada id (`ajustes.nomePorId`) e, quando a zona reaparece com
+outro nome, muda o ajuste (e a marca "sem leitura") de nome com ela. Mesmo
+efeito, uma função só, e sem tocar em nada do que já funciona. Só move para
+um nome livre: se já houver ajuste com o nome novo, é de outra zona e não se
+lhe mexe.
+
+Projetos antigos, ou colados à mão, não têm id nenhum — aí não corre nada e
+fica tudo exatamente como sempre esteve.
+
+Testado com Playwright, as duas apps na mesma origem: criar uma zona tipo
+"tv" chamada "Delay esquerda", arrumá-la no 3D (dx 2,5), renomeá-la nos
+Calculadores para "Delay lateral A" e voltar a sincronizar — o ajuste segue
+o nome novo (`delays: { "Delay lateral A": { dx: 2.5 ... } }`), quando antes
+se perdia. E um projeto colado à mão, sem ids, carrega as 3 zonas na mesma,
+sem um erro de consola.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao

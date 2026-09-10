@@ -330,9 +330,21 @@
     };
   }
 
+  // A identidade de uma zona, que tem de sobreviver a tudo: renomear, trocar
+  // de modelo, gravar e reabrir, ir ao Preview e voltar. Antes disto o
+  // "zoneId" era uma sequência (z1, z2...) refeita a cada arranque, e os
+  // ajustes de posição no 3D guardavam-se pelo NOME -- renomear uma zona ou
+  // trocar o modelo da TV (que muda o nome-base) deitava fora a arrumação
+  // toda. Pedido direto: "tem de existir nele para depois eu arrumar as peças
+  // todas que vieram da calculadora".
+  function lzNovoZid() {
+    return "z" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
   function lzAddZone(name, opts, startOpen) {
     if (startOpen == null) startOpen = true;
-    var id = "z" + (lzNextId++);
+    lzNextId++;
+    var id = (opts && opts.zid) || lzNovoZid();
     var defaultPos = lzNextDefaultPos();
     var card = document.createElement("div");
     card.className = "card";
@@ -712,6 +724,10 @@
         }
         return {
           nome: z.name,
+          // A identidade da zona (ver lzNovoZid). O Preview guarda a
+          // arrumação por este id, não pelo nome -- assim renomear aqui, ou
+          // trocar o modelo da TV, deixa de deitar fora o que lá foi posto.
+          id: z.id || null,
           x: lzLeftZona(z), y: lzTopZona(z),
           w: z.w, h: z.h,
           cor: lzZoneColor(z, colorMap, zones),
@@ -772,6 +788,9 @@
     var res = z.res || null;
     var opts = {
       name: z.nome || "Zona",
+      // O id que foi daqui volta de lá intacto -- é o que faz a zona ser "a
+      // mesma zona" depois de uma ida e volta ao 3D.
+      zid: z.id || null,
       visible: true,
       tipo: z.tipo || "led",
       posX: !isNaN(x) && w > 0 ? x + w / 2 : 0,
@@ -1898,6 +1917,7 @@
     return Array.from(lzList.querySelectorAll(".card")).map(function (card) {
       var opts = lzOptsFromCard(card);
       opts.name = card.querySelector(".lz-name").value;
+      opts.zid = card.dataset.zoneId || null;
       opts.posX = card.querySelector(".lz-posx").value;
       opts.posY = card.querySelector(".lz-posy").value;
       opts.ref = card.querySelector(".lz-ref").checked;
