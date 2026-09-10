@@ -419,6 +419,44 @@ sério na Ecrã Complexo, que chegaram ao payload do Preview
 (`{n:3,w:0.6,h:0.4}`, tamanho físico intocado por não haver modelo
 escolhido) — sem erros de consola em nenhum passo.
 
+**v3.28: standard da Distância de Visualização passa a valer para a
+Cobertura do Preview, e corrigido um bug — a aba TVs não estava a
+segui-lo.** Dois pedidos seguidos.
+
+*"E nas TVs não está a usar."* Ao investigar *"dá para escolher o
+Standard... de forma a ser o usado em todos os cálculos"*, o mike
+testou e reportou (com capturas de ecrã) que mudar o standard em
+"Distância de Visualização" não mudava a regra mostrada na aba TVs.
+Causa: o listener de `#v-standard` (`index.html`) já chamava
+`calcVisualizacao()` e `calcLed()` ao mudar, mas nunca `calcTV()` —
+a aba TVs só recalculava quando se mexia num campo dela própria.
+`calcVisualizacao()`/`calcLed()` já liam bem o standard partilhado
+(`viewingDistanceRange()`/`viewRuleDescription()`, ambas globais no
+mesmo scope); só faltava a terceira chamada. Testado com Playwright:
+mudar o standard para AVIXA em "Distância de Visualização" e voltar à
+aba TVs agora mostra logo "Regra: Conteúdo com texto/dados para ler —
+… (altura × 6)" em vez de ficar preso ao standard anterior.
+
+*Standard escolhido → Cobertura do Preview.* Confirmado por
+`AskUserQuestion` que o pedido era especificamente para a Cobertura
+do Preview 3D deixar de usar uma regra fixa (AVIXA "basic", 6-8
+alturas de imagem) e passar a usar o standard escolhido aqui.
+`lzPayloadPreview()` (`js/zonas.js`) resolve o standard escolhido
+(`VIEW_STANDARDS[vStandardKey]` + `AVIXA_CONTENT` quando a base é
+altura) num objecto simples `{basis, min, max, label}` — já resolvido
+em número, para o Preview não ter de conhecer os catálogos internos
+daqui, só a fórmula final. `calcVisualizacao()` passou a chamar
+`lzGuardarParaPreview()` no fim, para mudar o standard empurrar logo a
+actualização para o Preview, sem esperar por uma mudança de zona não
+relacionada. Ver a entrada correspondente no `PARA-CONTINUAR.md` do
+Preview para o lado de lá (`regraDeDistancia()`, `js/app.js`).
+
+Testado com Playwright: um projeto de teste com `standard:
+{basis:"width", max:6}` (um ecrã de 4×2,25 m) deu 217 lugares
+confortáveis contra 101 com o standard por omissão (altura-base,
+6 alturas de imagem) — a mesma sala, só a regra a mudar, confirma que
+a base largura/altura está mesmo a ser aplicada e não só o texto.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
