@@ -518,6 +518,43 @@
     return card;
   }
 
+  // Sincroniza as zonas de TV com a calculadora "TVs" -- pedido direto: "o
+  // 3D tem de ir buscar tudo do projeto e não apenas o ecrã complexo" (TVs
+  // confirmado no âmbito). A app já sabe desenhar uma zona tipo "TV
+  // (delay)" (o "+ Ecrã" já deixa escolher esse tipo à mão); isto só cria
+  // essas zonas em lote a partir do catálogo/quantidade da aba TVs, numa
+  // fila lado a lado, em vez de à mão uma a uma.
+  //
+  // Chamada de novo sempre que a aba TVs recalcula (diagonal/formato/
+  // quantidade mudam, ou o interruptor "Adicionar ao projeto" é ligado ou
+  // desligado) -- por isso começa sempre por tirar as zonas da sincronização
+  // ANTERIOR (marcadas no dataset), senão mudar de 2 para 4 unidades ia
+  // empilhando as antigas em vez de as substituir.
+  function lzSincronizarTVs(spec) {
+    lzList.querySelectorAll('.card[data-origem-tv="1"]').forEach(function (card) { card.remove(); });
+    if (spec && spec.ativo && spec.qty > 0 && spec.w > 0 && spec.h > 0) {
+      var gap = 0.05;
+      var totalW = spec.qty * spec.w + (spec.qty - 1) * gap;
+      var inicioX = -totalW / 2;
+      for (var i = 0; i < spec.qty; i++) {
+        var nome = spec.nomeBase + (spec.qty > 1 ? " " + (i + 1) : "");
+        var card = lzAddZone(nome, {
+          tipo: "tv",
+          sizeMode: "meters",
+          targetW: Math.round(spec.w * 1000) / 1000,
+          targetH: Math.round(spec.h * 1000) / 1000,
+          posX: inicioX + i * (spec.w + gap) + spec.w / 2,
+          posY: spec.h / 2,
+          posMode: "center",
+          visible: true
+        }, false);
+        card.dataset.origemTv = "1";
+      }
+    }
+    calcLedZones();
+  }
+  window.lzSincronizarTVs = lzSincronizarTVs;
+
   function lzBaseName(name) {
     var m = name.match(/^(.*?)\s+\d+$/);
     return (m ? m[1] : name).trim();

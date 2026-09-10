@@ -300,6 +300,49 @@ lista a condizerem; um payload antigo (`v:1`, um só projetor) continua a
 aplicar-se à instância #0 e agora limpa os extras que lá estivessem —
 sem erros de consola em nenhum passo.
 
+**v3.25: TVs chegam ao Preview (fase 7/7, a última do plano).** Pedido
+direto: *"o 3D tem de ir buscar tudo do projeto e não apenas o ecrã
+complexo"* — confirmado com o mike que o âmbito é TVs (Sinal & Data
+Rate e Media Server são cálculos, sem posição física na sala, ficam de
+fora por não haver o que desenhar). A aba TVs é um catálogo simples
+(modelo + diagonal + quantidade, sem posição nem layout — "só entra no
+resumo, não afeta o cálculo") e, perguntado como as unidades deviam
+aparecer no Preview sem essa posição, o mike escolheu **grelha
+automática por quantidade**: a quantidade gera esse nº de zonas lado a
+lado, como uma prateleira.
+
+A app já sabia desenhar uma zona tipo "TV (delay)" — a aba Ecrã
+Complexo já deixa escolher esse tipo à mão no "+ Ecrã" — só faltava a
+aba TVs também criar essas zonas, em vez de só entrar na ficha técnica
+em texto. Nova `lzSincronizarTVs(spec)` em `js/zonas.js`: recebe
+quantidade/largura/altura/nome-base da aba TVs e cria essa quantidade
+de zonas tipo "tv" na aba Ecrã Complexo, lado a lado — chamada de novo
+sempre que a aba TVs recalcula (diagonal/formato/quantidade mudam, ou
+"Adicionar ao projeto" liga/desliga), começando sempre por retirar as
+zonas da sincronização ANTERIOR (marcadas no dataset do card,
+`origem-tv`) antes de criar as novas, para mudar a quantidade não as
+empilhar. Zonas criadas à mão por quem estiver a usar a aba Ecrã
+Complexo (LED ou TV) nunca são tocadas — só as desta sincronização.
+
+Ao contrário de Projeção/LED/Blending, isto não entra no grupo de
+exclusividade dessas calculadoras (`setExclusiveAddProject`): TVs
+(ecrãs delay) coexistem normalmente com um ecrã LED/projeção principal,
+em vez de o substituírem.
+
+Como as zonas do Ecrã Complexo já eram o caminho que chega ao
+`mikeapps-projeto-v1` (e daí ao Preview 3D), e o Preview já sabia
+desenhar `tipo:"tv"` (confirmado no código de lá, `cena.js` — nenhuma
+mudança precisou de ser feita do lado do Preview), isto foi só ligar um
+fio que já existia dos dois lados.
+
+Testado com Playwright: ligar "Adicionar ao projeto" com 3 unidades
+criou 3 zonas tipo "tv" lado a lado; mudar para 2 substituiu-as (não
+empilhou); uma zona LED criada à mão na mesma sessão nunca foi tocada;
+desligar "Adicionar ao projeto" removeu as zonas TV e deixou a LED
+intacta; o payload para o Preview trouxe as duas zonas correctamente.
+Confirmado também do lado do Preview: uma zona `tipo:"tv"` vinda deste
+payload desenha-se na cena sem nenhuma mudança de código lá.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao
@@ -323,9 +366,10 @@ isto ao terminar, não só ao começar.
    corpo do projetor**, não na lente: esse número pertence a
    `data/projectors.json`, não a `data/lenses.json`. Ainda por fazer (verificado
    a 7/9: só as 9 Epson têm `shift`, mais nenhuma marca).
-2. **TVs para o Preview**, como os projetores já vão (rácio, distância,
-   modelo — nunca o catálogo). Ainda por fazer (verificado a 7/9: não há
-   nenhum botão "Ver no Preview 3D" na aba TVs).
+2. ~~TVs para o Preview~~ — feito na v3.25 (ver abaixo), mas por um caminho
+   diferente do que este item previa: em vez de um botão "Ver no Preview
+   3D" próprio, "Adicionar ao projeto" na aba TVs cria zonas tipo TV a
+   sério na aba Ecrã Complexo, que já é o caminho que chega ao Preview.
 3. Ver também os "Gaps conhecidos" no fim do `.github/copilot-instructions.md`
    — `pontosPorConfirmar` da IA por vezes contradiz a sugestão de
    dimensionamento já calculada no cliente; candidatos a `showAlarm()` ainda

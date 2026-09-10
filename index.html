@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.24</span>
+    <span class="mark" id="app-versao">v3.25</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -5786,6 +5786,24 @@
       "Distância de visualização ideal: " + fmt(range.min, 2) + " – " + fmt(range.max, 2) + " m";
 
     renderProjectItems();
+    syncTVToProject(w, h, qty, tv);
+  }
+
+  // "Adicionar ao projeto" nas TVs -- pedido direto ("o 3D tem de ir buscar
+  // tudo do projeto e não apenas o ecrã complexo"). Ao contrário de
+  // Projeção/LED/Blending (que substituem os campos únicos da aba Projeto),
+  // isto cria zonas tipo "tv" a sério na aba Ecrã Complexo -- uma por
+  // unidade, em fila -- que é o caminho que já chega ao Preview 3D. Por
+  // isso não entra no grupo de exclusividade de LED/Projeção (lzSincronizarTVs,
+  // em zonas.js, trata de substituir as zonas da sincronização anterior em
+  // vez de as empilhar).
+  function syncTVToProject(w, h, qty, tv) {
+    if (!window.lzSincronizarTVs) return;
+    window.lzSincronizarTVs({
+      ativo: document.getElementById("tv-addproject").checked,
+      qty: qty, w: w, h: h,
+      nomeBase: tv ? tv.modelo : "TV"
+    });
   }
 
   projDsmTvModelSel.addEventListener("change", function () {
