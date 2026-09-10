@@ -41,7 +41,8 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.36</span>
+    <span class="mark" id="app-versao">v3.37</span>
+    <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2155,7 +2156,10 @@
     </div>
   </section>
 
-  <footer>Calculadores — ferramenta interna, valores para conferência antes de envio ao cliente.</footer>
+  <footer>
+    Calculadores — ferramenta interna, valores para conferência antes de envio ao cliente.
+    <span class="app-copy-rodape" id="app-copy-rodape">© Mike Apps — todos os direitos reservados</span>
+  </footer>
 </div>
 
 <div id="print-area"></div>
@@ -5218,7 +5222,7 @@
   document.getElementById("proj-share").addEventListener("change", function () {
     var fmt = this.value;
     this.value = "";
-    var text = document.getElementById("proj-sum").textContent;
+    var text = document.getElementById("proj-sum").textContent + marcaDaApp();
     var title = document.getElementById("proj-nome").value.trim() || "Projeto";
     if (fmt === "text") shareSummaryText(title, text);
     else if (fmt === "txt") saveOrShareFile(projSlug() + ".txt", text, "text/plain;charset=utf-8");
@@ -5246,7 +5250,7 @@
     shareSel.addEventListener("change", function () {
       var fmt = shareSel.value;
       shareSel.value = "";
-      var text = document.getElementById(cfg.sum).textContent;
+      var text = document.getElementById(cfg.sum).textContent + marcaDaApp();
       if (fmt === "text") shareSummaryText(cfg.title, text);
       else if (fmt === "txt") saveOrShareFile(cfg.slug + ".txt", text, "text/plain;charset=utf-8");
       else if (fmt === "csv") saveOrShareFile(cfg.slug + ".csv", textSummaryToCsv(text), "text/csv;charset=utf-8");
@@ -5543,18 +5547,31 @@
     reader.readAsText(file);
   });
 
-  // A marca que vai colada a qualquer resumo copiado desta app -- pedido
+  // A marca que vai colada a qualquer resumo que saia desta app -- pedido
   // direto: "vais ter de marcar o copy em todas as abas disto pois está a
-  // crescer". Fica aqui, no único sítio por onde todos os botões "Copiar"
-  // passam, e não repetida no texto de cada aba: assim uma aba nova nasce já
-  // marcada, sem ninguém se lembrar de o fazer. Leva a versão porque estes
-  // resumos vão parar a emails e fichas técnicas, e meses depois é preciso
-  // saber de que versão da app saiu aquele número.
+  // crescer". Fica aqui, num só sítio, e não repetida no texto de cada aba:
+  // assim uma aba nova nasce já marcada, sem ninguém se lembrar de o fazer.
+  // Vai por todos os caminhos de saída -- o botão "Copiar" e também o
+  // partilhar/guardar em texto, .txt, .csv e PDF, que durante uma versão
+  // saíram sem ela. Leva a versão porque estes resumos vão parar a emails e
+  // fichas técnicas, e meses depois é preciso saber de que versão da app
+  // saiu aquele número.
   function marcaDaApp() {
     var v = document.getElementById("app-versao");
     return "\n\n\u00a9 " + new Date().getFullYear() + " Mike Apps \u2014 todos os direitos reservados" +
            (v ? " \u00b7 Calculadores " + v.textContent.trim() : "");
   }
+
+  // A mesma marca, agora também à vista: no topo (sempre no ecrã, seja qual
+  // for a aba aberta) e no rodapé por extenso. O ano vem do relógio para não
+  // ficar velho sozinho no ano que vem.
+  (function marcarNoEcra() {
+    var ano = new Date().getFullYear();
+    var topo = document.getElementById("app-copy-topo");
+    var rodape = document.getElementById("app-copy-rodape");
+    if (topo) topo.textContent = "© " + ano + " Mike Apps";
+    if (rodape) rodape.textContent = "© " + ano + " Mike Apps — todos os direitos reservados";
+  })();
 
   document.querySelectorAll("button.copy[data-target]").forEach(function (btn) {
     btn.addEventListener("click", function () {
