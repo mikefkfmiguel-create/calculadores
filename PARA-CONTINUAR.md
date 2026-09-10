@@ -722,6 +722,31 @@ montadas e manda só as duas novas para o depósito (antes iam as quatro); e
 depois de uma volta completa pelo 3D, o Ecrã Complexo fica com 4 cartões,
 não com 8.
 
+**v3.37: a marca passa a ver-se, e a sair por todos os caminhos.** *"o copy
+está?"* — *"não vejo"*. Estava, mas só colada ao texto que o botão "Copiar"
+punha na área de transferência: na app, ao olhar para o ecrã, não havia
+marca nenhuma. Duas coisas mudam:
+
+1. **À vista.** `© 2026 Mike Apps` na barra superior (ao lado da versão) e
+   `© 2026 Mike Apps — todos os direitos reservados` por extenso no rodapé.
+   A barra superior é *sticky* e é a mesma para todas as abas, por isso a
+   marca fica no ecrã seja qual for a aba aberta — que era o pedido, *"marca
+   o copy em todas as abas disto pois está a crescer"*. O ano vem do relógio
+   nos dois sítios, como já vinha no texto copiado.
+2. **Em todas as saídas, não só no "Copiar".** Os selects de
+   partilhar/guardar (texto nativo, `.txt`, `.csv` e PDF) liam o resumo em
+   cru e mandavam-no sem marca — ou seja, precisamente os ficheiros que vão
+   para fora da empresa saíam por marcar. Passam pelo mesmo `marcaDaApp()`.
+
+Testado com Playwright: as 13 abas, uma a uma, com a marca do topo visível em
+todas e zero erros de página; e o texto de `marcaDaApp()` confirmado a chegar
+aos dois caminhos de partilha (o do resumo do Projeto e o ciclo genérico das
+outras nove calculadoras).
+
+Fica de fora, e à espera de pedido: o **Preview** não leva marca visível — o
+pedido dizia *"disto"*, esta app. É uma linha no painel dele quando se
+quiser.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao

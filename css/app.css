@@ -226,6 +226,15 @@
     color: var(--ink-faint);
     letter-spacing: 0.08em;
   }
+  /* A marca no topo anda com a versão, mas não compete com ela: mesma família,
+     um ponto mais pequena. Fica visível em qualquer aba porque a barra
+     superior é a mesma para todas -- foi esse o pedido, "marcar o copy em
+     todas as abas". */
+  .app-copy {
+    white-space: nowrap;
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
   /* Botões da barra superior (Sincronizar, Auto, Guardar, Abrir, Preview 3D)
      — eram texto quase sem caixa, com um contorno em currentColor por cima
      de um cinzento fraco, e passavam despercebidos. Ganham caixa própria,
@@ -1543,6 +1552,11 @@
     color: var(--ink-faint);
     font-size: 12px;
     text-align: center;
+  }
+  /* A marca por extenso, em linha própria por baixo do aviso do rodapé. */
+  .app-copy-rodape {
+    display: block;
+    margin-top: 6px;
   }
 
   /* "Guardar PDF" — impressão nativa do browser, sem nenhuma biblioteca de
