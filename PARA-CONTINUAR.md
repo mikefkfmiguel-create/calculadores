@@ -489,6 +489,33 @@ base a essa distância não rebenta e esconde o item correctamente; voltar
 a uma distância com match restaura a sugestão sem texto preso de uma
 distância anterior.
 
+**v3.30: a lente sugerida passa a aparecer também junto ao próprio campo
+"Lente", com botão para a escolher.** Pedido direto a seguir a testar a
+v3.29: *"ok sai no relatório... podia apresentar aqui"* (com captura de
+ecrã a apontar para a secção "Já sabes a lente? (opcional)"). A sugestão
+já saía no resultado e no relatório, mas quem está a preencher os campos
+não a via sem ir procurar mais abaixo — e o menu "Lente" ali continuava a
+dizer só "Nenhuma / não sei ainda", como se nada estivesse a acontecer.
+
+Nas duas abas (Distância de Projeção e Projeto), quando há sugestão e
+nenhuma lente escolhida à mão, aparece por baixo do menu: *"Sugestão
+automática (ainda não escolhida): **Marca Modelo**"* + botão **"Usar esta
+lente"**, que a escolhe no menu (mesmo caminho do clique na lista de
+lentes compatíveis, `mudarCampo()`) — a partir daí passa a ser escolha
+confirmada e a nota desaparece sozinha.
+
+Apanhado no teste: a primeira versão reconstruía o botão por `innerHTML`
+a cada recálculo, e como o recálculo dispara logo no *blur* do campo
+anterior, o botão era destruído entre o `mousedown` e o `mouseup` — o
+clique perdia-se sem erro nenhum (com `.click()` sintético funcionava, com
+rato a sério não, o que torna isto o tipo de bug que passa despercebido a
+um teste mal feito). O botão passou a ser fixo no HTML, e o cálculo só lhe
+muda o texto e o `data-usar-lente`.
+
+Testado com Playwright nas duas abas, com clique real: a nota aparece com
+o nome da lente sugerida, o botão escolhe-a mesmo (menu passa a "Epson
+ELPLW06"), e a nota esconde-se depois de escolhida.
+
 **Só no Worker (sem bump de versão, por convenção — ver
 `.github/copilot-instructions.md`): o Assistente passa a ter memória dos
 pedidos anteriores.** Pedido direto: "deve ir guardando os projetos
