@@ -628,12 +628,33 @@
     var versaoEl = document.getElementById("app-versao");
     var origemVersao = versaoEl ? versaoEl.textContent.trim() : null;
 
+    // O standard de distância de visualização escolhido na aba "Distância de
+    // Visualização" -- pedido direto ("dá para escolher o Standard... de
+    // forma a ser o usado em todos os cálculos"), para a Cobertura do
+    // Preview deixar de usar uma regra fixa e passar a usar esta mesma. Vai
+    // já RESOLVIDO (basis/min/max em número, não a chave "avixa"/nível) para
+    // o Preview não ter de conhecer VIEW_STANDARDS/AVIXA_CONTENT — só a
+    // fórmula final. `typeof` guardado porque este ficheiro também corre
+    // sozinho em ecra-complexo.html, sem a aba Distância de Visualização.
+    var standard = null;
+    if (typeof VIEW_STANDARDS !== "undefined" && typeof vStandardKey !== "undefined") {
+      var std = VIEW_STANDARDS[vStandardKey];
+      if (std) {
+        var maxResolvido = std.basis === "height"
+          ? AVIXA_CONTENT[vAvixaContentKey].mult
+          : std.max;
+        standard = { basis: std.basis, min: std.min, max: maxResolvido,
+          label: typeof viewRuleDescription === "function" ? viewRuleDescription() : null };
+      }
+    }
+
     return {
       v: 1,
       origem: "calculadores",
       origemVersao: origemVersao,
       nome: nomeProjeto || ("Ecrã LED — " + zones.length + " zona(s)"),
       dsm: (lzDsmN > 0) ? { n: lzDsmN, w: lzDsmW, h: lzDsmH } : null,
+      standard: standard,
       zonas: zones.map(function (z) {
         // A curvatura vem em graus POR TILE; o total sao os angulos entre
         // paineis, que sao um a menos do que o numero de paineis.

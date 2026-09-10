@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.27</span>
+    <span class="mark" id="app-versao">v3.28</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -3112,11 +3112,13 @@
     vAvixaField.style.display = vStandardKey === "avixa" ? "block" : "none";
     calcVisualizacao();
     calcLed();
+    calcTV();
   });
   vAvixaSel.addEventListener("change", function () {
     vAvixaContentKey = vAvixaSel.value;
     calcVisualizacao();
     calcLed();
+    calcTV();
   });
 
   // Último cálculo de ângulo/nº de ecrãs da Distância de Visualização —
@@ -3267,6 +3269,11 @@
     document.getElementById("v-sum").textContent = vSumLines.join("\n");
 
     renderProjectItems();
+    // Manda logo o standard escolhido para o Preview (a Cobertura lá lê-o
+    // do mesmo payload das zonas) -- sem esperar por um "+ Ecrã"/mudança de
+    // zona para se aperceber que o standard mudou. lzGuardarParaPreview só
+    // existe quando o Ecrã Complexo já correu nesta página.
+    if (typeof lzGuardarParaPreview === "function") lzGuardarParaPreview();
   }
 
   // Restringe a lista de modelos de tile aos que cobrem o brilho (nits)
