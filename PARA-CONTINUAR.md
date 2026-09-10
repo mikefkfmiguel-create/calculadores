@@ -579,6 +579,52 @@ faz o `localStorage` ser partilhado — em produção estão as duas em
 funcionaria): marcar a caixa escreve a carga (`distancia: 17`), e o botão
 do Preview aplica-a (`projDist` fica a 17.00) com a mensagem nova.
 
+**v3.32 (fase 1 de um plano novo): marcado = está no projeto = está no
+3D.** Pedido direto: *"o 3d ser sempre o construtor da calculadora, para
+depois arrumar no sítio dentro dele... na calculadora marco tudo o que
+preciso através do adicionar ao projeto, o 3d vê tudo isso"*, e *"guiar o
+utilizador através das abas para construir o projeto e esse é que vai para
+o 3d quando o sync for ligado"*.
+
+A regra já existia meia-feita, peça a peça (TVs numa fase, DSM noutra,
+projeção na véspera). O levantamento encontrou duas lacunas:
+
+1. **Ecrã LED (ecrã único) nunca chegava ao 3D.** `syncLedToProject()` só
+   preenchia os campos da aba Projeto (relatório em texto), e o único
+   caminho para o 3D é a ponte das zonas — que só o Ecrã Complexo escreve.
+   Nova `lzSincronizarLed()` (`js/zonas.js`) cria lá a zona a sério: modelo
+   de tile, grelha e curvatura, não um retângulo em metros, para a zona
+   trazer consigo pitch, peso e amps.
+2. **O Blending só atravessava pelo botão "Ver no Preview 3D".** A carga
+   saiu do handler para `cargaDoBlend()`, e `guardarBlendParaPreview()`
+   escreve-a a cada recálculo quando "Adicionar ao projeto" está marcado e
+   o sync ligado — mesma receita da projeção simples na v3.31.
+
+**Decisão mudada a meio, e porquê.** O plano previa uma terceira parte:
+pôr o Ecrã Complexo a respeitar também o seu "Adicionar ao projeto", para
+a regra não ter exceções. Não se fez, e não se deve fazer: `l-addproject` e
+`z-addproject` estão no mesmo grupo de exclusividade (marcar um desmarca o
+outro), por isso marcar "Ecrã LED" ia criar a zona **e ao mesmo tempo
+desligar a ponte das zonas** — o 3D ficava vazio precisamente na ação que
+devia enchê-lo. A regra certa, e a que fica, é outra: **o Ecrã Complexo é a
+montagem física do projeto** — cada aba larga lá a sua peça quando marcada,
+e é essa montagem que atravessa quando o sync está ligado. A projeção e o
+blend são a exceção coerente: não são zonas, são um projetor mais a imagem
+que ele lança, e viajam pela ponte do projetor.
+
+Detalhe que só se vê a usar: ao contrário das TVs (onde a quantidade muda e
+obriga a recriar a fila), a zona do Ecrã LED **actualiza-se no sítio**.
+Recriar o cartão a cada tecla escrita na aba punha a zona de volta na
+posição de fábrica — ou seja, deitava fora exatamente a arrumação que este
+plano todo existe para preservar.
+
+Testado com Playwright, com as duas apps na mesma origem: marcar "Adicionar
+ao projeto" no Ecrã LED cria a zona (16×9 tiles = 8×4,5 m) e ela chega à
+ponte; desmarcar tira-a. No Blending, marcar escreve a carga `v:2` com os 2
+projetores. E o que interessa: dar posição (3,5) e nome ("Palco principal")
+à zona e depois mudar a grelha na aba LED de 16 para 20 tiles — a grelha
+muda, a posição e o nome ficam.
+
 Entre este documento ter sido escrito (16:44 do dia 6) e agora, houve trabalho
 substancial feito localmente (autor de commit "MIKE") que não estava refletido
 aqui: extração de grupos de ecrãs no Worker, várias rondas de sincronismo ao

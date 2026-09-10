@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.31</span>
+    <span class="mark" id="app-versao">v3.32</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -2458,9 +2458,15 @@
       document.getElementById("proj-led-usezones").checked = false;
       syncLedToProject();
     } else { updateProjTypeFromAddProject(); calcProjeto(); }
+    // Marcar/desmarcar é, por si só, a decisão de pôr ou tirar este ecrã do
+    // projeto -- calcLed() volta a correr e a sincronização da zona vai a
+    // reboque, senão só acontecia no próximo toque num campo da aba.
+    calcLed();
   });
   document.getElementById("b-addproject").addEventListener("change", function () {
-    if (this.checked) { setExclusiveAddProject("b-addproject"); syncBlendToProject(); }
+    // Marcar a caixa é a decisão de levar o blend para o projeto -- sem isto
+    // só ia para o Preview no próximo toque num campo da aba.
+    if (this.checked) { setExclusiveAddProject("b-addproject"); syncBlendToProject(); guardarBlendParaPreview(); }
     else { updateProjTypeFromAddProject(); calcProjeto(); }
   });
   document.getElementById("z-addproject").addEventListener("change", function () {
@@ -3093,20 +3099,15 @@
   // Blending Multi-Projetor nunca manda nada"). Ecrãs curvos ficam de fora
   // (ver aviso abaixo): a distância de tiro varia ao longo do arco, uma só
   // distância partilhada seria inventar um número que ninguém mediu.
-  function verNoPreview3DBlend() {
-    if (!bUltimoBlend || !(bUltimoBlend.totalWm > 0) || !(bUltimoBlend.totalHm > 0)) {
-      showToast("Falta calcular o blend primeiro.");
-      return;
-    }
-    if (bUltimoBlend.curveEnabled) {
-      showToast("Ecrã curvo: a distância de tiro varia ao longo do arco, por isso este botão fica desligado para blending curvo.");
-      return;
-    }
+  // A carga do blend, à parte do botão, porque também se escreve sozinha --
+  // ver guardarBlendParaPreview(). Devolve null (em vez de avisar) sempre que
+  // faltar alguma coisa: quem carrega no botão quer a explicação, quem está só
+  // a escrever números não quer um toast a cada tecla.
+  function cargaDoBlend() {
+    if (!bUltimoBlend || !(bUltimoBlend.totalWm > 0) || !(bUltimoBlend.totalHm > 0)) return null;
+    if (bUltimoBlend.curveEnabled) return null;
     var dist = val("b-knowndist");
-    if (!(dist > 0)) {
-      showToast("Falta a distância entre a lente e o ecrã.");
-      return;
-    }
+    if (!(dist > 0)) return null;
     var grid = blendGridPositions(bUltimoBlend.nh, bUltimoBlend.nv, bUltimoBlend.oh, bUltimoBlend.ov,
       bUltimoBlend.hpx, bUltimoBlend.vpx, bUltimoBlend.totalWm, bUltimoBlend.totalHm,
       bUltimoBlend.totalPxH, bUltimoBlend.totalPxV);
@@ -3129,7 +3130,36 @@
         alturaOffset: Math.round(-cell.yCenterM * 100) / 100
       };
     });
-    var carga = { v: 2, projetores: projetores, quando: new Date().toISOString() };
+    return { v: 2, projetores: projetores, quando: new Date().toISOString() };
+  }
+
+  // O blend segue sozinho para o Preview quando está marcado "Adicionar ao
+  // projeto" e o sync ligado -- a mesma regra da projeção simples. Antes só o
+  // botão escrevia esta ponte, e por isso marcar a caixa não punha nada no 3D.
+  function guardarBlendParaPreview() {
+    if (typeof syncAutoLigada === "function" && !syncAutoLigada()) return;
+    var addProject = document.getElementById("b-addproject");
+    if (!addProject || !addProject.checked) return;
+    var carga = cargaDoBlend();
+    if (!carga) return;
+    try { localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga)); } catch (e) {}
+  }
+
+  function verNoPreview3DBlend() {
+    if (!bUltimoBlend || !(bUltimoBlend.totalWm > 0) || !(bUltimoBlend.totalHm > 0)) {
+      showToast("Falta calcular o blend primeiro.");
+      return;
+    }
+    if (bUltimoBlend.curveEnabled) {
+      showToast("Ecrã curvo: a distância de tiro varia ao longo do arco, por isso este botão fica desligado para blending curvo.");
+      return;
+    }
+    if (!(val("b-knowndist") > 0)) {
+      showToast("Falta a distância entre a lente e o ecrã.");
+      return;
+    }
+    var carga = cargaDoBlend();
+    if (!carga) return;
     try { localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga)); } catch (e) {}
 
     var bytes = new TextEncoder().encode(JSON.stringify(carga));
@@ -3737,6 +3767,27 @@
     calcLedSuggest();
     renderProjectItems();
     if (document.getElementById("l-addproject").checked) syncLedToProject();
+    syncLedToZonas(mx, my);
+  }
+
+  // "Adicionar ao projeto" na aba Ecrã LED passa a criar a zona a sério na
+  // Ecrã Complexo -- o mesmo caminho das TVs (lzSincronizarTVs), que é o
+  // único que chega ao 3D. Antes disto o ecrã ficava só no relatório em
+  // texto e nunca aparecia na sala.
+  function syncLedToZonas(mx, my) {
+    if (!window.lzSincronizarLed) return;
+    var tile = LED_TILES_DATA[parseInt(ledModelSel.value, 10)];
+    window.lzSincronizarLed({
+      ativo: document.getElementById("l-addproject").checked,
+      nome: tile ? tile.modelo : "Ecrã LED",
+      modelValue: ledModelSel.value,
+      mx: mx,
+      my: my,
+      curveEnabled: lCurveEnabled.checked,
+      curveMode: lCurveMode,
+      curveValue: val("l-curve-value"),
+      curveDir: document.getElementById("l-curve-dir").value
+    });
   }
 
   var lSuggestRatioSel = document.getElementById("l-suggest-ratio");
@@ -4091,6 +4142,7 @@
 
     renderProjectItems();
     if (document.getElementById("b-addproject").checked) syncBlendToProject();
+    guardarBlendParaPreview();
   }
   var bUltimoBlend = null;
 

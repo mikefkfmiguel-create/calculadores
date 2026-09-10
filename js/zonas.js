@@ -555,6 +555,50 @@
   }
   window.lzSincronizarTVs = lzSincronizarTVs;
 
+  // O mesmo que lzSincronizarTVs, para a aba "Ecrã LED" (ecrã único). Antes
+  // desta função, marcar lá "Adicionar ao projeto" só preenchia os campos da
+  // aba Projeto (relatório em texto) -- nunca criava zona nenhuma, e como o
+  // único caminho para o 3D é a ponte das zonas, o ecrã simplesmente não
+  // existia lá. Reportado direto: a regra passa a ser uma só -- marcado = está
+  // no projeto = está no 3D.
+  //
+  // Cria uma zona de LED a sério (modelo de tile + grelha + curvatura), não um
+  // rectângulo em metros: assim a zona traz consigo pitch, peso e amps, e a
+  // aba Ecrã Complexo continua a ser a dona da verdade sobre o conjunto.
+  function lzSincronizarLed(spec) {
+    var existente = lzList.querySelector('.card[data-origem-led="1"]');
+    if (!spec || !spec.ativo || !(spec.mx > 0) || !(spec.my > 0)) {
+      if (existente) { existente.remove(); calcLedZones(); }
+      return;
+    }
+    var opts = {
+      tipo: "led",
+      modelValue: spec.modelValue,
+      sizeMode: "tiles",
+      mx: spec.mx,
+      my: spec.my,
+      curveEnabled: spec.curveEnabled,
+      curveMode: spec.curveMode,
+      curveValue: spec.curveValue,
+      curveDir: spec.curveDir,
+      visible: true
+    };
+    // Ao contrário das TVs (onde a quantidade muda e obriga a recriar a fila),
+    // aqui há sempre uma zona só -- por isso ACTUALIZA-SE no sítio em vez de
+    // apagar e criar outra. É o que preserva a posição, o nome que lhe tenhas
+    // dado e a arrumação feita no 3D: recriar o cartão a cada tecla escrita na
+    // aba Ecrã LED punha a zona de volta na posição de fábrica.
+    if (existente) {
+      lzApplyOptsToCard(existente, opts);
+      calcLedZones();
+      return;
+    }
+    var card = lzAddZone(spec.nome || "Ecrã LED", opts, false);
+    card.dataset.origemLed = "1";
+    calcLedZones();
+  }
+  window.lzSincronizarLed = lzSincronizarLed;
+
   function lzBaseName(name) {
     var m = name.match(/^(.*?)\s+\d+$/);
     return (m ? m[1] : name).trim();
