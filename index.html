@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.26</span>
+    <span class="mark" id="app-versao">v3.27</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
 
@@ -4862,6 +4862,43 @@
     el.addEventListener("input", calcMediaServer);
     el.addEventListener("change", calcMediaServer);
   });
+
+  // O frame rate é o mesmo em qualquer sítio da app — não fazia sentido
+  // dizer 50Hz no Sinal & Data Rate e a Media Server continuar a assumir
+  // 60Hz só porque ninguém voltou a escrever lá. Pedido direto: "quando
+  // escrevo num os outros devem saber e atualizar, para não andar sempre
+  // a escrever e talvez fazer erros". Os três campos (Sinal & Data Rate,
+  // Media Server, "Refresh rate" da aba Projeto) ficam ligados nos dois
+  // sentidos — mudar QUALQUER um atualiza os outros dois e dispara o
+  // recálculo deles, como se a pessoa tivesse escrito lá o mesmo número.
+  var FPS_FIELD_IDS = ["sg-fps", "ms-fps", "proj-refresh"];
+  var syncingFps = false;
+  function syncFpsFrom(sourceId) {
+    if (syncingFps) return;
+    var origem = document.getElementById(sourceId);
+    if (!origem) return;
+    syncingFps = true;
+    try {
+      var valorNovo = origem.value;
+      FPS_FIELD_IDS.forEach(function (id) {
+        if (id === sourceId) return;
+        var campo = document.getElementById(id);
+        if (!campo || campo.value === valorNovo) return;
+        campo.value = valorNovo;
+        campo.dispatchEvent(new Event("input", { bubbles: true }));
+        campo.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    } finally {
+      syncingFps = false;
+    }
+  }
+  FPS_FIELD_IDS.forEach(function (id) {
+    var campo = document.getElementById(id);
+    if (!campo) return;
+    campo.addEventListener("input", function () { syncFpsFrom(id); });
+    campo.addEventListener("change", function () { syncFpsFrom(id); });
+  });
+
   function useMsRes(x, y, label) {
     document.getElementById("ms-h").value = Math.round(x);
     document.getElementById("ms-v").value = Math.round(y);
@@ -5272,6 +5309,12 @@
     document.getElementById("proj-delay-res").dispatchEvent(new Event("change"));
     setFieldVal("proj-delay-w", state.delayW); setFieldVal("proj-delay-h", state.delayH);
     setFieldVal("proj-refresh", state.refresh);
+    // setFieldVal não dispara eventos (de propósito, para não desencadear
+    // recálculos a meio de uma restauração) — sem isto, reabrir um projeto
+    // repunha o refresh rate certo aqui mas o Sinal & Data Rate/Media
+    // Server ficavam parados no 60Hz por omissão, obrigando a escrever de
+    // novo. syncFpsFrom() está definida mais abaixo (hoisting).
+    syncFpsFrom("proj-refresh");
     setFieldVal("proj-colordepth", state.colordepth);
 
     document.getElementById("proj-switcher-advanced").checked = false;
@@ -5837,6 +5880,38 @@
       document.getElementById("proj-delay-w").value = tv.resolucao.rx;
       document.getElementById("proj-delay-h").value = tv.resolucao.ry;
     }
+  });
+
+  // "Ecrãs DSM" na aba Projeto passa a criar DSM a sério na Ecrã Complexo
+  // -- pedido direto ("estou a meter DSM no projeto e não aparecem no 3D,
+  // apenas se for ao ecrã complexo"). Só a QUANTIDADE tem correspondência
+  // direta (o campo aqui é resolução em píxeis, não tamanho físico — não
+  // há como inventar largura/altura em metros a partir de píxeis). O
+  // tamanho físico só se atualiza quando um modelo real da AVK está
+  // escolhido (tem diagonal confirmada); sem modelo, o tamanho que já
+  // estiver na Ecrã Complexo fica intocado -- nunca se inventa um valor.
+  var PROJ_DSM_FIELD_IDS = ["proj-dsm-count", "proj-dsm-tvmodel"];
+  function syncDsmToEcraComplexo() {
+    if (!window.lzAplicarDsm) return;
+    var n = Math.max(0, Math.round(val("proj-dsm-count")) || 0);
+    var dsmSpec = { n: n };
+    var tvIdx = projDsmTvModelSel.value;
+    var tv = tvIdx !== "custom" ? TVS_DATA[parseInt(tvIdx, 10)] : null;
+    if (tv && tv.diag) {
+      var partes = (tv.ratio || "16:9").split(":");
+      var r = parseFloat(partes[0]) / parseFloat(partes[1]);
+      var diagM = tv.diag * 0.0254;
+      var h = diagM / Math.sqrt(r * r + 1);
+      dsmSpec.w = h * r;
+      dsmSpec.h = h;
+    }
+    window.lzAplicarDsm(dsmSpec);
+  }
+  PROJ_DSM_FIELD_IDS.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", syncDsmToEcraComplexo);
+    el.addEventListener("change", syncDsmToEcraComplexo);
   });
 
   vTvModelSel.addEventListener("change", function () {

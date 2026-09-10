@@ -1602,6 +1602,13 @@
       if (polEl) polEl.value = "";
       lzSaveDsm();
     };
+    // Exposto para a aba Projeto poder criar DSM a sério a partir do
+    // campo "Ecrãs DSM (monitores de palco)" -- pedido direto: "estou a
+    // meter DSM no projeto e não aparecem no 3D, apenas se for ao ecrã
+    // complexo". Mesma função já usada quando um DSM chega do Preview,
+    // reaproveitada tal e qual (n/w/h — nunca inventa w/h quando não vêm,
+    // ver comentário acima).
+    window.lzAplicarDsm = lzAplicarDsm;
   })();
 
   function lzCanvasScale(pm) {
