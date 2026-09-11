@@ -762,6 +762,40 @@ cumprir).
 escrito a abrir uma sessão, não fechado no fim dela. Da próxima vez, atualizar
 isto ao terminar, não só ao começar.
 
+## O Worker publica-se sozinho (setembro, 11)
+
+Até aqui o Worker ia ao ar com um `wrangler deploy` à mão, do PC. Isso tem um
+buraco que já mordeu: uma alteração ao Worker fica em `main` **sem estar no
+ar**, e nada o diz. Foi o que aconteceu à memória do Assistente — merged e
+inactiva à espera de alguém se lembrar.
+
+`.github/workflows/deploy-worker.yml` publica sempre que algo dentro de
+`worker/` entra em `main`, e também à mão (Actions → "Publicar o Worker").
+Antes de instalar o que quer que seja, um primeiro passo confirma a
+configuração e **pára com uma frase em português** se faltar alguma coisa —
+em vez de deixar o `wrangler` rebentar lá à frente com um erro de API. Cobre
+os dois secrets do GitHub em falta e, o mais traiçoeiro, os ids de exemplo
+(`cola-aqui-o-id`) ainda no `wrangler.toml`: com esses, a publicação passava e
+as partilhas/registos/feedback ficavam partidos em silêncio.
+
+O `package-lock.json` do Worker passou a estar no repositório, para o
+workflow usar `npm ci` e publicar sempre com a versão de wrangler testada
+(3.114.17), não com a mais recente do dia.
+
+**O que ainda precisa das mãos do mike, uma vez** — está escrito passo a
+passo, com os comandos, em `worker/DEPLOY.md`: os ids reais das três KV no
+`wrangler.toml`, e os secrets `CLOUDFLARE_API_TOKEN` e
+`CLOUDFLARE_ACCOUNT_ID` no GitHub. Os secrets do próprio Worker
+(`ANTHROPIC_API_KEY`, `ADMIN_TOKEN`, `RESEND_API_KEY`) vivem no Cloudflare e
+uma publicação nunca lhes toca.
+
+Verificado nesta sessão: o `wrangler deploy --dry-run` compila o Worker
+inteiro (31,22 KiB, os três bindings de KV e as duas vars reconhecidos), o
+`npm ci` instala a partir do lock, e o passo de guarda foi corrido nos três
+estados — tudo em falta (3 erros), só os ids por trocar (1 erro), e tudo
+certo (passa). O que **não** foi verificado, por não haver conta Cloudflare
+nesta sessão: a publicação em si.
+
 ## O que falta, do lado de cá
 
 1. **O shift das lentes que faltam.** Estão as 9 lentes Epson (publica-o por
