@@ -44,24 +44,26 @@ jobs:
       - name: Confirmar que está tudo configurado
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           falhou=0
 
+          # O único segredo a sério desta publicação. O resto (conta, ids das
+          # KV) são identificadores e vivem no wrangler.toml -- um secret a
+          # menos é um secret a menos para alguém ter de repor daqui a um ano.
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "::error::Falta o secret CLOUDFLARE_API_TOKEN (Settings → Secrets and variables → Actions)."
+            echo "::error::Cria-o no Cloudflare em My Profile → API Tokens, com o modelo 'Edit Cloudflare Workers'."
             falhou=1
           fi
 
-          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "::error::Falta o secret CLOUDFLARE_ACCOUNT_ID (Settings → Secrets and variables → Actions)."
+          if ! grep -q '^account_id' wrangler.toml; then
+            echo "::error::O wrangler.toml não tem account_id."
             falhou=1
           fi
 
-          # Os ids das KV são identificadores, não segredos, e por isso vivem
-          # no wrangler.toml. Mas enquanto forem os do exemplo, a publicação
-          # passa e as partilhas/registos/feedback ficam partidos em silêncio
-          # -- que é pior do que não publicar.
+          # Enquanto os ids das KV forem os do exemplo, a publicação PASSA e
+          # as partilhas/registos/feedback ficam partidos em silêncio -- que é
+          # pior do que não publicar.
           if grep -q "cola-aqui-o-id" wrangler.toml; then
             echo "::error::O wrangler.toml ainda tem os ids de exemplo das KV ('cola-aqui-o-id')."
             echo "::error::Corre 'npx wrangler kv namespace list' e põe lá os ids reais de PARTILHAS, REGISTOS e FEEDBACK."
@@ -86,7 +88,6 @@ jobs:
       - name: Publicar
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler deploy
 
       - name: Dizer o que ficou no ar

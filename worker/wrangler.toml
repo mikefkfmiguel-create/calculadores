@@ -2,6 +2,13 @@ name = "calculadores-assistente"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
 
+# A conta Cloudflare onde este Worker vive. Não é um segredo — é o mesmo
+# identificador que aparece no URL do painel — e por isso fica aqui, em vez
+# de ser mais um secret no GitHub para alguém ter de repor daqui a um ano.
+# O que É segredo, e nunca entra em ficheiro nenhum, é o token de API
+# (CLOUDFLARE_API_TOKEN, guardado nos secrets do GitHub).
+account_id = "965055dc85ec94893a50381aa4556b57"
+
 # Site(s) autorizados a chamar este Worker (separados por vírgula, sem
 # barra final). Ajusta ao(s) domínio(s) reais onde a app está publicada.
 # Isto é verificado no próprio Worker (não só no browser via CORS), por
@@ -16,38 +23,30 @@ ALLOWED_ORIGINS = "https://mikefkfmiguel-create.github.io"
 FEEDBACK_PARA_EMAIL = "avkvideoshare@gmail.com"
 
 # Guarda os projetos partilhados pelo botão "🔗 Link para ver" do Preview,
-# por 1 dia, e depois apaga-os sozinho (expirationTtl, no código). Cria-se
-# UMA vez, antes do primeiro deploy desta versão:
-#   wrangler kv namespace create PARTILHAS
-# Esse comando devolve um bloco com um "id" — troca "cola-aqui-o-id" por ele
-# e faz `wrangler deploy` a seguir. Sem isto, o link de partilha não funciona
-# (o resto do Worker continua a funcionar na mesma).
+# por 1 dia, e depois apaga-os sozinho (expirationTtl, no código).
+#
+# Os ids abaixo são os dos namespaces que já existem na conta — não são
+# segredos (é o mesmo identificador que aparece no URL do painel), e é por
+# isso que vivem aqui: a partir de uma publicação por CI, quem publica é o
+# GitHub, e o GitHub só sabe o que estiver neste ficheiro. Um id trocado não
+# dá erro nenhum: passa a escrever no namespace errado, calado.
 [[kv_namespaces]]
 binding = "PARTILHAS"
-id = "cola-aqui-o-id"
+id = "9cdd902195c543b0885c3bba517a5463"
 
 # Guarda cada pedido ao Assistente (texto + o que a IA extraiu, nunca a
 # imagem em si) por 30 dias, para revisão semanal — ver REGISTO_VALIDADE_SEGUNDOS
-# e listarRegistos() em src/index.js. Cria-se UMA vez, do mesmo jeito que a
-# PARTILHAS acima:
-#   wrangler kv namespace create REGISTOS
-# Troca "cola-aqui-o-id-registos" pelo "id" que esse comando devolver, e faz
-# `wrangler deploy` a seguir. Sem isto, o Assistente continua a funcionar
-# na mesma — só fica sem histórico para a revisão.
+# e listarRegistos() em src/index.js.
 [[kv_namespaces]]
 binding = "REGISTOS"
-id = "cola-aqui-o-id-registos"
+id = "c7177499debf474c91436cb927d11ffe"
 
 # Guarda o feedback do AV Planner (bug/sugestão) até haver 5 por enviar —
 # nessa altura junta-se tudo num só email e limpa-se (ver criarFeedback()
-# em src/index.js). Cria-se UMA vez, do mesmo jeito que a PARTILHAS acima:
-#   wrangler kv namespace create FEEDBACK
-# Troca "cola-aqui-o-id-feedback" pelo "id" que esse comando devolver, e
-# faz `wrangler deploy` a seguir. Sem isto, o formulário de feedback do AV
-# Planner não funciona (o resto do Worker continua na mesma).
+# em src/index.js).
 [[kv_namespaces]]
 binding = "FEEDBACK"
-id = "cola-aqui-o-id-feedback"
+id = "1879971c649b474d93c9fd68d8f0d0d2"
 
 # A chave da Anthropic NUNCA vai aqui nem em nenhum ficheiro do repositório —
 # define-se como secret depois do primeiro deploy:
