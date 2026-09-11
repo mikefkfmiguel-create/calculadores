@@ -9,6 +9,89 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## PENDENTE — retomar aqui (noite de 11 de setembro)
+
+Lista fechada no fim da sessão de 11/9, a pedido do mike: *"guarda para de
+manhã tudo o que fica pendurado para revermos"*. Por ordem do que estava
+combinado.
+
+### 1. O token do Cloudflare — 2 minutos, e destrava tudo
+
+`.github/workflows/deploy-worker.yml` já publica o Worker sozinho. Os ids das
+KV e o `account_id` já estão no `wrangler.toml`. **Falta um único secret:**
+
+> GitHub → `calculadores` → Settings → Secrets and variables → Actions →
+> New repository secret → `CLOUDFLARE_API_TOKEN`
+>
+> (Cloudflare → My Profile → API Tokens → Create Token → modelo
+> **"Edit Cloudflare Workers"**. Não a Global API Key.)
+
+A corrida nº 2 do workflow falhou só por causa disto, e a mensagem de erro
+diz-o por palavras. Passos completos em `worker/DEPLOY.md`.
+
+**Consequência de estar por fazer:** a memória do Assistente (pedidos
+anteriores como referência, merged na v3.29) continua **inactiva** em
+produção.
+
+### 2. Limpeza de branches — falta a autorização, não o trabalho
+
+Contado na noite de 11/9, com `git cherry` (que é o que apanha as que foram
+squash-merged e o `--merged` não vê):
+
+| | locais já incorporadas em `main` | com patch-id diferente | remotas no `origin` |
+|---|---|---|---|
+| `calculadores` | 25 | 1 | 29 |
+| `preview` | 69 | 1 | 2 |
+
+As duas "com patch-id diferente" (`assistente-registo-e-revisao` e
+`devolver-no-topo`) foram verificadas à mão: **o trabalho delas está em
+`main`**, com outro sha — é só o efeito do squash. A do preview está tão
+atrasada que lhe faltam 2191 linhas do que `main` já tem.
+
+Combinado:
+- **`calculadores`**: apagar as locais e também as remotas já merged. Está
+  tudo no GitHub, não se perde nada.
+- **`preview`**: só 2 das branches existem no `origin` — as outras **só
+  existem nessa pasta**. Continuam a ser seguras, mas antes de apagar
+  confirmo branch a branch e digo o resultado. É a diferença entre apagar uma
+  cópia e apagar o original.
+
+Rede extra, se se quiser: marcar os tips com tags antes de apagar.
+
+### 3. As TVs no Ecrã Complexo — resolução, peso e amps
+
+Reportado com screenshots: com 4 TVs e mais nada, o painel mostra
+`0 tiles`, **Resolução final do canvas `—`**, `PESO TOTAL 0,0 kg`,
+`AMP TOTAL 0,00 A`. A dimensão do conjunto (7,76 × 1,07 m) sai bem.
+
+São dois problemas diferentes, e só um tem solução:
+
+- **Resolução: tem solução, mas é de raiz.** Uma zona de TV é um rectângulo
+  em metros — `lzZoneMetrics` (`js/zonas.js`) sai cedo para tipos não-LED — e
+  não tem píxeis nenhuns. Uma zona LED tem, porque traz o modelo de tile
+  consigo. Dar píxeis às TVs implica: campo novo por zona, a viajar na
+  serialização e na ponte para o Preview, e a entrar na conta do canvas (que
+  hoje é toda feita a partir do pitch). O `data/tvs.json` **tem** a resolução
+  de cada modelo, por isso o dado existe — falta o caminho.
+- **Peso e amps: não têm solução pelos dados.** O `data/tvs.json` tem `diag`,
+  `ratio`, `resolucao`, `resolucaoNota`, `touchscreen` e `fonte`. Nem peso
+  nem consumo. Inventá-los parte a regra da casa — e num cálculo de estrutura
+  e de energia é dos sítios onde mentir magoa mais. **Proposta a decidir:**
+  mostrar **"não conhecido"** em vez de `0,00`. Um zero mente; um "não
+  conhecido" não. (Em alternativa, alguém preenche o catálogo com valores de
+  ficha técnica — aí passa a haver dado.)
+
+### 4. Os nomes novos do Preview (v2.99)
+
+"Tamanho do ecrã", "Ecrãs na sala", "Onde ficam os delays e o DSM", "fundo"
+em vez de "↕"/"profundidade" para a posição… Se algum não soar bem depois de
+o usar a sério, é uma linha a mudar cada um.
+
+### 5. Uma ideia do mike, por analisar
+
+Ficou por contar na noite de 11/9 — *"tive aqui uma ideia para analisar"*. É
+a primeira coisa a perguntar.
+
 ## Esta pasta ficou parada, e já não está
 
 Esta pasta (`Desktop\APPS\calculadores`) esteve **455 commits atrás** do
