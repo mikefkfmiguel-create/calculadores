@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.38</span>
+    <span class="mark" id="app-versao">v3.39</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1316,7 +1316,7 @@
       <details class="card sinal-block">
         <summary>Itens do projeto</summary>
         <div class="sinal-block-body">
-          <div class="hint">Marca "Adicionar ao projeto" no resumo de Distância de Projeção, Ecrã LED ou Blending para preencher automaticamente os campos correspondentes abaixo — não precisas de copiar nada à mão, e o relatório do projeto não repete o que essa calculadora já mostra. Distância de Visualização e Sinal & Data Rate (sem "tipo de ecrã" próprio aqui) ficam registados nesta checklist, à parte.</div>
+          <div class="hint">Marca "Adicionar ao projeto" no resumo de Distância de Projeção, Ecrã LED ou Blending para preencher automaticamente os campos correspondentes abaixo — não precisas de copiar nada à mão, e o relatório do projeto não repete o que essa calculadora já mostra. As restantes — TVs, Distância de Visualização, Sinal &amp; Data Rate e Media Server (sem "tipo de ecrã" próprio aqui) — aparecem nesta lista <strong>e no fim do relatório do projeto</strong>, na secção "Também no projeto".</div>
           <div id="proj-items-list" style="margin-top:12px;"></div>
         </div>
       </details>
@@ -2280,6 +2280,44 @@
     box.textContent = msg || "";
   }
 
+  // A primeira metade do relatório do projeto -- a que sai dos campos desta
+  // aba. Escrita pelo calcProjeto(); a segunda metade vem dos itens marcados
+  // noutras calculadoras e é acrescentada aqui.
+  var projSumBase = "";
+
+  // Reportado assim: *"as TVs não aparecem no relatório do projeto"*. E não
+  // apareciam mesmo: as TVs, a Distância de Visualização, o Sinal e o Media
+  // Server ficavam só na "Checklist do projeto", um bloco dobrado à parte, e
+  // o texto que o botão "Copiar relatório" manda para o cliente não os
+  // mencionava. Marcar "Adicionar ao projeto" e não sair no relatório é, do
+  // lado de quem usa, a mesma coisa que não ter marcado nada.
+  //
+  // Passam a entrar no mesmo texto. As calculadoras de Projeção, LED e
+  // Blending continuam de fora desta lista de propósito: essas preenchem os
+  // CAMPOS da aba Projeto, e já estão na primeira metade -- acrescentá-las
+  // aqui era repetir tudo duas vezes.
+  function escreverRelatorioDoProjeto(extra) {
+    var el = document.getElementById("proj-sum");
+    if (el) el.textContent = projSumBase + (extra || "");
+  }
+
+  // As calculadoras que preenchem os CAMPOS da aba Projeto, em vez de
+  // entrarem na checklist como texto. Reportado assim: *"e no checklist não
+  // está o projetor"* -- e não estava mesmo: a lista só mostrava as fontes
+  // que se registam à parte, por isso um projeto com projetor marcado e TVs
+  // marcadas aparecia como se só tivesse TVs.
+  //
+  // Aparecem na LISTA (para ela dizer a verdade sobre o que está marcado),
+  // mas NÃO no texto combinado: esse vai colado ao relatório, e o projetor já
+  // lá está na primeira metade -- repeti-lo era pôr o mesmo equipamento duas
+  // vezes na ficha que vai para o cliente.
+  var PROJECT_FIELD_SOURCES = [
+    { label: "Distância de Projeção", checkboxId: "p-addproject" },
+    { label: "Blending Multi-Projetor", checkboxId: "b-addproject" },
+    { label: "Ecrã LED & Pixel Pitch", checkboxId: "l-addproject" },
+    { label: "Ecrã Complexo", checkboxId: "z-addproject" }
+  ];
+
   function renderProjectItems() {
     var listEl = document.getElementById("proj-items-list");
     var summaryWrap = document.getElementById("proj-items-summary-wrap");
@@ -2289,11 +2327,29 @@
       var cb = document.getElementById(s.checkboxId);
       return cb && cb.checked;
     });
+    var nosCampos = PROJECT_FIELD_SOURCES.filter(function (s) {
+      var cb = document.getElementById(s.checkboxId);
+      return cb && cb.checked;
+    });
 
     listEl.innerHTML = "";
+    nosCampos.forEach(function (s) {
+      var item = document.createElement("div");
+      item.className = "projitem";
+      var h3 = document.createElement("h3");
+      h3.textContent = s.label;
+      item.appendChild(h3);
+      var nota = document.createElement("div");
+      nota.className = "hint";
+      nota.textContent = "Preenche os campos do projeto — sai no relatório, na primeira parte.";
+      item.appendChild(nota);
+      listEl.appendChild(item);
+    });
+
     if (!included.length) {
-      listEl.innerHTML = '<div class="lm-empty">Nenhum item adicionado ainda.</div>';
+      if (!nosCampos.length) listEl.innerHTML = '<div class="lm-empty">Nenhum item adicionado ainda.</div>';
       summaryWrap.style.display = "none";
+      escreverRelatorioDoProjeto("");
       updateSinalProjConflictBox();
       return;
     }
@@ -2321,11 +2377,13 @@
       summaryParts.push("== " + s.label + " ==" + (conflictMsg ? "\n" + conflictMsg : "") + "\n" + text);
     });
     summaryWrap.style.display = "block";
-    document.getElementById("proj-items-sum").textContent = summaryParts.join("\n\n");
+    var combinado = summaryParts.join("\n\n");
+    document.getElementById("proj-items-sum").textContent = combinado;
+    escreverRelatorioDoProjeto("\n\nTambém no projeto:\n\n" + combinado);
     updateSinalProjConflictBox();
   }
 
-  PROJECT_SOURCES.forEach(function (s) {
+  PROJECT_SOURCES.concat(PROJECT_FIELD_SOURCES).forEach(function (s) {
     var cb = document.getElementById(s.checkboxId);
     if (cb) cb.addEventListener("change", renderProjectItems);
   });
@@ -4904,7 +4962,10 @@
     var dsmLine = dsmCount > 0 ? "DSM: " + fmtInt(dsmCount) + "× " + fmtInt(dsmRes[0]) + "×" + fmtInt(dsmRes[1]) + " (" + fmtInt(dsmPixels) + " px)\n" : "";
     var delayLine = delayCount > 0 ? "Delay: " + fmtInt(delayCount) + "× " + fmtInt(delayRes[0]) + "×" + fmtInt(delayRes[1]) + " (" + fmtInt(delayPixels) + " px)\n" : "";
 
-    document.getElementById("proj-sum").textContent = mainSumText +
+    // O relatório guarda-se em duas metades: esta, que sai dos campos da aba
+    // Projeto, e a dos itens marcados noutras calculadoras, que o
+    // renderProjectItems() acrescenta a seguir. Ver escreverRelatorioDoProjeto().
+    projSumBase = mainSumText +
       "\n\nProcessamento (" + refresh + "Hz, " + colorDepth + "-bit):\n" +
       canvasLabel + ": " + fmtInt(canvasPixels) + " px\n" +
       dsmLine +
