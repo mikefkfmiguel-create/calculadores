@@ -87,10 +87,84 @@ São dois problemas diferentes, e só um tem solução:
 em vez de "↕"/"profundidade" para a posição… Se algum não soar bem depois de
 o usar a sério, é uma linha a mudar cada um.
 
-### 5. Uma ideia do mike, por analisar
+### 5. Dar escala às fotos — a ideia do mike, já analisada
 
-Ficou por contar na noite de 11/9 — *"tive aqui uma ideia para analisar"*. É
-a primeira coisa a perguntar.
+*"Uma vez que uma imagem não tem referência a medidas quando a adiciono para
+a IA analisar, se a app reconhecer que estou em mobile com câmara poderia
+tirar partido das funções das câmaras de hoje, que têm equipamento de medição
+para focus e afins, para fazer medidas para usar nas medidas da sala e ajudar
+a sugerir os equipamentos."* E depois: *"daria a opção de tirar fotografias
+com o telemóvel ou tablet"* e *"até o GPS pode dar informação de onde estamos
+e procurar medi[das]"*.
+
+O diagnóstico está certo, e é o mesmo que a própria app já admite no texto ao
+lado do campo de imagem: **uma foto não tem escala**. Nada disto está
+construído — o que está feito é o levantamento.
+
+**Plataforma:** *"poderá ser nos dois, mas maioritariamente para Android."*
+
+#### O que um site consegue mesmo pedir ao telemóvel (verificado, 11/9)
+
+- **WebXR (medir por AR, com *hit-test*): Android sim, iPhone não.** No
+  caniuse, o WebXR está a vermelho em **todas** as versões do Safari iOS,
+  incluindo a mais recente — não é "desligado por omissão", não existe. No
+  Chrome para Android está como suporte parcial. O `XRHitTestSource` e o
+  `XRDepthInformation` estão ambos marcados pela MDN como *Limited
+  availability* e experimentais.
+- **O autofocus não serve.** Existe mesmo um `focusDistance` nas
+  `MediaTrackConstraints`, mas dá a distância ao plano de focagem, não a
+  largura de uma sala — e a implementação em browsers móveis nem está
+  confirmada. O caminho é o WebXR, não o autofocus.
+- **Não há nenhuma API web que exponha LiDAR/ToF fora do WebXR.**
+
+#### Os quatro caminhos, por custo
+
+| | Onde funciona | Esforço |
+|---|---|---|
+| **Fotografar na hora** (`capture="environment"` no input) | Android **e** iPhone | Cinco minutos |
+| **Escala por referência conhecida** na foto | Android **e** iPhone | Uma tarde |
+| **Memória de salas** (GPS a reconhecer onde já estiveste) | Android **e** iPhone | Uma tarde |
+| **Medir por AR** (WebXR + hit-test) | **Só Android** | Vários dias, e frágil onde mais faz falta |
+
+**Regra de desenho, decidida:** o caminho universal é a base; o AR é um extra
+que só aparece onde funciona (`navigator.xr.isSessionSupported("immersive-ar")`).
+No iPhone o botão não existe, em vez de existir e não abrir.
+
+#### As três notas que importam
+
+1. **O AR é fraco exactamente onde mais faz falta.** Medir por AR é bom a
+   poucos metros e degrada-se com a distância, com pouca luz e em espaços
+   vazios sem textura — a descrição de um pavilhão antes de montar. Para
+   largura de palco, pé-direito e distância à primeira fila, serve bem. Para
+   os 24 m de um pavilhão medidos a andar, o erro acumula.
+2. **A escala por referência tem um limite honesto.** Tocar em dois pontos de
+   algo de medida conhecida (uma A4, um troço de truss de 2 m, a altura de
+   uma porta) e escrever essa medida dá a escala **daquele plano**. Uma foto
+   tirada de esguelha distorce; corrigir a perspectiva a sério pedia quatro
+   pontos conhecidos, e aí já é outro nível de trabalho.
+3. **O GPS não encontra medidas — reconhece sítios.** Não existe base de
+   dados de dimensões de salas por coordenadas. O que existe são fichas
+   técnicas publicadas pelos recintos, que é o tipo de documento que o
+   Assistente já sabe ler — mas perguntar a uma IA "quanto mede o Pavilhão 4
+   da FIL" **sem lhe dar a ficha** é a receita para ela inventar um número com
+   toda a confiança, que é a regra que mais se protege nesta app. Além disso,
+   dentro de um pavilhão o GPS chega para saber que estás *na FIL*, não em que
+   pavilhão.
+   **A versão forte:** memória de salas. Mede-se uma vez, guarda-se com o
+   nome; da próxima, o GPS (ou só o nome) traz de volta o que **tu** mediste.
+   Não é a IA a adivinhar — são dados com fonte, e melhoram com o uso. Encaixa
+   no que o Worker já faz com os projetos anteriores.
+
+E, em qualquer dos casos: um número que venha daqui **nunca** pode aparecer
+como medida confirmada. Vem marcado como medido pelo telemóvel, com a sua
+incerteza — tal como a app já marca as estimativas da IA.
+
+#### Por decidir
+
+Por onde começar. A recomendação é de cima para baixo na tabela: o
+`capture="environment"` sozinho já muda o dia-a-dia e custa cinco minutos, e
+com a escala por referência feita primeiro, o AR passa a ser uma melhoria em
+vez de uma condição para a coisa existir.
 
 ## Esta pasta ficou parada, e já não está
 
