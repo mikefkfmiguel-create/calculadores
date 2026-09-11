@@ -762,6 +762,48 @@ cumprir).
 escrito a abrir uma sessão, não fechado no fim dela. Da próxima vez, atualizar
 isto ao terminar, não só ao começar.
 
+**v3.38: o modelo da TV passa a viajar até ao bloco Delay.** *"Aqui devia
+trazer das TVs também, pois o complexo não transportou o modelo."* Estava
+certo: a Ecrã Complexo guarda o **nome** da zona ("TV LED LG 86"), não o
+modelo como dado — por isso o `↙ Trazer da Ecrã Complexo` do bloco Delay
+trazia a contagem e deixava o modelo em "Nenhum / não sei ainda".
+
+Duas mudanças:
+
+1. **`↙ Trazer das TVs`** (botão novo, no bloco Delay): traz modelo,
+   quantidade e — pelo modelo — a resolução, directamente da aba TVs. Para
+   quando os delays ainda não passaram pela Ecrã Complexo.
+2. **O botão antigo passa a trazer o modelo também**, quando as zonas
+   contadas vieram da aba TVs (`data-origem-tv`, a marca que o
+   `lzSincronizarTVs` já punha). Nesse caso o modelo é, por definição, o que
+   está escolhido na aba TVs.
+
+Os quatro selects de TV da app (TVs, DSM, Delay, Distância de Visualização)
+são preenchidos do mesmo `TVS_DATA` e com o mesmo `value` (o índice), por
+isso o valor copia-se directo; o `change` que se dispara a seguir é o que já
+preenchia a resolução — não se reescreve aqui.
+
+Testado com Playwright: escolher um modelo real + 4 unidades nas TVs e carregar
+em "Trazer das TVs" deixa modelo, `count: 4` e resolução em "custom" com os
+píxeis do modelo; marcar "Adicionar ao projeto" cria 4 cartões todos com
+`data-origem-tv="1"`, e o "Trazer da Ecrã Complexo" traz agora `4` **e** o
+modelo. Sem modelo escolhido, traz a quantidade e diz que a resolução fica
+como está; com a Ecrã Complexo vazia, dá 0 sem rebentar. Sem erros de consola.
+
+**O que fica por resolver, e é maior do que isto:** numa Ecrã Complexo só com
+TVs, a "Resolução final do canvas" fica em `—`, os tiles a `0` e o peso e os
+amps a `0,00`. A razão é estrutural: uma zona de TV é um rectângulo em metros
+(ver `lzZoneMetrics`, que sai cedo para tipos não-LED), sem píxeis nenhuns —
+ao contrário de uma zona LED, que traz pitch, peso e amps do modelo de tile.
+
+Dar-lhe resolução a sério é trabalho de raiz: campo novo por zona, a viajar na
+serialização e na ponte para o Preview, e a entrar na conta do canvas (que
+hoje é toda feita a partir do pitch). **O peso e os amps não têm solução
+nenhuma pela via dos dados**: o `data/tvs.json` tem `diag`, `ratio` e
+`resolucao`, e mais nada — inventá-los era partir a regra da casa. Ficariam
+sempre a zero, ou a app teria de dizer "não conhecido" em vez de "0,00",
+que é provavelmente o certo.
+
 ## O Worker publica-se sozinho (setembro, 11)
 
 Até aqui o Worker ia ao ar com um `wrangler deploy` à mão, do PC. Isso tem um

@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.37</span>
+    <span class="mark" id="app-versao">v3.38</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1594,7 +1594,8 @@
               </select>
             </div>
           </div>
-          <button type="button" class="copy" id="proj-use-ecra-delay" style="margin-top:8px;" title="Conta as zonas tipo TV (delay)/Projeção (delay) já criadas na aba Ecrã Complexo, para não escrever o número outra vez">↙ Trazer da Ecrã Complexo</button>
+          <button type="button" class="copy" id="proj-use-ecra-delay" style="margin-top:8px;" title="Conta as zonas tipo TV (delay)/Projeção (delay) já criadas na aba Ecrã Complexo. Se essas zonas vieram da aba TVs, traz também o modelo e a resolução.">↙ Trazer da Ecrã Complexo</button>
+          <button type="button" class="copy" id="proj-use-tv-delay" style="margin-top:8px;" title="Traz o modelo, a quantidade e a resolução directamente da aba TVs — para quando os delays ainda não passaram pela Ecrã Complexo">↙ Trazer das TVs</button>
           <div class="row2" id="proj-delay-custom-res" style="display:none;">
             <div class="field">
               <label for="proj-delay-w">Largura</label>
@@ -5006,15 +5007,63 @@
     input.dispatchEvent(new Event("change", { bubbles: true }));
     showToast("Trazido da Ecrã Complexo: " + (origem.value || 0) + " DSM.");
   });
+  // O modelo de TV escolhido na aba TVs, posto num dos selects de modelo da
+  // aba Projeto. Devolve o nome do que foi posto, ou null se não havia nada
+  // por onde pegar -- quem chama usa isso para dizer o que trouxe.
+  //
+  // Os quatro selects de TV da app (TVs, DSM, Delay, Distância de
+  // Visualização) são preenchidos do mesmo TVS_DATA e com o mesmo value
+  // (o índice), por isso o valor copia-se directo. O "change" a seguir é o
+  // que preenche a resolução sozinho — não se escreve aqui outra vez.
+  function trazerModeloDeTv(idDestino) {
+    if (!tvModelSel || tvModelSel.value === "custom") return null;
+    var destino = document.getElementById(idDestino);
+    if (!destino) return null;
+    destino.value = tvModelSel.value;
+    destino.dispatchEvent(new Event("change", { bubbles: true }));
+    var tv = TVS_DATA[parseInt(tvModelSel.value, 10)];
+    return tv ? tv.modelo : null;
+  }
+
   document.getElementById("proj-use-ecra-delay").addEventListener("click", function () {
-    var n = document.querySelectorAll('#lz-list .card .lz-tipo').length
-      ? Array.prototype.filter.call(document.querySelectorAll('#lz-list .card .lz-tipo'), function (sel) { return sel.value !== "led"; }).length
-      : 0;
+    var tipos = Array.prototype.filter.call(
+      document.querySelectorAll('#lz-list .card .lz-tipo'),
+      function (sel) { return sel.value !== "led"; });
+    var n = tipos.length;
     var input = document.getElementById("proj-delay-count");
     input.value = n;
     input.dispatchEvent(new Event("input", { bubbles: true }));
     input.dispatchEvent(new Event("change", { bubbles: true }));
-    showToast("Trazido da Ecrã Complexo: " + n + (n === 1 ? " zona delay." : " zonas delay."));
+
+    // A Ecrã Complexo só guarda o NOME da zona ("TV LED LG 86"), não o
+    // modelo como dado -- reportado assim: *"o complexo não transportou o
+    // modelo"*. Quando as zonas contadas vieram da aba TVs (marca de origem
+    // posta pelo lzSincronizarTVs), o modelo é o que estiver escolhido lá, e
+    // vem com a contagem em vez de ficar em "Nenhum / não sei ainda".
+    var daAbaTv = tipos.some(function (sel) {
+      var card = sel.closest(".card");
+      return card && card.dataset.origemTv === "1";
+    });
+    var modelo = daAbaTv ? trazerModeloDeTv("proj-delay-tvmodel") : null;
+
+    showToast("Trazido da Ecrã Complexo: " + n + (n === 1 ? " zona delay" : " zonas delay") +
+              (modelo ? " · " + modelo : "") + ".");
+  });
+
+  // Atalho para quem ainda não passou pela Ecrã Complexo -- pedido directo:
+  // *"aqui devia trazer das TVs também"*. Traz as três coisas de uma vez:
+  // modelo, quantidade e (pelo modelo) a resolução.
+  document.getElementById("proj-use-tv-delay").addEventListener("click", function () {
+    var n = Math.max(0, Math.round(val("tv-qty")) || 0);
+    var input = document.getElementById("proj-delay-count");
+    input.value = n;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    var modelo = trazerModeloDeTv("proj-delay-tvmodel");
+    showToast(modelo
+      ? "Trazido das TVs: " + n + (n === 1 ? " unidade" : " unidades") + " · " + modelo + "."
+      : "Trazido das TVs: " + n + (n === 1 ? " unidade" : " unidades") +
+        ". Sem modelo escolhido na aba TVs — a resolução fica como está.");
   });
   document.querySelectorAll('.panel[data-mode="mediaserver"] input').forEach(function (el) {
     el.addEventListener("input", calcMediaServer);
