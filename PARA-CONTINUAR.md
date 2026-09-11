@@ -1007,6 +1007,46 @@ relatório continua a mostrar o projetor. É o comportamento de sempre, e
 provavelmente o certo (ninguém quer ver os seus valores apagados por
 desmarcar uma caixa), mas fica escrito por ser fácil de confundir com um bug.
 
+**v3.40: o peso e os amps que não se sabem deixam de dizer 0,00.** *"Mete
+'não conhecido' em vez de 0,00."* Era o item 3 da lista de pendentes, na
+parte que **não** tem solução pelos dados — e ficou mais urgente quando a
+v3.39 pôs esses zeros dentro do relatório que vai para o cliente.
+
+Uma zona de **TV ou de Projeção não tem peso nem consumo**: o `data/tvs.json`
+tem diagonal, formato e resolução, e mais nada. Somá-las como **zero** dava um
+total que parecia uma medida e não era. Num cálculo de estrutura e de energia,
+é a mentira mais cara que esta app podia contar: `0,0 kg` lê-se como "não
+pesa", não como "não sei".
+
+Cada zona passa a trazer `pesoConhecido`. Os totais somam **só as que sabem**,
+e há três estados em vez de um:
+
+| Projeto | Antes | Agora |
+|---|---|---|
+| Só TVs | `0,0 kg` · `0,00 A` | **não conhecido** |
+| Só LED | `864,0 kg` · `82,08 A` | igual |
+| LED **+** TVs | `864,0 kg` (calado) | `864,0 kg (só a zona LED — 3 zonas sem peso no catálogo)` |
+
+O terceiro é o que mais interessa e o que não existia: o total estava certo
+para as zonas LED e **calava** que havia material fora da conta. Agora diz.
+
+Vale em todo o lado ao mesmo tempo: o painel da Ecrã Complexo, a linha de cada
+zona no resumo (uma TV escreve "peso e amps não conhecidos" em vez de
+"0,0 kg, 0,00 A"), a linha TOTAL, o painel da aba Projeto e o relatório.
+
+Aproveitou-se para uniformizar a palavra: o caminho do LED único já dizia
+**"não disponível"** quando o modelo de tile não traz peso — passou a
+"não conhecido", que é a mesma ideia e agora tem um nome só.
+
+Testado com Playwright, os três estados, mais a linha por zona. Confirmado que
+`0,0 kg` e `0,00 A` já não aparecem em lado nenhum do relatório. Sem erros de
+consola.
+
+**O que continua por resolver:** os **píxeis** das TVs (`0x0 px`, `0 tiles`).
+Esses **têm** dado no catálogo — o que falta é o caminho até à zona, e isso
+mexe na conta do canvas, que hoje é toda feita a partir do pitch. Continua a
+ser o item 3 da lista, agora só com essa metade.
+
 ## O Worker publica-se sozinho (setembro, 11)
 
 Até aqui o Worker ia ao ar com um `wrangler deploy` à mão, do PC. Isso tem um

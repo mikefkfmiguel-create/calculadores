@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.39</span>
+    <span class="mark" id="app-versao">v3.40</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -4546,8 +4546,14 @@
           (selCanvas ? "<span class=\"canvas-note\">canvas (" + selCanvasLabel + "): " + fmtInt(selCanvas.w) + "×" + fmtInt(selCanvas.h) + "px</span>" : "");
         document.getElementById("proj-out-size").innerHTML = "várias zonas<small> — ver detalhe na aba Ecrã Complexo</small>";
         document.getElementById("proj-out-pitch").innerHTML = "vário<small> (zonas com pitches diferentes)</small>";
-        document.getElementById("proj-out-weight").innerHTML = fmt(totalWeight, 1) + "<small>kg</small>";
-        document.getElementById("proj-out-amp").innerHTML = fmt(totalAmp, 2) + "<small>A</small> (" + fmt(ampPhaseZ, 2) + "<small>A/fase</small>)";
+        // Um projeto só de TVs não pesa zero -- não se sabe quanto pesa.
+        // Ver o comentário em calcLedZones() (js/zonas.js).
+        document.getElementById("proj-out-weight").innerHTML = lzLastTotals.pesoDesconhecido
+          ? "<small>não conhecido</small>"
+          : fmt(totalWeight, 1) + "<small>kg</small>" + (lzLastTotals.zonasSemPeso ? "<small> — só as LED</small>" : "");
+        document.getElementById("proj-out-amp").innerHTML = lzLastTotals.pesoDesconhecido
+          ? "<small>não conhecido</small>"
+          : fmt(totalAmp, 2) + "<small>A</small> (" + fmt(ampPhaseZ, 2) + "<small>A/fase</small>)" + (lzLastTotals.zonasSemPeso ? "<small> — só as LED</small>" : "");
         document.getElementById("proj-out-area").innerHTML = fmt(lzLastTotals.totalArea, 2) + "<small>m²</small>";
         document.getElementById("proj-out-boxes-wrap").style.display = "none";
 
@@ -4563,8 +4569,12 @@
           "Nº de tiles total: " + fmtInt(numTiles) + "\n" +
           "Total de píxeis (soma nativa das zonas): " + fmtInt(lzLastTotals.totalPixels) + " px\n" +
           (selCanvas ? "Resolução do canvas (" + selCanvasLabel + "): " + fmtInt(selCanvas.w) + "x" + fmtInt(selCanvas.h) + " px\n" : "") +
-          "Peso total: " + fmt(totalWeight, 1) + " kg\n" +
-          "Amp total (máx.): " + fmt(totalAmp, 2) + " A  —  " + fmt(ampPhaseZ, 2) + " A por fase (trifásica)\n" +
+          "Peso total: " + (lzLastTotals.pesoDesconhecido
+            ? "não conhecido"
+            : fmt(totalWeight, 1) + " kg" + (lzLastTotals.notaPesoParcial || "")) + "\n" +
+          "Amp total (máx.): " + (lzLastTotals.pesoDesconhecido
+            ? "não conhecido"
+            : fmt(totalAmp, 2) + " A  —  " + fmt(ampPhaseZ, 2) + " A por fase (trifásica)" + (lzLastTotals.notaPesoParcial || "")) + "\n" +
           "Área total (uso interno): " + fmt(lzLastTotals.totalArea, 2) + " m²";
       }
       } else {
@@ -4624,8 +4634,8 @@
         "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px\n" +
         "Tamanho real: " + fmt(totalWm, 2) + " x " + fmt(totalHm, 2) + " m\n" +
         "Pixel pitch: " + fmt(pitchAvg, 2) + " mm\n" +
-        "Peso total: " + (weightTotal == null ? "não disponível" : fmt(weightTotal, 1) + " kg") + "\n" +
-        "Amp total (máx.): " + (ampTotal == null ? "não disponível" : fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)") + "\n" +
+        "Peso total: " + (weightTotal == null ? "não conhecido" : fmt(weightTotal, 1) + " kg") + "\n" +
+        "Amp total (máx.): " + (ampTotal == null ? "não conhecido" : fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)") + "\n" +
         "Área total (uso interno): " + fmt(areaTotal, 2) + " m²";
       }
       }

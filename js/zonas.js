@@ -2031,7 +2031,7 @@
         var curveReadoutDelay = card.querySelector(".lz-curve-readout");
         if (curveReadoutDelay) curveReadoutDelay.textContent = "Curvatura: não aplicável a este tipo de ecrã.";
         lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), 0, 0, false);
-        zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: rotuloDelay, tipo: tipo, mx: 0, my: 0, numTiles: 0, w: whDelay.w, h: whDelay.h, area: zoneAreaDelay, totalPx: 0, totalPy: 0, pixels: 0, weight: 0, amp: 0, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: null, curve: null });
+        zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: rotuloDelay, tipo: tipo, mx: 0, my: 0, numTiles: 0, w: whDelay.w, h: whDelay.h, area: zoneAreaDelay, totalPx: 0, totalPy: 0, pixels: 0, weight: 0, amp: 0, pesoConhecido: false, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: null, curve: null });
         return;
       }
 
@@ -2101,7 +2101,7 @@
       }
       lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), curveInfo ? curveInfo.n : 0, curveInfo ? curveInfo.angleDeg : 0, curveInfo ? curveInfo.convex : false);
 
-      zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: curveText, curve: curveInfo });
+      zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, pesoConhecido: true, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: curveText, curve: curveInfo });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do
@@ -2112,14 +2112,36 @@
     var totalTiles = visibleZones.reduce(function (s, z) { return s + z.numTiles; }, 0);
     var totalPixels = visibleZones.reduce(function (s, z) { return s + z.pixels; }, 0);
     var totalArea = visibleZones.reduce(function (s, z) { return s + z.area; }, 0);
-    var totalWeight = visibleZones.reduce(function (s, z) { return s + z.weight; }, 0);
-    var totalAmp = visibleZones.reduce(function (s, z) { return s + z.amp; }, 0);
+    // Uma zona de TV ou de Projeção não tem peso nem consumo no catálogo -- o
+    // data/tvs.json tem diagonal, formato e resolução, e mais nada. Somá-las
+    // como ZERO dava um total que parecia uma medida e não era: um projeto só
+    // com TVs dizia "0,0 kg" e "0,00 A", que num cálculo de estrutura e de
+    // energia é a mentira mais cara que esta app podia contar.
+    //
+    // Pedido directo, depois de os zeros passarem a sair no relatório do
+    // projeto: *"mete 'não conhecido' em vez de 0,00"*.
+    var zonasComPeso = visibleZones.filter(function (z) { return z.pesoConhecido !== false; });
+    var zonasSemPeso = visibleZones.length - zonasComPeso.length;
+    var totalWeight = zonasComPeso.reduce(function (s, z) { return s + z.weight; }, 0);
+    var totalAmp = zonasComPeso.reduce(function (s, z) { return s + z.amp; }, 0);
+    // Nenhuma zona de que se saiba o peso -> não há total nenhum a mostrar.
+    var pesoDesconhecido = zonasComPeso.length === 0;
+    // Há total, mas está incompleto -- dizê-lo, senão lê-se como o peso do
+    // conjunto todo quando é só o das zonas LED.
+    var notaPesoParcial = (!pesoDesconhecido && zonasSemPeso)
+      ? (zonasComPeso.length === 1 ? " (só a zona LED" : " (só as " + zonasComPeso.length + " zonas LED") +
+        " — " + zonasSemPeso + (zonasSemPeso === 1 ? " zona sem peso no catálogo)" : " zonas sem peso no catálogo)")
+      : "";
 
     document.getElementById("lz-out-tiles").textContent = fmtInt(totalTiles);
     document.getElementById("lz-out-pixels").innerHTML = fmtInt(totalPixels) + "<small>px</small> (" + fmt(totalPixels/1e6,2) + "<small>MP</small>)";
     document.getElementById("lz-out-area").innerHTML = fmt(totalArea,2) + "<small>m²</small>";
-    document.getElementById("lz-out-weight").innerHTML = fmt(totalWeight,1) + "<small>kg</small>";
-    document.getElementById("lz-out-amp").innerHTML = fmt(totalAmp,2) + "<small>A</small> (" + fmt(totalAmp/3,2) + "<small>A/fase</small>)";
+    document.getElementById("lz-out-weight").innerHTML = pesoDesconhecido
+      ? "<small>não conhecido</small>"
+      : fmt(totalWeight,1) + "<small>kg</small>" + (zonasSemPeso ? "<small> — só as LED</small>" : "");
+    document.getElementById("lz-out-amp").innerHTML = pesoDesconhecido
+      ? "<small>não conhecido</small>"
+      : fmt(totalAmp,2) + "<small>A</small> (" + fmt(totalAmp/3,2) + "<small>A/fase</small>)" + (zonasSemPeso ? "<small> — só as LED</small>" : "");
 
     var colorMap = lzGroupColorMap(visibleZones);
     cards.forEach(function (card, i) {
@@ -2149,13 +2171,13 @@
     document.getElementById("lz-preview-bar-text").textContent = (pm ? canvasResText : "—") + " · " + fmtInt(totalTiles) + " tiles · " + visibleZones.length + " zona(s)" + (hiddenCount ? " (" + hiddenCount + " escondida(s))" : "");
 
     document.getElementById("lz-sum").textContent = visibleZones.map(function (z) {
-      return z.name + " (centro X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A" + (z.curveText ? "\nCurvatura: " + z.curveText : "");
-    }).join("\n") + (hiddenCount ? "\n\n(" + hiddenCount + " zona(s) escondida(s), fora destas contas)" : "") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos de cada zona), " + fmt(totalArea,2) + " m² (soma das zonas), " + fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A máx. (" + fmt(totalAmp/3,2) + " A/fase)" +
+      return z.name + " (centro X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + (z.pesoConhecido === false ? "peso e amps não conhecidos" : fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A") + (z.curveText ? "\nCurvatura: " + z.curveText : "");
+    }).join("\n") + (hiddenCount ? "\n\n(" + hiddenCount + " zona(s) escondida(s), fora destas contas)" : "") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos de cada zona), " + fmt(totalArea,2) + " m² (soma das zonas), " + (pesoDesconhecido ? "peso e amps não conhecidos" : fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A máx. (" + fmt(totalAmp/3,2) + " A/fase)" + notaPesoParcial) +
       (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "") +
       (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, zona mais alta") + ")" : "") : "") +
       (pm ? "\nResolução final do canvas (sem gaps): " + canvasResNoGapsText + " — usada para o sinal/processo: " + (lzCanvasMode === "nogaps" ? "sem gaps" : "com gaps") : "");
 
-    lzLastTotals = { zones: visibleZones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, bbox: bbox, pixelMap: pm, colorMap: colorMap };
+    lzLastTotals = { zones: visibleZones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, pesoDesconhecido: pesoDesconhecido, zonasSemPeso: zonasSemPeso, notaPesoParcial: notaPesoParcial, bbox: bbox, pixelMap: pm, colorMap: colorMap };
 
     // As duas apps vivem no mesmo dominio e partilham o localStorage: e por
     // aqui que elas falam. O preview le isto ao abrir -- e, se estiver aberto
