@@ -961,6 +961,52 @@ nenhuma pela via dos dados**: o `data/tvs.json` tem `diag`, `ratio` e
 sempre a zero, ou a app teria de dizer "não conhecido" em vez de "0,00",
 que é provavelmente o certo.
 
+**v3.39: o relatório do projeto passa a ter tudo, e a checklist também.**
+Dois relatos seguidos, na mesma noite: *"as TVs não aparecem no relatório do
+projeto"* e *"e no checklist não está o projetor"*. Os dois estavam certos, e
+eram as duas metades do mesmo problema — a aba Projeto tinha **duas listas que
+nunca se falavam**:
+
+- As calculadoras de **Projeção, LED e Blending** preenchem os **campos** da
+  aba Projeto, e saíam na primeira metade do relatório.
+- As **TVs**, a **Distância de Visualização**, o **Sinal & Data Rate** e o
+  **Media Server** ficavam só na "Checklist do projeto", um bloco dobrado à
+  parte — e **não** no texto que o botão "Copiar relatório" manda para o
+  cliente.
+
+Ou seja: marcar "Adicionar ao projeto" nas TVs e não sair no relatório é, do
+lado de quem usa, o mesmo que não ter marcado nada.
+
+**O relatório passa a levar as duas metades.** O texto dos itens marcados é
+acrescentado no fim, numa secção **"Também no projeto:"**. Passa por um sítio
+só (`escreverRelatorioDoProjeto()`, com a primeira metade guardada em
+`projSumBase`), para que qualquer caminho que recalcule os itens actualize o
+relatório — e não só o `calcProjeto()`.
+
+**A checklist passa a mostrar o projetor.** A lista "Itens do projeto" ganhou
+uma linha por cada calculadora de campos que esteja marcada (Projeção,
+Blending, LED, Ecrã Complexo), com a nota *"Preenche os campos do projeto —
+sai no relatório, na primeira parte."*
+
+**Estas linhas ficam de fora do texto combinado, de propósito.** Esse texto é
+o que vai colado ao relatório, e o projetor já lá está na primeira metade —
+repeti-lo era pôr o mesmo equipamento duas vezes na ficha que vai para o
+cliente. A lista diz a verdade sobre o que está marcado; o texto não se
+duplica.
+
+Testado com Playwright, os quatro estados: nada marcado (lista vazia, sem
+secção no relatório); só o projetor (lista com "Distância de Projeção",
+texto combinado vazio, relatório com o projetor); projetor + TVs (lista com
+os dois, texto só com as TVs, relatório com ambos e **o projetor uma só
+vez**); e desmarcar as TVs volta a tirar a secção do relatório. Sem erros de
+consola.
+
+**Nota do que continua como estava:** desmarcar "Adicionar ao projeto" na
+Projeção **não limpa** os campos que ela preencheu na aba Projeto — o
+relatório continua a mostrar o projetor. É o comportamento de sempre, e
+provavelmente o certo (ninguém quer ver os seus valores apagados por
+desmarcar uma caixa), mas fica escrito por ser fácil de confundir com um bug.
+
 ## O Worker publica-se sozinho (setembro, 11)
 
 Até aqui o Worker ia ao ar com um `wrangler deploy` à mão, do PC. Isso tem um
