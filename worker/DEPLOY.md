@@ -23,48 +23,32 @@ com um erro de API.
 Estes três passos precisam da conta Cloudflare, por isso são para fazer no
 teu PC. Depois disto, nunca mais.
 
-### 1. Os ids das KV, no `wrangler.toml`
+### 1. ~~Os ids das KV~~ — feito
 
-O `wrangler.toml` ainda tem `cola-aqui-o-id` nos três namespaces. Não são
-segredos — são identificadores, e é por isso que vivem no repositório.
+Os três namespaces já existiam na conta, e os ids estão no `wrangler.toml`.
+Não são segredos — são identificadores, o mesmo que aparece no URL do painel
+— e é por isso que vivem no repositório: quem publica passou a ser o GitHub,
+e o GitHub só sabe o que estiver neste ficheiro.
 
-Se os namespaces **já existem**:
+O `account_id` está lá pela mesma razão, o que poupa um secret.
 
-```bash
-cd worker
-npx wrangler kv namespace list
-```
+Para os reconferir a qualquer momento: no painel do Worker, o quadro
+**Bindings** mostra o namespace a que cada nome aponta. Um id trocado não dá
+erro nenhum — passa a escrever no namespace errado, calado.
 
-Se **ainda não existem** (cria cada um uma vez):
-
-```bash
-npx wrangler kv namespace create PARTILHAS
-npx wrangler kv namespace create REGISTOS
-npx wrangler kv namespace create FEEDBACK
-```
-
-Qualquer dos dois devolve um `id` por namespace. Troca no `wrangler.toml`:
-
-| binding | trocar |
-|---|---|
-| `PARTILHAS` | `cola-aqui-o-id` |
-| `REGISTOS` | `cola-aqui-o-id-registos` |
-| `FEEDBACK` | `cola-aqui-o-id-feedback` |
-
-Commit e push — isso por si só já dispara a primeira publicação.
-
-### 2. Dois secrets no GitHub
+### 2. Um secret no GitHub
 
 > GitHub → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
 
 | Nome | O que é | Onde se arranja |
 |---|---|---|
 | `CLOUDFLARE_API_TOKEN` | Token de API da Cloudflare | Dashboard → **My Profile** → **API Tokens** → **Create Token** → modelo **"Edit Cloudflare Workers"** |
-| `CLOUDFLARE_ACCOUNT_ID` | O id da conta | `npx wrangler whoami` mostra-o, ou vem no painel do Cloudflare |
 
 O modelo "Edit Cloudflare Workers" já traz as permissões certas (publicar o
 Worker e mexer nas KV). Não uses a Global API Key — dá acesso a tudo, e um
 token dedicado revoga-se sozinho sem mexer no resto.
+
+É o único segredo desta publicação.
 
 ### 3. Os secrets do próprio Worker
 
@@ -85,7 +69,7 @@ A página do workflow mostra o commit que ficou no ar. Para confirmar que o
 Worker está mesmo a responder, o teste rápido de sempre:
 
 ```bash
-curl -s -X POST https://calculadores-assistente.<o-teu-subdominio>.workers.dev/extrair \
+curl -s -X POST https://calculadores-assistente.avkvideoshare.workers.dev/extrair \
   -H "Origin: https://mikefkfmiguel-create.github.io" \
   -H "Content-Type: application/json" \
   -d '{"texto":"ecrã de 6 por 3 metros"}'
