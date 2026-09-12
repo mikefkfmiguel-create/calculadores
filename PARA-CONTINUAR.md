@@ -835,6 +835,20 @@ na superfície tem `πR/dMaster`. A leitura passa a dizer *"6,00 arcmin/px —
 cada píxel mede 7,6 mm na cúpula, como um LED de pitch 7,6"*. É geometria, não
 uma analogia inventada.
 
+**O alvo de resolução explicado outra vez, do início (v3.60)** — a dica dizia
+*"3 arcmin é o limite do olho na literatura de fulldome. Em linguagem de LED,
+é o tamanho que cada píxel tem na superfície — ver a leitura ao lado"*, e o
+mike respondeu *"ainda parece confuso isto"*. Tinha razão, por três motivos: a
+frase nunca dizia **o que é um arcmin**, chamava "tamanho" a um ângulo (e ao
+mesmo tempo mandava lê-lo em mm, que é a contradição que faz o leitor parar), e
+"a leitura ao lado" não nomeia leitura nenhuma — num telemóvel não há lado
+nenhum. Agora começa pela unidade (1/60 de grau), diz que é *o pitch do LED
+traduzido em ângulo* — o tamanho com que o píxel **chega ao olho** e não o
+tamanho dele na parede —, dá a regra em duas palavras (*menor = mais fino*) e
+manda pelo nome à leitura **Resolução angular**, que é onde já estão os mm. O
+rótulo também passou a "Alvo de resolução (o grão da imagem)": é o que a
+pessoa quer decidir, dito na palavra dela.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
 ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o
