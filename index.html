@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.43</span>
+    <span class="mark" id="app-versao">v3.44</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -182,6 +182,12 @@
                 </div>
               </details>
               <canvas id="asst-medir-canvas" style="display:block; width:100%; max-width:100%; border:1px solid var(--line-soft); border-radius:8px; background:var(--paper); touch-action:none; cursor:crosshair;"></canvas>
+              <div class="summary-actions" style="margin-top:6px; flex-wrap:wrap; align-items:center;">
+                <button type="button" class="copy" id="asst-medir-menos" title="Reduzir" style="min-width:44px;">−</button>
+                <button type="button" class="copy" id="asst-medir-mais" title="Ampliar" style="min-width:44px;">+</button>
+                <button type="button" class="copy" id="asst-medir-repor" title="Voltar à foto inteira">Foto inteira</button>
+                <span class="hint" style="margin:0;">Pinça para ampliar; arrasta fora das pegas para passear a foto.</span>
+              </div>
               <div class="row2" style="margin-top:10px;">
                 <div class="field">
                   <label for="asst-medir-ref">Linha azul — medida real</label>
@@ -7522,6 +7528,7 @@
     function asstFecharRegua() {
       reguaImg = null;
       reguaPontas = null;
+      vista = { z: 1, ox: 0, oy: 0 };
       asstMedirCard.style.display = "none";
       asstMedirOut.textContent = "—";
       asstMedirNota.textContent = "";
@@ -7544,6 +7551,7 @@
         // medida de referência escrita fica, essa: numa série de fotos do
         // mesmo sítio é a mesma porta.
         asstMedirTravar.checked = false;
+        vista = { z: 1, ox: 0, oy: 0 };
         asstMedirCard.style.display = "block";
         asstMedirCard.open = true;
         asstDesenharRegua();
@@ -7556,21 +7564,74 @@
       img.src = url;
     }
 
+    // A vista: quanto está ampliado, e que parte da foto está à frente.
+    // Pedido directo depois de a usar: "tenho de conseguir fazer zoom na
+    // imagem para marcar as referências". Num telemóvel a foto inteira cabe
+    // em ~310 px de largura -- apontar o canto de uma porta aí é apontar a
+    // 3 ou 4 píxeis da imagem original, e esse erro entra inteiro na
+    // medida. Com zoom, aponta-se ao píxel.
+    //
+    // O zoom é SÓ da vista: as pontas continuam guardadas em 0..1 da
+    // imagem, por isso ampliar, arrastar a vista ou rodar o telemóvel nunca
+    // mexe numa medida já feita.
+    var ZOOM_MAX = 12;
+    var vista = { z: 1, ox: 0, oy: 0 };
+
+    // O tamanho da foto no ecrã com zoom 1 -- a base de todas as contas.
+    function baseDaVista() {
+      var larguraCss = asstMedirCanvas.clientWidth || 600;
+      return { l: larguraCss, a: Math.round(reguaImg.height * (larguraCss / reguaImg.width)) };
+    }
+
+    // Não deixar a foto sair da moldura: ampliada, o que se vê é sempre
+    // parte dela; nunca faixas vazias ao lado.
+    function arrumarVista() {
+      var b = baseDaVista();
+      vista.z = Math.min(ZOOM_MAX, Math.max(1, vista.z));
+      vista.ox = Math.min(0, Math.max(b.l - b.l * vista.z, vista.ox));
+      vista.oy = Math.min(0, Math.max(b.a - b.a * vista.z, vista.oy));
+    }
+
+    // Ampliar mantendo fixo o ponto que está debaixo do dedo/rato: sem
+    // isto, cada passo de zoom manda para longe o sítio que se estava a
+    // olhar, e apontar torna-se uma perseguição.
+    function ampliarEm(novoZ, ancoraX, ancoraY) {
+      var b = baseDaVista();
+      novoZ = Math.min(ZOOM_MAX, Math.max(1, novoZ));
+      var nx = (ancoraX - vista.ox) / (b.l * vista.z);
+      var ny = (ancoraY - vista.oy) / (b.a * vista.z);
+      vista.z = novoZ;
+      vista.ox = ancoraX - nx * b.l * vista.z;
+      vista.oy = ancoraY - ny * b.a * vista.z;
+      arrumarVista();
+      asstDesenharRegua();
+    }
+
     function asstDesenharRegua() {
       if (!reguaImg || !reguaPontas) return;
-      var larguraCss = asstMedirCanvas.clientWidth || 600;
-      var escalaEcra = larguraCss / reguaImg.width;
-      var alturaCss = Math.round(reguaImg.height * escalaEcra);
+      var b = baseDaVista();
+      var larguraCss = b.l, alturaCss = b.a;
+      var escalaEcra = (larguraCss / reguaImg.width) * vista.z;
       var dpr = window.devicePixelRatio || 1;
       asstMedirCanvas.width = Math.round(larguraCss * dpr);
       asstMedirCanvas.height = Math.round(alturaCss * dpr);
       asstMedirCanvas.style.height = alturaCss + "px";
+      arrumarVista();
       var ctx = asstMedirCanvas.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, larguraCss, alturaCss);
-      ctx.drawImage(reguaImg, 0, 0, larguraCss, alturaCss);
+      ctx.drawImage(reguaImg, vista.ox, vista.oy, larguraCss * vista.z, alturaCss * vista.z);
+      if (vista.z > 1.01) {
+        ctx.font = "600 12px system-ui, sans-serif";
+        var etZ = fmt(vista.z, 1) + "×";
+        ctx.strokeStyle = "rgba(0,0,0,0.75)"; ctx.lineWidth = 4;
+        ctx.strokeText(etZ, 8, alturaCss - 8);
+        ctx.fillStyle = "#fff"; ctx.fillText(etZ, 8, alturaCss - 8);
+      }
 
-      function px(p) { return { x: p.x * larguraCss, y: p.y * alturaCss }; }
+      function px(p) {
+        return { x: vista.ox + p.x * larguraCss * vista.z, y: vista.oy + p.y * alturaCss * vista.z };
+      }
       function linha(a, b, cor) {
         var pa = px(a), pb = px(b);
         // Traço escuro por baixo: uma linha de cor sozinha desaparece em
@@ -7637,7 +7698,9 @@
       // 5 px de erro numa imagem pequena é metade do erro da medida toda.
       // A lupa mostra o que está debaixo do dedo, num canto que o dedo não
       // esteja a tapar.
-      if (reguaAgarrada) {
+      // Acima de 3× já é a própria vista que amplia: a lupa em cima disso
+      // dava 30× de uma foto de telemóvel, ou seja, quadrados de cor.
+      if (reguaAgarrada && vista.z < 3) {
         var pAlvo = px(reguaPontas[reguaAgarrada]);
         var raio = 52, zoom = 3;
         var cx = pAlvo.x < larguraCss / 2 ? larguraCss - raio - 10 : raio + 10;
@@ -7743,8 +7806,7 @@
     // e o "touch-action:none" no canvas impede a página de andar debaixo do
     // dedo enquanto se arrasta.
     function pontaPerto(x, y) {
-      var larguraCss = asstMedirCanvas.clientWidth;
-      var alturaCss = asstMedirCanvas.clientHeight;
+      var b = baseDaVista();
       var maisPerto = null, melhor = 24; // raio de agarrar, em px de ecrã
       // Com a referência trancada, as pegas azuis deixam de responder --
       // com as duas linhas cruzadas (o caso normal: uma ao alto para a
@@ -7753,7 +7815,8 @@
       var pegas = asstMedirTravar.checked ? ["medA", "medB"] : ["refA", "refB", "medA", "medB"];
       pegas.forEach(function (k) {
         var p = reguaPontas[k];
-        var dx = p.x * larguraCss - x, dy = p.y * alturaCss - y;
+        var dx = (vista.ox + p.x * b.l * vista.z) - x;
+        var dy = (vista.oy + p.y * b.a * vista.z) - y;
         var d = Math.sqrt(dx * dx + dy * dy);
         if (d < melhor) { melhor = d; maisPerto = k; }
       });
@@ -7765,42 +7828,121 @@
       return { x: ev.clientX - r.left, y: ev.clientY - r.top };
     }
 
+    // Ecrã -> 0..1 da imagem. Com a vista ampliada, é aqui que o zoom se
+    // paga: o mesmo píxel de dedo passa a valer uma fracção muito mais
+    // pequena da imagem, que é exactamente o objectivo.
+    //
+    // Prende a 0..1, os limites da própria foto -- e não a uma margem
+    // dentro dela, como era antes do zoom. A margem existia para uma pega
+    // encostada à borda não ficar meia fora do canvas e sem se conseguir
+    // agarrar; com a vista a poder deslocar-se, traz-se essa pega para o
+    // meio e o problema desaparece. E deixa de haver o efeito colateral:
+    // uma coisa encostada à borda da foto voltou a ser mensurável.
+    function normalizado(p) {
+      var b = baseDaVista();
+      return {
+        x: Math.min(1, Math.max(0, (p.x - vista.ox) / (b.l * vista.z))),
+        y: Math.min(1, Math.max(0, (p.y - vista.oy) / (b.a * vista.z)))
+      };
+    }
+
+    // Dedos/ratos em cima do canvas ao mesmo tempo. Um só arrasta (uma pega
+    // ou, se não apanhar nenhuma, a própria vista); dois fazem pinça.
+    var dedos = new Map();
+    var pinca = null;
+    var arrastoVista = null;
+
+    function distanciaDedos() {
+      var v = Array.from(dedos.values());
+      var dx = v[0].x - v[1].x, dy = v[0].y - v[1].y;
+      return { d: Math.sqrt(dx * dx + dy * dy), mx: (v[0].x + v[1].x) / 2, my: (v[0].y + v[1].y) / 2 };
+    }
+
     asstMedirCanvas.addEventListener("pointerdown", function (ev) {
       if (!reguaPontas) return;
       var p = posNoCanvas(ev);
-      reguaAgarrada = pontaPerto(p.x, p.y);
-      if (reguaAgarrada) {
-        asstMedirCanvas.setPointerCapture(ev.pointerId);
-        ev.preventDefault();
+      dedos.set(ev.pointerId, p);
+      asstMedirCanvas.setPointerCapture(ev.pointerId);
+      ev.preventDefault();
+      if (dedos.size === 2) {
+        // Segundo dedo: passa a pinça, e larga o que estivesse a arrastar
+        // -- senão a pega ia atrás do zoom e estragava a medida.
+        reguaAgarrada = null;
+        arrastoVista = null;
+        var f = distanciaDedos();
+        pinca = { d0: f.d, z0: vista.z };
+        return;
       }
+      if (dedos.size > 2) return;
+      reguaAgarrada = pontaPerto(p.x, p.y);
+      // Fora de uma pega, o dedo passeia a vista. É como qualquer mapa
+      // funciona, e poupa um modo "mão" à parte.
+      if (!reguaAgarrada) arrastoVista = { x: p.x, y: p.y, ox: vista.ox, oy: vista.oy };
     });
 
     asstMedirCanvas.addEventListener("pointermove", function (ev) {
-      if (!reguaAgarrada || !reguaPontas) return;
+      if (!reguaPontas || !dedos.has(ev.pointerId)) return;
       var p = posNoCanvas(ev);
-      var larguraCss = asstMedirCanvas.clientWidth;
-      var alturaCss = asstMedirCanvas.clientHeight;
-      // Uma pega encostada a 0 ou a 1 ficava meia fora do canvas e
-      // impossível de voltar a agarrar (visto numa foto real: a pega de
-      // baixo da linha azul cortada ao meio pela borda). Fica presa a meio
-      // círculo da borda.
-      var margemX = 9 / larguraCss, margemY = 9 / alturaCss;
-      reguaPontas[reguaAgarrada] = {
-        x: Math.min(1 - margemX, Math.max(margemX, p.x / larguraCss)),
-        y: Math.min(1 - margemY, Math.max(margemY, p.y / alturaCss))
-      };
+      dedos.set(ev.pointerId, p);
+      if (pinca && dedos.size === 2) {
+        var f = distanciaDedos();
+        if (f.d > 0 && pinca.d0 > 0) ampliarEm(pinca.z0 * (f.d / pinca.d0), f.mx, f.my);
+        return;
+      }
+      if (arrastoVista) {
+        vista.ox = arrastoVista.ox + (p.x - arrastoVista.x);
+        vista.oy = arrastoVista.oy + (p.y - arrastoVista.y);
+        arrumarVista();
+        asstDesenharRegua();
+        return;
+      }
+      if (!reguaAgarrada) return;
+      reguaPontas[reguaAgarrada] = normalizado(p);
       asstDesenharRegua();
     });
 
     ["pointerup", "pointercancel"].forEach(function (ev) {
-      asstMedirCanvas.addEventListener(ev, function () {
-        if (!reguaAgarrada) return;
-        reguaAgarrada = null;
-        asstDesenharRegua();  // sem isto a lupa ficava lá, agarrada ao ecrã
+      asstMedirCanvas.addEventListener(ev, function (e) {
+        dedos.delete(e.pointerId);
+        if (dedos.size < 2) pinca = null;
+        if (!dedos.size) {
+          arrastoVista = null;
+          if (reguaAgarrada) {
+            reguaAgarrada = null;
+            asstDesenharRegua();  // sem isto a lupa ficava lá, agarrada ao ecrã
+          }
+        }
       });
     });
 
-    window.addEventListener("resize", function () { if (reguaImg) asstDesenharRegua(); });
+    // Roda do rato: para quem está ao computador, é o gesto que se espera.
+    asstMedirCanvas.addEventListener("wheel", function (ev) {
+      if (!reguaPontas) return;
+      ev.preventDefault();
+      var p = posNoCanvas(ev);
+      ampliarEm(vista.z * (ev.deltaY < 0 ? 1.2 : 1 / 1.2), p.x, p.y);
+    }, { passive: false });
+
+    // Botões, porque nem toda a gente faz pinça e num rato sem roda não há
+    // outra forma. Ampliam pelo centro do que está à vista.
+    function ampliarPeloCentro(fator) {
+      var b = baseDaVista();
+      ampliarEm(vista.z * fator, b.l / 2, b.a / 2);
+    }
+    document.getElementById("asst-medir-mais").addEventListener("click", function () { ampliarPeloCentro(1.5); });
+    document.getElementById("asst-medir-menos").addEventListener("click", function () { ampliarPeloCentro(1 / 1.5); });
+    document.getElementById("asst-medir-repor").addEventListener("click", function () {
+      vista = { z: 1, ox: 0, oy: 0 };
+      asstDesenharRegua();
+    });
+
+    window.addEventListener("resize", function () {
+      if (!reguaImg) return;
+      // A moldura mudou de tamanho; o que estava à vista tem de continuar
+      // dentro dela.
+      arrumarVista();
+      asstDesenharRegua();
+    });
 
     function medidaOuAviso() {
       var m = asstCalcularRegua();
