@@ -517,8 +517,29 @@ está no 3D), e um projeto **só com cúpula** passou a ser um projeto — o
 `lzPayloadPreview()` já não devolve `null` por não haver zonas. Do lado do
 Preview, ver a secção de 12 de setembro no `PARA-CONTINUAR.md` dele.
 
-**Fica por fazer** (não bloqueante): as pontes automáticas. Hoje os lúmenes e
-a resolução escrevem-se à mão; podiam vir da **Distância de Projeção** e a
+**Os projetores também vão ao 3D — feito a seguir (v3.48 aqui, v3.03 no
+Preview).** Pedido: *"OK CUPULA TENHO E PROJECTORES"*. A ponte passou a levar
+`dome.projetores = { n, arranjo }` — só **quantos** e **como**, que é o que a
+calculadora sabe. **Onde** ficam é conta do desenho, não da calculadora: o
+Preview põe o do zénite ao centro a apontar a prumo e os restantes num anel
+encostado por dentro à base (`raio = a − 0,5 m`, altura `min(1,2; h×0,12)`),
+cada um com um traço a dizer para onde aponta. É a colocação que as fontes
+nomeiam ("center or horizon cove placement"); a altura real de uma cove
+depende da lente e decide-se na obra, por isso fica baixa e indicativa, e o
+desenho di-lo em vez de fingir precisão que não tem.
+
+**Seletor de projetor na aba Dome — feito na v3.48.** Pedido: *"E DEVIA
+ESCOLHER PROJETOR NA DOME"*. Escolher um modelo preenche **os lúmenes e mais
+nada**, com o link da fonte ao lado e a cor de stock como nas outras abas.
+A resolução continua por escrever à mão de propósito: o mesmo projetor
+vende-se com painéis diferentes (e com modos "enhanced"), o catálogo só
+guarda os lúmenes com fonte, e pôr lá uma resolução era inventar dados
+técnicos. Escrever os lúmenes à mão volta o seletor a "Personalizado…", para
+nunca ficar um modelo à vista com um número que não é dele — e com o link da
+fonte ao lado, o que seria pior do que não ter link.
+
+**Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
+ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o
 **Sinal & Data Rate**. O resumo já entra no relatório do projeto pelo
 "Adicionar ao projeto".
