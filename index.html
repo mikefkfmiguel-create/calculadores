@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.59</span>
+    <span class="mark" id="app-versao">v3.60</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2150,9 +2150,9 @@
               <div class="hint">Recupera píxeis usando a largura toda do quadro, mas corta cúpula.</div>
             </div>
             <div class="field">
-              <label for="dome-alvo">Alvo de resolução</label>
+              <label for="dome-alvo">Alvo de resolução (o grão da imagem)</label>
               <div class="inputgroup"><input id="dome-alvo" type="number" autocomplete="off" inputmode="decimal" value="3" min="0.5" max="20" step="0.5"><span class="unit">arcmin/px</span></div>
-              <div class="hint">3 arcmin é o limite do olho na literatura de fulldome. Em linguagem de LED, é o tamanho que cada píxel tem na superfície — ver a leitura ao lado.</div>
+              <div class="hint">Um arcmin é 1/60 de grau: é o <b>pitch do LED traduzido em ângulo</b> — o tamanho com que o píxel <em>chega ao olho</em>, e não o tamanho dele na parede. <b>Menor = mais fino.</b> Deixa 3: é onde o olho deixa de separar píxeis, na literatura de fulldome. Quanto é que isto dá na tua montagem — e quantos mm de pitch são — está na leitura <b>Resolução angular</b>.</div>
             </div>
           </div>
         </details>
