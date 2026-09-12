@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.44</span>
+    <span class="mark" id="app-versao">v3.45</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -7698,11 +7698,24 @@
       // 5 px de erro numa imagem pequena é metade do erro da medida toda.
       // A lupa mostra o que está debaixo do dedo, num canto que o dedo não
       // esteja a tapar.
-      // Acima de 3× já é a própria vista que amplia: a lupa em cima disso
-      // dava 30× de uma foto de telemóvel, ou seja, quadrados de cor.
-      if (reguaAgarrada && vista.z < 3) {
+      // A lupa aparece SEMPRE que se está a arrastar, a qualquer zoom.
+      //
+      // Houve uma versão que a desligava acima de 3×, com o argumento de
+      // que aí já era a vista a ampliar. Argumento errado, e reportado
+      // depressa: "quando faço demasiado zoom a lupa desaparece". Ampliar e
+      // ver debaixo do dedo são dois problemas diferentes -- o dedo tapa o
+      // ponto exactamente da mesma maneira com a vista a 1× ou a 10×, e é
+      // justamente com muito zoom que se está a afinar o último píxel.
+      //
+      // O que se controla é só a ampliação da lupa, para não empilhar zoom
+      // sobre zoom e acabar em quadrados de cor: o total (vista × lupa)
+      // fica em ~4× a foto inteira, e acima disso a lupa passa a 1:1 com a
+      // vista -- deixa de ampliar e fica só a servir de janela para o que
+      // está escondido, que é o que faz falta.
+      if (reguaAgarrada) {
         var pAlvo = px(reguaPontas[reguaAgarrada]);
-        var raio = 52, zoom = 3;
+        var raio = 52;
+        var zoom = Math.min(3, Math.max(1, 4 / vista.z));
         var cx = pAlvo.x < larguraCss / 2 ? larguraCss - raio - 10 : raio + 10;
         var cy = pAlvo.y < alturaCss / 2 ? alturaCss - raio - 10 : raio + 10;
         ctx.save();
@@ -7777,10 +7790,15 @@
       }
       // 2. Referência e medida em direções diferentes. Numa foto com
       //    perspetiva, o nº de píxeis por metro na vertical não é o mesmo
-      //    que na horizontal -- medir ao comprido com uma referência ao
-      //    alto (ou o contrário) é o erro mais fácil de cometer aqui, e o
-      //    mais caro. Reportado a ver uma medida de 32,60 m tirada de uma
-      //    referência vertical curta.
+      //    que na horizontal.
+      //
+      //    A redação está calibrada por dois casos reais do mesmo
+      //    utilizador, os dois com referência ao alto e medida ao
+      //    comprido: numa foto tirada de baixo e de lado, um ecrã de 8 m
+      //    deu 9,18 (+15%); noutra, mais de frente e com os pontos postos
+      //    com zoom, o mesmo ecrã deu 7,97 (-0,4%). Logo isto não é "está
+      //    errado" -- é "pode estar, e depende de quão de frente foi
+      //    tirada". Dizer mais do que isso seria alarme falso a 0,4%.
       var angRef = Math.abs(Math.atan2((reguaPontas.refA.y - reguaPontas.refB.y) * reguaImg.height,
                                        (reguaPontas.refA.x - reguaPontas.refB.x) * reguaImg.width));
       var angMed = Math.abs(Math.atan2((reguaPontas.medA.y - reguaPontas.medB.y) * reguaImg.height,
@@ -7789,7 +7807,7 @@
       if (aoAlto(angRef) !== aoAlto(angMed)) {
         avisos.push("A referência está " + (aoAlto(angRef) ? "ao alto" : "ao comprido") +
           " e estás a medir " + (aoAlto(angMed) ? "ao alto" : "ao comprido") +
-          " — numa foto com perspetiva isso engana. Usa uma referência na mesma direção do que queres medir.");
+          ". Numa foto tirada de frente isso quase não se nota; de esguelha, ou de muito baixo/alto, pode dar 10 a 15% de erro. Se houver, usa uma referência na mesma direção — e confirma.");
       }
       asstMedirNota.textContent = avisos.length
         ? avisos.join(" ")

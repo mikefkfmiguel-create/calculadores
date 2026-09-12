@@ -231,8 +231,39 @@ que entra inteiro na medida.
 - As pegas voltaram a poder encostar-se à borda da foto (a margem que as
   travava existia só porque não havia como as trazer para o meio).
 
-**Falta:** nada de bloqueante nesta parte. Se a precisão ainda não chegar,
-o passo seguinte é um modo de ecrã inteiro.
+**Correcções na v3.45, das duas a sério:**
+
+- **A lupa desaparecia com muito zoom.** Reportado: *"quando faço demasiado
+  zoom a lupa desaparece"* — e com razão. Eu tinha-a desligado acima de 3×
+  com o argumento de que aí já era a vista a ampliar, e o argumento estava
+  errado: ampliar e ver debaixo do dedo são dois problemas diferentes. O
+  dedo tapa o ponto da mesma maneira a 1× ou a 10×, e é justamente com
+  muito zoom que se está a afinar o último píxel. Agora aparece sempre; o
+  que se controla é só a ampliação dela (o total fica em ~4× a foto
+  inteira, e acima disso passa a 1:1 com a vista, a servir de janela em vez
+  de ampliar).
+- **O aviso das direções estava a gritar demasiado.** Está agora calibrado
+  por dois casos reais do mesmo utilizador, ambos com referência ao alto e
+  medida ao comprido: numa foto tirada de baixo e de lado, um ecrã de 8 m
+  deu 9,18 (+15%); noutra, mais de frente e com os pontos postos com zoom,
+  o mesmo ecrã deu **7,97 (−0,4%)**. Conclusão que mudou a leitura do
+  problema: o erro dos 15% era sobretudo **pontos mal postos**, não
+  perspetiva. O aviso passa a dizer "pode estar errado, depende de quão de
+  frente foi tirada" em vez de "isso engana".
+
+**Precisão medida em uso real:** 7,97 m num ecrã de 8,00 m, com zoom para
+pôr os pontos. É o número a ter em conta ao decidir se vale a pena a
+correcção de perspetiva por 4 pontos (abaixo).
+
+**Proposto, à espera de decisão: correcção de perspetiva por 4 pontos
+(homografia).** Em vez de uma linha, marcam-se os quatro cantos de algo
+retangular conhecido (o ecrã, um palco, um retângulo no chão) e dão-se a
+largura e a altura reais. A partir daí qualquer medida naquele plano sai
+certa — ao alto, ao comprido ou na diagonal — e independentemente do ângulo
+da câmara. Acaba com o problema das direções e com o da foto de esguelha.
+Meia tarde de trabalho, matemática bem definida. Fica **ao lado** da régua
+de duas linhas, não a substitui: para uma medida rápida a régua é mais
+prática, e a 0,4% de erro pode até bastar.
 
 Continuam por fazer os outros dois caminhos da tabela abaixo: a **memória de
 salas** (GPS) e o **AR**.
