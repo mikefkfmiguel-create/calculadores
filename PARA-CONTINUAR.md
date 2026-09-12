@@ -184,9 +184,35 @@ Verificado com geometria conhecida: numa imagem 800×600, referência de
 5,00; o desvio é o arredondamento do próprio arrasto). Testado também a
 arrastar com o dedo num ecrã de 390 px.
 
-**Falta destes dois:** um modo de ampliar o canvas para ecrã inteiro. Num
-telemóvel a régua fica com ~310 px de largura, que chega mas é apertado para
-apontar cantos com precisão.
+**Retoques na v3.43, todos vindos de a usar a sério num telemóvel** (foto
+real de um pavilhão, com a régie em primeiro plano):
+
+- **As duas legendas escreviam-se uma por cima da outra.** Com a referência
+  ao alto e a medida ao comprido — que é o caso normal — as linhas
+  cruzam-se, os dois pontos médios ficam quase no mesmo sítio, e saía
+  "referêra medir". Agora medem-se as caixas e, se colidirem, uma sobe e a
+  outra desce.
+- **As legendas dizem o valor, não o nome:** "referência 3,00 m" e
+  "5,28 m". Antes a medida só existia num campo por baixo da imagem, fora do
+  ecrã enquanto se arrasta com o dedo — que foi exactamente o que levou à
+  pergunta *"como fixo a referência para ele usar"*.
+- **Pegas presas à borda.** Uma pega encostada ao limite ficava meia fora do
+  canvas e impossível de voltar a agarrar.
+- **Cadeado na referência.** Depois de a acertar, tranca-se e só a laranja
+  se mexe; as pegas azuis passam a quadrados para se ver que não respondem.
+  Destranca-se sozinho ao carregar uma foto nova (senão as linhas ficavam
+  presas nas posições de partida).
+- **Aviso novo: referência e medida em direções diferentes.** Medir ao
+  comprido com uma referência ao alto é o erro mais fácil de cometer aqui e
+  o mais caro — numa foto com perspetiva o nº de píxeis por metro não é
+  igual nas duas direções. Apanhado a ver uma medida de 32,60 m tirada de
+  uma referência vertical curta.
+- **Instruções fechadas por omissão.** Seis linhas de texto empurravam a
+  imagem para fora do ecrã do telemóvel, e a imagem é a ferramenta.
+
+**Falta:** um modo de ampliar o canvas para ecrã inteiro. Num telemóvel a
+régua fica com ~310 px de largura, que chega mas é apertado para apontar
+cantos com precisão.
 
 Continuam por fazer os outros dois caminhos da tabela abaixo: a **memória de
 salas** (GPS) e o **AR**.
