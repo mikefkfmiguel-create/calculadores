@@ -777,6 +777,28 @@ correções de um relato só, e três eram erros meus:
    **Por fazer:** acrescentar dimensões (com fonte) ao catálogo, e então isto
    vem preenchido como os lúmenes e a resolução.
 
+**v3.57 — um aproveitamento de 327% e um veredicto a dizer "cumpre o alvo".**
+Apanhado ao ir responder a *"porque está a indicar 5"*: a resposta era simples
+(5 é o chão de píxeis — 10,2 MP que a cúpula pede a dividir por 2,3 MP do
+projetor), mas ao lado dela estava um número impossível. Com 4 projetores de
+1920×1200 e 6 imagens a atravessar o pólo, a aba dizia **327 %** de
+aproveitamento — 30,1 MP úteis de 9,2 MP instalados — e o veredicto ainda
+confirmava "Cumpre o alvo: 1,74 arcmin/px".
+
+A causa: as "imagens a atravessar o pólo" nunca eram confrontadas com o
+hardware. Nada impedia pedir um dome master que aqueles projetores não têm
+píxeis para fazer. Agora o aproveitamento acima de 100% aparece como
+**"impossível"** e o veredicto diz o que falta:
+
+```
+pi/4 * (k*base*(1-blend))^2 <= qtd*pxH*pxV
+```
+
+— donde sai o máximo de atravessamentos que aquele parque suporta, e quantos
+projetores é que os atravessamentos pedidos exigiriam. É o mesmo erro que já
+tinha aparecido no fisheye truncado (aproveitamento acima de 100%), agora
+fechado pela raiz.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
 ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o

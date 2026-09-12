@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.56</span>
+    <span class="mark" id="app-versao">v3.57</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -7178,7 +7178,10 @@
       el["out-master"].innerHTML = fmtInt(dMaster) + "<small>px de diâmetro</small><small> — " + fmt(pxUteis / 1e6, 1) + (truncado ? " MP a chegar à cúpula" : " MP no círculo") + "</small>";
       el["out-arcmin"].innerHTML = fmt(arcmin, 2) + "<small>arcmin/px</small>";
       el["out-ppd"].innerHTML = fmt(ppd, 1) + "<small>px/grau</small>";
-      el["out-aprov"].innerHTML = fmt(aprov * 100, 0) + "<small>%</small><small> — " + fmt(pxUteis / 1e6, 1) + " MP úteis de " + fmt(pxInstalados / 1e6, 1) + " MP instalados</small>";
+      var aprovImpossivel = aprov > 1.0005;
+      el["out-aprov"].innerHTML = (aprovImpossivel ? "impossível" : fmt(aprov * 100, 0) + "<small>%</small>") +
+        "<small> — " + fmt(pxUteis / 1e6, 1) + " MP úteis de " + fmt(pxInstalados / 1e6, 1) +
+        " MP instalados" + (aprovImpossivel ? ", ou seja mais do que os projetores têm" : "") + "</small>";
       // A tabela da IMERSA acaba em "4096x4096 or greater" -- acima disso não
       // há tamanho normalizado. O passo seguinte que a literatura descreve em
       // uso real é 8192 (masters 8K square, e sistemas 8k x 8k), por isso é
@@ -7311,8 +7314,29 @@
         el["lente-veredicto"].innerHTML = texto;
       }
 
+      // Um aproveitamento acima de 100% é impossível: significa que o dome
+      // master pedido tem mais píxeis do que os projetores têm para dar.
+      // Acontecia porque "imagens a atravessar o pólo" não era confrontado
+      // com o hardware -- dava 327% e o veredicto ainda dizia "cumpre o
+      // alvo". Reportado ao perguntar "porque está a indicar 5".
+      //
+      // Quantos atravessamentos é que estes projetores suportam:
+      //   pi/4 * (k*base*(1-blend))^2 <= qtd*pxH*pxV
+      var atravessaMax = Math.max(1, Math.floor(
+        Math.sqrt(pxInstalados * 4 / Math.PI) / (base * (1 - blend))));
+      var impossivel = aprov > 1.0005;
+
       var veredicto;
-      if (arcmin <= alvo) {
+      if (impossivel) {
+        veredicto = "Isto não é possível: o dome master pedido tem " +
+          fmt(pxUteis / 1e6, 1) + " MP e os " + qtd + " projetores só dão " +
+          fmt(pxInstalados / 1e6, 1) + " MP. " + atravessa +
+          " imagens a atravessar o pólo com esta resolução pedem pelo menos " +
+          Math.ceil(pxUteis / (pxH * pxV)) + " projetores; com " + qtd +
+          " projetores deste modelo, o máximo que atravessa o pólo é " + atravessaMax +
+          ". Baixa os atravessamentos ou sobe o nº de projetores — os arcmin/px " +
+          "aqui em cima estão a contar píxeis que ninguém tem.";
+      } else if (arcmin <= alvo) {
         veredicto = "Cumpre o alvo: " + fmt(arcmin, 2) + " arcmin/px contra os " + fmt(alvo, 1) +
           " pedidos. " + (arcmin < alvo / 2
             ? "Está com folga de sobra — há aqui píxeis a mais do que o olho aproveita."
