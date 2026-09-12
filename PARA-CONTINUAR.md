@@ -150,10 +150,46 @@ com o telemóvel ou tablet"* e *"até o GPS pode dar informação de onde estamo
 e procurar medi[das]"*.
 
 O diagnóstico está certo, e é o mesmo que a própria app já admite no texto ao
-lado do campo de imagem: **uma foto não tem escala**. Nada disto está
-construído — o que está feito é o levantamento.
+lado do campo de imagem: **uma foto não tem escala**.
 
 **Plataforma:** *"poderá ser nos dois, mas maioritariamente para Android."*
+
+#### Os dois primeiros passos estão FEITOS — 12 de setembro (v3.42)
+
+Na aba Assistente de Projeto:
+
+- **Tirar a foto ali mesmo.** Botão "📷 Tirar foto agora"
+  (`capture="environment"`), que **só aparece onde há mesmo câmara** —
+  perguntado por `enumerateDevices()`, que responde sem pedir autorização
+  nenhuma. Num portátil sem câmara o `capture` era ignorado e ficavam dois
+  botões a fazer o mesmo. A foto tirada entra pelo mesmo campo da carregada
+  à mão, para o "Analisar" não ter de saber de onde ela veio.
+- **A régua.** Duas linhas arrastáveis por cima da foto: a azul aponta uma
+  coisa de medida conhecida e escreve-se quanto mede, a laranja mede o que
+  se quiser. A conta faz-se em píxeis **nativos** da imagem (não do canvas),
+  por isso rodar o telemóvel não mexe em nada. Há **lupa** enquanto se
+  arrasta, porque num telemóvel o dedo tapa exactamente o ponto que se está
+  a apontar — e 5 px de erro a apontar o canto de uma porta são metade do
+  erro da medida final.
+- O resultado sai para a **largura da sala**, para o **pé-direito**, ou
+  junta-se ao texto do pedido — sempre marcado como *"medida na foto (por
+  referência, aproximada)"*, nunca como medida a sério.
+- A app **diz onde isto falha**: só vale para coisas no mesmo plano da
+  referência, com a câmara mais ou menos de frente. E avisa sozinha quando a
+  referência é curta na imagem (menos de 15% do lado maior), onde o erro
+  dispara.
+
+Verificado com geometria conhecida: numa imagem 800×600, referência de
+300 px declarada como 3,00 m e medida de 500 px → **4,99 m** (o certo é
+5,00; o desvio é o arredondamento do próprio arrasto). Testado também a
+arrastar com o dedo num ecrã de 390 px.
+
+**Falta destes dois:** um modo de ampliar o canvas para ecrã inteiro. Num
+telemóvel a régua fica com ~310 px de largura, que chega mas é apertado para
+apontar cantos com precisão.
+
+Continuam por fazer os outros dois caminhos da tabela abaixo: a **memória de
+salas** (GPS) e o **AR**.
 
 #### O que um site consegue mesmo pedir ao telemóvel (verificado, 11/9)
 
@@ -171,12 +207,12 @@ construído — o que está feito é o levantamento.
 
 #### Os quatro caminhos, por custo
 
-| | Onde funciona | Esforço |
-|---|---|---|
-| **Fotografar na hora** (`capture="environment"` no input) | Android **e** iPhone | Cinco minutos |
-| **Escala por referência conhecida** na foto | Android **e** iPhone | Uma tarde |
-| **Memória de salas** (GPS a reconhecer onde já estiveste) | Android **e** iPhone | Uma tarde |
-| **Medir por AR** (WebXR + hit-test) | **Só Android** | Vários dias, e frágil onde mais faz falta |
+| | Onde funciona | Esforço | Estado |
+|---|---|---|---|
+| **Fotografar na hora** (`capture="environment"` no input) | Android **e** iPhone | Cinco minutos | **feito (v3.42)** |
+| **Escala por referência conhecida** na foto | Android **e** iPhone | Uma tarde | **feito (v3.42)** |
+| **Memória de salas** (GPS a reconhecer onde já estiveste) | Android **e** iPhone | Uma tarde | por fazer |
+| **Medir por AR** (WebXR + hit-test) | **Só Android** | Vários dias, e frágil onde mais faz falta | por fazer |
 
 **Regra de desenho, decidida:** o caminho universal é a base; o AR é um extra
 que só aparece onde funciona (`navigator.xr.isSessionSupported("immersive-ar")`).
@@ -211,12 +247,19 @@ E, em qualquer dos casos: um número que venha daqui **nunca** pode aparecer
 como medida confirmada. Vem marcado como medido pelo telemóvel, com a sua
 incerteza — tal como a app já marca as estimativas da IA.
 
-#### Por decidir
+#### Por decidir — o que vem a seguir
 
-Por onde começar. A recomendação é de cima para baixo na tabela: o
-`capture="environment"` sozinho já muda o dia-a-dia e custa cinco minutos, e
-com a escala por referência feita primeiro, o AR passa a ser uma melhoria em
-vez de uma condição para a coisa existir.
+As duas primeiras linhas da tabela estão feitas, e foi de propósito por essa
+ordem: agora o AR seria uma melhoria, não a condição para a coisa existir.
+
+A seguir, por ordem de retorno:
+
+1. **Ampliar a régua para ecrã inteiro** — pequeno, e é o que separa
+   "consigo medir" de "consigo medir bem" num telemóvel.
+2. **Memória de salas** — mede-se uma vez, guarda-se com o nome, e da
+   próxima vez o GPS (ou só o nome) traz de volta o que **tu** mediste. É a
+   opção que dá dados com fonte em vez de adivinhados, e melhora com o uso.
+3. **AR** — só Android, e fraco exactamente num pavilhão vazio.
 
 ## Esta pasta ficou parada, e já não está
 
