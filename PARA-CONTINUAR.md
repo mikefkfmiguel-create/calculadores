@@ -734,6 +734,49 @@ do número, a altura a definir a base, e a aproximação da lente) foi para o
 "Como usar esta calculadora", que está lá para isso e abre-se só quando se
 quer.
 
+**v3.56 — a aba passou a devolver o número, e a lente mede da lente.** Quatro
+correções de um relato só, e três eram erros meus:
+
+1. **A sobreposição comia a base da imagem.** *"Está a perder a base de imagem
+   consoante a sobreposição que lhe dou"* — e estava: o blend crescia a fatia
+   também para BAIXO, empurrando o bordo abaixo do plano do projetor. Mas esse
+   bordo é um limite físico, não uma margem com que se jogue: duas fatias
+   sobrepõem-se uma na outra, nenhuma se sobrepõe ao chão da imagem. Agora o
+   blend cresce para os lados e para cima, e o chão fica quieto — verificado a
+   0, 25 e 45% de blend: a faixa sem imagem começa sempre no mesmo theta (68°
+   numa cúpula de 8 m com montagem a 1,5 m) e só o azimute cresce (90° → 113°
+   → 131°).
+
+2. **A base da imagem tem leitura própria.** *"Altura do projetor ao chão, que
+   é onde deve começar a imagem, diâmetro base da imagem"*: a aba diz agora
+   "começa a 1,50 m do chão — a cúpula tem aí 7,42 m de diâmetro; 37 % da
+   superfície fica por baixo, sem imagem". O diâmetro é o raio horizontal da
+   calota nessa altura, `2·√(R² − (y − cy)²)`.
+
+3. **Quantos, consoante a montagem e a lente.** Este é o número que faltava e
+   que o chão de píxeis não dá: com esta lente, a esta distância, cada projetor
+   faz uma imagem de `dist / TRmín` de largura, que fecha um setor de azimute;
+   quantos setores é que são precisos para os 360°, descontada a sobreposição.
+   Com uma lente de 2,0–3,0:1 numa cúpula de 8 m dá **7** (6 em anel + 1 no
+   zénite), 3,01 m a 6,02 m, 85° de azimute cada — com botão "Usar 7".
+   **Apanhado a testar:** com uma lente ultra-short-throw a conta dava "25,60 m
+   de largura" numa cúpula de 8 m — aritmética certa a dizer um absurdo. Nesse
+   caso a cobertura deixa de ser a restrição, e a aba di-lo em vez de cuspir o
+   número.
+
+4. **A distância mede-se DA LENTE.** *"Tendo em conta tamanho do mesmo em
+   profundidade, uma vez que o cálculo da lente é a partir dela e não da
+   posição do projetor"* — certo, e não estava. Há campo "Profundidade até à
+   lente": o corpo assenta no anel, a lente fica esse tanto mais para dentro, e
+   é de lá que se conta. Muda o resultado a sério: 0 / 0,70 / 1,40 m dão
+   6,60 / 5,91 / 5,22 m de distância e 1,07 / 0,96 / 0,85:1 de rácio. No 3D é a
+   lente que fica no vértice do feixe.
+
+   **O catálogo não tem dimensões de projetores** — nem `data/projectors.json`
+   nem `data/lenses.json` —, por isso o número é do utilizador e a dica di-lo.
+   **Por fazer:** acrescentar dimensões (com fonte) ao catálogo, e então isto
+   vem preenchido como os lúmenes e a resolução.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
 ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o
