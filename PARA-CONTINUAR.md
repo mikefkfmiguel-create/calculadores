@@ -620,6 +620,50 @@ numérico dá os atravessamentos.
   uma com quem a diz, e a dizer que **não há fórmula** — inventar uma seria
   inventar dados técnicos.
 
+**A sugestão passou a dar um NÚMERO — v3.52.** Reportado: *"poderia dar a
+sugestão de quantos projetores"*. A dica da v3.50 listava as configurações das
+fontes e dizia "não há fórmula" — verdade, mas deixava a pessoa sem número
+nenhum. Há um que se dá sem inventar nada: a cúpula precisa de
+`π/4 × dMaster²` píxeis para cumprir o alvo, cada projetor tem `pxH × pxV`, e
+a divisão é um **chão que nenhum arranjo pode furar**. Numa cúpula de 8 m a
+3 arcmin/px com um PT-RZ120B: 10,2 MP ÷ 2,3 MP = **5 projetores**. Com botão
+"Usar N", e dito como chão e não como recomendação — nenhum arranjo real
+aproveita 100%.
+
+Também se mostra, pela geometria das faixas, **quantas imagens um meridiano
+atravessa em cada colocação**: 1 ao centro com fisheye, 2 num anel sem
+zénite, 3 com zénite, 5 num anel duplo (exterior, interior, calota, interior,
+exterior). O exemplo trabalhado do 7thSense — "3 × 1080 a atravessar o pólo"
+num anel com zénite — cai exactamente nos três. Isto é o que o campo único
+antigo estava a codificar; separado, deixa de mandar na resolução e passa a
+ser informação.
+
+Sai daqui uma tensão útil: com 3 atravessamentos e um PT-RZ120B não se chega
+aos 3 arcmin/px (precisava de 4), e a aba di-lo em vez de a pessoa descobrir
+na obra.
+
+**A altura de montagem é campo — v3.52.** Reportado: *"a altura a que estão,
+pois não serão no chão, serão sempre elevados"*, e tinha razão. O 3D punha-os
+a 12% da altura da cúpula (máximo 1,2 m), ou seja praticamente no chão, com o
+comentário a dizer que era indicativo — mas indicativo errado continua a ser
+errado. Agora há campo, vai na ponte (`dome.projetores.altura`) e o 3D
+usa-o, o do zénite incluído. Em branco mantém-se o valor baixo, e o painel
+diz que é indicativo e não uma cota.
+
+**O que a aba NÃO estima, e porque — dito na própria dica.** Reportado:
+*"e a lente vai influenciar"*, e influencia: o que decide o número acima do
+chão de píxeis é a **cobertura** — quanto de cúpula cada máquina alcança do
+sítio onde está pendurada, o que é a lente e a altura de montagem. Um throw
+ratio dá largura de imagem a uma distância num ecrã plano; sobre uma
+superfície curva, com off-axis e shift, não sai daí um número defensável sem
+contas que ainda não estão aqui. A dica diz isso em vez de pôr lá um valor.
+**Próximo passo natural** (não iniciado): inverter o problema — a partir da
+fatia que cada projetor tem de cobrir e da altura de montagem, calcular o
+throw ratio NECESSÁRIO e confrontá-lo com o `data/lenses.json`, que já tem as
+lentes com fonte. A aproximação fica só no "retângulo sobre superfície
+curva", e a resposta passa a ser uma pergunta de catálogo ("existe lente que
+chegue lá?"), que é verificável.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
 ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o
