@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.41</span>
+    <span class="mark" id="app-versao">v3.42</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -116,7 +116,8 @@
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
         <p>Cola aqui o texto de um pedido/briefing, ou carrega um PDF do projeto ou uma foto/render de um evento (PNG ou JPEG). Um modelo de IA lê o documento e tenta extrair as medidas, o tipo de ecrã e outros requisitos.</p>
-        <p>Numa foto, a IA só identifica o que vê (ex: "é um ecrã LED", "parece um videowall curvo") — <strong>nunca mede tamanhos a partir da imagem</strong> (uma foto não tem escala fiável). Para replicar um evento fotografado numa sala nova, escreve as dimensões reais dessa sala no texto ao lado — o dimensionamento sai sempre daí, nunca da imagem.</p>
+        <p>Numa foto, a IA só identifica o que vê (ex: "é um ecrã LED", "parece um videowall curvo") — <strong>nunca mede tamanhos a partir da imagem</strong>. Para replicar um evento fotografado numa sala nova, escreve as dimensões reais dessa sala no texto ao lado — o dimensionamento sai sempre daí.</p>
+        <p>Se precisares mesmo de tirar uma medida da foto, há a <strong>régua</strong>: apontas na imagem uma coisa de medida conhecida (uma porta, um tile, uma marca no chão), dizes quanto mede, e a app dá escala ao resto. Com câmara no aparelho, dá também para <strong>tirar a foto ali mesmo</strong>. A régua é aproximada e só vale para coisas no mesmo plano da referência, com a câmara mais ou menos de frente — serve para uma ordem de grandeza, não para cortar estrutura.</p>
         <p>Sem sala nenhuma indicada mas com um <strong>número de pessoas</strong> no texto (ex: "evento para 300 pessoas"), a sugestão de tamanho aparece marcada como <strong>estimativa</strong> — plateia quadrada calculada com uma densidade real de ocupação (norma IBC, ajustada conforme o texto diga <strong>sentado</strong> ou <strong>de pé</strong>), nunca uma medida a sério. Confirma sempre a disposição real antes de aplicar.</p>
         <p><strong>Revê e confirma sempre</strong> os valores antes de os aplicares — a IA pode falhar a leitura ou interpretar mal um documento ambíguo, e os campos ficam editáveis precisamente para corrigires antes de "Aplicar".</p>
         <p>Precisa de um <strong>Worker</strong> próprio configurado (ver "Configuração do assistente" abaixo) — sem isso não há para onde enviar o pedido.</p>
@@ -146,13 +147,48 @@
             <div class="field">
               <label for="asst-pdf">Documento ou imagem do evento (PDF, PNG ou JPEG, opcional)</label>
               <div class="inputgroup"><input id="asst-pdf" type="file" accept="application/pdf,image/png,image/jpeg"></div>
-              <div class="hint">Uma foto/render ajuda a identificar o tipo de ecrã/montagem — o tamanho para a sala nova vem sempre das dimensões escritas ao lado, nunca de medir a imagem.</div>
+              <!-- Só aparece onde há mesmo câmara (ver asstLigarCamara) -->
+              <div id="asst-camara-wrap" style="display:none; margin-top:6px;">
+                <label class="copy" for="asst-camara" style="display:inline-block; cursor:pointer; width:auto;">📷 Tirar foto agora</label>
+                <input id="asst-camara" type="file" accept="image/*" capture="environment" style="display:none;">
+              </div>
+              <div class="hint">Uma foto/render ajuda a identificar o tipo de ecrã/montagem. A IA <strong>não mede</strong> a partir da imagem — para medir, usa a régua aqui em baixo.</div>
             </div>
+
             <button type="button" class="copy" id="asst-analyze">Analisar</button>
             <button type="button" class="copy" id="asst-clear" title="Apaga o texto, o documento e os requisitos extraídos desta análise">Limpar</button>
             <div class="hint" id="asst-status"></div>
           </div>
         </details>
+          <details class="card sinal-block" id="asst-medir-card" style="display:none;">
+            <summary>Régua na foto — dar escala à imagem</summary>
+            <div class="sinal-block-body">
+              <p class="hint" style="margin-top:0;">Uma foto não tem escala: 100 píxeis podem ser 10 cm ou 10 m. Aqui dás-lhe uma, apontando uma coisa de medida conhecida.</p>
+              <ol class="hint" style="margin:0 0 10px; padding-left:18px;">
+                <li>Arrasta a linha <strong>azul</strong> de ponta a ponta de algo cuja medida saibas — uma porta (2,00 m de altura é o normal), um tile de LED, uma marca no chão.</li>
+                <li>Escreve essa medida real.</li>
+                <li>Arrasta a linha <strong>laranja</strong> sobre o que queres medir.</li>
+              </ol>
+              <div class="warn" style="margin-bottom:10px;">Isto só é fiável para coisas <strong>no mesmo plano</strong> da referência e com a câmara mais ou menos de frente. Uma perspetiva forte, ou medir uma coisa muito mais à frente/atrás do que a referência, dá erros grandes — a foto continua a ser uma foto. Serve para uma ordem de grandeza, não para cortar estrutura.</div>
+              <canvas id="asst-medir-canvas" style="display:block; width:100%; max-width:100%; border:1px solid var(--line-soft); border-radius:8px; background:var(--paper); touch-action:none; cursor:crosshair;"></canvas>
+              <div class="row2" style="margin-top:10px;">
+                <div class="field">
+                  <label for="asst-medir-ref">Linha azul — medida real</label>
+                  <div class="inputgroup"><input id="asst-medir-ref" type="number" autocomplete="off" inputmode="decimal" step="0.01" min="0.01" placeholder="ex: 2.00"><span class="unit">m</span></div>
+                </div>
+                <div class="field">
+                  <label>Linha laranja — dá</label>
+                  <div class="v" id="asst-medir-out" style="padding-top:6px; font-weight:600;">—</div>
+                </div>
+              </div>
+              <div class="summary-actions" style="flex-wrap:wrap;">
+                <button type="button" class="copy" id="asst-medir-usar-largura">Usar como largura da sala</button>
+                <button type="button" class="copy" id="asst-medir-usar-altura">Usar como pé-direito</button>
+                <button type="button" class="copy" id="asst-medir-juntar">Juntar ao texto do pedido</button>
+              </div>
+              <div class="hint" id="asst-medir-nota" style="margin-top:6px;"></div>
+            </div>
+          </details>
       </div>
 
       <div>
@@ -7391,7 +7427,301 @@
       asstResultsCard.style.display = "none";
       asstResultsCard.open = false;
       lastRequisitos = null;
+      asstFecharRegua();
       showToast("Análise limpa.");
+    });
+
+    // ── A FOTO: TIRÁ-LA AQUI, E DAR-LHE ESCALA ──────────────────────────
+    //
+    // O problema, nas palavras do pedido: "uma imagem não tem referência a
+    // medidas quando a adiciono para a IA analisar". É verdade e não tem
+    // volta -- 100 píxeis tanto podem ser 10 cm como 10 m. Nenhuma IA
+    // resolve isso a olhar para a foto, e a app já o diz no texto ao lado.
+    //
+    // O que resolve é uma referência DENTRO da foto: aponta-se uma coisa de
+    // medida conhecida (uma porta, um tile, uma marca no chão), escreve-se
+    // quanto mede, e a partir daí o resto da imagem tem escala. É o método
+    // de sempre da fotogrametria simples, e funciona em qualquer telemóvel
+    // sem depender de hardware nenhum.
+    //
+    // Ficou de fora, de propósito, medir por AR (WebXR): verificado a 11/9,
+    // o Safari do iPhone não tem WebXR em versão nenhuma -- seria uma
+    // funcionalidade só para Android, e a régua serve os dois.
+    var asstCamara = document.getElementById("asst-camara");
+    var asstCamaraWrap = document.getElementById("asst-camara-wrap");
+    var asstMedirCard = document.getElementById("asst-medir-card");
+    var asstMedirCanvas = document.getElementById("asst-medir-canvas");
+    var asstMedirRef = document.getElementById("asst-medir-ref");
+    var asstMedirOut = document.getElementById("asst-medir-out");
+    var asstMedirNota = document.getElementById("asst-medir-nota");
+
+    // O botão da câmara só aparece onde há câmara. enumerateDevices()
+    // responde sem pedir autorização nenhuma (os nomes é que vêm vazios),
+    // por isso dá para perguntar sem incomodar ninguém. Num portátil sem
+    // câmara o "capture" era ignorado e o botão abria outro seletor de
+    // ficheiros igual ao de cima -- dois botões a fazer o mesmo.
+    (function ligarCamara() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+      navigator.mediaDevices.enumerateDevices().then(function (devs) {
+        var temCamara = devs.some(function (d) { return d.kind === "videoinput"; });
+        if (temCamara) asstCamaraWrap.style.display = "";
+      }).catch(function () {});
+    })();
+
+    // A foto tirada agora entra pelo mesmo sítio da carregada à mão, para
+    // o "Analisar" não ter de saber de onde ela veio.
+    asstCamara.addEventListener("change", function () {
+      var f = asstCamara.files && asstCamara.files[0];
+      if (!f) return;
+      try {
+        var dt = new DataTransfer();
+        dt.items.add(f);
+        asstPdf.files = dt.files;
+      } catch (e) {
+        // Browser sem DataTransfer editável: a régua ainda funciona, só o
+        // "Analisar" é que não vê a foto -- e é melhor dizê-lo do que
+        // deixar a pessoa a carregar num botão que não faz nada.
+        asstStatus.textContent = "Foto tirada. Este browser não a consegue passar para o campo do ficheiro — para a enviar à IA, carrega-a no campo acima.";
+      }
+      asstAbrirRegua(f);
+    });
+
+    asstPdf.addEventListener("change", function () {
+      var f = asstPdf.files && asstPdf.files[0];
+      if (f && f.type.indexOf("image/") === 0) asstAbrirRegua(f);
+      else asstFecharRegua();
+    });
+
+    // ── a régua ──
+    // As pontas guardam-se em coordenadas 0..1 da imagem, não em píxeis do
+    // canvas: assim rodar o telemóvel (que redesenha o canvas noutro
+    // tamanho) não desloca nada, e a conta faz-se sempre em píxeis nativos
+    // da imagem.
+    var reguaImg = null;
+    var reguaPontas = null;
+    var reguaAgarrada = null;
+
+    function asstFecharRegua() {
+      reguaImg = null;
+      reguaPontas = null;
+      asstMedirCard.style.display = "none";
+      asstMedirOut.textContent = "—";
+      asstMedirNota.textContent = "";
+    }
+
+    function asstAbrirRegua(file) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        reguaImg = img;
+        // Posições de partida: a referência na vertical ao centro-esquerda
+        // (o sítio de uma porta), a medida na horizontal ao meio. Começar
+        // com tudo no mesmo ponto obrigava a adivinhar que há duas linhas.
+        reguaPontas = {
+          refA: { x: 0.25, y: 0.30 }, refB: { x: 0.25, y: 0.75 },
+          medA: { x: 0.55, y: 0.50 }, medB: { x: 0.85, y: 0.50 }
+        };
+        asstMedirCard.style.display = "block";
+        asstMedirCard.open = true;
+        asstDesenharRegua();
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = function () {
+        asstFecharRegua();
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    }
+
+    function asstDesenharRegua() {
+      if (!reguaImg || !reguaPontas) return;
+      var larguraCss = asstMedirCanvas.clientWidth || 600;
+      var escalaEcra = larguraCss / reguaImg.width;
+      var alturaCss = Math.round(reguaImg.height * escalaEcra);
+      var dpr = window.devicePixelRatio || 1;
+      asstMedirCanvas.width = Math.round(larguraCss * dpr);
+      asstMedirCanvas.height = Math.round(alturaCss * dpr);
+      asstMedirCanvas.style.height = alturaCss + "px";
+      var ctx = asstMedirCanvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, larguraCss, alturaCss);
+      ctx.drawImage(reguaImg, 0, 0, larguraCss, alturaCss);
+
+      function px(p) { return { x: p.x * larguraCss, y: p.y * alturaCss }; }
+      function linha(a, b, cor, rotulo) {
+        var pa = px(a), pb = px(b);
+        // Traço escuro por baixo: uma linha de cor sozinha desaparece em
+        // cima de uma foto clara, e a foto é de quem a tirou, não nossa.
+        ctx.lineWidth = 5; ctx.strokeStyle = "rgba(0,0,0,0.45)";
+        ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+        ctx.lineWidth = 2.5; ctx.strokeStyle = cor;
+        ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+        [pa, pb].forEach(function (p) {
+          ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, Math.PI * 2);
+          ctx.fillStyle = cor; ctx.fill();
+          ctx.lineWidth = 2; ctx.strokeStyle = "#fff"; ctx.stroke();
+        });
+        ctx.font = "600 13px system-ui, sans-serif";
+        ctx.fillStyle = "#fff"; ctx.strokeStyle = "rgba(0,0,0,0.6)"; ctx.lineWidth = 3;
+        var mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2 - 14;
+        ctx.strokeText(rotulo, mx, my); ctx.fillText(rotulo, mx, my);
+      }
+      linha(reguaPontas.refA, reguaPontas.refB, "#2f7ff6", "referência");
+      linha(reguaPontas.medA, reguaPontas.medB, "#f08b2b", "a medir");
+
+      // Lupa enquanto se arrasta. Num telemóvel o dedo tapa exatamente o
+      // ponto que se está a tentar apontar -- e apontar o canto da porta a
+      // 5 px de erro numa imagem pequena é metade do erro da medida toda.
+      // A lupa mostra o que está debaixo do dedo, num canto que o dedo não
+      // esteja a tapar.
+      if (reguaAgarrada) {
+        var pAlvo = px(reguaPontas[reguaAgarrada]);
+        var raio = 52, zoom = 3;
+        var cx = pAlvo.x < larguraCss / 2 ? larguraCss - raio - 10 : raio + 10;
+        var cy = pAlvo.y < alturaCss / 2 ? alturaCss - raio - 10 : raio + 10;
+        ctx.save();
+        ctx.beginPath(); ctx.arc(cx, cy, raio, 0, Math.PI * 2); ctx.clip();
+        ctx.fillStyle = "#000"; ctx.fillRect(cx - raio, cy - raio, raio * 2, raio * 2);
+        // A origem do recorte é em píxeis NATIVOS da imagem, para a lupa
+        // mostrar detalhe a sério e não a imagem já reduzida outra vez.
+        var fonte = raio * 2 / zoom / escalaEcra;
+        ctx.drawImage(
+          reguaImg,
+          reguaPontas[reguaAgarrada].x * reguaImg.width - fonte / 2,
+          reguaPontas[reguaAgarrada].y * reguaImg.height - fonte / 2,
+          fonte, fonte,
+          cx - raio, cy - raio, raio * 2, raio * 2
+        );
+        ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx - 12, cy); ctx.lineTo(cx + 12, cy);
+        ctx.moveTo(cx, cy - 12); ctx.lineTo(cx, cy + 12); ctx.stroke();
+        ctx.restore();
+        ctx.beginPath(); ctx.arc(cx, cy, raio, 0, Math.PI * 2);
+        ctx.lineWidth = 2; ctx.strokeStyle = "#fff"; ctx.stroke();
+      }
+      asstCalcularRegua();
+    }
+
+    // Distância em píxeis NATIVOS da imagem, para a conta não depender do
+    // tamanho a que o canvas por acaso está a ser mostrado.
+    function distNativa(a, b) {
+      var dx = (a.x - b.x) * reguaImg.width;
+      var dy = (a.y - b.y) * reguaImg.height;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function asstCalcularRegua() {
+      if (!reguaImg || !reguaPontas) return null;
+      var real = parseFloat(asstMedirRef.value);
+      var dRef = distNativa(reguaPontas.refA, reguaPontas.refB);
+      var dMed = distNativa(reguaPontas.medA, reguaPontas.medB);
+      if (!(real > 0)) {
+        asstMedirOut.textContent = "—";
+        asstMedirNota.textContent = "Falta a medida real da linha azul.";
+        return null;
+      }
+      if (!(dRef > 0)) {
+        asstMedirOut.textContent = "—";
+        asstMedirNota.textContent = "A linha azul tem as duas pontas no mesmo sítio.";
+        return null;
+      }
+      var metros = (dMed / dRef) * real;
+      asstMedirOut.textContent = fmt(metros, 2) + " m";
+      // A confiança cai a pique quando a referência é curta na imagem: um
+      // erro de 5 px numa referência de 40 px é 12%, na mesma referência a
+      // 400 px é 1,2%. Dizê-lo é mais honesto do que dar duas casas
+      // decimais e calar.
+      var ladoMaior = Math.max(reguaImg.width, reguaImg.height);
+      var proporcao = dRef / ladoMaior;
+      asstMedirNota.textContent = proporcao < 0.15
+        ? "Referência curta na imagem (" + fmt(proporcao * 100, 0) + "% do lado maior) — o erro sobe muito. Escolhe uma referência maior, se houver."
+        : "Escala: 1 m ≈ " + fmt(dRef / real, 0) + " px da imagem.";
+      return metros;
+    }
+
+    asstMedirRef.addEventListener("input", asstCalcularRegua);
+
+    // Arrastar as pontas. Pointer events tratam rato e dedo ao mesmo tempo,
+    // e o "touch-action:none" no canvas impede a página de andar debaixo do
+    // dedo enquanto se arrasta.
+    function pontaPerto(x, y) {
+      var larguraCss = asstMedirCanvas.clientWidth;
+      var alturaCss = asstMedirCanvas.clientHeight;
+      var maisPerto = null, melhor = 24; // raio de agarrar, em px de ecrã
+      ["refA", "refB", "medA", "medB"].forEach(function (k) {
+        var p = reguaPontas[k];
+        var dx = p.x * larguraCss - x, dy = p.y * alturaCss - y;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d < melhor) { melhor = d; maisPerto = k; }
+      });
+      return maisPerto;
+    }
+
+    function posNoCanvas(ev) {
+      var r = asstMedirCanvas.getBoundingClientRect();
+      return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+    }
+
+    asstMedirCanvas.addEventListener("pointerdown", function (ev) {
+      if (!reguaPontas) return;
+      var p = posNoCanvas(ev);
+      reguaAgarrada = pontaPerto(p.x, p.y);
+      if (reguaAgarrada) {
+        asstMedirCanvas.setPointerCapture(ev.pointerId);
+        ev.preventDefault();
+      }
+    });
+
+    asstMedirCanvas.addEventListener("pointermove", function (ev) {
+      if (!reguaAgarrada || !reguaPontas) return;
+      var p = posNoCanvas(ev);
+      var larguraCss = asstMedirCanvas.clientWidth;
+      var alturaCss = asstMedirCanvas.clientHeight;
+      reguaPontas[reguaAgarrada] = {
+        x: Math.min(1, Math.max(0, p.x / larguraCss)),
+        y: Math.min(1, Math.max(0, p.y / alturaCss))
+      };
+      asstDesenharRegua();
+    });
+
+    ["pointerup", "pointercancel"].forEach(function (ev) {
+      asstMedirCanvas.addEventListener(ev, function () {
+        if (!reguaAgarrada) return;
+        reguaAgarrada = null;
+        asstDesenharRegua();  // sem isto a lupa ficava lá, agarrada ao ecrã
+      });
+    });
+
+    window.addEventListener("resize", function () { if (reguaImg) asstDesenharRegua(); });
+
+    function medidaOuAviso() {
+      var m = asstCalcularRegua();
+      if (!(m > 0)) { showToast("Ainda não há medida — falta a referência."); return null; }
+      return m;
+    }
+
+    // Um <input type="number"> quer ponto decimal e não quer separador de
+    // milhares -- o fmt() dá as duas coisas ao contrário, que é o certo
+    // para se ler mas não para se escrever num campo.
+    function paraCampo(m) { return String(Math.round(m * 100) / 100); }
+
+    document.getElementById("asst-medir-usar-largura").addEventListener("click", function () {
+      var m = medidaOuAviso();
+      if (m) { setFieldValAndFire("asst-sala-largura", paraCampo(m)); showToast("Largura da sala: " + fmt(m, 2) + " m (medida na foto)."); }
+    });
+    document.getElementById("asst-medir-usar-altura").addEventListener("click", function () {
+      var m = medidaOuAviso();
+      if (m) { setFieldValAndFire("asst-sala-altura", paraCampo(m)); showToast("Pé-direito: " + fmt(m, 2) + " m (medido na foto)."); }
+    });
+    // Juntar ao texto serve para a IA ver a medida -- e vai marcada como
+    // medida na foto, para nunca passar por medida de fita métrica nem no
+    // texto nem no que o Worker devolver.
+    document.getElementById("asst-medir-juntar").addEventListener("click", function () {
+      var m = medidaOuAviso();
+      if (!m) return;
+      var linha = "Medida na foto (por referência, aproximada): " + fmt(m, 2) + " m.";
+      asstText.value = (asstText.value.trim() ? asstText.value.trim() + "\n" : "") + linha;
+      showToast("Juntei a medida ao texto do pedido.");
     });
 
     // O nome/data do evento não dependem do tipo de ecrã — aplicam-se
