@@ -338,6 +338,168 @@ A seguir, por ordem de retorno:
    opção que dá dados com fonte em vez de adivinhados, e melhora com o uso.
 3. **AR** — só Android, e fraco exactamente num pavilhão vazio.
 
+### 6. Calculadora de dome (projeção em cúpula) — levantamento feito, nada construído
+
+Pedido a 12 de setembro: *"vai aí procurando como calculamos uma dome com
+projetores"*. O que segue é levantamento com fontes, e as contas que já
+verifiquei. **Não está construído nada.**
+
+#### As três perguntas que uma calculadora de dome tem de responder
+
+**1. Que resolução é que isto dá?** Há duas definições em uso e uma delas é
+fraca. Paul Bourke chama "quite reasonable" à definição da Evans &
+Sutherland — *"there are 8K pixels along any half great circle curve on the
+dome, also known as a meridian"* — e desdenha da outra, contar os píxeis na
+área (*"places 12.5 million pixels on the dome (pi r^2 where r = 2K)"*).
+Também avisa que `"4K", "8K", "True8K"` *"have ended up not meaning much at
+all but largely just serve as marketing terms"*.
+
+A definição do meridiano dá uma conta exacta e simples:
+
+```
+px por grau   = diâmetro do dome master / 180
+arcmin por px = 10800 / diâmetro do dome master
+```
+
+| dome master | px/grau | arcmin/px | píxeis no círculo |
+|---|---|---|---|
+| 1024 | 5,7 | 10,6 | 0,8 MP |
+| 2048 | 11,4 | 5,3 | 3,3 MP |
+| 3200 | 17,8 | 3,4 | 8,0 MP |
+| **4096** | **22,8** | **2,6** | **13,2 MP** |
+| 8192 | 45,5 | 1,3 | 52,7 MP |
+
+Isto confere com a fonte por dois lados: o círculo de 4096 dá 13,2 MP, e o
+Domerama diz *"Surface area of a hemisphere is 2 pi r^2 so 3 arc minute
+resolution needs about 13 MPixels"*. O alvo é o olho: *"the human visual
+system can resolve down to around 3 arc minutes"*. Ou seja **um dome master
+4K está praticamente no limite do olho, e 8K está o dobro à frente**.
+
+**2. Quantos projetores, e como?** Não há fórmula — há geometria e
+configurações conhecidas. Bourke lista quatro categorias: um projetor com
+fisheye, um projetor com espelho esférico, dois projetores com fisheye, e
+vários projetores com lentes short-throw. E dá o número: com lentes
+short-throw normais (1:1), *"This translates to between 5 and 7 projectors"*.
+Dois projetores 16:9 com fisheye truncado dão *"full hemispherical coverage
+and a generous overlap for edge blending"*.
+
+A Cosm (ex-Spitz) publica as configurações que vende — *1 Projector Center*,
+*3 Projectors Cove*, *6 Projectors Cove Plus Optical*, *10 Projectors Cove
+Plus Optical* — e diz que o desenho se faz *"around dome diameter, tilt
+angle, seating capacity, and budget"*. A Loch Ness diz que um projetor
+sozinho serve *"in domes up to, say, 10 meters diameter"* e que *"The
+six-projector array is the most prevalent of these, especially for large
+domes"*. A VIOSO diz ter feito de 2 a 55 m, com 2 a 50 projetores.
+
+**O ponto que mais dói e que ninguém diz num folheto:** um fisheye
+desperdiça píxeis a sério. Bourke: *"for true hemispherical coverage the
+pixel efficiency is very low, that is, the circular fisheye image is
+inscribed in the rectangular frame of the projector and as such there are a
+lot of unused pixels... worse with current 16/9 or 16/10 projectors"*. Num
+projetor 4096×2160, o círculo fica com **2160** de diâmetro, não 4096 — e
+2160 dão 5,0 arcmin/px, quase o dobro do erro dos 3 arcmin do olho. A saída
+é truncar, e Bourke tabela a cobertura que sobra: WUXGA → 180×155°, SXGA+ →
+180×135°, WQXGA → 180×112°, HD 1920×1080 → **180×101°** (ou seja, com um HD
+truncado perde-se quase metade da cúpula).
+
+Para um anel de projetores há um exemplo trabalhado do 7thSense que dá o
+modelo: 5 no anel + 1 no zénite, *"Assuming the projectors are 1920 × 1080,
+then going across the pole of the dome from edge to edge, there are 3 × 1080
+high projected images, which are overlapped for blending"*, logo *"(3 × 1080
+– overlap), around 2800 × 2800 pixels"*. Daí sai:
+
+```
+D_eficaz = (nº de imagens atravessadas) × lado curto do projetor × (1 − perda de blend)
+```
+
+com a perda calibrada em **13,6%** nesse exemplo (3240 → 2800). E a conta de
+eficiência total é dura: 6 × 1920×1080 = 12,4 MP instalados dão um círculo de
+2800 = 6,2 MP úteis — **49%**. Metade dos píxeis comprados não chega à
+cúpula.
+
+**3. Chega a luz, e vai haver contraste?** A fotometria é padrão:
+
+```
+lux   = lúmenes totais / área
+L     = lux × ganho / π          (cd/m²)
+1 fL  = 3,426 cd/m²
+área de uma meia-esfera = 2πR²   ;   de uma calota = 2πRh
+```
+
+Mas o que faz a diferença num dome é uma coisa que não existe num ecrã
+plano, e é aqui que a fonte fecha a questão. Bourke, *Digital Fulldome
+Projection Technology* (Maio 2011): *"Hemispherical domes also possess light
+inter-reflection issues, a bright source in one part of the dome reflecting
+and washing out the imagery in another part of the dome. General surface
+finishes therefore have **low reflectivity, typically no more than 50%
+reflectivity**. The brighter the projector available the darker the surface
+can be made and the better contrast and colour reproduction possible."*
+
+E sobre as cúpulas de malha: *"The ratio of holes to solid can be used to
+vary the overall reflectivity of the dome"* — a perfuração não é só acústica,
+é o botão do ganho.
+
+Isto vira a intuição do avesso e é o principal valor de uma calculadora
+destas: **num dome, mais lúmenes não servem para ter mais luz, servem para
+poder ter a superfície mais escura** — e é a superfície escura que dá o
+contraste. Uma folha de cálculo que só divida lúmenes por área não diz isto.
+
+#### O que eu NÃO consegui encontrar publicado, e por isso não se inventa
+
+- **Um valor de ganho recomendado.** O "não mais de 50%" do Bourke é o único
+  número com fonte. Não há tabela por tipo de superfície. Fica **campo de
+  entrada**, com o 0,5 como tecto e não como omissão.
+- **Um alvo de luminância para domes.** Ninguém publica um "X cd/m² para uma
+  cúpula". Há a referência de **cinema** (DCI / SMPTE ST 431-1: 48 cd/m² =
+  14 fL), que serve de régua e **tem de sair etiquetada como cinema, não como
+  norma de dome** — um planetário trabalha muito mais escuro do que isso.
+- **Ângulos de inclinação da cúpula.** A Cosm nomeia "tilt angle" como
+  entrada de projeto mas não publica valores. O único 15° que encontrei é o
+  *"Nominal camera tilt of 15° great circle"* da IMERSA, e é uma convenção de
+  render, não a inclinação física da estrutura.
+
+#### O formato do conteúdo, que é a parte já normalizada
+
+IMERSA *Fulldome Master Specifications* (2019/2016, a de 2024 está "in
+development"): quadro **quadrado**, diâmetros normalizados **1024, 1536,
+2048, 3200, 3600, 4096 ou mais**; *"Only circular dome masters (i.e., a
+square source frame) are acceptable"*; projeção **azimutal equidistante** de
+uma hemisfera 180×360°; safe action ±90° de longitude e 10–60° de latitude;
+**30 fps** como norma; 8, 10 ou 12 bits. A orientação vem da Loch Ness:
+zénite ao centro, horizonte na circunferência, 0° Norte em cima.
+
+#### Proposta de calculadora
+
+Uma aba **Dome**, no mesmo espírito das outras: entradas em cima, contas em
+baixo, e a dizer o que não sabe.
+
+Entradas: diâmetro; forma (meia-esfera, ou calota por altura); nº de
+projetores e arranjo (1 ao centro / anel+zénite / anel); resolução e lúmenes
+do projetor; ganho da superfície; sobreposição de blend; alvo de arcmin/px.
+
+Saídas: área e sólido angular; dome master eficaz e px/grau e arcmin/px, com
+o veredicto contra os 3 arcmin do olho; a percentagem de píxeis aproveitados
+(a conta dos 49%); lux, cd/m² e fL, com a régua do cinema ao lado; o dome
+master normalizado IMERSA a usar; e o aviso de cobertura perdida quando se
+trunca um fisheye.
+
+Encaixa nas pontes que já existem: os lúmenes e a lente vêm da aba
+**Distância de Projeção**, a sobreposição da **Blending Multi-Projetor**, e o
+total de píxeis vai para **Sinal & Data Rate**.
+
+**Fontes:** [Bourke, *Digital Fulldome Projection Technology*
+(PDF)](https://paulbourke.net/dome/domesummary.pdf) ·
+[Bourke, padrões de teste e definições de
+resolução](https://paulbourke.net/dome/testpattern/) ·
+[Domerama / Bourke, visão técnica](http://www.domerama.com/general/geodesic-dome-projection/technical-overview-of-dome-projection/) ·
+[Loch Ness Productions, primer](https://www.lochnessproductions.com/reference/primer/primer.html) ·
+[IMERSA, guidelines e dome master spec](https://imersa.org/guidelines) ·
+[7thSense, Full Dome Screens](https://portal.7thsense.one/user-guides/M084-delta-workflow-guide/dwf_full-dome.html) ·
+[Cosm (ex-Spitz), Projection Domes](https://tech.cosm.com/products/projection-domes) ·
+[VIOSO, Fulldome](https://vioso.com/solutions/fulldome/) ·
+[Christie, Domes](https://www.christiedigital.com/solutions/domes/) ·
+[Wikipedia, Fulldome](https://en.wikipedia.org/wiki/Fulldome)
+
 ## Esta pasta ficou parada, e já não está
 
 Esta pasta (`Desktop\APPS\calculadores`) esteve **455 commits atrás** do
