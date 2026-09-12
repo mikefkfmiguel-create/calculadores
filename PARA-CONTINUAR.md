@@ -902,6 +902,77 @@ abas). Nesse caso a zona fica órfã até se tocar na aba de origem. Dava-se ao
 undo o estado das duas abas, mas isso é mexer no formato do histórico — e o
 toast já diz onde se religa.
 
+### 8. Analítica de uso — POR FAZER, decidido a 12 de setembro à noite
+
+Pedido: *"tenho de começar a contar acessos à APP para perceber a aceitação do
+pessoal, para mais à frente pensar em cobrar"*, e a seguir *"guarda isso para
+quando estiver no PC"*. Fica aqui o plano fechado; **não começar sem o passo
+manual do fim**.
+
+**A parte que muda a pergunta:** contar aberturas dá um número que sobe e não
+diz nada sobre cobrar. Estas apps são PWA offline — abre-se uma vez, trabalha-se
+uma hora sem rede, fecha-se. Isso conta como 1 "acesso", igual a quem abriu,
+olhou e saiu. O que prevê disposição para pagar é **uso repetido da mesma
+pessoa em trabalho real**. Os cinco números que valem:
+
+1. **Instalações ativas por semana** — pessoas distintas, não visitas.
+2. **Sessões por instalação, por mês** — 1 é curiosidade, 6 é ferramenta de
+   trabalho. É este que justifica uma fatura.
+3. **Que aba** (dome, blending, ecrã complexo, preview) — diz *porquê* é que
+   pagariam, e o que pode ficar fora da edição de venda.
+4. **Eventos de valor concluídos** — guardar projeto, exportar, criar link de
+   partilha. Quem exportou fez trabalho a sério.
+5. **Versão a correr** — com o service worker, saber se a v3.60 chegou às
+   pessoas ou se estão presas na v3.41. Isto sozinho já paga o trabalho.
+
+**Onde: o Worker que já existe + D1.** O `calculadores-assistente` já está no
+ar, publica-se por CI, verifica `ALLOWED_ORIGINS` no servidor e tem rota de
+admin protegida por `ADMIN_TOKEN` (`/registos`) — é o padrão a copiar. **D1
+(SQLite), não um quarto KV:** o KV serve para guardar um objeto por chave, mas
+analítica é fazer perguntas, e em SQL "quantas instalações distintas usaram a
+aba Dome no mês passado" é uma linha. Em KV é listar tudo e contar à mão.
+Plano gratuito do D1: 5 GB, 5 M linhas lidas/dia, 100 mil escritas/dia — e
+desde 1/9/2026 passar o limite **dá erro**, não abranda ([pricing](https://developers.cloudflare.com/d1/platform/pricing/),
+[limits](https://developers.cloudflare.com/d1/platform/limits/),
+[changelog](https://developers.cloudflare.com/changelog/post/2026-09-01-d1-free-tier-limit-enforcement/)).
+Para dezenas de pessoas estamos três ordens de grandeza abaixo.
+
+**O que NÃO fazer:** Google Analytics (banner de cookies, bloqueado por meio
+mundo, e manda dados de clientes para terceiros). O **Cloudflare Web
+Analytics** é grátis e é uma linha de script, mas só dá visitas agregadas —
+não responde a "quantos voltaram na semana seguinte", que é a pergunta toda.
+Pode ficar a par, não colide.
+
+**Os quatro detalhes que decidem se isto serve ou mente:**
+
+- **Id de instalação anónimo** — `crypto.randomUUID()` no `localStorage` à
+  primeira abertura. Não é dado pessoal, não é cookie, não precisa de banner —
+  e mais à frente é a chave da licença. O email nunca entra.
+- **Fila offline** — os eventos vão para uma fila no `localStorage` e seguem na
+  próxima abertura com rede. Sem isto sub-conta-se exactamente o uso em obra,
+  que é o que justifica cobrar.
+- **Nunca conteúdo do projeto** — só contadores e nomes de funcionalidades. A
+  mesma regra que o `/registos` já segue ao não guardar a imagem.
+- **Etiqueta de organização desde o primeiro dia**, hoje fixa em `avk`. Quando
+  houver venda a outra empresa, os números de cada uma já estão separados sem
+  migração — e liga-se à ideia da "versão global para venda" do `CLAUDE.md`.
+
+**Fases:**
+
+1. Tabela D1 + `POST /evento` no Worker + fila offline + 4 eventos (`abriu`,
+   `aba`, `exportou`, `partilhou`), nas duas apps. É a fase que começa a
+   acumular história — e história não se recupera depois, por isso é a que
+   vale a pena fazer primeiro.
+2. `GET /analitica` com os cinco números, protegido pelo `ADMIN_TOKEN`, no
+   mesmo molde do `/registos`.
+3. Só com meses de dados: o modelo de preço.
+
+**O passo manual (só o mike, uma vez, no PC):** criar a base D1 na conta
+Cloudflare e pôr o id real no `worker/wrangler.toml` — o mesmo problema dos
+ids das KV que está escrito passo a passo no `worker/DEPLOY.md`, e a mesma
+armadilha: um id de exemplo não dá erro, passa a escrever no sítio errado
+calado (o passo de guarda do workflow já apanha `cola-aqui-o-id`).
+
 ## Esta pasta ficou parada, e já não está
 
 Esta pasta (`Desktop\APPS\calculadores`) esteve **455 commits atrás** do
