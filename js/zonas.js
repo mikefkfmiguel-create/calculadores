@@ -749,9 +749,20 @@
   var LZ_PREVIEW_URL = "https://mikefkfmiguel-create.github.io/preview/";
 
   function lzPayloadPreview() {
-    if (!lzLastTotals || !lzLastTotals.zones || !lzLastTotals.zones.length) return null;
-    var zones = lzLastTotals.zones;
-    var colorMap = lzLastTotals.colorMap || lzGroupColorMap(zones);
+    // A cúpula da aba Dome, quando lá está marcada "Adicionar ao projeto" --
+    // a mesma regra de tudo o resto: marcado = está no projeto = está no 3D.
+    // Vem por uma função posta em window pela própria aba, para este ficheiro
+    // (que também corre sozinho no ecra-complexo.html) não precisar de
+    // conhecer os campos dela.
+    var dome = (typeof window.lzDomeParaPreview === "function") ? window.lzDomeParaPreview() : null;
+    // Um projeto só com cúpula é um projeto: sem esta exceção, marcar o dome
+    // e não ter zona nenhuma não mandava nada para o 3D -- que foi
+    // exactamente a pergunta "como adiciono para poder ver no 3D".
+    if (!lzLastTotals || !lzLastTotals.zones || !lzLastTotals.zones.length) {
+      if (!dome) return null;
+    }
+    var zones = (lzLastTotals && lzLastTotals.zones) ? lzLastTotals.zones : [];
+    var colorMap = (lzLastTotals && lzLastTotals.colorMap) || lzGroupColorMap(zones);
     // O nome do projeto (aba Projeto, "#proj-nome") é o que aparece no
     // viewport do Preview -- ignorá-lo e mandar sempre uma descrição
     // genérica ("Ecrã LED — 3 zona(s)") tornava o nome do evento invisível
@@ -791,8 +802,13 @@
       v: 1,
       origem: "calculadores",
       origemVersao: origemVersao,
-      nome: nomeProjeto || ("Ecrã LED — " + zones.length + " zona(s)"),
+      nome: nomeProjeto || (zones.length
+        ? ("Ecrã LED — " + zones.length + " zona(s)")
+        : (dome ? "Dome — " + dome.diametro + " m" : "Projeto")),
       dsm: (lzDsmN > 0) ? { n: lzDsmN, w: lzDsmW, h: lzDsmH } : null,
+      // A cúpula: só as medidas. O Preview não precisa de saber de
+      // projetores, lúmenes nem dome masters -- só o que tem de desenhar.
+      dome: dome,
       standard: standard,
       zonas: zones.map(function (z) {
         // A curvatura vem em graus POR TILE; o total sao os angulos entre

@@ -508,6 +508,15 @@ dava aproveitamentos acima de 100%. Passou a contar o círculo **cortado pela
 faixa** que o quadro mostra, `A = 2(h√(r²−h²) + r²·asin(h/r))`, que num
 1920×1080 dá 94% do quadro.
 
+**A cúpula no 3D — feito a seguir (v3.47 aqui, v3.02 no Preview).** Pergunta
+directa: *"como adiciono para poder ver no 3D"*. Não se adicionava — a
+palavra "dome" não existia na ponte nem no Preview. Agora a aba escreve
+`dome: { diametro, altura, raioEsfera }` no payload quando lá está marcado
+"Adicionar ao projeto" (a mesma regra de tudo: marcado = está no projeto =
+está no 3D), e um projeto **só com cúpula** passou a ser um projeto — o
+`lzPayloadPreview()` já não devolve `null` por não haver zonas. Do lado do
+Preview, ver a secção de 12 de setembro no `PARA-CONTINUAR.md` dele.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. Hoje os lúmenes e
 a resolução escrevem-se à mão; podiam vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o

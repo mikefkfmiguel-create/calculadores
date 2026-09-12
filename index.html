@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.46</span>
+    <span class="mark" id="app-versao">v3.47</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -6890,9 +6890,37 @@
       renderProjectItems();
     }
 
+    // O que o Preview 3D precisa de saber para desenhar a cúpula: as
+    // medidas, e mais nada. Projetores, lúmenes e dome masters não lhe
+    // servem para desenhar -- e o Preview não ganha catálogos nem contas,
+    // que é regra da casa.
+    //
+    // Só devolve algo com "Adicionar ao projeto" marcado, que é a mesma
+    // regra de todo o resto: marcado = está no projeto = está no 3D.
+    window.lzDomeParaPreview = function () {
+      if (!el.addproject || !el.addproject.checked) return null;
+      var g = geometria();
+      if (!g) return null;
+      return {
+        diametro: Math.round(g.D * 100) / 100,
+        altura: Math.round(g.h * 100) / 100,
+        raioEsfera: Math.round(g.R * 100) / 100
+      };
+    };
+
     document.querySelectorAll('.panel[data-mode="dome"] input, .panel[data-mode="dome"] select').forEach(function (campo) {
       campo.addEventListener("input", calcDome);
       campo.addEventListener("change", calcDome);
+    });
+    // Mexer no diâmetro ou na forma tem de chegar ao 3D, e o caminho para lá
+    // é o mesmo das zonas (lzGuardarParaPreview). calcDome() não o chama de
+    // propósito: escrever para o Preview a cada tecla de um campo qualquer
+    // desta aba seria barulho. Só o que muda a cúpula, e o interruptor.
+    ["diam", "forma", "altura", "addproject"].forEach(function (k) {
+      if (!el[k]) return;
+      el[k].addEventListener("change", function () {
+        if (typeof lzGuardarParaPreview === "function") lzGuardarParaPreview();
+      });
     });
     window.calcDome = calcDome;
     calcDome();
