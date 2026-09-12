@@ -664,6 +664,42 @@ lentes com fonte. A aproximação fica só no "retângulo sobre superfície
 curva", e a resposta passa a ser uma pergunta de catálogo ("existe lente que
 chegue lá?"), que é verificável.
 
+**A lente entrou na aba — v3.53.** Reportado: *"não tenho onde por a lente na
+dome"*, depois de *"e a lente vai influenciar"*. Há agora seletor de lente
+(filtrado pela marca do projetor escolhido, como as outras abas) com rácio
+mín./máx., e escrever um rácio à mão volta a "Personalizado…".
+
+**A conta é ao contrário, e é isso que a torna defensável.** Em vez de estimar
+a cobertura a partir de uma lente — o que sobre uma calota não sai de um
+throw ratio —, calcula-se o rácio **necessário** para cobrir a fatia que cada
+projetor do anel tem, e confronta-se com o catálogo. A geometria é exacta
+sobre os pontos da fatia (distância do projetor ao centro dela, e a corda mais
+larga que tem de cobrir, já com a sobreposição incluída); a pergunta passa a
+ser de catálogo — *existe lente que chegue lá?* — e essa é verificável.
+
+Numa cúpula de 8 m com 5 projetores em anel+zénite a 3,2 m: a fatia pede
+6,65 m de largura a 7,22 m de distância, ou seja **1,08:1**, e o catálogo tem
+4 lentes que cobrem esse rácio (ex.: Epson ELPLW05, NEC NP53ZL, NEC NP34ZL).
+Com uma lente escolhida diz se chega, e para que lado falhou.
+
+**A aproximação está dita no ecrã**, que é o que a torna utilizável: um quadro
+retangular sobre uma calota não é um retângulo, e um projetor de cove atira
+muito fora de eixo. O número serve para saber a **ordem** da lente, não para
+a encomendar. Com **fisheye ao centro** não se mostra rácio nenhum: uma lente
+fisheye não se descreve por throw ratio, e fingir que sim era pior do que
+ficar calado.
+
+**O que a cúpula passa e o que NÃO passa, respondido.** Reportado: *"não está
+a passar para os projetores, ou está tudo no projeto"*. O `mikeapps-projetor-v1`
+(a ponte do projetor) é escrito **só** pela Distância de Projeção e pela
+Blending, e a cúpula continua a não o escrever — **de propósito**: essa ponte
+descreve um projetor a atirar para um ecrã PLANO (rácio, distância, shift,
+tamanho da imagem), e um projetor de cúpula não faz isso. Alimentá-la com a
+cúpula punha um retângulo a flutuar na sala. O que passa é dentro do
+`dome.projetores`: nº, colocação, altura de montagem, sobreposição, e agora
+também o **nome do modelo e da lente**, para o 3D poder etiquetar sem ganhar
+catálogo nenhum.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
 ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o
