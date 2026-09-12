@@ -538,6 +538,31 @@ técnicos. Escrever os lúmenes à mão volta o seletor a "Personalizado…", pa
 nunca ficar um modelo à vista com um número que não é dele — e com o link da
 fonte ao lado, o que seria pior do que não ter link.
 
+**A aba Dome passou a guardar-se — v3.49, e era um bug a sério.** Reportado
+como *"tenho a cúpula mas não tenho projetores"*. À procura disso apareceu
+uma coisa pior por baixo: a aba Dome não persistia nada. Ao reabrir a app
+voltava em branco com "Adicionar ao projeto" desligado — e o primeiro
+recálculo de zonas escrevia `dome: null` na ponte. Ou seja **a cúpula saía do
+projeto sozinha**, sem ninguém a tirar e sem nada a dizê-lo. Agora guarda-se
+em `calculadores-dome-v1` (todos os campos, o truncado e o interruptor),
+pela mesma razão que as TVs e o interruptor do Ecrã LED já se guardavam: são
+as abas cujo "Adicionar ao projeto" cria coisas que persistem do outro lado.
+
+E um projeto **só de cúpula** não reescrevia a ponte ao abrir: quem escreve é
+o `calcLedZones()`, que corre por zona, e sem zonas nunca corria. Por isso um
+campo novo no payload (os `projetores` da v3.48) nunca chegava a uma cúpula
+montada antes dele. `lzActualizarDomeNaPonte()` (em `js/zonas.js`) escreve
+**só o campo `dome`** por cima do que lá está — montar o payload inteiro ali
+apagava zonas que a ponte trouxesse, porque a essa altura ainda não há
+nenhuma em lista.
+
+**Ainda por resolver, de antes disto e sem prejuízo prático:** abrir os
+Calculadores sem zonas nenhumas do lado deles apaga o payload da ponte
+(`lzForcarParaPreview()` com payload nulo faz `removeItem`). Não se perde
+trabalho — o Preview guarda a sua própria cópia do projeto — mas é um
+apagamento que ninguém pediu, e mexer nisso mexe na proteção de loop que já
+deu um susto na v2.49.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
 ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o
@@ -556,6 +581,40 @@ resolução](https://paulbourke.net/dome/testpattern/) ·
 [VIOSO, Fulldome](https://vioso.com/solutions/fulldome/) ·
 [Christie, Domes](https://www.christiedigital.com/solutions/domes/) ·
 [Wikipedia, Fulldome](https://en.wikipedia.org/wiki/Fulldome)
+
+### 7. ~~Apagar uma zona que veio de outra aba~~ — FEITO a 12 de setembro (v3.49)
+
+Reportado assim: *"cria forma de apagar o ecrã de base do projeto, pois
+aparece sempre um led"*. Havia botão — "Remover esta zona" — e ele removia. Só
+que a zona **voltava**: enquanto o "Adicionar ao projeto" da aba Ecrã LED
+estivesse ligado, a sincronização recriava-a no recálculo seguinte. Um botão
+de remover que não remove é pior do que não existir.
+
+**A regra que faltava:** uma zona que veio de outra aba é *dela*. Apagá-la à
+mão tem de cortar a ligação, não só tirar o cartão da lista.
+
+- **Ecrã LED** (uma zona só) → desliga o "Adicionar ao projeto" da aba. A
+  caixa tem de dizer a verdade sobre o que está no projeto, que é a regra que
+  já estava escrita no código ao lado do interruptor.
+- **TVs** (uma fila de N) → apagar um cartão é tirar **uma unidade**, por isso
+  desce a quantidade e a fila refaz-se mais curta. Só ao sair a última é que
+  se desliga a ligação toda. Desligar logo ao primeiro cartão apagava as
+  outras três, que não é o que quem carrega no botão está a pedir.
+- **"Remover todas as zonas"** faz o mesmo, e o texto da confirmação passou a
+  dizê-lo (antes prometia que "as outras calculadoras e o projeto não são
+  afetados" — e era essa promessa que fazia o LED voltar).
+
+Em cada caso aparece um toast a dizer o que saiu e onde se volta a ligar.
+
+Quem corta a ligação é a aba (`window.lzZonaRemovidaDaOrigem`, em
+`index.html`), não o `js/zonas.js`: é a aba que sabe quais são os seus campos
+e o que significa tirar uma unidade de uma fila.
+
+**Sabe-se e fica assim:** o Ctrl+Z devolve o cartão mas não volta a ligar o
+interruptor (o `lzPushUndo()` guarda a lista de zonas, não o estado das outras
+abas). Nesse caso a zona fica órfã até se tocar na aba de origem. Dava-se ao
+undo o estado das duas abas, mas isso é mexer no formato do histórico — e o
+toast já diz onde se religa.
 
 ## Esta pasta ficou parada, e já não está
 
