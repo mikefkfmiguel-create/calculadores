@@ -700,6 +700,40 @@ cúpula punha um retângulo a flutuar na sala. O que passa é dentro do
 também o **nome do modelo e da lente**, para o 3D poder etiquetar sem ganhar
 catálogo nenhum.
 
+**A altura de montagem passou a DEFINIR a base da imagem — v3.54, e antes
+era decoração.** Reportado: *"a base da imagem é definida pela altura do
+projetor e não está a fazer"*. E não estava: a fatia de cada projetor descia
+sempre até ao horizonte, fosse a montagem a 1,5 m ou a 4.
+
+A regra, e é geometria: **um projetor de cove aponta para cima e para o lado
+oposto — não tem como pôr imagem abaixo do seu próprio plano horizontal na
+parede de lá.** Logo o bordo de baixo da fatia está no `y` da montagem:
+
+```
+y(theta) = cy + R·cos(theta),   cy = h − R
+y ≥ yMont   ⇒   theta ≤ acos((yMont − h + R)/R)
+```
+
+E a área a repartir pelos projetores passou a ser só a que fica acima dessa
+altura — repartir até ao horizonte era dar-lhes cúpula que não alcançam. O que
+sobra por baixo desenha-se **a vermelho** no 3D: é a faixa que fica às
+escuras, e quem decide a montagem tem de a ver.
+
+Numa cúpula de 8 m com 4 projetores em anel: a 1,5 m as fatias chegam aos 73°
+e ficam 37% da superfície sem imagem, com rácio pedido de 1,03:1; a 3,0 m
+chegam aos 45°, ficam **75%** sem imagem e o rácio sobe a 1,20:1. Ou seja, numa
+cúpula pequena monta-se BAIXO, e a aba passa a dizê-lo com números em vez de
+deixar descobrir na obra.
+
+**A catrefada de texto foi arrumada — v3.54.** Reportado: *"tem esta
+catrefada de dicas e infos que vais ter de explicar"*, e tinha razão — a aba
+tinha-se enchido de parágrafos a cada campo, contra a prioridade que está no
+CLAUDE.md ("simplicidade para produção não-técnica"). Cada campo passou a ter
+**uma linha**; o raciocínio (colocação vs. resolução, de onde vem a sugestão
+do número, a altura a definir a base, e a aproximação da lente) foi para o
+"Como usar esta calculadora", que está lá para isso e abre-se só quando se
+quer.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
 ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o
