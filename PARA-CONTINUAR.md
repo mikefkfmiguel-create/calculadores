@@ -849,6 +849,64 @@ manda pelo nome à leitura **Resolução angular**, que é onde já estão os mm
 rótulo também passou a "Alvo de resolução (o grão da imagem)": é o que a
 pessoa quer decidir, dito na palavra dela.
 
+**A combinação automática (v3.61)** — *"reforça a capacidade de a calculadora
+do dome poder auto criar a melhor condição de número de projetores e lente a
+usar"*. Até aqui a aba dava peças soltas — um chão aritmético de quantos, um
+aviso sobre a lente escrita, uma sugestão de atravessamentos — e juntá-las era
+trabalho de quem estava a orçamentar. O botão **"Sugerir a melhor
+combinação"** faz a busca.
+
+O espaço de busca é pequeno, e é por geometria: **os atravessamentos saem da
+colocação** (1 ao centro, 2 num anel, 3 com zénite, 5 num anel duplo), e é o
+atravessamento que fixa o dome master, logo os arcmin/px. **O número de
+projetores não muda a resolução** — muda os píxeis instalados e a cobertura.
+Daí:
+
+1. cada colocação dá uns arcmin/px; se não cumpre o alvo com este projetor,
+   está fora, e diz-se com que número ficou;
+2. para as que cumprem, sobe-se o número até haver píxeis que cheguem **e**
+   uma lente do catálogo que dê o rácio que a fatia pede a essa distância;
+3. a lente ainda tem de fechar o azimute com esse número — a mesma
+   `quantosPelaCobertura()` que a aba já usava.
+
+**Nunca se inventa lente.** Se nenhuma cobre o rácio, a combinação cai, com o
+número que faltava. As lentes filtram-se pela marca do projetor, como o
+seletor já faz: uma Barco num Panasonic não é uma opção.
+
+A parte que faz a diferença é o **"porquê N e não M"**: na configuração do
+mike (8,7 m, anel a 4 m e 1,5 m de altura, 25 % de blend, PT-RZ120B) a busca
+devolve **9 projetores em anel duplo com a ET-DLE170**, e explica que com 7 os
+píxeis já chegavam (99 % de aproveitamento) mas a fatia pediria 1,48:1 e
+nenhuma lente Panasonic do catálogo cobre isso — com outra lente, ou outro
+raio de montagem, 7 passava a dar. Sem essa linha o 9 parecia arbitrário.
+
+Quando nada cumpre, em vez de "não dá" diz-se o projetor mínimo que servia
+(alvo 2,0 arcmin/px naquela cúpula → **1440 px no lado curto**, contra os 1200
+do PT-RZ120B). E o caso que as fontes nomeiam mas a app não pode validar — um
+fisheye ao centro até ~10 m (Loch Ness) — aparece como nota, sem recomendar
+uma lente que o catálogo não tem.
+
+**A conta da resolução passou a viver num sítio só** (`contasDeResolucao()`),
+porque agora tem dois clientes: a leitura e a busca. Uma recomendação
+calculada com uma conta diferente da que o ecrã mostra a seguir é pior do que
+não haver recomendação — verificado a aplicar a sugestão: os campos ficam em
+anel-duplo/9/5 com a ET-DLE170, e a leitura devolve exactamente os 2,40
+arcmin/px, os 77 % e o 1,89:1 a 7,29 m que o automático tinha prometido.
+
+Ao extrair essa conta apanhei um defeito no ramo do **fisheye truncado**: os
+píxeis úteis mediam o círculo cortado pelo quadro de UM projetor (`longo`),
+não pelo master, por isso davam o mesmo com 1 ou com 5 a atravessar o pólo.
+Agora o corte mede-se em píxeis de master. Com um só e sem sobreposição as
+duas contas coincidem ao dígito — que é o caso em que a fórmula tinha sido
+verificada —, e só diverge onde estava errada.
+
+**O "Adicionar ao projeto" da Dome não estava escondido: faltava-lhe o
+atalho.** Reportado: *"podes pôr no topo como as outras; no sítio onde está
+parece escondido"*. Está no mesmo lugar que nas outras — no resumo —, mas o
+`ADDPROJECT_BY_MODE`, que alimenta o atalho fixo do topo, tinha todas as abas
+**menos a dome**. Uma linha. Numa aba tão longa é a diferença entre estar à
+vista e não existir.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
 ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o
