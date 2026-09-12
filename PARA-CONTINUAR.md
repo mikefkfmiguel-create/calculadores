@@ -799,6 +799,42 @@ projetores é que os atravessamentos pedidos exigiriam. É o mesmo erro que já
 tinha aparecido no fisheye truncado (aproveitamento acima de 100%), agora
 fechado pela raiz.
 
+**v3.59 — o que a lente faz de facto, o ângulo, o raio de montagem, e os
+arcmin/px em português.** Vários relatos seguidos a testar:
+
+**"Quanto vai fazer cada projetor na distância que tem com a lente
+escolhida"** — a aba dizia o rácio *necessário* e se a lente chegava, mas
+nunca o tamanho que ela **dá**. Agora diz: *"com esta lente, a 6,67 m, cada
+projetor faz de 8,66 a 9,66 m de largura (5,41 a 6,04 m de altura, no formato
+1,60:1 do projetor), e a fatia pede 6,79 m"*. É o número que torna o
+"não chega" concreto — e diz **porquê**: com a imagem maior do que a fatia,
+vai por cima da do vizinho.
+
+**O ângulo de tiro é campo** — *"ângulo dos projetores poderá influenciar
+também"*, e influencia muito: é ele que decide onde o raio bate, logo a
+distância, logo a lente. Em branco aponta ao meio da fatia (e diz que ângulo
+isso dá). Numa cúpula de 8,7 m com montagem a 1,5 m: auto = 18° → 6,67 m e
+0,98:1; a 40° → 4,39 m e 0,65:1; a 60° → 2,12 m e 0,31:1. O alvo sai da
+interseção do raio com a calota, `t² + 2t(e·d) + (|e|² − R²) = 0`.
+
+**O raio de montagem é campo, e pode ser POR FORA da casca** — *"os projetores
+podem estar fora da esfera ou dentro, consoante o tipo de dome montada"*. Numa
+tela translúcida ou numa geodésica com estrutura exterior é o caso normal, e
+estava fixo em "meio metro por dentro da base". Com 6,0 m numa cúpula de raio
+4,35: a distância sobe a 8,74 m e o rácio a 1,29:1, e o 3D põe os corpos lá
+fora.
+
+**O resumo dizia 110 % enquanto o ecrã dizia "impossível"** — a correção da
+v3.57 tinha ficado só na leitura, não no texto da ficha técnica. Agora os dois
+dizem o mesmo.
+
+**Os arcmin/px traduzidos** — *"traduz os arcmin/px para leigos"*. O
+equivalente natural nesta casa é o **pixel pitch**, que é a linguagem de toda
+a app: um meridiano mede `πR` metros e leva `dMaster` píxeis, logo cada píxel
+na superfície tem `πR/dMaster`. A leitura passa a dizer *"6,00 arcmin/px —
+cada píxel mede 7,6 mm na cúpula, como um LED de pitch 7,6"*. É geometria, não
+uma analogia inventada.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
 ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o

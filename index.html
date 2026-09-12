@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.57</span>
+    <span class="mark" id="app-versao">v3.59</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2068,6 +2068,16 @@
               <div class="hint">Do chão ao projetor. Define a base da imagem: abaixo desta altura não há imagem.</div>
             </div>
             <div class="field">
+              <label for="dome-raio-mont">Raio de montagem (do centro)</label>
+              <div class="inputgroup"><input id="dome-raio-mont" type="number" autocomplete="off" inputmode="decimal" placeholder="auto" min="0.2" step="0.1"><span class="unit">m</span></div>
+              <div class="hint">Distância do centro ao projetor. <strong>Pode ser maior do que o raio da cúpula</strong> — numa cúpula de tela translúcida ou numa geodésica com estrutura por fora, os projetores ficam do lado de fora da casca. Em branco, meio metro por dentro da base.</div>
+            </div>
+            <div class="field">
+              <label for="dome-angulo">Ângulo de tiro (acima da horizontal)</label>
+              <div class="inputgroup"><input id="dome-angulo" type="number" autocomplete="off" inputmode="decimal" placeholder="auto" min="0" max="89" step="1"><span class="unit">°</span></div>
+              <div class="hint">Quanto o projetor aponta para cima. Em branco, aponta ao meio da fatia dele. Muda a distância de tiro, logo muda a lente que precisas.</div>
+            </div>
+            <div class="field">
               <label for="dome-prof">Profundidade até à lente</label>
               <div class="inputgroup"><input id="dome-prof" type="number" autocomplete="off" inputmode="decimal" placeholder="ex.: 0.7" min="0" step="0.05"><span class="unit">m</span></div>
               <div class="hint">Do ponto de montagem à lente. A distância de tiro conta-se <strong>da lente</strong>, não do corpo. O catálogo não tem dimensões de projetores, por isso este número é teu.</div>
@@ -2142,7 +2152,7 @@
             <div class="field">
               <label for="dome-alvo">Alvo de resolução</label>
               <div class="inputgroup"><input id="dome-alvo" type="number" autocomplete="off" inputmode="decimal" value="3" min="0.5" max="20" step="0.5"><span class="unit">arcmin/px</span></div>
-              <div class="hint">3 arcmin é o limite do olho na literatura de fulldome.</div>
+              <div class="hint">3 arcmin é o limite do olho na literatura de fulldome. Em linguagem de LED, é o tamanho que cada píxel tem na superfície — ver a leitura ao lado.</div>
             </div>
           </div>
         </details>
@@ -6824,7 +6834,8 @@
 
     var el = {};
     ["diam", "forma", "altura", "altura-wrap", "ganho", "colocacao", "qtd", "atravessa", "alt-mont",
-     "qtd-sugestao", "atravessa-sugestao", "resmode-field", "res-nota", "prof",
+     "qtd-sugestao", "atravessa-sugestao", "resmode-field", "res-nota", "prof", "angulo",
+     "raio-mont",
      "out-base",
      "lensmodel", "tmin", "tmax", "lente-veredicto",
      "projmodel", "px-h", "px-v", "lumens", "blend", "truncar", "truncar-wrap", "alvo",
@@ -6845,7 +6856,7 @@
     // e ninguém percebia porquê. Apanhado a testar a ponte dos projetores.
     var DOME_ABA_KEY = "calculadores-dome-v1";
     var DOME_CAMPOS = ["diam", "forma", "altura", "ganho", "colocacao", "qtd", "atravessa",
-                       "alt-mont", "prof", "projmodel", "lensmodel", "tmin", "tmax",
+                       "alt-mont", "prof", "angulo", "raio-mont", "projmodel", "lensmodel", "tmin", "tmax",
                        "px-h", "px-v", "lumens", "blend", "alvo"];
     // Antes da v3.50 havia um campo só, "arranjo", a fazer as duas coisas:
     // dizer ONDE se montam os projetores e, ao mesmo tempo, quantas imagens
@@ -6966,12 +6977,12 @@
     // setores desses é que são precisos para fechar os 360°, descontando a
     // sobreposição. Tudo isto sai dos campos que lá estão; a aproximação é a
     // mesma do rácio (quadro reto sobre calota), e está dita no "Como usar".
-    function quantosPelaCobertura(g, colocacao, alturaMont, blend, profundidade, trMin) {
+    function quantosPelaCobertura(g, colocacao, alturaMont, blend, profundidade, trMin, raioMont) {
       if (!g || !(trMin > 0) || colocacao === "centro") return null;
       var base = baseDaImagem(g, alturaMont);
       if (!base) return null;
       var a = g.D / 2, h = g.h, R = g.R;
-      var rc = Math.max(0.4, a - 0.5);
+      var rc = (raioMont > 0) ? raioMont : Math.max(0.4, a - 0.5);
       var prof = (profundidade > 0) ? Math.min(rc - 0.1, profundidade) : 0;
       var rLente = rc - prof;
 
@@ -7001,7 +7012,7 @@
                setor: setor, largura: larguraMax, dist: dist };
     }
 
-    function racioQueAFatiaPede(g, colocacao, n, alturaMont, blend, profundidade) {
+    function racioQueAFatiaPede(g, colocacao, n, alturaMont, blend, profundidade, anguloGraus, raioMont) {
       if (!g || !(n > 0)) return null;
       var a = g.D / 2, h = g.h, R = g.R;
       var thetaMax = Math.acos(Math.min(1, Math.max(-1, (R - h) / R)));
@@ -7030,7 +7041,11 @@
       // posição do projetor"* -- e é verdade: a distância de tiro mede-se da
       // lente. O corpo assenta no anel; a lente está "profundidade" mais para
       // dentro, e é de lá que se conta.
-      var rc = Math.max(0.4, a - 0.5);
+      // O raio de montagem pode ser POR FORA da casca -- numa cúpula de tela
+      // translúcida ou numa geodésica com estrutura exterior é o caso normal.
+      // Reportado: *"os projetores podem estar fora da esfera ou dentro,
+      // consoante o tipo de dome montada"*. Por isso não se limita a "a - 0,5".
+      var rc = (raioMont > 0) ? raioMont : Math.max(0.4, a - 0.5);
       var prof = (profundidade > 0) ? Math.min(rc - 0.1, profundidade) : 0;
       var rLente = rc - prof;
       var P = { x: 0, y: yMont, z: rLente };
@@ -7043,8 +7058,33 @@
                  y: cy + R * Math.cos(theta),
                  z: -R * Math.sin(theta) * Math.cos(phi) };
       };
-      var C = ponto(0, tMeio);
-      var dist = Math.sqrt(Math.pow(C.x - P.x, 2) + Math.pow(C.y - P.y, 2) + Math.pow(C.z - P.z, 2));
+      // O ÂNGULO DE TIRO. Reportado: *"ângulo dos projetores poderá influenciar
+      // também"* -- e influencia: é ele que decide onde o raio bate, logo a
+      // distância, logo a lente. Em branco, aponta ao meio da fatia (que é o
+      // que a aba fazia sempre); com um valor, é esse o ângulo e o alvo sai da
+      // interseção do raio com a calota.
+      //
+      //   P + t*d  na esfera de centro (0, cy, 0) e raio R
+      //   t^2 + 2t(e.d) + (|e|^2 - R^2) = 0,  e = P - centro
+      var C, dist, anguloUsado;
+      if (anguloGraus > 0 && anguloGraus < 89) {
+        var al = anguloGraus * Math.PI / 180;
+        var d = { y: Math.sin(al), z: -Math.cos(al) };
+        var e = { y: P.y - cy, z: P.z };
+        var ed = e.y * d.y + e.z * d.z;
+        var disc = ed * ed - (e.y * e.y + e.z * e.z) + R * R;
+        if (!(disc >= 0)) return null;
+        var t = -ed + Math.sqrt(disc);
+        if (!(t > 0)) return null;
+        C = { x: 0, y: P.y + t * d.y, z: P.z + t * d.z };
+        dist = t;
+        anguloUsado = anguloGraus;
+      } else {
+        C = ponto(0, tMeio);
+        dist = Math.sqrt(Math.pow(C.x - P.x, 2) + Math.pow(C.y - P.y, 2) + Math.pow(C.z - P.z, 2));
+        // O ângulo que este alvo implica, para o mostrar como "auto".
+        anguloUsado = Math.atan2(C.y - P.y, Math.abs(C.z - P.z)) * 180 / Math.PI;
+      }
       // A corda mais larga que a fatia pede: a azimutal no theta mais aberto.
       var E1 = ponto(-meio, tBaixo), E2 = ponto(meio, tBaixo);
       var corda = Math.sqrt(Math.pow(E2.x - E1.x, 2) + Math.pow(E2.y - E1.y, 2) + Math.pow(E2.z - E1.z, 2));
@@ -7053,6 +7093,7 @@
       var areaTotal = 2 * Math.PI * R * h;
       var areaSemImagem = 2 * Math.PI * R * (R * (Math.cos(thetaChao) - Math.cos(thetaMax)));
       return { tr: dist / corda, dist: dist, largura: corda,
+               angulo: anguloUsado, anguloAuto: !(anguloGraus > 0 && anguloGraus < 89),
                yMont: yMont, prof: prof, noAnel: noAnel, aoCentro: aoCentro,
                thetaChao: thetaChao, thetaCima: tCima,
                semImagem: Math.max(0, areaSemImagem),
@@ -7176,7 +7217,16 @@
       el["out-raio"].innerHTML = fmt(g.R, 2) + "<small>m</small>" + (g.meiaEsfera ? "" : "<small> (calota)</small>");
       el["out-area"].innerHTML = fmt(g.area, 1) + "<small>m²</small>";
       el["out-master"].innerHTML = fmtInt(dMaster) + "<small>px de diâmetro</small><small> — " + fmt(pxUteis / 1e6, 1) + (truncado ? " MP a chegar à cúpula" : " MP no círculo") + "</small>";
-      el["out-arcmin"].innerHTML = fmt(arcmin, 2) + "<small>arcmin/px</small>";
+      // TRADUZIR ARCMIN/PX. Pedido: *"traduz os arcmin/px para leigos"*.
+      //
+      // O equivalente natural nesta casa é o PIXEL PITCH, que é a linguagem de
+      // toda a app: um meridiano (do horizonte ao horizonte por cima do pólo)
+      // mede pi*R metros e leva dMaster píxeis, logo cada píxel na superfície
+      // tem pi*R/dMaster. É geometria, não uma analogia inventada -- e diz na
+      // cara o que 2 arcmin/px significa: um LED de 4,8 mm de pitch.
+      var mmPorPixel = (Math.PI * g.R / dMaster) * 1000;
+      el["out-arcmin"].innerHTML = fmt(arcmin, 2) + "<small>arcmin/px</small><small> — cada píxel mede " +
+        fmt(mmPorPixel, 1) + " mm na cúpula, como um LED de pitch " + fmt(mmPorPixel, 1) + "</small>";
       el["out-ppd"].innerHTML = fmt(ppd, 1) + "<small>px/grau</small>";
       var aprovImpossivel = aprov > 1.0005;
       el["out-aprov"].innerHTML = (aprovImpossivel ? "impossível" : fmt(aprov * 100, 0) + "<small>%</small>") +
@@ -7235,7 +7285,7 @@
         " Acima dele, quem decide é a cobertura — a lente e a altura de montagem.";
 
       var porCobertura = quantosPelaCobertura(g, colocacao, parseFloat(el["alt-mont"].value),
-        blend, profLente, parseFloat(el.tmin.value));
+        blend, profLente, parseFloat(el.tmin.value), raioMontagem);
       if (porCobertura && porCobertura.saturada) {
         el["qtd-sugestao"].innerHTML +=
           "<br><br>Esta lente, a " + fmt(porCobertura.dist, 2) + " m, atravessa a cúpula toda " +
@@ -7270,8 +7320,10 @@
           (base.pedida ? "" : " (altura de montagem por definir)") + "</small>"
         : "—";
 
+      var anguloTiro = parseFloat(el.angulo.value);
+      var raioMontagem = parseFloat(el["raio-mont"].value);
       var pedido = racioQueAFatiaPede(g, colocacao, qtd,
-        parseFloat(el["alt-mont"].value), blend, profLente);
+        parseFloat(el["alt-mont"].value), blend, profLente, anguloTiro, raioMontagem);
       var lente = domeLenteEscolhida();
       var tmin = parseFloat(el.tmin.value), tmax = parseFloat(el.tmax.value);
       if (!pedido) {
@@ -7286,14 +7338,34 @@
           (pedido.prof > 0
             ? " (medido da lente, " + fmt(pedido.prof, 2) + " m à frente do ponto de montagem)."
             : ". <em>Sem a profundidade até à lente, mede-se do ponto de montagem — escreve-a acima para a distância ficar certa.</em>");
+        texto += " Ângulo de tiro: " + fmt(pedido.angulo, 0) + "°" +
+          (pedido.anguloAuto ? " (auto — ao meio da fatia)." : " (escrito por ti).");
+
         if (tmin > 0 && tmax > 0) {
+          // O QUE A LENTE FAZ DE FACTO, que é a pergunta directa: *"quanto vai
+          // fazer cada projetor na distância que tem com a lente escolhida"*.
+          // A aba dizia o rácio NECESSÁRIO e se a lente chegava, mas nunca o
+          // tamanho que ela dá -- e é esse que se compara com a fatia.
+          var larguraMin = pedido.dist / tmax, larguraMax = pedido.dist / tmin;
+          var formato = (pxH > 0 && pxV > 0) ? pxH / pxV : 16 / 10;
+          texto += "<br><strong>Com esta lente, a " + fmt(pedido.dist, 2) + " m, cada projetor faz " +
+            (Math.abs(larguraMax - larguraMin) < 0.02
+              ? fmt(larguraMax, 2) + " m"
+              : "de " + fmt(larguraMin, 2) + " a " + fmt(larguraMax, 2) + " m") +
+            " de largura</strong> (" +
+            (Math.abs(larguraMax - larguraMin) < 0.02
+              ? fmt(larguraMax / formato, 2) + " m"
+              : fmt(larguraMin / formato, 2) + " a " + fmt(larguraMax / formato, 2) + " m") +
+            " de altura, no formato " + fmt(formato, 2) + ":1 do projetor)" +
+            ", e a fatia pede <strong>" + fmt(pedido.largura, 2) + " m</strong>.";
+
           var cabe = pedido.tr >= tmin - 0.005 && pedido.tr <= tmax + 0.005;
           texto += cabe
             ? " <strong>A lente escrita chega lá</strong> (" + fmt(tmin, 2) + "–" + fmt(tmax, 2) + ":1)."
             : " <strong>A lente escrita não chega</strong> (" + fmt(tmin, 2) + "–" + fmt(tmax, 2) + ":1) — " +
               (pedido.tr < tmin
-                ? "é curta demais: precisas de uma mais larga (rácio menor) ou de subir o nº de projetores."
-                : "é larga demais: precisas de uma mais longa (rácio maior) ou de baixar o nº de projetores.");
+                ? "é curta demais: com ela a imagem fica mais pequena do que a fatia. Precisas de uma mais larga (rácio menor), de subir o nº de projetores, ou de baixar o ângulo."
+                : "é larga demais: com ela a imagem passa da fatia e vai por cima da do vizinho. Precisas de uma mais longa (rácio maior), de baixar o nº de projetores, ou de subir o ângulo.");
         }
         // Quantas do catálogo chegam lá, com os nomes das mais próximas.
         if (typeof LENTES_DATA !== "undefined" && LENTES_DATA.length) {
@@ -7417,7 +7489,11 @@
         "\n" +
         "Dome master eficaz: " + fmtInt(dMaster) + " px de diâmetro (" + fmt(pxUteis / 1e6, 1) + (truncado ? " MP a chegar à cúpula" : " MP no círculo") + ")\n" +
         "Resolução angular: " + fmt(arcmin, 2) + " arcmin/px (" + fmt(ppd, 1) + " px/grau) — alvo " + fmt(alvo, 1) + " arcmin/px\n" +
-        "Aproveitamento: " + fmt(aprov * 100, 0) + " % (" + fmt(pxUteis / 1e6, 1) + " MP úteis de " + fmt(pxInstalados / 1e6, 1) + " MP instalados)\n" +
+        "Em linguagem de LED: cada píxel mede " + fmt(Math.PI * g.R / dMaster * 1000, 1) +
+          " mm na superfície da cúpula (é como olhar para um LED desse pitch)\n" +
+        "Aproveitamento: " + (impossivel ? "IMPOSSÍVEL" : fmt(aprov * 100, 0) + " %") +
+          " (" + fmt(pxUteis / 1e6, 1) + " MP úteis de " + fmt(pxInstalados / 1e6, 1) + " MP instalados)" +
+          (impossivel ? " — o dome master pedido tem mais píxeis do que os projetores dão" : "") + "\n" +
         "Dome master a encomendar: " + (imersa ? fmtInt(imersa) + " × " + fmtInt(imersa) + " px (normalizado IMERSA)" : "8192 × 8192 px (acima da tabela IMERSA, que acaba em \"4096 ou mais\")") + "\n" +
         "\n" +
         (lmTotal > 0
@@ -7472,6 +7548,13 @@
           // mais para dentro, e é de lá que a distância de tiro se conta.
           profundidade: (parseFloat(el.prof.value) > 0)
             ? Math.round(parseFloat(el.prof.value) * 100) / 100 : null,
+          // Ângulo de tiro acima da horizontal. Null = o 3D aponta ao meio da
+          // fatia, que é o que fazia antes de haver campo.
+          angulo: (parseFloat(el.angulo.value) > 0 && parseFloat(el.angulo.value) < 89)
+            ? Math.round(parseFloat(el.angulo.value) * 10) / 10 : null,
+          // Raio de montagem, que pode ser POR FORA da casca.
+          raioMontagem: (parseFloat(el["raio-mont"].value) > 0)
+            ? Math.round(parseFloat(el["raio-mont"].value) * 100) / 100 : null,
           // Quem é, só para o 3D poder etiquetar. O Preview não ganha
           // catálogo nenhum com isto: recebe nomes já escolhidos aqui.
           modelo: (domeProjetorEscolhido() || {}).modelo || null,
@@ -7644,7 +7727,7 @@
     // é o mesmo das zonas (lzGuardarParaPreview). calcDome() não o chama de
     // propósito: escrever para o Preview a cada tecla de um campo qualquer
     // desta aba seria barulho. Só o que muda a cúpula, e o interruptor.
-    ["diam", "forma", "altura", "qtd", "colocacao", "alt-mont", "prof", "blend",
+    ["diam", "forma", "altura", "qtd", "colocacao", "alt-mont", "prof", "angulo", "raio-mont", "blend",
      "projmodel", "lensmodel", "addproject"].forEach(function (k) {
       if (!el[k]) return;
       el[k].addEventListener("change", function () {
