@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.45</span>
+    <span class="mark" id="app-versao">v3.46</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -92,6 +92,7 @@
       <button class="tab" data-mode="assistente" role="tab" aria-selected="false"><span class="swatch"></span>Assistente de Projeto</button>
       <button class="tab" data-mode="projecao" role="tab" aria-selected="true"><span class="swatch"></span>Distância de Projeção</button>
       <button class="tab" data-mode="blend" role="tab" aria-selected="false"><span class="swatch"></span>Blending Multi-Projetor</button>
+      <button class="tab" data-mode="dome" role="tab" aria-selected="false"><span class="swatch"></span>Dome</button>
       <button class="tab" data-mode="visualizacao" role="tab" aria-selected="false"><span class="swatch"></span>Distância de Visualização</button>
       <button class="tab" data-mode="tv" role="tab" aria-selected="false"><span class="swatch"></span>TVs</button>
       <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
@@ -1997,6 +1998,150 @@
     </div>
   </section>
 
+  <!-- DOME (projeção em cúpula) -->
+  <section class="panel" data-mode="dome">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Uma cúpula não se dimensiona como um ecrã plano, e há três perguntas a responder: <strong>que resolução é que isto dá</strong> ao olho, <strong>quantos píxeis é que se perdem</strong> pelo caminho, e <strong>chega a luz</strong>.</p>
+        <p><strong>A resolução mede-se em arcmin por píxel</strong>, não em "4K". O tamanho da cúpula não muda a resolução percebida — o ângulo que um píxel ocupa no olho é o mesmo seja a cúpula de 6 ou de 20 m. O olho resolve até cerca de <strong>3 arcmin</strong>, e é esse o alvo.</p>
+        <p><strong>Um fisheye desperdiça metade dos píxeis</strong>, e nenhum folheto o diz: o círculo tem de caber no <em>lado curto</em> do projetor, por isso um 4096×2160 só dá 2160 de dome master. Truncar recupera píxeis mas corta cúpula — a calculadora diz quanto.</p>
+        <p><strong>Mais lúmenes não servem para ter mais luz.</strong> Numa cúpula a luz de um lado reflete-se e lava a imagem do outro, por isso as superfícies têm refletividade baixa (a fonte indica <strong>não mais de 50%</strong>). Mais lúmenes servem para poder ter a superfície mais escura — e é a superfície escura que dá contraste. Sem o ganho da tua superfície medido ou fornecido, esta calculadora <strong>não estima a luz</strong>, porque seria inventar.</p>
+        <p>Fontes e contas em detalhe: ver a secção "Calculadora de dome" no <code>PARA-CONTINUAR.md</code> do repositório.</p>
+      </div>
+    </details>
+
+    <div class="grid">
+      <div>
+        <details class="card sinal-block" open>
+          <summary>A cúpula</summary>
+          <div class="sinal-block-body">
+            <div class="field">
+              <label for="dome-diam">Diâmetro na base</label>
+              <div class="inputgroup"><input id="dome-diam" type="number" autocomplete="off" inputmode="decimal" value="12" min="1" step="0.5"><span class="unit">m</span></div>
+            </div>
+            <div class="field">
+              <label for="dome-forma">Forma</label>
+              <select id="dome-forma" class="plain">
+                <option value="hemi" selected>Meia-esfera (altura = raio)</option>
+                <option value="calota">Calota — indicar a altura</option>
+              </select>
+              <div class="hint">Um dome geodésico de evento é muitas vezes mais (ou menos) do que meia-esfera. A área muda com isso, e a área manda na luz.</div>
+            </div>
+            <div class="field" id="dome-altura-wrap" style="display:none;">
+              <label for="dome-altura">Altura da cúpula</label>
+              <div class="inputgroup"><input id="dome-altura" type="number" autocomplete="off" inputmode="decimal" value="9" min="0.5" step="0.5"><span class="unit">m</span></div>
+            </div>
+            <div class="field">
+              <label for="dome-ganho">Ganho (refletividade) da superfície</label>
+              <div class="inputgroup"><input id="dome-ganho" type="number" autocomplete="off" inputmode="decimal" placeholder="ex: 0.4" min="0.01" max="1" step="0.05"><span class="unit">×</span></div>
+              <div class="hint">Em branco de propósito — <strong>não há valor por omissão honesto</strong>. A única referência publicada é um tecto: as superfícies de cúpula têm refletividade baixa, "tipicamente não mais de 50%", para a luz de um lado não lavar a imagem do outro. Pede o valor ao fabricante da cúpula, ou mede. Numa cúpula de malha, a razão furos/cheio é o botão do ganho.</div>
+            </div>
+          </div>
+        </details>
+
+        <details class="card sinal-block" open>
+          <summary>Projetores</summary>
+          <div class="sinal-block-body">
+            <div class="field">
+              <label for="dome-arranjo">Arranjo</label>
+              <select id="dome-arranjo" class="plain">
+                <option value="1">1 ao centro, com fisheye</option>
+                <option value="2">Anel no horizonte, sem zénite</option>
+                <option value="3" selected>Anel no horizonte + zénite</option>
+                <option value="4">Anel duplo + zénite</option>
+              </select>
+              <div class="hint">O número é quantas imagens se atravessam a ir de bordo a bordo por cima do pólo — é isso que fixa a resolução na cúpula, não a contagem de projetores.</div>
+            </div>
+            <div class="field">
+              <label for="dome-qtd">Nº de projetores</label>
+              <div class="inputgroup"><input id="dome-qtd" type="number" autocomplete="off" inputmode="numeric" value="6" min="1" step="1"><span class="unit">un.</span></div>
+              <div class="hint">Configurações conhecidas: 1 ao centro serve até cerca de 10 m de diâmetro; 5 a 7 com lentes short-throw; 1/3/6/10 em anel nos sistemas de planetário; 2 a 50 em cúpulas de 2 a 55 m. Não há fórmula — o nº entra aqui para a conta da luz e do aproveitamento.</div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="dome-px-h">Resolução — horizontal</label>
+                <div class="inputgroup"><input id="dome-px-h" type="number" autocomplete="off" inputmode="numeric" value="3840" min="1" step="1"><span class="unit">px</span></div>
+              </div>
+              <div class="field">
+                <label for="dome-px-v">Resolução — vertical</label>
+                <div class="inputgroup"><input id="dome-px-v" type="number" autocomplete="off" inputmode="numeric" value="2160" min="1" step="1"><span class="unit">px</span></div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="dome-lumens">Lúmenes por projetor</label>
+              <div class="inputgroup"><input id="dome-lumens" type="number" autocomplete="off" inputmode="numeric" value="20000" min="1" step="500"><span class="unit">lm</span></div>
+            </div>
+            <div class="field">
+              <label for="dome-blend">Sobreposição de blending</label>
+              <div class="inputgroup"><input id="dome-blend" type="number" autocomplete="off" inputmode="decimal" value="15" min="0" max="50" step="1"><span class="unit">%</span></div>
+              <div class="hint">Quanto se perde do total ao sobrepor as imagens. Num exemplo trabalhado de um fabricante de media servers, 3 × 1080 = 3240 px a atravessar o pólo davam "cerca de 2800" — ou seja 13,6%.</div>
+            </div>
+            <div class="field" id="dome-truncar-wrap">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:400;">
+                <input type="checkbox" id="dome-truncar" style="width:auto;">
+                Fisheye truncado (usar o lado longo, cortando cúpula)
+              </label>
+              <div class="hint">Só para 1 projetor ao centro. Recupera píxeis usando a largura toda do quadro, mas deixa de cobrir a cúpula inteira.</div>
+            </div>
+            <div class="field">
+              <label for="dome-alvo">Alvo de resolução</label>
+              <div class="inputgroup"><input id="dome-alvo" type="number" autocomplete="off" inputmode="decimal" value="3" min="0.5" max="20" step="0.5"><span class="unit">arcmin/px</span></div>
+              <div class="hint">3 arcmin é o limite do olho citado na literatura de fulldome. Abaixo disso está-se a gastar píxeis que ninguém vê; acima, vê-se a grelha.</div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div>
+        <details class="card results sinal-block" data-accent="dome" open>
+          <div class="stripe"></div>
+          <summary>A cúpula e a resolução</summary>
+          <div class="sinal-block-body">
+            <div class="readout">
+              <div class="item"><div class="k">Raio da esfera</div><div class="v" id="dome-out-raio">—</div></div>
+              <div class="item"><div class="k">Área da superfície</div><div class="v" id="dome-out-area">—</div></div>
+              <div class="item wide"><div class="k">Dome master eficaz</div><div class="v" id="dome-out-master">—</div></div>
+              <div class="item"><div class="k">Resolução angular</div><div class="v" id="dome-out-arcmin">—</div></div>
+              <div class="item"><div class="k">Píxeis por grau</div><div class="v" id="dome-out-ppd">—</div></div>
+              <div class="item wide"><div class="k">Aproveitamento dos píxeis</div><div class="v" id="dome-out-aprov">—</div></div>
+              <div class="item wide"><div class="k">Dome master a encomendar (IMERSA)</div><div class="v" id="dome-out-imersa">—</div></div>
+            </div>
+            <p class="note" id="dome-out-veredicto">—</p>
+            <div class="warn" id="dome-out-cobertura" style="display:none;"></div>
+
+            <h2 style="margin-top:18px;">A luz</h2>
+            <div class="readout">
+              <div class="item"><div class="k">Lúmenes totais</div><div class="v" id="dome-out-lm">—</div></div>
+              <div class="item"><div class="k">Iluminância</div><div class="v" id="dome-out-lux">—</div></div>
+              <div class="item"><div class="k">Luminância</div><div class="v" id="dome-out-cd">—</div></div>
+              <div class="item"><div class="k">Em foot-lamberts</div><div class="v" id="dome-out-fl">—</div></div>
+            </div>
+            <p class="note" id="dome-out-luznota">—</p>
+
+            <div class="summary">
+              <div class="summary-head">
+                <span class="k">Resumo para ficha técnica</span>
+                <div class="summary-actions">
+                  <label class="addproject"><input type="checkbox" id="dome-addproject">Adicionar ao projeto</label>
+                  <select class="copy" id="dome-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
+                    <option value="" selected>↗ Partilhar/Guardar</option>
+                    <option value="text">Como texto (mensagem)</option>
+                    <option value="txt">Como ficheiro .txt</option>
+                    <option value="csv">Como ficheiro .csv (Excel)</option>
+                    <option value="pdf">Como PDF</option>
+                  </select>
+                  <button class="copy" data-target="dome-sum">Copiar resumo</button>
+                </div>
+              </div>
+              <pre class="sumbox" id="dome-sum"></pre>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
   <!-- TVs -->
   <section class="panel" data-mode="tv">
     <details class="howto">
@@ -2182,6 +2327,7 @@
       <ul style="margin: 10px 0 0; padding-left: 20px; line-height: 1.7;">
         <li><strong>Distância de Projeção</strong> — dado um projetor e um ecrã, diz que lente/distância precisas (ou o inverso).</li>
         <li><strong>Blending Multi-Projetor</strong> — junta vários projetores num ecrã maior, com overlap.</li>
+        <li><strong>Dome</strong> — projeção em cúpula: que resolução angular é que o sistema dá ao olho, quantos píxeis se perdem no fisheye e no blending, e quanta luz chega à superfície. Diz também que dome master encomendar (tamanhos normalizados IMERSA).</li>
         <li><strong>Distância de Visualização</strong> — tamanho de ecrã ideal consoante a distância da plateia (e vice-versa).</li>
         <li><strong>TVs</strong> — lista de TVs/monitores da empresa com diagonal, resolução (quando confirmada) e distância de visualização ideal; "Adicionar ao projeto" junta o resumo à ficha técnica, e serve também de atalho para preencher DSM/delay na aba Projeto.</li>
         <li><strong>Ecrã LED &amp; Pixel Pitch</strong> — resolução, tamanho físico, peso e amperagem de um único ecrã LED.</li>
@@ -2319,6 +2465,10 @@
   var PROJECT_SOURCES = [
     { key: "visualizacao", label: "Distância de Visualização", sumId: "v-sum", checkboxId: "v-addproject" },
     { key: "tv", label: "TVs", sumId: "tv-sum", checkboxId: "tv-addproject" },
+    // O Dome soma-se ao relatório e não preenche os campos do ecrã único da
+    // aba Projeto: uma cúpula não tem "largura × altura" nem pixel pitch, e
+    // escrever lá os números dela era estragar o ecrã que está no projeto.
+    { key: "dome", label: "Dome", sumId: "dome-sum", checkboxId: "dome-addproject" },
     { key: "sinal", label: "Sinal & Data Rate", sumId: "sg-sum", checkboxId: "sg-addproject", conflict: sinalProjectConflict },
     { key: "mediaserver", label: "Media Server", sumId: "ms-sum", checkboxId: "ms-addproject" }
   ];
@@ -5445,6 +5595,7 @@
     { sum: "sg-sum", share: "sg-share", title: "Sinal & Data Rate", slug: "sinal-data-rate" },
     { sum: "ms-sum", share: "ms-share", title: "Media Server", slug: "media-server" },
     { sum: "tv-sum", share: "tv-share", title: "TVs", slug: "tv" },
+    { sum: "dome-sum", share: "dome-share", title: "Dome", slug: "dome" },
     { sum: "gfx-sum", share: "gfx-share", title: "Grafismo px↔cm", slug: "grafismo" }
   ].forEach(function (cfg) {
     var shareSel = document.getElementById(cfg.share);
@@ -6503,6 +6654,249 @@
     calcMediaServer();
     calcTV();
   });
+
+  // ── DOME (projeção em cúpula) ───────────────────────────────────────────
+  //
+  // Três contas, e cada uma responde a uma pergunta que um ecrã plano não
+  // tem. As fontes de tudo o que está aqui estão no PARA-CONTINUAR.md,
+  // secção "Calculadora de dome"; o essencial:
+  //
+  // 1. RESOLUÇÃO. Há duas definições em uso e uma é fraca. A útil é a do
+  //    MERIDIANO (Evans & Sutherland, que Paul Bourke chama "quite
+  //    reasonable"): quantos píxeis existem ao longo de meio grande círculo
+  //    da cúpula. Isso dá uma conta exacta e simples --
+  //
+  //        px por grau   = diâmetro do dome master / 180
+  //        arcmin por px = 10800 / diâmetro do dome master
+  //
+  //    -- e confere pelos dois lados: o círculo de um master 4096 tem
+  //    13,2 MPx, e a literatura diz que "3 arc minute resolution needs
+  //    about 13 MPixels", com o olho a resolver "around 3 arc minutes".
+  //    A definição fraca (contar os píxeis pela área, pi*r^2) ignora que o
+  //    ângulo de um píxel é o mesmo seja a cúpula de 6 ou de 20 m.
+  //
+  // 2. APROVEITAMENTO. Um fisheye inscreve o círculo no LADO CURTO do
+  //    quadro, por isso um projetor 4096x2160 só dá 2160 de master. E num
+  //    anel de projetores a conta é a do exemplo trabalhado do 7thSense:
+  //    5 no anel + 1 no zénite, "going across the pole of the dome from
+  //    edge to edge, there are 3 x 1080 high projected images", que com a
+  //    sobreposição dão "around 2800 x 2800". Daí o modelo:
+  //
+  //        D_eficaz = imagens atravessadas x lado curto x (1 - blend)
+  //
+  //    Esse mesmo caso mostra a conta dura: 6 x 1920x1080 = 12,4 MPx
+  //    instalados dão um círculo de 2800 = 6,2 MPx úteis. 49%.
+  //
+  // 3. LUZ. A fotometria é padrão, mas o que manda numa cúpula é a
+  //    inter-reflexão: "a bright source in one part of the dome reflecting
+  //    and washing out the imagery in another part of the dome. General
+  //    surface finishes therefore have low reflectivity, typically no more
+  //    than 50% reflectivity." Ou seja, mais lúmenes não servem para ter
+  //    mais luz -- servem para poder ter a superfície mais escura, e é a
+  //    superfície escura que dá o contraste.
+  //
+  //    Não existe publicado um alvo de luminância para cúpulas, nem um
+  //    ganho recomendado. Por isso o ganho é campo de entrada, fica VAZIO,
+  //    e sem ele esta aba não estima luz nenhuma (ver CLAUDE.md: não
+  //    inventar dados técnicos). A régua que se mostra ao lado é a do
+  //    CINEMA (48 cd/m², DCI/SMPTE), etiquetada como tal -- um planetário
+  //    trabalha muito mais escuro do que isso.
+  (function () {
+    // Diâmetros normalizados do dome master, IMERSA Fulldome Master
+    // Specifications: "standard diameter resolutions of 1024x1024,
+    // 1536x1536, 2048x2048, 3200x3200, 3600x3600, 4096x4096 or greater".
+    var DOME_MASTERS_IMERSA = [1024, 1536, 2048, 3200, 3600, 4096];
+    var CINEMA_CD_M2 = 48;   // DCI/SMPTE ST 431-1, branco de referência (14 fL)
+    var FL_POR_CD_M2 = 3.426;
+
+    var el = {};
+    ["diam", "forma", "altura", "altura-wrap", "ganho", "arranjo", "qtd",
+     "px-h", "px-v", "lumens", "blend", "truncar", "truncar-wrap", "alvo",
+     "out-raio", "out-area", "out-master", "out-arcmin", "out-ppd", "out-aprov",
+     "out-imersa", "out-veredicto", "out-cobertura", "out-lm", "out-lux",
+     "out-cd", "out-fl", "out-luznota", "sum", "addproject"].forEach(function (k) {
+      el[k] = document.getElementById("dome-" + k);
+    });
+    if (!el.diam) return;
+
+    // Geometria da calota: de um diâmetro de base e uma altura sai o raio da
+    // esfera, e a área é 2*pi*R*h (que numa meia-esfera dá 2*pi*R^2).
+    function geometria() {
+      var D = parseFloat(el.diam.value);
+      if (!(D > 0)) return null;
+      var a = D / 2;
+      var h = (el.forma.value === "calota") ? parseFloat(el.altura.value) : a;
+      if (!(h > 0)) return null;
+      var R = (a * a + h * h) / (2 * h);
+      return { D: D, h: h, R: R, area: 2 * Math.PI * R * h, meiaEsfera: Math.abs(h - a) < 0.001 };
+    }
+
+    function calcDome() {
+      var g = geometria();
+      var atravessa = parseInt(el.arranjo.value, 10) || 1;
+      var pxH = parseFloat(el["px-h"].value), pxV = parseFloat(el["px-v"].value);
+      var qtd = Math.max(1, Math.round(parseFloat(el.qtd.value) || 1));
+      var lumens = parseFloat(el.lumens.value);
+      var blend = Math.min(50, Math.max(0, parseFloat(el.blend.value) || 0)) / 100;
+      var alvo = parseFloat(el.alvo.value) || 3;
+      var ganho = parseFloat(el.ganho.value);
+      var umSo = atravessa === 1;
+
+      el["altura-wrap"].style.display = (el.forma.value === "calota") ? "" : "none";
+      // Truncar só faz sentido com um projetor e fisheye ao centro: num anel
+      // as lentes são short-throw e não há círculo para truncar.
+      el["truncar-wrap"].style.display = umSo ? "" : "none";
+      var truncado = umSo && el.truncar.checked;
+
+      if (!g || !(pxH > 0) || !(pxV > 0)) {
+        ["out-raio","out-area","out-master","out-arcmin","out-ppd","out-aprov","out-imersa","out-lm","out-lux","out-cd","out-fl"]
+          .forEach(function (k) { el[k].textContent = "—"; });
+        el["out-veredicto"].textContent = "Preenche o diâmetro e a resolução do projetor.";
+        el["out-luznota"].textContent = "";
+        el["out-cobertura"].style.display = "none";
+        el.sum.textContent = "";
+        renderProjectItems();
+        return;
+      }
+
+      var curto = Math.min(pxH, pxV), longo = Math.max(pxH, pxV);
+      // Com um fisheye ao centro o círculo inscreve-se no quadro: cabe no
+      // lado curto. Truncando, usa-se o lado longo e corta-se a cúpula.
+      var base = umSo ? (truncado ? longo : curto) : curto;
+      var dMaster = atravessa * base * (1 - blend);
+      var ppd = dMaster / 180;
+      var arcmin = 10800 / dMaster;
+
+      // Píxeis que chegam de facto à cúpula. Num fisheye TRUNCADO o círculo
+      // é mais largo do que o quadro, por isso contar o círculo inteiro dava
+      // um aproveitamento acima de 100% -- absurdo, e apanhado a testar.
+      // O que conta é o círculo CORTADO pela faixa que o quadro mostra:
+      //   A = 2 * ( h*sqrt(r²-h²) + r²*asin(h/r) ),  r = raio, h = meia-faixa
+      // (a integral de 2*sqrt(r²-y²) de -h a h).
+      var pxUteis;
+      if (truncado) {
+        var r = longo / 2, hh = Math.min(curto / 2, r);
+        pxUteis = 2 * (hh * Math.sqrt(Math.max(0, r * r - hh * hh)) + r * r * Math.asin(hh / r));
+      } else {
+        pxUteis = Math.PI / 4 * dMaster * dMaster;
+      }
+      var pxInstalados = qtd * pxH * pxV;
+      var aprov = pxInstalados > 0 ? pxUteis / pxInstalados : 0;
+
+      var imersa = null;
+      for (var i = 0; i < DOME_MASTERS_IMERSA.length; i++) {
+        if (DOME_MASTERS_IMERSA[i] >= dMaster) { imersa = DOME_MASTERS_IMERSA[i]; break; }
+      }
+
+      el["out-raio"].innerHTML = fmt(g.R, 2) + "<small>m</small>" + (g.meiaEsfera ? "" : "<small> (calota)</small>");
+      el["out-area"].innerHTML = fmt(g.area, 1) + "<small>m²</small>";
+      el["out-master"].innerHTML = fmtInt(dMaster) + "<small>px de diâmetro</small><small> — " + fmt(pxUteis / 1e6, 1) + (truncado ? " MP a chegar à cúpula" : " MP no círculo") + "</small>";
+      el["out-arcmin"].innerHTML = fmt(arcmin, 2) + "<small>arcmin/px</small>";
+      el["out-ppd"].innerHTML = fmt(ppd, 1) + "<small>px/grau</small>";
+      el["out-aprov"].innerHTML = fmt(aprov * 100, 0) + "<small>%</small><small> — " + fmt(pxUteis / 1e6, 1) + " MP úteis de " + fmt(pxInstalados / 1e6, 1) + " MP instalados</small>";
+      // A tabela da IMERSA acaba em "4096x4096 or greater" -- acima disso não
+      // há tamanho normalizado. O passo seguinte que a literatura descreve em
+      // uso real é 8192 (masters 8K square, e sistemas 8k x 8k), por isso é
+      // isso que se sugere, dito como prática e não como norma.
+      el["out-imersa"].innerHTML = imersa
+        ? fmtInt(imersa) + " × " + fmtInt(imersa) + "<small>px</small>"
+        : "8192 × 8192<small>px — acima da tabela IMERSA, que acaba em \"4096 ou mais\"</small>";
+
+      var veredicto;
+      if (arcmin <= alvo) {
+        veredicto = "Cumpre o alvo: " + fmt(arcmin, 2) + " arcmin/px contra os " + fmt(alvo, 1) +
+          " pedidos. " + (arcmin < alvo / 2
+            ? "Está com folga de sobra — há aqui píxeis a mais do que o olho aproveita."
+            : "É a folga certa.");
+      } else {
+        var falta = arcmin / alvo;
+        veredicto = "Fica curto: " + fmt(arcmin, 2) + " arcmin/px contra os " + fmt(alvo, 1) +
+          " pedidos — a grelha vai notar-se. Para chegar lá faltam cerca de " + fmt(falta, 1) +
+          "× os píxeis, o que significa mais imagens a atravessar o pólo ou projetores de maior resolução.";
+      }
+      el["out-veredicto"].textContent = veredicto;
+
+      // Cobertura perdida a truncar. O círculo passa a ter o diâmetro do
+      // lado longo, mas o quadro só mostra a altura do lado curto: sobra
+      // 180° numa direção e menos na outra. Esta conta reproduz as
+      // coberturas publicadas de fisheyes truncados reais (180x101° num
+      // 1920x1080, 180x112° num 2560x1600, 180x135° num 1400x1050).
+      if (truncado) {
+        var vert = 180 * (curto / longo);
+        el["out-cobertura"].style.display = "block";
+        el["out-cobertura"].innerHTML = "Truncado: cobre <strong>180° × " + fmt(vert, 0) +
+          "°</strong> em vez de 180° × 180°. Perde-se a faixa junto ao horizonte à frente e atrás — " +
+          "pode não ter importância com plateia toda virada para um lado, e ter muita se o público estiver em volta.";
+      } else {
+        el["out-cobertura"].style.display = "none";
+      }
+
+      // ── a luz ──
+      var lmTotal = (lumens > 0) ? qtd * lumens : NaN;
+      if (!(lmTotal > 0)) {
+        ["out-lm","out-lux","out-cd","out-fl"].forEach(function (k) { el[k].textContent = "—"; });
+        el["out-luznota"].textContent = "Falta os lúmenes do projetor.";
+      } else {
+        var lux = lmTotal / g.area;
+        el["out-lm"].innerHTML = fmtInt(lmTotal) + "<small>lm</small>";
+        el["out-lux"].innerHTML = fmtInt(lux) + "<small>lx na superfície</small>";
+        if (ganho > 0) {
+          var cd = lux * ganho / Math.PI;
+          var fl = cd / FL_POR_CD_M2;
+          el["out-cd"].innerHTML = fmt(cd, 1) + "<small>cd/m²</small>";
+          el["out-fl"].innerHTML = fmt(fl, 1) + "<small>fL</small>";
+          el["out-luznota"].textContent =
+            "Com ganho " + fmt(ganho, 2) + ": " + fmt(cd, 1) + " cd/m², ou " +
+            fmt(cd / CINEMA_CD_M2 * 100, 0) + "% do branco de referência de uma sala de cinema (48 cd/m², DCI/SMPTE). " +
+            "A régua é de cinema e não de cúpula — não existe alvo publicado para domes, e um planetário trabalha muito mais escuro. " +
+            "Lembra-te do que a luz faz aqui: o ganho é para baixar, não para subir, e são os lúmenes que compram o direito a uma superfície mais escura.";
+        } else {
+          el["out-cd"].innerHTML = "<small>falta o ganho</small>";
+          el["out-fl"].innerHTML = "<small>falta o ganho</small>";
+          el["out-luznota"].textContent =
+            "Sem o ganho da superfície não se estima luminância — seria inventar. A única referência publicada é um tecto (\"não mais de 50%\"), " +
+            "e o valor real depende da cúpula que tens: pede-o ao fabricante, ou mede. Os lux acima já dizem o que chega à superfície, e esses não dependem do ganho.";
+        }
+      }
+
+      var arranjoTexto = el.arranjo.options[el.arranjo.selectedIndex].textContent;
+      el.sum.textContent =
+        "DOME — " + fmt(g.D, 1) + " m de diâmetro, " +
+        (g.meiaEsfera ? "meia-esfera" : "calota de " + fmt(g.h, 1) + " m de altura") +
+        " (raio da esfera " + fmt(g.R, 2) + " m)\n" +
+        "Área da superfície: " + fmt(g.area, 1) + " m²\n" +
+        "\n" +
+        "Projetores: " + qtd + " × " + fmtInt(pxH) + "×" + fmtInt(pxV) +
+        (lumens > 0 ? " @ " + fmtInt(lumens) + " lm" : "") + " — " + arranjoTexto + "\n" +
+        "Sobreposição de blending: " + fmt(blend * 100, 0) + " %" + (truncado ? "\nFisheye truncado: cobre 180° × " + fmt(180 * (curto / longo), 0) + "°" : "") + "\n" +
+        "\n" +
+        "Dome master eficaz: " + fmtInt(dMaster) + " px de diâmetro (" + fmt(pxUteis / 1e6, 1) + (truncado ? " MP a chegar à cúpula" : " MP no círculo") + ")\n" +
+        "Resolução angular: " + fmt(arcmin, 2) + " arcmin/px (" + fmt(ppd, 1) + " px/grau) — alvo " + fmt(alvo, 1) + " arcmin/px\n" +
+        "Aproveitamento: " + fmt(aprov * 100, 0) + " % (" + fmt(pxUteis / 1e6, 1) + " MP úteis de " + fmt(pxInstalados / 1e6, 1) + " MP instalados)\n" +
+        "Dome master a encomendar: " + (imersa ? fmtInt(imersa) + " × " + fmtInt(imersa) + " px (normalizado IMERSA)" : "8192 × 8192 px (acima da tabela IMERSA, que acaba em \"4096 ou mais\")") + "\n" +
+        "\n" +
+        (lmTotal > 0
+          ? "Luz: " + fmtInt(lmTotal) + " lm totais, " + fmtInt(lmTotal / g.area) + " lx na superfície\n" +
+            (ganho > 0
+              ? "Luminância: " + fmt(lmTotal / g.area * ganho / Math.PI, 1) + " cd/m² (" + fmt(lmTotal / g.area * ganho / Math.PI / FL_POR_CD_M2, 1) + " fL) com ganho " + fmt(ganho, 2) + "\n" +
+                "Referência de cinema, para comparar: 48 cd/m² (DCI/SMPTE). Não é norma de dome.\n"
+              : "Luminância: não estimada — falta o ganho da superfície (a referência publicada é um tecto, “não mais de 50%”).\n")
+          : "Luz: falta os lúmenes do projetor.\n") +
+        "\n" +
+        "Nota: numa cúpula a luz de um lado reflete-se e lava a imagem do outro. As superfícies\n" +
+        "têm refletividade baixa por isso mesmo — mais lúmenes servem para poder ter a superfície\n" +
+        "mais escura, e é a superfície escura que dá contraste.";
+
+      renderProjectItems();
+    }
+
+    document.querySelectorAll('.panel[data-mode="dome"] input, .panel[data-mode="dome"] select').forEach(function (campo) {
+      campo.addEventListener("input", calcDome);
+      campo.addEventListener("change", calcDome);
+    });
+    window.calcDome = calcDome;
+    calcDome();
+  })();
 
   // ── GRAFISMO px ↔ cm ────────────────────────────────────────────────────
   (function () {

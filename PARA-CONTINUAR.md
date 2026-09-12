@@ -338,11 +338,12 @@ A seguir, por ordem de retorno:
    opção que dá dados com fonte em vez de adivinhados, e melhora com o uso.
 3. **AR** — só Android, e fraco exactamente num pavilhão vazio.
 
-### 6. Calculadora de dome (projeção em cúpula) — levantamento feito, nada construído
+### 6. ~~Calculadora de dome (projeção em cúpula)~~ — FEITA a 12 de setembro (v3.46)
 
 Pedido a 12 de setembro: *"vai aí procurando como calculamos uma dome com
-projetores"*. O que segue é levantamento com fontes, e as contas que já
-verifiquei. **Não está construído nada.**
+projetores"* e depois *"podes ir avançando"*. **A aba Dome está construída e
+publicada.** O que segue é o levantamento com fontes e as contas que a aba
+implementa — fica aqui porque é a justificação de cada número que ela mostra.
 
 #### As três perguntas que uma calculadora de dome tem de responder
 
@@ -468,24 +469,50 @@ uma hemisfera 180×360°; safe action ±90° de longitude e 10–60° de latitud
 **30 fps** como norma; 8, 10 ou 12 bits. A orientação vem da Loch Ness:
 zénite ao centro, horizonte na circunferência, 0° Norte em cima.
 
-#### Proposta de calculadora
+#### A aba, como ficou
 
-Uma aba **Dome**, no mesmo espírito das outras: entradas em cima, contas em
-baixo, e a dizer o que não sabe.
+Aba **Dome**, entre o Blending e a Distância de Visualização (partilha o
+violeta do Blending de propósito: é o mesmo problema, vários projetores a
+sobreporem-se).
 
-Entradas: diâmetro; forma (meia-esfera, ou calota por altura); nº de
-projetores e arranjo (1 ao centro / anel+zénite / anel); resolução e lúmenes
-do projetor; ganho da superfície; sobreposição de blend; alvo de arcmin/px.
+**Entradas:** diâmetro na base; forma (meia-esfera ou calota, com a altura);
+ganho da superfície; arranjo (1 ao centro / anel / anel+zénite / anel duplo +
+zénite — o valor é quantas imagens se atravessam por cima do pólo); nº de
+projetores; resolução e lúmenes por projetor; sobreposição de blending;
+fisheye truncado; alvo de arcmin/px.
 
-Saídas: área e sólido angular; dome master eficaz e px/grau e arcmin/px, com
-o veredicto contra os 3 arcmin do olho; a percentagem de píxeis aproveitados
-(a conta dos 49%); lux, cd/m² e fL, com a régua do cinema ao lado; o dome
-master normalizado IMERSA a usar; e o aviso de cobertura perdida quando se
-trunca um fisheye.
+**Saídas:** raio da esfera e área; dome master eficaz; arcmin/px e px/grau,
+com um veredicto contra o alvo; aproveitamento dos píxeis; dome master
+normalizado a encomendar; lúmenes totais, lux, cd/m² e fL. Mais o aviso de
+cobertura perdida quando se trunca.
 
-Encaixa nas pontes que já existem: os lúmenes e a lente vêm da aba
-**Distância de Projeção**, a sobreposição da **Blending Multi-Projetor**, e o
-total de píxeis vai para **Sinal & Data Rate**.
+**O ganho fica VAZIO de propósito, e sem ele a aba não estima luminância** —
+diz que falta e explica porquê. Não há valor por omissão honesto: a única
+referência publicada é um tecto ("não mais de 50%"), e um tecto usado como
+omissão dava a estimativa mais optimista possível, que é o lado errado para
+errar quando se está a decidir quantos projetores alugar.
+
+**Verificado contra as fontes**, não só "parece bem":
+
+| caso | a app diz | a fonte diz |
+|---|---|---|
+| 12 m, 6 × 1920×1080, anel+zénite, blend 13,6% | master 2799 px, 49% aproveitado | *"around 2800 × 2800"*; 6,2 de 12,4 MP |
+| meia-esfera de 12 m | 226,2 m² | 2πR² = 226,19 m² |
+| master de 4096 | 2,64 arcmin/px, 13,2 MP | *"3 arc minute… about 13 MPixels"* |
+| fisheye truncado 1920×1080 | cobre 180° × 101° | *"Truncated fisheye HD (1920x1080) 180x101 degrees"* |
+| calota de 12 m base × 9 m altura | R = 6,50 m, 367,6 m² | R = (a²+h²)/2h, A = 2πRh |
+
+**Um erro meu, apanhado a testar:** no fisheye truncado eu contava o círculo
+inteiro como píxeis úteis — e o círculo é mais largo do que o quadro, o que
+dava aproveitamentos acima de 100%. Passou a contar o círculo **cortado pela
+faixa** que o quadro mostra, `A = 2(h√(r²−h²) + r²·asin(h/r))`, que num
+1920×1080 dá 94% do quadro.
+
+**Fica por fazer** (não bloqueante): as pontes automáticas. Hoje os lúmenes e
+a resolução escrevem-se à mão; podiam vir da **Distância de Projeção** e a
+sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o
+**Sinal & Data Rate**. O resumo já entra no relatório do projeto pelo
+"Adicionar ao projeto".
 
 **Fontes:** [Bourke, *Digital Fulldome Projection Technology*
 (PDF)](https://paulbourke.net/dome/domesummary.pdf) ·
