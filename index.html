@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.49</span>
+    <span class="mark" id="app-versao">v3.50</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2044,19 +2044,25 @@
           <summary>Projetores</summary>
           <div class="sinal-block-body">
             <div class="field">
-              <label for="dome-arranjo">Arranjo</label>
-              <select id="dome-arranjo" class="plain">
-                <option value="1">1 ao centro, com fisheye</option>
-                <option value="2">Anel no horizonte, sem zénite</option>
-                <option value="3" selected>Anel no horizonte + zénite</option>
-                <option value="4">Anel duplo + zénite</option>
+              <label for="dome-colocacao">Colocação — onde ficam montados</label>
+              <select id="dome-colocacao" class="plain">
+                <option value="centro">Ao centro, com fisheye</option>
+                <option value="anel">Todos em anel à volta da cúpula</option>
+                <option value="anel-zenite" selected>Anel à volta + um no zénite</option>
+                <option value="anel-duplo">Anel duplo + um no zénite</option>
               </select>
-              <div class="hint">O número é quantas imagens se atravessam a ir de bordo a bordo por cima do pólo — é isso que fixa a resolução na cúpula, não a contagem de projetores.</div>
+              <div class="hint">Só diz <strong>onde se montam</strong> — é o que o Preview 3D desenha. Não mexe na resolução: isso é o campo das imagens a atravessar o pólo, mais abaixo.</div>
             </div>
             <div class="field">
               <label for="dome-qtd">Nº de projetores</label>
               <div class="inputgroup"><input id="dome-qtd" type="number" autocomplete="off" inputmode="numeric" value="6" min="1" step="1"><span class="unit">un.</span></div>
-              <div class="hint">Configurações conhecidas: 1 ao centro serve até cerca de 10 m de diâmetro; 5 a 7 com lentes short-throw; 1/3/6/10 em anel nos sistemas de planetário; 2 a 50 em cúpulas de 2 a 55 m. Não há fórmula — o nº entra aqui para a conta da luz e do aproveitamento.</div>
+              <div class="hint" id="dome-qtd-sugestao"></div>
+            </div>
+            <div class="field">
+              <label for="dome-atravessa">Imagens a atravessar o pólo</label>
+              <div class="inputgroup"><input id="dome-atravessa" type="number" autocomplete="off" inputmode="numeric" value="3" min="1" step="1"><span class="unit">un.</span></div>
+              <div class="hint">Quantas imagens se atravessam a ir de bordo a bordo por cima do pólo. <strong>É isto que fixa a resolução na cúpula</strong>, não a contagem de projetores — num anel de 10, atravessar o pólo pode ser coisa de 3 ou 4 imagens.</div>
+              <div class="hint" id="dome-atravessa-sugestao"></div>
             </div>
             <div class="field">
               <label for="dome-projmodel">Projetor de referência</label>
@@ -2064,18 +2070,27 @@
                 <option value="custom">Personalizado…</option>
               </select>
               <div class="srclink-wrap" id="dome-projmodel-source"></div>
-              <div class="hint">Escolher preenche os lúmenes abaixo. A resolução fica por tua conta: o mesmo projetor vende-se com painéis diferentes, e o catálogo só guarda os lúmenes com fonte.</div>
+              <div class="hint">Escolher preenche os lúmenes e a resolução, a partir do catálogo.</div>
+            </div>
+            <div class="field" id="dome-resmode-field" style="display:none;">
+              <label>Resolução a usar</label>
+              <div class="seg" id="dome-resmode-seg">
+                <button type="button" class="seg-btn active" data-resmode="enhanced">Declarada (pixel-shift)</button>
+                <button type="button" class="seg-btn" data-resmode="native">Nativa (painel/chip)</button>
+              </div>
+              <div class="hint">Numa cúpula isto pesa: o pixel-shift declara mais píxeis do que o painel tem, e a resolução angular que se sente está mais perto da nativa.</div>
             </div>
             <div class="row2">
               <div class="field">
                 <label for="dome-px-h">Resolução — horizontal</label>
-                <div class="inputgroup"><input id="dome-px-h" type="number" autocomplete="off" inputmode="numeric" value="3840" min="1" step="1"><span class="unit">px</span></div>
+                <div class="inputgroup"><input id="dome-px-h" type="number" autocomplete="off" inputmode="numeric" value="1920" min="1" step="1"><span class="unit">px</span></div>
               </div>
               <div class="field">
                 <label for="dome-px-v">Resolução — vertical</label>
-                <div class="inputgroup"><input id="dome-px-v" type="number" autocomplete="off" inputmode="numeric" value="2160" min="1" step="1"><span class="unit">px</span></div>
+                <div class="inputgroup"><input id="dome-px-v" type="number" autocomplete="off" inputmode="numeric" value="1200" min="1" step="1"><span class="unit">px</span></div>
               </div>
             </div>
+            <div class="field"><div class="hint" id="dome-res-nota"></div></div>
             <div class="field">
               <label for="dome-lumens">Lúmenes por projetor</label>
               <div class="inputgroup"><input id="dome-lumens" type="number" autocomplete="off" inputmode="numeric" value="20000" min="1" step="500"><span class="unit">lm</span></div>
@@ -2090,7 +2105,7 @@
                 <input type="checkbox" id="dome-truncar" style="width:auto;">
                 Fisheye truncado (usar o lado longo, cortando cúpula)
               </label>
-              <div class="hint">Só para 1 projetor ao centro. Recupera píxeis usando a largura toda do quadro, mas deixa de cobrir a cúpula inteira.</div>
+              <div class="hint">Só aparece com a colocação "ao centro, com fisheye". Recupera píxeis usando a largura toda do quadro, mas deixa de cobrir a cúpula inteira.</div>
             </div>
             <div class="field">
               <label for="dome-alvo">Alvo de resolução</label>
@@ -6773,7 +6788,8 @@
     var FL_POR_CD_M2 = 3.426;
 
     var el = {};
-    ["diam", "forma", "altura", "altura-wrap", "ganho", "arranjo", "qtd",
+    ["diam", "forma", "altura", "altura-wrap", "ganho", "colocacao", "qtd", "atravessa",
+     "qtd-sugestao", "atravessa-sugestao", "resmode-field", "res-nota",
      "projmodel", "px-h", "px-v", "lumens", "blend", "truncar", "truncar-wrap", "alvo",
      "out-raio", "out-area", "out-master", "out-arcmin", "out-ppd", "out-aprov",
      "out-imersa", "out-veredicto", "out-cobertura", "out-lm", "out-lux",
@@ -6791,8 +6807,15 @@
     // ponte. Ou seja: a cúpula SAÍA do projeto sozinha, sem ninguém a tirar,
     // e ninguém percebia porquê. Apanhado a testar a ponte dos projetores.
     var DOME_ABA_KEY = "calculadores-dome-v1";
-    var DOME_CAMPOS = ["diam", "forma", "altura", "ganho", "arranjo", "qtd",
+    var DOME_CAMPOS = ["diam", "forma", "altura", "ganho", "colocacao", "qtd", "atravessa",
                        "projmodel", "px-h", "px-v", "lumens", "blend", "alvo"];
+    // Antes da v3.50 havia um campo só, "arranjo", a fazer as duas coisas:
+    // dizer ONDE se montam os projetores e, ao mesmo tempo, quantas imagens
+    // atravessam o pólo (que é o que fixa a resolução). Reportado assim:
+    // *"o modo pode não ser sempre este, posso querer montar todos ao redor
+    // da dome"* -- e tinha razão: escolher a colocação mudava a resolução.
+    // Aqui separa-se em dois campos; o que está guardado migra.
+    var DOME_ARRANJO_ANTIGO = { "1": "centro", "2": "anel", "3": "anel-zenite", "4": "anel-duplo" };
     var domeARestaurar = false;
     function guardarAbaDome() {
       if (domeARestaurar) return;
@@ -6800,12 +6823,19 @@
       DOME_CAMPOS.forEach(function (k) { if (el[k]) d[k] = el[k].value; });
       d.truncar = el.truncar ? el.truncar.checked : false;
       d.addproject = el.addproject ? el.addproject.checked : false;
+      d.resMode = domeResMode;
       try { localStorage.setItem(DOME_ABA_KEY, JSON.stringify(d)); } catch (e) {}
     }
     function restaurarAbaDome() {
       var d;
       try { d = JSON.parse(localStorage.getItem(DOME_ABA_KEY) || "null"); } catch (e) { return null; }
       if (!d) return null;
+      // Migração do campo único: a colocação vem do arranjo antigo, e o
+      // número de atravessamentos era o próprio valor do arranjo.
+      if (d.arranjo != null && d.colocacao == null) {
+        d.colocacao = DOME_ARRANJO_ANTIGO[String(d.arranjo)] || "anel-zenite";
+        if (d.atravessa == null) d.atravessa = String(parseInt(d.arranjo, 10) || 3);
+      }
       domeARestaurar = true;
       DOME_CAMPOS.forEach(function (k) {
         // O seletor de projetor só tem opções depois de data/projectors.json
@@ -6820,6 +6850,43 @@
     }
     var domeGuardado = restaurarAbaDome();
 
+    // A colocação → o arranjo numérico antigo, só para um Preview que ainda
+    // não tenha atualizado (ver lzDomeParaPreview).
+    var DOME_COLOCACAO_ARRANJO = { "centro": 1, "anel": 2, "anel-zenite": 3, "anel-duplo": 4 };
+
+    // "Declarada (pixel-shift)" ou "Nativa (painel/chip)" -- o mesmo par que
+    // a Distância de Projeção e a aba Projeto já usam. Numa cúpula a escolha
+    // pesa mais do que num ecrã plano: é a resolução que decide os arcmin/px.
+    var domeResMode = "enhanced";
+    function domeProjetorEscolhido() {
+      if (!el.projmodel || el.projmodel.value === "custom") return null;
+      if (typeof PROJECTORS_DATA === "undefined") return null;
+      return PROJECTORS_DATA[parseInt(el.projmodel.value, 10)] || null;
+    }
+    function domeMarcarResmode() {
+      document.querySelectorAll("#dome-resmode-seg .seg-btn").forEach(function (b) {
+        b.classList.toggle("active", b.dataset.resmode === domeResMode);
+      });
+    }
+    function domeMostrarResmode() {
+      var p = domeProjetorEscolhido();
+      el["resmode-field"].style.display = (p && p.resolucaoNativa) ? "block" : "none";
+      el["res-nota"].innerHTML = (p && p.resolucaoNota)
+        ? "<strong>" + escapeXml(p.modelo) + ":</strong> " + escapeXml(p.resolucaoNota)
+        : "";
+    }
+    // Escrever no ecrã o que o catálogo diz do modelo escolhido: lúmenes e
+    // resolução, a resolução conforme o modo (declarada ou nativa).
+    function domeAplicarProjetor(p) {
+      if (!p) return;
+      if (p.lumens > 0) el.lumens.value = p.lumens;
+      var res = effectiveProjRes(p, domeResMode);
+      if (res && res.rx > 0 && res.ry > 0) {
+        el["px-h"].value = res.rx;
+        el["px-v"].value = res.ry;
+      }
+    }
+
     // Geometria da calota: de um diâmetro de base e uma altura sai o raio da
     // esfera, e a área é 2*pi*R*h (que numa meia-esfera dá 2*pi*R^2).
     function geometria() {
@@ -6832,22 +6899,45 @@
       return { D: D, h: h, R: R, area: 2 * Math.PI * R * h, meiaEsfera: Math.abs(h - a) < 0.001 };
     }
 
+    // Configurações de projetores que as FONTES nomeiam, para a sugestão do
+    // nº. Não há fórmula publicada que ligue diâmetro a número de
+    // projetores, e inventar uma era inventar dados técnicos (CLAUDE.md) --
+    // por isso o que se mostra são as configurações reais, com quem as diz.
+    function sugestaoDeQuantos(D) {
+      var partes = [];
+      if (D <= 10) {
+        partes.push("Um só ao centro com fisheye chega a esta dimensão — a literatura de planetário dá um projetor até cerca de 10 m (Loch Ness Productions).");
+      } else {
+        partes.push("Acima de cerca de 10 m a literatura passa a arranjos de vários projetores (Loch Ness Productions).");
+      }
+      partes.push("Em catálogo de planetário as configurações são 1 ao centro, ou 3, 6 ou 10 em cove (Cosm).");
+      partes.push("O envelope publicado mais largo vai de 2 a 50 projetores, em cúpulas de 2 a 55 m (VIOSO).");
+      partes.push("<strong>Não há fórmula</strong> — o número decide-se pela cobertura e pela luz, e é por isso que este campo é teu. As fontes estão no PARA-CONTINUAR.md.");
+      return partes.join(" ");
+    }
+
     function calcDome() {
       var g = geometria();
-      var atravessa = parseInt(el.arranjo.value, 10) || 1;
+      var colocacao = el.colocacao.value;
+      var atravessa = Math.max(1, Math.round(parseFloat(el.atravessa.value) || 1));
       var pxH = parseFloat(el["px-h"].value), pxV = parseFloat(el["px-v"].value);
       var qtd = Math.max(1, Math.round(parseFloat(el.qtd.value) || 1));
       var lumens = parseFloat(el.lumens.value);
       var blend = Math.min(50, Math.max(0, parseFloat(el.blend.value) || 0)) / 100;
       var alvo = parseFloat(el.alvo.value) || 3;
       var ganho = parseFloat(el.ganho.value);
-      var umSo = atravessa === 1;
+      // "Um fisheye ao centro" é agora uma COLOCAÇÃO, não um número de
+      // atravessamentos -- é o que permite pôr 6 em anel sem que isso mexa
+      // na resolução.
+      var fisheyeAoCentro = colocacao === "centro";
 
       el["altura-wrap"].style.display = (el.forma.value === "calota") ? "" : "none";
-      // Truncar só faz sentido com um projetor e fisheye ao centro: num anel
-      // as lentes são short-throw e não há círculo para truncar.
-      el["truncar-wrap"].style.display = umSo ? "" : "none";
-      var truncado = umSo && el.truncar.checked;
+      // Truncar só faz sentido com fisheye ao centro: num anel as lentes são
+      // short-throw e não há círculo para truncar.
+      el["truncar-wrap"].style.display = fisheyeAoCentro ? "" : "none";
+      var truncado = fisheyeAoCentro && el.truncar.checked;
+
+      el["qtd-sugestao"].innerHTML = (g && g.D > 0) ? sugestaoDeQuantos(g.D) : "";
 
       if (!g || !(pxH > 0) || !(pxV > 0)) {
         ["out-raio","out-area","out-master","out-arcmin","out-ppd","out-aprov","out-imersa","out-lm","out-lux","out-cd","out-fl"]
@@ -6855,6 +6945,7 @@
         el["out-veredicto"].textContent = "Preenche o diâmetro e a resolução do projetor.";
         el["out-luznota"].textContent = "";
         el["out-cobertura"].style.display = "none";
+        el["atravessa-sugestao"].innerHTML = "";
         el.sum.textContent = "";
         renderProjectItems();
         return;
@@ -6863,7 +6954,7 @@
       var curto = Math.min(pxH, pxV), longo = Math.max(pxH, pxV);
       // Com um fisheye ao centro o círculo inscreve-se no quadro: cabe no
       // lado curto. Truncando, usa-se o lado longo e corta-se a cúpula.
-      var base = umSo ? (truncado ? longo : curto) : curto;
+      var base = truncado ? longo : curto;
       var dMaster = atravessa * base * (1 - blend);
       var ppd = dMaster / 180;
       var arcmin = 10800 / dMaster;
@@ -6902,6 +6993,19 @@
       el["out-imersa"].innerHTML = imersa
         ? fmtInt(imersa) + " × " + fmtInt(imersa) + "<small>px</small>"
         : "8192 × 8192<small>px — acima da tabela IMERSA, que acaba em \"4096 ou mais\"</small>";
+
+      // Quantas imagens têm de atravessar o pólo para cumprir o alvo, com o
+      // projetor que está escolhido. Isto é ARITMÉTICA dos números que estão
+      // nos campos (dMaster = 10800/alvo, e cada imagem dá base*(1-blend)
+      // píxeis), não uma regra de ninguém -- por isso pode aparecer como
+      // sugestão sem inventar nada.
+      var precisaAtravessa = Math.max(1, Math.ceil((10800 / alvo) / (base * (1 - blend))));
+      el["atravessa-sugestao"].innerHTML = precisaAtravessa === atravessa
+        ? "Com este projetor e este blending, " + atravessa + " é exactamente o que o alvo de " + fmt(alvo, 1) + " arcmin/px pede."
+        : "Para o alvo de " + fmt(alvo, 1) + " arcmin/px com este projetor seriam <strong>" +
+          precisaAtravessa + "</strong> imagens a atravessar o pólo" +
+          (precisaAtravessa < atravessa ? " — tens mais do que o alvo pede." : ".") +
+          ' <button type="button" class="copy" id="dome-usar-atravessa" style="margin-top:6px;">Usar ' + precisaAtravessa + '</button>';
 
       var veredicto;
       if (arcmin <= alvo) {
@@ -6960,10 +7064,9 @@
         }
       }
 
-      var arranjoTexto = el.arranjo.options[el.arranjo.selectedIndex].textContent;
-      var nomeProjetor = (el.projmodel && el.projmodel.value !== "custom" && typeof PROJECTORS_DATA !== "undefined")
-        ? ((PROJECTORS_DATA[parseInt(el.projmodel.value, 10)] || {}).modelo || null)
-        : null;
+      var colocacaoTexto = el.colocacao.options[el.colocacao.selectedIndex].textContent;
+      var projEscolhido = domeProjetorEscolhido();
+      var nomeProjetor = projEscolhido ? projEscolhido.modelo : null;
       el.sum.textContent =
         "DOME — " + fmt(g.D, 1) + " m de diâmetro, " +
         (g.meiaEsfera ? "meia-esfera" : "calota de " + fmt(g.h, 1) + " m de altura") +
@@ -6971,7 +7074,12 @@
         "Área da superfície: " + fmt(g.area, 1) + " m²\n" +
         "\n" +
         "Projetores: " + qtd + " × " + (nomeProjetor ? nomeProjetor + ", " : "") + fmtInt(pxH) + "×" + fmtInt(pxV) +
-        (lumens > 0 ? " @ " + fmtInt(lumens) + " lm" : "") + " — " + arranjoTexto + "\n" +
+        (projEscolhido && projEscolhido.resolucaoNativa
+          ? (domeResMode === "native" ? " (nativo)" : " (declarado — pixel-shift)") : "") +
+        (lumens > 0 ? " @ " + fmtInt(lumens) + " lm" : "") + "\n" +
+        "Colocados: " + colocacaoTexto + "\n" +
+        (projEscolhido && projEscolhido.resolucaoNota ? "Nota do projetor: " + projEscolhido.resolucaoNota + "\n" : "") +
+        "Imagens a atravessar o pólo: " + atravessa + "\n" +
         "Sobreposição de blending: " + fmt(blend * 100, 0) + " %" + (truncado ? "\nFisheye truncado: cobre 180° × " + fmt(180 * (curto / longo), 0) + "°" : "") + "\n" +
         "\n" +
         "Dome master eficaz: " + fmtInt(dMaster) + " px de diâmetro (" + fmt(pxUteis / 1e6, 1) + (truncado ? " MP a chegar à cúpula" : " MP no círculo") + ")\n" +
@@ -7009,13 +7117,15 @@
         diametro: Math.round(g.D * 100) / 100,
         altura: Math.round(g.h * 100) / 100,
         raioEsfera: Math.round(g.R * 100) / 100,
-        // Quantos e como, para o 3D poder desenhar o anel. O "arranjo" é o
-        // mesmo número desta aba: quantas imagens se atravessam por cima do
-        // pólo (1 = um ao centro, 2 = anel, 3 = anel + zénite, 4 = anel
-        // duplo + zénite).
+        // Quantos e ONDE, para o 3D poder desenhar. A colocação é só
+        // colocação: quantas imagens atravessam o pólo é conta de resolução
+        // e não serve para desenhar nada (ver a separação dos dois campos
+        // na v3.50). O "arranjo" numérico vai a reboque para um Preview que
+        // ainda não tenha atualizado -- lá o novo campo tem prioridade.
         projetores: {
           n: Math.max(1, Math.round(parseFloat(el.qtd.value) || 1)),
-          arranjo: parseInt(el.arranjo.value, 10) || 3
+          colocacao: el.colocacao.value,
+          arranjo: DOME_COLOCACAO_ARRANJO[el.colocacao.value] || 3
         }
       };
     };
@@ -7023,15 +7133,21 @@
     // O catálogo de projetores chega assíncrono (data/projectors.json), por
     // isso é quem o carrega que chama esta função.
     //
-    // Escolher um modelo preenche os LÚMENES e mais nada. A resolução fica
-    // por escrever à mão de propósito: o mesmo projetor vende-se com painéis
-    // diferentes (e com modos "enhanced"), o catálogo guarda só os lúmenes
-    // com fonte, e inventar aqui uma resolução era inventar dados técnicos.
+    // Escolher um modelo preenche os lúmenes E a resolução. Na v3.48 a
+    // resolução ficou de fora com a justificação de que o catálogo "só
+    // guarda os lúmenes com fonte" -- e isso era falso: os 47 projetores têm
+    // "resolucao" com fonte, e 7 deles têm ainda a "resolucaoNativa" por
+    // baixo do pixel-shift. Reportado assim: *"apenas dá a resolução UHD e
+    // não posso mudar, o projetor que escolhi nem sequer é UHD nativo"* --
+    // e um PT-RZ120B (1920x1200) a mostrar 3840x2160 não é um valor por
+    // omissão, é um número errado.
     window.domePreencherProjetores = function (projectors) {
       if (!el.projmodel || !projectors || !projectors.length) return;
       // Uma escolha guardada manda sobre o modelo por omissão -- e nesse caso
       // os lúmenes já vieram do localStorage, não se escrevem outra vez.
       var escolhaGuardada = domeGuardado ? domeGuardado.projmodel : null;
+      if (domeGuardado && domeGuardado.resMode) domeResMode = domeGuardado.resMode;
+      domeMarcarResmode();
       var porOmissao = projectors.find(function (p) { return p.default; }) || projectors[0];
       var ordem = (typeof stockFirstIndices === "function")
         ? stockFirstIndices(projectors)
@@ -7046,35 +7162,73 @@
           return o.value === escolhaGuardada;
         });
         if (existe) el.projmodel.value = escolhaGuardada;
-      } else if (porOmissao && porOmissao.lumens > 0) {
-        el.lumens.value = porOmissao.lumens;
+      } else if (porOmissao) {
+        domeAplicarProjetor(porOmissao);
       }
       wireStockColor(el.projmodel);
       updateSelectStockColor(el.projmodel);
       lzAttachModelSearch(el.projmodel);
       updateSourceHint(el.projmodel, projectors, "dome-projmodel-source", true);
+      domeMostrarResmode();
       calcDome();
     };
 
     if (el.projmodel) {
       el.projmodel.addEventListener("change", function () {
         updateSourceHint(el.projmodel, PROJECTORS_DATA, "dome-projmodel-source", true);
-        if (el.projmodel.value === "custom") return;
-        var p = PROJECTORS_DATA[parseInt(el.projmodel.value, 10)];
-        if (p && p.lumens > 0) el.lumens.value = p.lumens;
+        // Um modelo novo volta a "declarada": é o que o folheto anuncia, e é
+        // o mesmo arranque que as outras abas usam.
+        domeResMode = "enhanced";
+        domeMarcarResmode();
+        domeMostrarResmode();
+        var p = domeProjetorEscolhido();
+        if (p) domeAplicarProjetor(p);
       });
-      // Escrever os lúmenes à mão volta o seletor para "Personalizado": o
-      // contrário era ficar um modelo à vista com um número que não é dele
-      // -- e com o link da fonte ao lado, o que é pior do que não ter link.
-      el.lumens.addEventListener("input", function () {
-        if (el.projmodel.value === "custom") return;
-        var p = PROJECTORS_DATA[parseInt(el.projmodel.value, 10)];
-        if (p && String(p.lumens) === el.lumens.value) return;
-        el.projmodel.value = "custom";
-        updateSelectStockColor(el.projmodel);
-        updateSourceHint(el.projmodel, PROJECTORS_DATA, "dome-projmodel-source", true);
+      document.querySelectorAll("#dome-resmode-seg .seg-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          domeResMode = btn.dataset.resmode;
+          domeMarcarResmode();
+          var p = domeProjetorEscolhido();
+          if (p) domeAplicarProjetor(p);
+          calcDome();
+          guardarAbaDome();
+        });
+      });
+      // Escrever um destes campos à mão volta o seletor para
+      // "Personalizado": o contrário era ficar um modelo à vista com números
+      // que não são dele -- e com o link da fonte ao lado, o que é pior do
+      // que não ter link nenhum.
+      [el.lumens, el["px-h"], el["px-v"]].forEach(function (campo) {
+        if (!campo) return;
+        campo.addEventListener("input", function () {
+          var p = domeProjetorEscolhido();
+          if (!p) return;
+          var res = effectiveProjRes(p, domeResMode) || {};
+          if (String(p.lumens) === el.lumens.value &&
+              String(res.rx) === el["px-h"].value &&
+              String(res.ry) === el["px-v"].value) return;
+          el.projmodel.value = "custom";
+          domeResMode = "enhanced";
+          domeMarcarResmode();
+          domeMostrarResmode();
+          updateSelectStockColor(el.projmodel);
+          updateSourceHint(el.projmodel, PROJECTORS_DATA, "dome-projmodel-source", true);
+        });
       });
     }
+
+    // O "Usar N" nasce e morre a cada calcDome (está dentro de um innerHTML),
+    // por isso o ouvinte fica no painel e não no botão.
+    document.querySelector('.panel[data-mode="dome"]').addEventListener("click", function (ev) {
+      var bt = ev.target.closest && ev.target.closest("#dome-usar-atravessa");
+      if (!bt) return;
+      var n = parseInt(bt.textContent.replace(/\D+/g, ""), 10);
+      if (!(n > 0)) return;
+      el.atravessa.value = n;
+      calcDome();
+      guardarAbaDome();
+      if (typeof lzGuardarParaPreview === "function") lzGuardarParaPreview();
+    });
 
     document.querySelectorAll('.panel[data-mode="dome"] input, .panel[data-mode="dome"] select').forEach(function (campo) {
       campo.addEventListener("input", calcDome);
@@ -7086,7 +7240,7 @@
     // é o mesmo das zonas (lzGuardarParaPreview). calcDome() não o chama de
     // propósito: escrever para o Preview a cada tecla de um campo qualquer
     // desta aba seria barulho. Só o que muda a cúpula, e o interruptor.
-    ["diam", "forma", "altura", "qtd", "arranjo", "addproject"].forEach(function (k) {
+    ["diam", "forma", "altura", "qtd", "colocacao", "addproject"].forEach(function (k) {
       if (!el[k]) return;
       el[k].addEventListener("change", function () {
         if (typeof lzGuardarParaPreview === "function") lzGuardarParaPreview();
