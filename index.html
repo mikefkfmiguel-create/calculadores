@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.40</span>
+    <span class="mark" id="app-versao">v3.41</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1004,6 +1004,7 @@
         <div class="readout">
           <div class="item"><div class="k">Nº de tiles</div><div class="v" id="lz-out-tiles">—</div></div>
           <div class="item"><div class="k">Total de píxeis</div><div class="v" id="lz-out-pixels">—</div></div>
+          <div class="item wide" id="lz-out-delay-wrap" style="display:none;"><div class="k">Saídas de delay (TV/projeção)</div><div class="v" id="lz-out-delay">—</div></div>
           <div class="item"><div class="k">Área total (tiles)</div><div class="v" id="lz-out-area">—</div></div>
           <div class="item"><div class="k">Peso total</div><div class="v" id="lz-out-weight">—</div></div>
           <div class="item"><div class="k">Amp total (máx.)</div><div class="v" id="lz-out-amp">—</div></div>
@@ -4284,6 +4285,12 @@
   document.querySelectorAll('.panel[data-mode="led"] input').forEach(function (el) {
     el.addEventListener("input", calcLed);
   });
+  // O mesmo da aba TVs, para o ecrã LED — ver lzSyncArmado em js/zonas.js.
+  ["input", "change"].forEach(function (ev) {
+    document.querySelector('.panel[data-mode="led"]').addEventListener(ev, function () {
+      if (window.lzArmarSync) window.lzArmarSync("led");
+    }, true);
+  });
 
   var selectedSwitcherKeys = new Set();
   var selectedLedProcKeys = new Set();
@@ -4532,7 +4539,11 @@
 
         document.getElementById("proj-zones-breakdown-wrap").style.display = "block";
         document.getElementById("proj-zones-breakdown").innerHTML = lzLastTotals.zones.map(function (z) {
-          return '<div class="lm-item"><span><strong>' + z.name + '</strong> — ' + z.model + ', ' + z.mx + '×' + z.my + ' tiles (' + fmtInt(z.numTiles) + ') — ' + fmt(z.w,2) + ' x ' + fmt(z.h,2) + ' m (' + fmt(z.area,2) + ' m²)</span></div>';
+          // Uma TV ou uma projeção não tem tiles — mostrar "0×0 tiles (0)"
+          // era o que fazia o material de delay parecer vazio no relatório.
+          // Ver lzTextoTiles/lzTextoRes em js/zonas.js.
+          var tilesTexto = window.lzTextoTiles ? window.lzTextoTiles(z) : null;
+          return '<div class="lm-item"><span><strong>' + z.name + '</strong> — ' + z.model + ', ' + (tilesTexto ? tilesTexto + ' — ' : '') + (window.lzTextoRes ? window.lzTextoRes(z) : '') + ' — ' + fmt(z.w,2) + ' x ' + fmt(z.h,2) + ' m (' + fmt(z.area,2) + ' m²)</span></div>';
         }).join("");
 
         var numTiles = lzLastTotals.totalTiles;
@@ -4541,9 +4552,17 @@
 
         var selCanvas = lzSelectedCanvas(lzLastTotals.pixelMap);
         var selCanvasLabel = (typeof lzCanvasMode !== "undefined" && lzCanvasMode === "nogaps") ? "sem gaps" : "com gaps";
-        document.getElementById("proj-out-tiles").textContent = fmtInt(numTiles) + " (várias zonas)";
-        document.getElementById("proj-out-res").innerHTML = fmtInt(lzLastTotals.totalPixels) + "<small>px totais</small>" +
-          (selCanvas ? "<span class=\"canvas-note\">canvas (" + selCanvasLabel + "): " + fmtInt(selCanvas.w) + "×" + fmtInt(selCanvas.h) + "px</span>" : "");
+        var temLed = !lzLastTotals.zonasLed || lzLastTotals.zonasLed.length > 0;
+        var numDelay = lzLastTotals.zonasDelay ? lzLastTotals.zonasDelay.length : 0;
+        document.getElementById("proj-out-tiles").textContent = temLed ? (fmtInt(numTiles) + " (várias zonas)") : "sem zonas LED";
+        // Os píxeis aqui são os do LED (é o que dimensiona os processadores
+        // de LED, mais abaixo). As saídas de delay dizem-se à parte, com a
+        // resolução nativa de cada uma — um projeto só de TVs deixa de
+        // parecer um projeto de zero píxeis.
+        document.getElementById("proj-out-res").innerHTML =
+          (temLed ? fmtInt(lzLastTotals.totalPixels) + "<small>px no LED</small>" : "<small>sem zonas LED</small>") +
+          (selCanvas ? "<span class=\"canvas-note\">canvas (" + selCanvasLabel + "): " + fmtInt(selCanvas.w) + "×" + fmtInt(selCanvas.h) + "px</span>" : "") +
+          (numDelay ? "<span class=\"canvas-note\">delay: " + numDelay + (numDelay === 1 ? " saída — " : " saídas — ") + lzLastTotals.textoDelay + "</span>" : "");
         document.getElementById("proj-out-size").innerHTML = "várias zonas<small> — ver detalhe na aba Ecrã Complexo</small>";
         document.getElementById("proj-out-pitch").innerHTML = "vário<small> (zonas com pitches diferentes)</small>";
         // Um projeto só de TVs não pesa zero -- não se sabe quanto pesa.
@@ -4564,10 +4583,14 @@
 
         ledSumText =
           lzLastTotals.zones.map(function (z) {
-            return "  " + z.name + ": " + z.model + " — " + z.mx + "x" + z.my + " tiles, " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²)";
+            var tilesTexto = window.lzTextoTiles ? window.lzTextoTiles(z) : null;
+            return "  " + z.name + ": " + z.model + " — " + (tilesTexto ? tilesTexto + ", " : "") + (window.lzTextoRes ? window.lzTextoRes(z) : "") + ", " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²)";
           }).join("\n") + "\n" +
           "Nº de tiles total: " + fmtInt(numTiles) + "\n" +
-          "Total de píxeis (soma nativa das zonas): " + fmtInt(lzLastTotals.totalPixels) + " px\n" +
+          "Total de píxeis do LED (soma nativa das zonas LED): " + fmtInt(lzLastTotals.totalPixels) + " px\n" +
+          ((lzLastTotals.zonasDelay && lzLastTotals.zonasDelay.length)
+            ? "Saídas de delay (fora do canvas do LED): " + lzLastTotals.zonasDelay.length + " — " + lzLastTotals.textoDelay + "\n"
+            : "") +
           (selCanvas ? "Resolução do canvas (" + selCanvasLabel + "): " + fmtInt(selCanvas.w) + "x" + fmtInt(selCanvas.h) + " px\n" : "") +
           "Peso total: " + (lzLastTotals.pesoDesconhecido
             ? "não conhecido"
@@ -6115,6 +6138,14 @@
     el.addEventListener("input", calcTV);
     el.addEventListener("change", calcTV);
   });
+  // Autoriza a sincronização das TVs a mexer nas zonas -- ver lzSyncArmado
+  // em js/zonas.js. Na fase de captura, para correr antes do calcTV() que
+  // estes mesmos eventos vão disparar a seguir.
+  ["input", "change"].forEach(function (ev) {
+    document.querySelector('.panel[data-mode="tv"]').addEventListener(ev, function () {
+      if (window.lzArmarSync) window.lzArmarSync("tv");
+    }, true);
+  });
 
   function calcTV() {
     var diagIn = val("tv-diag");
@@ -6149,7 +6180,66 @@
       "Distância de visualização ideal: " + fmt(range.min, 2) + " – " + fmt(range.max, 2) + " m";
 
     renderProjectItems();
+    guardarAbaTV();
     syncTVToProject(w, h, qty, tv);
+  }
+
+  // A aba TVs guarda-se, ao contrário das outras calculadoras -- e tem de
+  // ser, porque é a única (com o Ecrã LED) cujo "Adicionar ao projeto" cria
+  // ZONAS, e essas persistem. Sem isto o estado ficava aos bocados ao
+  // reabrir a app: as zonas das TVs restauradas do localStorage, mas a aba
+  // a mostrar o modelo por omissão e o interruptor desligado -- e ao
+  // primeiro toque na aba as zonas iam-se, ou voltavam com o modelo errado.
+  // São só os campos que alimentam a sincronização.
+  // O interruptor do Ecrã LED guarda-se pela mesma razão (a caixa tem de
+  // dizer a verdade sobre o que está no projeto), mas só ele: os campos da
+  // aba Ecrã LED ainda não persistem, e com a guarda do lzSyncArmado isso
+  // já não faz mal nenhum -- enquanto ninguém tocar nessa aba, a zona
+  // restaurada fica como estava. Falta persistir a aba Ecrã LED inteira,
+  // como se fez aqui com as TVs.
+  var LED_ABA_KEY = "calculadores-led-noprojeto-v1";
+  function guardarLedNoProjeto() {
+    try { localStorage.setItem(LED_ABA_KEY, document.getElementById("l-addproject").checked ? "1" : "0"); } catch (e) {}
+  }
+  function restaurarLedNoProjeto() {
+    try {
+      var v = localStorage.getItem(LED_ABA_KEY);
+      if (v != null) document.getElementById("l-addproject").checked = v === "1";
+    } catch (e) {}
+  }
+  document.getElementById("l-addproject").addEventListener("change", guardarLedNoProjeto);
+
+  var TV_ABA_KEY = "calculadores-tv-v1";
+  var tvARestaurar = false;
+  function guardarAbaTV() {
+    if (tvARestaurar) return;
+    try {
+      localStorage.setItem(TV_ABA_KEY, JSON.stringify({
+        modelo: tvModelSel.value,
+        diag: document.getElementById("tv-diag").value,
+        ratio: document.getElementById("tv-ratio").value,
+        qty: document.getElementById("tv-qty").value,
+        noProjeto: document.getElementById("tv-addproject").checked
+      }));
+    } catch (e) {}
+  }
+  function restaurarAbaTV() {
+    var d;
+    try { d = JSON.parse(localStorage.getItem(TV_ABA_KEY) || "null"); } catch (e) { return; }
+    if (!d) return;
+    tvARestaurar = true;
+    try {
+      if (d.modelo != null) {
+        var existe = Array.prototype.some.call(tvModelSel.options, function (o) { return o.value === d.modelo; });
+        if (existe) { tvModelSel.value = d.modelo; updateSelectStockColor(tvModelSel); }
+      }
+      if (d.diag != null) document.getElementById("tv-diag").value = d.diag;
+      if (d.ratio != null) document.getElementById("tv-ratio").value = d.ratio;
+      if (d.qty != null) document.getElementById("tv-qty").value = d.qty;
+      document.getElementById("tv-addproject").checked = !!d.noProjeto;
+    } finally {
+      tvARestaurar = false;
+    }
   }
 
   // "Adicionar ao projeto" nas TVs -- pedido direto ("o 3D tem de ir buscar
@@ -6165,6 +6255,12 @@
     window.lzSincronizarTVs({
       ativo: document.getElementById("tv-addproject").checked,
       qty: qty, w: w, h: h,
+      // A resolução nativa, quando o catálogo a tem (muitos modelos do
+      // inventário têm "resolucao": null, e nesses fica em branco -- ver
+      // CLAUDE.md). É o que faz a zona deixar de dizer "0×0 px" na aba Ecrã
+      // Complexo e no relatório do projeto.
+      rx: tv && tv.resolucao ? tv.resolucao.rx : 0,
+      ry: tv && tv.resolucao ? tv.resolucao.ry : 0,
       nomeBase: tv ? tv.modelo : "TV"
     });
   }
@@ -6318,6 +6414,12 @@
     calcVisualizacao();
     calcLed();
     lzRestoreFromStorage();
+    // Depois das zonas estarem repostas: assim o calcTV() lá em baixo já
+    // corre com a aba TVs como o utilizador a deixou, e a sincronização
+    // reconstrói exatamente as mesmas zonas (mesmos ids) em vez de as
+    // apagar ou de as refazer com o modelo por omissão.
+    restaurarAbaTV();
+    restaurarLedNoProjeto();
     calcBlend();
     calcLentes();
     calcProjeto();
@@ -6330,6 +6432,12 @@
     calcVisualizacao();
     calcLed();
     lzRestoreFromStorage();
+    // Depois das zonas estarem repostas: assim o calcTV() lá em baixo já
+    // corre com a aba TVs como o utilizador a deixou, e a sincronização
+    // reconstrói exatamente as mesmas zonas (mesmos ids) em vez de as
+    // apagar ou de as refazer com o modelo por omissão.
+    restaurarAbaTV();
+    restaurarLedNoProjeto();
     calcBlend();
     calcLentes();
     calcSinal();

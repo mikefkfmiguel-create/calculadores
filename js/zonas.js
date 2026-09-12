@@ -234,6 +234,12 @@
     if (opts.ry != null) card.querySelector(".lz-ry").value = opts.ry;
     if (opts.weight != null) card.querySelector(".lz-weight").value = opts.weight;
     if (opts.amp != null) card.querySelector(".lz-amp").value = opts.amp;
+    // Resolução nativa das zonas de delay (TV/projeção). Ao contrário do
+    // rx/ry do LED -- que são píxeis POR TILE e têm valor por omissão --
+    // estes ficam em branco quando não se sabem, e em branco quer mesmo
+    // dizer "não conhecida" (ver CLAUDE.md: não inventar dados técnicos).
+    if (opts.delayRx != null) card.querySelector(".lz-delay-rx").value = opts.delayRx;
+    if (opts.delayRy != null) card.querySelector(".lz-delay-ry").value = opts.delayRy;
     // TV/Projeção não têm o seletor de "tiles vs metros" (está escondido,
     // ver lzApplyTipoVisibility) — para esses tipos o tamanho É sempre a
     // largura/altura em metros, se não isto ficava a restaurar o "nº de
@@ -288,6 +294,12 @@
     card.querySelectorAll(".lz-tv-only").forEach(function (el) {
       el.style.display = (tipo === "tv") ? "" : "none";
     });
+    // A resolução nativa é dos dois tipos de delay: uma TV tem-na do
+    // catálogo, uma projeção tem a do projetor. Num ecrã LED a resolução
+    // é conta do pitch × nº de tiles, e por isso lá não se escreve à mão.
+    card.querySelectorAll(".lz-delay-only").forEach(function (el) {
+      el.style.display = isLed ? "none" : "";
+    });
     if (isLed) {
       lzApplyModel(card);
       var activeSeg = card.querySelector(".lz-sizemode-seg .seg-btn.active");
@@ -323,6 +335,8 @@
       ry: card.querySelector(".lz-ry").value,
       weight: card.querySelector(".lz-weight").value,
       amp: card.querySelector(".lz-amp").value,
+      delayRx: card.querySelector(".lz-delay-rx").value,
+      delayRy: card.querySelector(".lz-delay-ry").value,
       curveEnabled: card.querySelector(".lz-curve-enabled").checked,
       curveMode: curveModeSeg ? curveModeSeg.dataset.curvemode : "angle",
       curveValue: card.querySelector(".lz-curve-value").value,
@@ -394,7 +408,11 @@
         '</div>' +
         '<div class="field">' +
           '<label>Nome da zona</label>' +
-          '<div class="inputgroup"><input type="text" class="lz-name" value="' + (name || ("Zona " + (lzNextId - 1))) + '"></div>' +
+          // O nome vai escapado porque quase todos os modelos de TV têm
+          // aspas no nome (a diagonal em polegadas: 'Monitor 13" JOHNWILL').
+          // Sem isto a aspa fechava o atributo e a zona ficava a chamar-se
+          // "Monitor 13" -- reportado a ver o relatório com as TVs lá.
+          '<div class="inputgroup"><input type="text" class="lz-name" value="' + escapeXml(name || ("Zona " + (lzNextId - 1))) + '"></div>' +
         '</div>' +
         '<div class="row2 lz-position-inputs">' +
           '<div class="field"><label>Centro X (horizontal)</label><div class="inputgroup"><input class="lz-posx" type="number" inputmode="decimal" value="0" step="0.01"><span class="unit">m</span></div></div>' +
@@ -428,6 +446,11 @@
           '<div class="inputgroup"><input class="lz-tv-polegadas" type="number" inputmode="decimal" min="1" step="1" placeholder="ex: 55"><span class="unit">"</span></div>' +
         '</div>' +
         '<p class="hint lz-tv-only" style="display:none; margin-top:-6px;">Escreve a diagonal e a largura/altura abaixo calculam-se sozinhas (ecrã 16:9 — o formato de qualquer TV à venda hoje). Só mexas na largura/altura se for mesmo um caso fora do 16:9.</p>' +
+        '<div class="row2 lz-delay-only" style="display:none;">' +
+          '<div class="field"><label>Píxeis (horizontal)</label><div class="inputgroup"><input class="lz-delay-rx" type="number" inputmode="numeric" min="1" step="1" placeholder="1920"><span class="unit">px</span></div></div>' +
+          '<div class="field"><label>Píxeis (vertical)</label><div class="inputgroup"><input class="lz-delay-ry" type="number" inputmode="numeric" min="1" step="1" placeholder="1080"><span class="unit">px</span></div></div>' +
+        '</div>' +
+        '<p class="hint lz-delay-only" style="display:none; margin-top:-6px;">Resolução nativa desta saída. Uma TV vinda da aba TVs traz a do catálogo, quando lá está. Em branco fica "não conhecida" — nunca se inventa.</p>' +
         '<div class="row2 lz-meters-inputs" style="display:none;">' +
           '<div class="field"><label>Largura desejada</label><div class="inputgroup"><input class="lz-target-w" type="number" inputmode="decimal" value="2.0" min="0.1" step="0.1"><span class="unit">m</span></div></div>' +
           '<div class="field"><label>Altura desejada</label><div class="inputgroup"><input class="lz-target-h" type="number" inputmode="decimal" value="1.5" min="0.1" step="0.1"><span class="unit">m</span></div></div>' +
@@ -549,7 +572,31 @@
   // desligado) -- por isso começa sempre por tirar as zonas da sincronização
   // ANTERIOR (marcadas no dataset), senão mudar de 2 para 4 unidades ia
   // empilhando as antigas em vez de as substituir.
+  // Um arranque a frio NÃO é uma decisão de desligar.
+  //
+  // Os interruptores "Adicionar ao projeto" (TVs, Ecrã LED) não se guardam
+  // -- nem os campos dessas abas --, por isso ao abrir a app chegam aqui
+  // desligados, e chegam DEPOIS de lzRestoreFromStorage() já ter reposto as
+  // zonas. Sem esta guarda esse primeiro calcTV()/calcLed() apagava as
+  // zonas acabadas de restaurar: marcava-se "Adicionar ao projeto",
+  // fechava-se a app, e no dia seguinte as TVs já lá não estavam. Bug que
+  // já cá estava e que deitava a funcionalidade toda fora -- apanhado a
+  // testar a resolução das TVs, a recarregar a página.
+  //
+  // Só uma acção do utilizador nessas abas autoriza mexer nas zonas -- e o
+  // próprio interruptor é uma dessas acções (o "armar" ouve a aba toda, em
+  // captura, ver index.html). Por isso a regra não precisa de exceção
+  // nenhuma para o "ativo": enquanto ninguém lá tocar, a sincronização não
+  // toca em nada. Isto também evita o caminho ao contrário -- um calcLed()
+  // disparado de outro sítio (mudar de unidades, de standard) refazer a
+  // zona do ecrã a partir dos valores por omissão da aba.
+  var lzSyncArmado = { tv: false, led: false };
+  window.lzArmarSync = function (qual) {
+    if (qual in lzSyncArmado) lzSyncArmado[qual] = true;
+  };
+
   function lzSincronizarTVs(spec) {
+    if (!lzSyncArmado.tv) return;
     // Os ids da fila anterior, pela ordem em que estavam. Recriar a fila do
     // zero dava a cada TV um id novo -- e para quem está do outro lado (o 3D)
     // isso são peças NOVAS de cada vez que se mexe na quantidade: a arrumação
@@ -587,6 +634,11 @@
           posX: inicioX + i * (spec.w + gap) + spec.w / 2,
           posY: spec.h / 2,
           posMode: "center",
+          // A resolução nativa vem do catálogo (data/tvs.json) quando lá
+          // está. Sem ela a zona ficava a dizer "0×0 px" -- um zero que se
+          // lê como medida e não é: o que se sabe é que NÃO se sabe.
+          delayRx: spec.rx > 0 ? spec.rx : "",
+          delayRy: spec.ry > 0 ? spec.ry : "",
           visible: true
         }, false);
         card.dataset.origemTv = "1";
@@ -607,6 +659,8 @@
   // rectângulo em metros: assim a zona traz consigo pitch, peso e amps, e a
   // aba Ecrã Complexo continua a ser a dona da verdade sobre o conjunto.
   function lzSincronizarLed(spec) {
+    // Mesma guarda das TVs -- ver lzSyncArmado.
+    if (!lzSyncArmado.led) return;
     var existente = lzList.querySelector('.card[data-origem-led="1"]');
     if (!spec || !spec.ativo || !(spec.mx > 0) || !(spec.my > 0)) {
       if (existente) { existente.remove(); calcLedZones(); }
@@ -767,7 +821,10 @@
           curva: curva,
           tipo: z.tipo || "led",
           tiles: { x: z.mx, y: z.my },
-          res: { x: z.totalPx, y: z.totalPy },
+          // Uma saída de delay de que não se saiba a resolução vai como
+          // null, não como 0×0: do outro lado "zero píxeis" somava-se ao
+          // total do projeto como se fosse uma medida.
+          res: (z.resConhecida === false) ? null : { x: z.totalPx, y: z.totalPy },
           peso: z.weight,
           amp: z.amp,
           // Posição/rotação em 3D: não é nada que se calcule aqui (aqui só
@@ -870,6 +927,13 @@
       opts.sizeMode = "meters";
       if (w > 0) opts.targetW = Math.round(w * 1000) / 1000;
       if (h > 0) opts.targetH = Math.round(h * 1000) / 1000;
+      // Uma zona de delay não tem tiles, por isso cai sempre aqui -- e a
+      // resolução nativa que levou daqui tem de voltar intacta, senão uma
+      // ida ao 3D apagava a resolução da TV que veio do catálogo.
+      if (opts.tipo !== "led" && res) {
+        var resX = parseFloat(res.x), resY = parseFloat(res.y);
+        if (resX > 0 && resY > 0) { opts.delayRx = Math.round(resX); opts.delayRy = Math.round(resY); }
+      }
     }
 
     var curva = z.curva;
@@ -1548,7 +1612,7 @@
     var details = document.getElementById("lz-diagram-details");
     details.innerHTML = valid.slice().sort(function (a, b) { return a.posX - b.posX || a.posY - b.posY; }).map(function (z) {
       var left = lzLeftZona(z), top = lzTopZona(z);
-      var meta = fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m — " + fmtInt(z.totalPx) + "×" + fmtInt(z.totalPy) + "px — centro X:" + fmt(z.posX, 2) + " Y:" + fmt(z.posY, 2) +
+      var meta = fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m — " + lzTextoRes(z) + " — centro X:" + fmt(z.posX, 2) + " Y:" + fmt(z.posY, 2) +
         "m — limites X:" + fmt(left, 2) + "→" + fmt(left + z.w, 2) + ", Y:" + fmt(top, 2) + "→" + fmt(top + z.h, 2) + "m";
       return '<div class="lz-detail-row" data-zone-id="' + escapeXml(z.id || "") + '">' +
         '<span class="lz-detail-dot" style="background:' + lzZoneColor(z, colorMap, zones) + ';"></span>' +
@@ -1569,9 +1633,36 @@
   // Importante marcar manualmente num setup com pitches misturados: a
   // referência automática muda sozinha ao adicionar/remover zonas, o que
   // recalcula (e desalinha) os píxeis de todas as outras.
+  // Como se descreve uma zona numa linha de texto. Havia quatro versões
+  // desta frase espalhadas (lista do desenho, resumo do Ecrã Complexo,
+  // detalhe do Projeto, resumo do Projeto) e todas escreviam "0×0 tiles" e
+  // "0×0 px" para uma TV -- reportado a ver o relatório. Passa a ser um
+  // sítio só: uma zona sem tiles não fala de tiles, e píxeis que não se
+  // sabem dizem-no por palavras.
+  function lzTextoTiles(z) {
+    return (z.numTiles > 0) ? (z.mx + "×" + z.my + " tiles (" + fmtInt(z.numTiles) + ")") : null;
+  }
+  function lzTextoRes(z) {
+    return (z.totalPx > 0 && z.totalPy > 0)
+      ? (fmtInt(z.totalPx) + "×" + fmtInt(z.totalPy) + " px")
+      : "píxeis não conhecidos";
+  }
+  window.lzTextoTiles = lzTextoTiles;
+  window.lzTextoRes = lzTextoRes;
+
+  // Só entram zonas de LED, e isso é dito aqui à letra em vez de ficar a
+  // depender do "totalPx > 0" de baixo: enquanto as zonas de delay tinham
+  // 0 px ficavam de fora por acidente, e no dia em que passaram a trazer a
+  // resolução do catálogo entrariam caladas -- a inflar o canvas que sai
+  // daqui para o Sinal & Data Rate, para o Media Server e para o número de
+  // processadores de LED do Projeto. Uma TV de delay e um projetor são
+  // SAÍDAS PRÓPRIAS, cada uma com a sua resolução nativa (mostradas à
+  // parte, ver "saídas de delay" nos totais); não são uma região do canvas
+  // que o processador de LED tem de desenhar.
   function lzComputePixelMap(zones) {
     var valid = zones.filter(function (z) {
-      return isFinite(z.posX) && isFinite(z.posY) && z.w > 0 && z.h > 0 && z.totalPx > 0 && z.totalPy > 0;
+      return (z.tipo || "led") === "led" &&
+        isFinite(z.posX) && isFinite(z.posY) && z.w > 0 && z.h > 0 && z.totalPx > 0 && z.totalPy > 0;
     });
     if (!valid.length) return null;
     valid.forEach(function (z) {
@@ -2023,15 +2114,24 @@
         var zoneAreaDelay = whDelay.w * whDelay.h;
         var readoutDelay = card.querySelector(".lz-readout");
         var rotuloDelay = tipo === "tv" ? "TV (delay)" : "Projeção (delay)";
+        // A resolução é a única coisa que uma zona de delay PODE saber de si
+        // (peso e amperagem continuam fora do catálogo). Uma TV sincronizada
+        // da aba TVs traz a do data/tvs.json; à mão, escreve-se aqui. Não
+        // havendo, fica omissa -- nunca zero.
+        var rxDelay = parseFloat(card.querySelector(".lz-delay-rx").value);
+        var ryDelay = parseFloat(card.querySelector(".lz-delay-ry").value);
+        var temResDelay = rxDelay > 0 && ryDelay > 0;
+        if (!temResDelay) { rxDelay = 0; ryDelay = 0; }
         if (!whDelay.w || !whDelay.h) {
           readoutDelay.textContent = "Preenche a largura e a altura desta zona.";
         } else {
-          readoutDelay.textContent = rotuloDelay + " — " + fmt(whDelay.w,2) + " x " + fmt(whDelay.h,2) + " m (" + fmt(zoneAreaDelay,2) + " m²)";
+          readoutDelay.textContent = rotuloDelay + " — " + fmt(whDelay.w,2) + " x " + fmt(whDelay.h,2) + " m (" + fmt(zoneAreaDelay,2) + " m²) — " +
+            (temResDelay ? fmtInt(rxDelay) + "×" + fmtInt(ryDelay) + " px" : "píxeis não conhecidos");
         }
         var curveReadoutDelay = card.querySelector(".lz-curve-readout");
         if (curveReadoutDelay) curveReadoutDelay.textContent = "Curvatura: não aplicável a este tipo de ecrã.";
         lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), 0, 0, false);
-        zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: rotuloDelay, tipo: tipo, mx: 0, my: 0, numTiles: 0, w: whDelay.w, h: whDelay.h, area: zoneAreaDelay, totalPx: 0, totalPy: 0, pixels: 0, weight: 0, amp: 0, pesoConhecido: false, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: null, curve: null });
+        zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: rotuloDelay, tipo: tipo, mx: 0, my: 0, numTiles: 0, w: whDelay.w, h: whDelay.h, area: zoneAreaDelay, totalPx: rxDelay, totalPy: ryDelay, pixels: rxDelay * ryDelay, resConhecida: temResDelay, weight: 0, amp: 0, pesoConhecido: false, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: null, curve: null });
         return;
       }
 
@@ -2101,7 +2201,7 @@
       }
       lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), curveInfo ? curveInfo.n : 0, curveInfo ? curveInfo.angleDeg : 0, curveInfo ? curveInfo.convex : false);
 
-      zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, weight: zoneWeight, amp: zoneAmp, pesoConhecido: true, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: curveText, curve: curveInfo });
+      zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, resConhecida: totalPx > 0 && totalPy > 0, weight: zoneWeight, amp: zoneAmp, pesoConhecido: true, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: curveText, curve: curveInfo });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do
@@ -2110,8 +2210,36 @@
     var visibleZones = zones.filter(function (z) { return z.visible; });
 
     var totalTiles = visibleZones.reduce(function (s, z) { return s + z.numTiles; }, 0);
-    var totalPixels = visibleZones.reduce(function (s, z) { return s + z.pixels; }, 0);
+    // "Total de píxeis" é, e continua a ser, o do ecrã LED: é este número
+    // que dimensiona os processadores de LED na aba Projeto. Somar-lhe os
+    // píxeis de uma TV de delay mandava alugar um processador maior para
+    // alimentar monitores que nunca passam por ele.
+    var zonasLed = visibleZones.filter(function (z) { return (z.tipo || "led") === "led"; });
+    var zonasDelay = visibleZones.filter(function (z) { return (z.tipo || "led") !== "led"; });
+    var totalPixels = zonasLed.reduce(function (s, z) { return s + z.pixels; }, 0);
     var totalArea = visibleZones.reduce(function (s, z) { return s + z.area; }, 0);
+    // As saídas de delay contam-se à parte, uma a uma: cada TV e cada
+    // projeção é uma saída com a sua resolução nativa, não uma região de um
+    // canvas comum. Agrupadas por resolução, que é como se pedem ao media
+    // server ("4 × 1920×1080").
+    var delayPorRes = [];
+    var delaySemRes = 0;
+    zonasDelay.forEach(function (z) {
+      if (!z.resConhecida) { delaySemRes++; return; }
+      var achado = delayPorRes.filter(function (g) { return g.x === z.totalPx && g.y === z.totalPy; })[0];
+      if (achado) achado.n++;
+      else delayPorRes.push({ x: z.totalPx, y: z.totalPy, n: 1 });
+    });
+    var textoDelay = delayPorRes.map(function (g) {
+      return (g.n > 1 ? g.n + " × " : "") + fmtInt(g.x) + "×" + fmtInt(g.y) + " px";
+    }).join(", ");
+    if (delaySemRes) {
+      // Nenhuma conhecida: não vale a pena repetir a contagem, que já vem
+      // dita antes do travessão ("2 saídas — 2 sem resolução...").
+      textoDelay += textoDelay
+        ? (", mais " + delaySemRes + " sem resolução conhecida")
+        : "resolução não conhecida";
+    }
     // Uma zona de TV ou de Projeção não tem peso nem consumo no catálogo -- o
     // data/tvs.json tem diagonal, formato e resolução, e mais nada. Somá-las
     // como ZERO dava um total que parecia uma medida e não era: um projeto só
@@ -2133,8 +2261,19 @@
         " — " + zonasSemPeso + (zonasSemPeso === 1 ? " zona sem peso no catálogo)" : " zonas sem peso no catálogo)")
       : "";
 
-    document.getElementById("lz-out-tiles").textContent = fmtInt(totalTiles);
-    document.getElementById("lz-out-pixels").innerHTML = fmtInt(totalPixels) + "<small>px</small> (" + fmt(totalPixels/1e6,2) + "<small>MP</small>)";
+    // Tiles e píxeis do conjunto são do LED. Sem zona LED nenhuma o número
+    // certo não é zero -- é que a pergunta não se aplica.
+    document.getElementById("lz-out-tiles").innerHTML = zonasLed.length ? fmtInt(totalTiles) : "<small>sem zonas LED</small>";
+    document.getElementById("lz-out-pixels").innerHTML = zonasLed.length
+      ? fmtInt(totalPixels) + "<small>px</small> (" + fmt(totalPixels/1e6,2) + "<small>MP</small>)" + (zonasDelay.length ? "<small> — só o LED</small>" : "")
+      : "<small>sem zonas LED</small>";
+    var delayWrap = document.getElementById("lz-out-delay-wrap");
+    if (delayWrap) {
+      delayWrap.style.display = zonasDelay.length ? "" : "none";
+      document.getElementById("lz-out-delay").innerHTML = zonasDelay.length
+        ? fmtInt(zonasDelay.length) + (zonasDelay.length === 1 ? "<small> saída — </small>" : "<small> saídas — </small>") + escapeXml(textoDelay)
+        : "—";
+    }
     document.getElementById("lz-out-area").innerHTML = fmt(totalArea,2) + "<small>m²</small>";
     document.getElementById("lz-out-weight").innerHTML = pesoDesconhecido
       ? "<small>não conhecido</small>"
@@ -2157,27 +2296,40 @@
 
     var canvasResText = pm ? (fmtInt(pm.canvasW) + " x " + fmtInt(pm.canvasH) + " px") : "—";
     var canvasResNoGapsText = pm ? (fmtInt(pm.canvasWNoGaps) + " x " + fmtInt(pm.canvasHNoGaps) + " px") : "—";
+    // Sem zonas LED não há canvas nenhum a mostrar -- mas um traço sozinho
+    // lê-se como app avariada. Um projeto só de delays não tem canvas por
+    // uma razão, e a razão cabe aqui.
+    var semCanvasTexto = zonasDelay.length
+      ? "<small>sem zonas LED — as saídas de delay têm cada uma a sua resolução, acima</small>"
+      : "—";
     document.getElementById("lz-out-canvasres").innerHTML = pm
       ? (fmtInt(pm.canvasW) + "×" + fmtInt(pm.canvasH) + "<small>px</small>" + (pm.mixedPitch ? " <small>(pitches diferentes — aproximado, ref. \"" + escapeXml(pm.refName) + "\"" + (pm.refPinned ? ", marcada" : ", automática") + ")</small>" : ""))
-      : "—";
+      : semCanvasTexto;
     var canvasResNoGapsEl = document.getElementById("lz-out-canvasres-nogaps");
     if (canvasResNoGapsEl) {
-      canvasResNoGapsEl.innerHTML = pm ? (fmtInt(pm.canvasWNoGaps) + "×" + fmtInt(pm.canvasHNoGaps) + "<small>px</small>") : "—";
+      canvasResNoGapsEl.innerHTML = pm ? (fmtInt(pm.canvasWNoGaps) + "×" + fmtInt(pm.canvasHNoGaps) + "<small>px</small>") : semCanvasTexto;
     }
     document.querySelectorAll(".lz-canvas-mode-seg").forEach(function (seg) {
       seg.querySelectorAll(".seg-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.canvasmode === lzCanvasMode); });
     });
     var hiddenCount = zones.length - visibleZones.length;
-    document.getElementById("lz-preview-bar-text").textContent = (pm ? canvasResText : "—") + " · " + fmtInt(totalTiles) + " tiles · " + visibleZones.length + " zona(s)" + (hiddenCount ? " (" + hiddenCount + " escondida(s))" : "");
+    var barraPartes = [];
+    if (pm) barraPartes.push(canvasResText);
+    if (zonasLed.length) barraPartes.push(fmtInt(totalTiles) + " tiles");
+    if (zonasDelay.length) barraPartes.push(zonasDelay.length + (zonasDelay.length === 1 ? " delay" : " delays"));
+    barraPartes.push(visibleZones.length + " zona(s)" + (hiddenCount ? " (" + hiddenCount + " escondida(s))" : ""));
+    document.getElementById("lz-preview-bar-text").textContent = barraPartes.join(" · ");
 
     document.getElementById("lz-sum").textContent = visibleZones.map(function (z) {
-      return z.name + " (centro X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + z.mx + "x" + z.my + " tiles (" + fmtInt(z.numTiles) + "), " + fmtInt(z.totalPx) + "x" + fmtInt(z.totalPy) + " px, " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + (z.pesoConhecido === false ? "peso e amps não conhecidos" : fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A") + (z.curveText ? "\nCurvatura: " + z.curveText : "");
-    }).join("\n") + (hiddenCount ? "\n\n(" + hiddenCount + " zona(s) escondida(s), fora destas contas)" : "") + "\n\nTOTAL: " + fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos de cada zona), " + fmt(totalArea,2) + " m² (soma das zonas), " + (pesoDesconhecido ? "peso e amps não conhecidos" : fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A máx. (" + fmt(totalAmp/3,2) + " A/fase)" + notaPesoParcial) +
+      var tilesTexto = lzTextoTiles(z);
+      return z.name + " (centro X:" + fmt(z.posX,2) + "m Y:" + fmt(z.posY,2) + "m): " + z.model + " — " + (tilesTexto ? tilesTexto + ", " : "") + lzTextoRes(z) + ", " + fmt(z.w,2) + " x " + fmt(z.h,2) + " m (" + fmt(z.area,2) + " m²), " + (z.pesoConhecido === false ? "peso e amps não conhecidos" : fmt(z.weight,1) + " kg, " + fmt(z.amp,2) + " A") + (z.curveText ? "\nCurvatura: " + z.curveText : "");
+    }).join("\n") + (hiddenCount ? "\n\n(" + hiddenCount + " zona(s) escondida(s), fora destas contas)" : "") + "\n\nTOTAL: " + (zonasLed.length ? fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos das zonas LED)" : "sem zonas LED") + ", " + fmt(totalArea,2) + " m² (soma das zonas), " + (pesoDesconhecido ? "peso e amps não conhecidos" : fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A máx. (" + fmt(totalAmp/3,2) + " A/fase)" + notaPesoParcial) +
+      (zonasDelay.length ? "\nSaídas de delay (cada uma com a sua resolução, fora do canvas do LED): " + zonasDelay.length + " — " + textoDelay : "") +
       (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "") +
       (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, zona mais alta") + ")" : "") : "") +
       (pm ? "\nResolução final do canvas (sem gaps): " + canvasResNoGapsText + " — usada para o sinal/processo: " + (lzCanvasMode === "nogaps" ? "sem gaps" : "com gaps") : "");
 
-    lzLastTotals = { zones: visibleZones, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, pesoDesconhecido: pesoDesconhecido, zonasSemPeso: zonasSemPeso, notaPesoParcial: notaPesoParcial, bbox: bbox, pixelMap: pm, colorMap: colorMap };
+    lzLastTotals = { zones: visibleZones, zonasLed: zonasLed, zonasDelay: zonasDelay, textoDelay: textoDelay, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, pesoDesconhecido: pesoDesconhecido, zonasSemPeso: zonasSemPeso, notaPesoParcial: notaPesoParcial, bbox: bbox, pixelMap: pm, colorMap: colorMap };
 
     // As duas apps vivem no mesmo dominio e partilham o localStorage: e por
     // aqui que elas falam. O preview le isto ao abrir -- e, se estiver aberto
