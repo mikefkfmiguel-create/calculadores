@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.50</span>
+    <span class="mark" id="app-versao">v3.51</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -7162,9 +7162,18 @@
           return o.value === escolhaGuardada;
         });
         if (existe) el.projmodel.value = escolhaGuardada;
-      } else if (porOmissao) {
-        domeAplicarProjetor(porOmissao);
       }
+      // A regra, e vale tanto ao restaurar como ao escolher: COM UM MODELO
+      // ESCOLHIDO, os lúmenes e a resolução são os DELE. Escrever um deles à
+      // mão passa o seletor a "Personalizado…", por isso não há caso legítimo
+      // em que um modelo esteja à vista com números que não são seus.
+      //
+      // Ao restaurar isto é uma migração: um estado guardado antes da v3.50
+      // tem a resolução que lá estava por omissão (3840x2160) com um modelo
+      // que pode ser 1920x1200 -- foi exactamente o que apareceu em uso
+      // ("falta a resolução do projetor vir auto"). Aplicar o modelo corrige
+      // o que estava guardado em vez de o respeitar.
+      domeAplicarProjetor(domeProjetorEscolhido() || (escolhaGuardada ? null : porOmissao));
       wireStockColor(el.projmodel);
       updateSelectStockColor(el.projmodel);
       lzAttachModelSearch(el.projmodel);

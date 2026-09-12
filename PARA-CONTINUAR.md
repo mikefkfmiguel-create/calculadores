@@ -580,6 +580,19 @@ EB-PQ2220B a declarada dá 1,96 arcmin/px e a nativa 3,92 — o dobro, e é a
 diferença entre cumprir o alvo de 3 e não cumprir. Escrever a resolução ou os
 lúmenes à mão volta o seletor a "Personalizado…".
 
+**E na v3.51 faltava metade da correção.** Reportado a testar: *"falta a
+resolução do projetor vir auto"*. A v3.50 ligou o seletor à resolução ao
+ESCOLHER, mas ao RESTAURAR respeitava o que estava guardado — e o que estava
+guardado tinha sido gravado antes da ligação existir: modelo Epson EB-PU2213B
+(1920×1200) com a resolução 3840×2160 que era o valor por omissão da aba.
+Reabrir a app punha um modelo à vista com números que não são dele.
+
+A regra passou a ser explícita, e vale nos dois caminhos: **com um modelo
+escolhido, os lúmenes e a resolução são os dele.** Escrever um deles à mão
+passa o seletor a "Personalizado…", por isso não existe caso legítimo em que
+um modelo esteja selecionado com números de outro — e ao restaurar isto
+funciona como migração: corrige o que estava guardado em vez de o respeitar.
+
 **A colocação deixou de mandar na resolução — v3.50.** Reportado: *"o modo
 pode não ser sempre este, posso querer montar todos ao redor da dome"*, e
 tinha razão. O campo "Arranjo" fazia duas coisas ao mesmo tempo: dizia onde se
