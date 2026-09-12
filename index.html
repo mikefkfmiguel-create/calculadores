@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.48</span>
+    <span class="mark" id="app-versao">v3.49</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -6468,6 +6468,44 @@
   // isso não entra no grupo de exclusividade de LED/Projeção (lzSincronizarTVs,
   // em zonas.js, trata de substituir as zonas da sincronização anterior em
   // vez de as empilhar).
+  // Apagar na Ecrã Complexo uma zona que veio DESTAS abas tem de cortar a
+  // ligação, senão a sincronização recria-a no recálculo seguinte -- era o
+  // "aparece sempre um led". Ver lzCortarLigacoes() em js/zonas.js.
+  //
+  // Mexe-se no interruptor (e na quantidade) e dispara-se o "change" a
+  // sério: é o que já faz o resto -- guardar o estado da aba, refazer o
+  // relatório do projeto e correr a sincronização. Repetir isso à mão aqui
+  // era arranjar uma segunda versão da mesma regra para ficar por atualizar.
+  window.lzZonaRemovidaDaOrigem = function (origem, quantas) {
+    if (origem === "led") {
+      var cbLed = document.getElementById("l-addproject");
+      if (!cbLed || !cbLed.checked) return;
+      cbLed.checked = false;
+      cbLed.dispatchEvent(new Event("change", { bubbles: true }));
+      showToast('Ecrã LED tirado do projeto. Para voltar: aba Ecrã LED, "Adicionar ao projeto".');
+      return;
+    }
+    if (origem === "tv") {
+      // Numa fila de TVs, apagar um cartão é tirar UMA unidade -- por isso
+      // desce a quantidade, e a sincronização refaz a fila mais curta. Só
+      // quando sai a última é que se desliga a ligação toda.
+      var qtdInp = document.getElementById("tv-qty");
+      var cbTv = document.getElementById("tv-addproject");
+      if (!qtdInp || !cbTv || !cbTv.checked) return;
+      var qtd = Math.max(1, Math.round(parseFloat(qtdInp.value) || 1));
+      var ficam = qtd - Math.max(1, Math.round(quantas) || 1);
+      if (ficam >= 1) {
+        qtdInp.value = ficam;
+        qtdInp.dispatchEvent(new Event("change", { bubbles: true }));
+        showToast("Ficaram " + ficam + (ficam === 1 ? " TV" : " TVs") + " no projeto.");
+        return;
+      }
+      cbTv.checked = false;
+      cbTv.dispatchEvent(new Event("change", { bubbles: true }));
+      showToast('TVs tiradas do projeto. Para voltar: aba TVs, "Adicionar ao projeto".');
+    }
+  };
+
   function syncTVToProject(w, h, qty, tv) {
     if (!window.lzSincronizarTVs) return;
     window.lzSincronizarTVs({
@@ -6647,6 +6685,13 @@
     calcSinal();
     calcMediaServer();
     calcTV();
+    // Um projeto SÓ com cúpula não tem zona nenhuma -- e quem escreve para o
+    // Preview é o calcLedZones(), que corre por zona. Sem isto, uma cúpula
+    // que já estivesse no projeto ficava presa ao que a ponte guardou da
+    // última vez: foi assim que os projetores (v3.48) não apareciam no 3D de
+    // uma cúpula montada antes deles. Escreve só o campo "dome", nunca o
+    // payload inteiro -- ver lzActualizarDomeNaPonte() em js/zonas.js.
+    if (typeof lzActualizarDomeNaPonte === "function") lzActualizarDomeNaPonte();
   }).catch(function (err) {
     console.error("Falha a carregar dados de data/*.json:", err);
     calcProjecao();
@@ -6664,6 +6709,13 @@
     calcSinal();
     calcMediaServer();
     calcTV();
+    // Um projeto SÓ com cúpula não tem zona nenhuma -- e quem escreve para o
+    // Preview é o calcLedZones(), que corre por zona. Sem isto, uma cúpula
+    // que já estivesse no projeto ficava presa ao que a ponte guardou da
+    // última vez: foi assim que os projetores (v3.48) não apareciam no 3D de
+    // uma cúpula montada antes deles. Escreve só o campo "dome", nunca o
+    // payload inteiro -- ver lzActualizarDomeNaPonte() em js/zonas.js.
+    if (typeof lzActualizarDomeNaPonte === "function") lzActualizarDomeNaPonte();
   });
 
   // ── DOME (projeção em cúpula) ───────────────────────────────────────────
@@ -6729,6 +6781,44 @@
       el[k] = document.getElementById("dome-" + k);
     });
     if (!el.diam) return;
+
+    // A aba Dome guarda-se, pela mesma razão das TVs e do interruptor do Ecrã
+    // LED: é uma aba cujo "Adicionar ao projeto" põe uma FORMA no projeto, e
+    // essa forma persiste do outro lado (o 3D).
+    //
+    // Sem isto, reabrir a app punha a aba em branco com o interruptor
+    // desligado -- e o primeiro recálculo de zonas escrevia "dome: null" na
+    // ponte. Ou seja: a cúpula SAÍA do projeto sozinha, sem ninguém a tirar,
+    // e ninguém percebia porquê. Apanhado a testar a ponte dos projetores.
+    var DOME_ABA_KEY = "calculadores-dome-v1";
+    var DOME_CAMPOS = ["diam", "forma", "altura", "ganho", "arranjo", "qtd",
+                       "projmodel", "px-h", "px-v", "lumens", "blend", "alvo"];
+    var domeARestaurar = false;
+    function guardarAbaDome() {
+      if (domeARestaurar) return;
+      var d = {};
+      DOME_CAMPOS.forEach(function (k) { if (el[k]) d[k] = el[k].value; });
+      d.truncar = el.truncar ? el.truncar.checked : false;
+      d.addproject = el.addproject ? el.addproject.checked : false;
+      try { localStorage.setItem(DOME_ABA_KEY, JSON.stringify(d)); } catch (e) {}
+    }
+    function restaurarAbaDome() {
+      var d;
+      try { d = JSON.parse(localStorage.getItem(DOME_ABA_KEY) || "null"); } catch (e) { return null; }
+      if (!d) return null;
+      domeARestaurar = true;
+      DOME_CAMPOS.forEach(function (k) {
+        // O seletor de projetor só tem opções depois de data/projectors.json
+        // chegar -- é o domePreencherProjetores() que repõe a escolha.
+        if (k === "projmodel") return;
+        if (el[k] && d[k] != null) el[k].value = d[k];
+      });
+      if (el.truncar) el.truncar.checked = !!d.truncar;
+      if (el.addproject) el.addproject.checked = !!d.addproject;
+      domeARestaurar = false;
+      return d;
+    }
+    var domeGuardado = restaurarAbaDome();
 
     // Geometria da calota: de um diâmetro de base e uma altura sai o raio da
     // esfera, e a área é 2*pi*R*h (que numa meia-esfera dá 2*pi*R^2).
@@ -6939,6 +7029,9 @@
     // com fonte, e inventar aqui uma resolução era inventar dados técnicos.
     window.domePreencherProjetores = function (projectors) {
       if (!el.projmodel || !projectors || !projectors.length) return;
+      // Uma escolha guardada manda sobre o modelo por omissão -- e nesse caso
+      // os lúmenes já vieram do localStorage, não se escrevem outra vez.
+      var escolhaGuardada = domeGuardado ? domeGuardado.projmodel : null;
       var porOmissao = projectors.find(function (p) { return p.default; }) || projectors[0];
       var ordem = (typeof stockFirstIndices === "function")
         ? stockFirstIndices(projectors)
@@ -6946,9 +7039,16 @@
       ordem.forEach(function (i) {
         var p = projectors[i];
         addOption(el.projmodel, String(i), p.modelo + " — " + fmtInt(p.lumens) + " lm",
-                  p === porOmissao, undefined, !p.mercado);
+                  !escolhaGuardada && p === porOmissao, undefined, !p.mercado);
       });
-      if (porOmissao && porOmissao.lumens > 0) el.lumens.value = porOmissao.lumens;
+      if (escolhaGuardada) {
+        var existe = Array.prototype.some.call(el.projmodel.options, function (o) {
+          return o.value === escolhaGuardada;
+        });
+        if (existe) el.projmodel.value = escolhaGuardada;
+      } else if (porOmissao && porOmissao.lumens > 0) {
+        el.lumens.value = porOmissao.lumens;
+      }
       wireStockColor(el.projmodel);
       updateSelectStockColor(el.projmodel);
       lzAttachModelSearch(el.projmodel);
@@ -6979,6 +7079,8 @@
     document.querySelectorAll('.panel[data-mode="dome"] input, .panel[data-mode="dome"] select').forEach(function (campo) {
       campo.addEventListener("input", calcDome);
       campo.addEventListener("change", calcDome);
+      campo.addEventListener("input", guardarAbaDome);
+      campo.addEventListener("change", guardarAbaDome);
     });
     // Mexer no diâmetro ou na forma tem de chegar ao 3D, e o caminho para lá
     // é o mesmo das zonas (lzGuardarParaPreview). calcDome() não o chama de

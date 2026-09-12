@@ -1030,6 +1030,34 @@
     } catch (e) { /* sem localStorage os Calculadores funcionam na mesma */ }
   }
 
+  // Uma cúpula SOZINHA não tem zonas -- e quem escreve para o Preview é o
+  // calcLedZones(), que corre por zona. Resultado: um projeto só de cúpula
+  // nunca reescrevia a ponte ao abrir a app, e ficava preso ao que lá estava
+  // da última vez. Foi por aqui que os projetores da cúpula (v3.48) não
+  // apareciam no 3D de uma cúpula montada ANTES deles: o campo novo nunca
+  // chegava lá sem se mexer à mão num campo da aba Dome.
+  //
+  // Escreve só o campo "dome", por cima do que já estiver guardado. Montar
+  // aqui o payload inteiro era pior: a esta altura ainda não há zonas
+  // nenhumas em lista, e apagava as que a ponte trouxesse (as que tivessem
+  // vindo do Preview, por exemplo).
+  window.lzActualizarDomeNaPonte = function () {
+    if (lzAImportarDoPreview) return;
+    if (typeof syncAutoLigada === "function" && !syncAutoLigada()) return;
+    var dome = (typeof window.lzDomeParaPreview === "function") ? window.lzDomeParaPreview() : null;
+    if (!dome) return;
+    try {
+      var raw = localStorage.getItem(LZ_CHAVE_PREVIEW);
+      var payload = raw ? JSON.parse(raw) : null;
+      if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+        lzForcarParaPreview();
+        return;
+      }
+      payload.dome = dome;
+      localStorage.setItem(LZ_CHAVE_PREVIEW, JSON.stringify(payload));
+    } catch (e) { /* sem localStorage os Calculadores funcionam na mesma */ }
+  };
+
   // Escrever o nome (aba Projeto, "#proj-nome") só entrava no que vai para o
   // Preview no recálculo SEGUINTE das zonas -- se a pessoa só mudasse o nome
   // (sem tocar em zona nenhuma a seguir), a sincronização automática ficava
@@ -1115,14 +1143,39 @@
       calcLedZones();
     });
   });
+  // Uma zona que veio de outra aba (Ecrã LED, TVs) é DELA: enquanto o
+  // "Adicionar ao projeto" dessa aba estiver ligado, a sincronização recria-a
+  // no recálculo seguinte. Reportado assim: *"cria forma de apagar o ecrã de
+  // base do projeto, pois aparece sempre um led"* -- apagava-se e voltava, e
+  // um botão "Remover esta zona" que não remove é pior do que não existir.
+  //
+  // Quem corta a ligação é a própria aba (window.lzZonaRemovidaDaOrigem, em
+  // index.html): é ela que sabe quais são os seus campos e o que significa
+  // tirar UMA unidade de uma fila. Aqui só se conta o que se removeu.
+  function lzLigacoesDe(cards) {
+    var c = { led: 0, tv: 0 };
+    Array.prototype.forEach.call(cards, function (card) {
+      if (card.dataset.origemLed === "1") c.led++;
+      if (card.dataset.origemTv === "1") c.tv++;
+    });
+    return c;
+  }
+  function lzCortarLigacoes(c) {
+    if (typeof window.lzZonaRemovidaDaOrigem !== "function") return;
+    if (c.led) window.lzZonaRemovidaDaOrigem("led", c.led);
+    if (c.tv) window.lzZonaRemovidaDaOrigem("tv", c.tv);
+  }
+
   var lzClearZonesBtn = document.getElementById("lz-clear-zones");
   if (lzClearZonesBtn) {
     lzClearZonesBtn.addEventListener("click", function () {
       if (!lzList.children.length) return;
-      appConfirm("Remover todas as zonas desta lista? Dá para desfazer a seguir (Ctrl+Z) — as outras calculadoras e o projeto não são afetados.").then(function (ok) {
+      appConfirm("Remover todas as zonas desta lista? Dá para desfazer a seguir (Ctrl+Z). As zonas que vieram das abas Ecrã LED e TVs também saem do projeto — senão voltavam no recálculo seguinte. As contas dessas abas ficam como estão.").then(function (ok) {
         if (!ok) return;
         lzPushUndo();
+        var ligacoes = lzLigacoesDe(lzList.querySelectorAll(".card"));
         lzList.innerHTML = "";
+        lzCortarLigacoes(ligacoes);
         calcLedZones();
         showToast("Zonas removidas. Ctrl+Z para desfazer.");
       });
@@ -1321,7 +1374,10 @@
     var removeBtn = e.target.closest(".lz-remove");
     if (removeBtn) {
       lzPushUndo();
-      removeBtn.closest(".card").remove();
+      var cardARemover = removeBtn.closest(".card");
+      var ligacoes = lzLigacoesDe([cardARemover]);
+      cardARemover.remove();
+      lzCortarLigacoes(ligacoes);
       calcLedZones();
       return;
     }
