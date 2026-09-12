@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.53</span>
+    <span class="mark" id="app-versao">v3.54</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2007,6 +2007,10 @@
         <p><strong>A resolução mede-se em arcmin por píxel</strong>, não em "4K". O tamanho da cúpula não muda a resolução percebida — o ângulo que um píxel ocupa no olho é o mesmo seja a cúpula de 6 ou de 20 m. O olho resolve até cerca de <strong>3 arcmin</strong>, e é esse o alvo.</p>
         <p><strong>Um fisheye desperdiça metade dos píxeis</strong>, e nenhum folheto o diz: o círculo tem de caber no <em>lado curto</em> do projetor, por isso um 4096×2160 só dá 2160 de dome master. Truncar recupera píxeis mas corta cúpula — a calculadora diz quanto.</p>
         <p><strong>Mais lúmenes não servem para ter mais luz.</strong> Numa cúpula a luz de um lado reflete-se e lava a imagem do outro, por isso as superfícies têm refletividade baixa (a fonte indica <strong>não mais de 50%</strong>). Mais lúmenes servem para poder ter a superfície mais escura — e é a superfície escura que dá contraste. Sem o ganho da tua superfície medido ou fornecido, esta calculadora <strong>não estima a luz</strong>, porque seria inventar.</p>
+        <p><strong>Colocação e resolução são coisas diferentes.</strong> A colocação diz onde se pendura; a resolução sai de <em>quantas imagens atravessam o pólo</em>. Pela geometria das faixas: 1 ao centro com fisheye, 2 num anel sem zénite, 3 com zénite, 5 num anel duplo.</p>
+        <p><strong>Quantos projetores?</strong> Não há fórmula publicada. O que a aba dá é um <em>chão</em> aritmético — os píxeis que a cúpula pede a dividir pelos que o projetor tem —, e as configurações que as fontes nomeiam: um só ao centro até cerca de 10 m (Loch Ness); 1 ao centro ou 3, 6, 10 em cove (Cosm); 2 a 50 projetores em cúpulas de 2 a 55 m (VIOSO). Acima desse chão quem decide é a <strong>cobertura</strong>.</p>
+        <p><strong>A altura de montagem define a base da imagem.</strong> Um projetor de cove aponta para cima e para o lado oposto — não põe imagem abaixo do seu próprio plano horizontal. A faixa que fica por baixo não leva imagem, e o 3D desenha-a a vermelho. Baixar a montagem cobre mais cúpula; subir cobre menos e pede lente mais longa.</p>
+        <p><strong>A lente: a conta é ao contrário.</strong> Em vez de estimar cobertura a partir de uma lente — o que sobre uma calota não sai de um throw ratio —, a aba calcula o rácio <em>necessário</em> para cobrir a fatia de cada projetor e confronta-o com o catálogo. A geometria é exacta sobre os pontos da fatia; a aproximação é uma só, e é esta: um quadro retangular sobre uma calota não é um retângulo, e um projetor de cove atira muito fora de eixo. Serve para saber a <strong>ordem</strong> da lente, não para a encomendar.</p>
         <p>Fontes e contas em detalhe: ver a secção "Calculadora de dome" no <code>PARA-CONTINUAR.md</code> do repositório.</p>
       </div>
     </details>
@@ -2051,7 +2055,7 @@
                 <option value="anel-zenite" selected>Anel à volta + um no zénite</option>
                 <option value="anel-duplo">Anel duplo + um no zénite</option>
               </select>
-              <div class="hint">Só diz <strong>onde se montam</strong> — é o que o Preview 3D desenha. Não mexe na resolução: isso é o campo das imagens a atravessar o pólo, mais abaixo.</div>
+              <div class="hint">Só onde se montam. Não mexe na resolução.</div>
             </div>
             <div class="field">
               <label for="dome-qtd">Nº de projetores</label>
@@ -2061,12 +2065,12 @@
             <div class="field">
               <label for="dome-alt-mont">Altura de montagem dos projetores</label>
               <div class="inputgroup"><input id="dome-alt-mont" type="number" autocomplete="off" inputmode="decimal" placeholder="ex.: 2.5" min="0" step="0.1"><span class="unit">m</span></div>
-              <div class="hint">Do chão ao projetor. Não ficam no chão — numa cúpula de evento vão em truss ou estrutura, e num planetário na cove. <strong>Com esta altura e a lente é que se decide a cobertura</strong>, por isso o número é teu: em branco, o 3D põe-nos baixos e isso é só indicativo, não uma cota.</div>
+              <div class="hint">Do chão ao projetor. Define a base da imagem: abaixo desta altura não há imagem.</div>
             </div>
             <div class="field">
               <label for="dome-atravessa">Imagens a atravessar o pólo</label>
               <div class="inputgroup"><input id="dome-atravessa" type="number" autocomplete="off" inputmode="numeric" value="3" min="1" step="1"><span class="unit">un.</span></div>
-              <div class="hint">Quantas imagens se atravessam a ir de bordo a bordo por cima do pólo. <strong>É isto que fixa a resolução na cúpula</strong>, não a contagem de projetores — num anel de 10, atravessar o pólo pode ser coisa de 3 ou 4 imagens.</div>
+              <div class="hint">De bordo a bordo por cima do pólo. É isto que fixa a resolução, não o nº de projetores.</div>
               <div class="hint" id="dome-atravessa-sugestao"></div>
             </div>
             <div class="field">
@@ -2075,7 +2079,7 @@
                 <option value="custom">Personalizado…</option>
               </select>
               <div class="srclink-wrap" id="dome-projmodel-source"></div>
-              <div class="hint">Escolher preenche os lúmenes e a resolução, a partir do catálogo.</div>
+              <div class="hint">Preenche lúmenes e resolução do catálogo.</div>
             </div>
             <div class="field" id="dome-resmode-field" style="display:none;">
               <label>Resolução a usar</label>
@@ -2083,7 +2087,7 @@
                 <button type="button" class="seg-btn active" data-resmode="enhanced">Declarada (pixel-shift)</button>
                 <button type="button" class="seg-btn" data-resmode="native">Nativa (painel/chip)</button>
               </div>
-              <div class="hint">Numa cúpula isto pesa: o pixel-shift declara mais píxeis do que o painel tem, e a resolução angular que se sente está mais perto da nativa.</div>
+              <div class="hint">O pixel-shift declara mais píxeis do que o painel tem.</div>
             </div>
             <div class="row2">
               <div class="field">
@@ -2121,19 +2125,19 @@
             <div class="field">
               <label for="dome-blend">Sobreposição de blending</label>
               <div class="inputgroup"><input id="dome-blend" type="number" autocomplete="off" inputmode="decimal" value="15" min="0" max="50" step="1"><span class="unit">%</span></div>
-              <div class="hint">Quanto se perde do total ao sobrepor as imagens. Num exemplo trabalhado de um fabricante de media servers, 3 × 1080 = 3240 px a atravessar o pólo davam "cerca de 2800" — ou seja 13,6%.</div>
+              <div class="hint">Quanto se perde ao sobrepor as imagens. O 3D desenha esta sobreposição.</div>
             </div>
             <div class="field" id="dome-truncar-wrap">
               <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:400;">
                 <input type="checkbox" id="dome-truncar" style="width:auto;">
                 Fisheye truncado (usar o lado longo, cortando cúpula)
               </label>
-              <div class="hint">Só aparece com a colocação "ao centro, com fisheye". Recupera píxeis usando a largura toda do quadro, mas deixa de cobrir a cúpula inteira.</div>
+              <div class="hint">Recupera píxeis usando a largura toda do quadro, mas corta cúpula.</div>
             </div>
             <div class="field">
               <label for="dome-alvo">Alvo de resolução</label>
               <div class="inputgroup"><input id="dome-alvo" type="number" autocomplete="off" inputmode="decimal" value="3" min="0.5" max="20" step="0.5"><span class="unit">arcmin/px</span></div>
-              <div class="hint">3 arcmin é o limite do olho citado na literatura de fulldome. Abaixo disso está-se a gastar píxeis que ninguém vê; acima, vê-se a grelha.</div>
+              <div class="hint">3 arcmin é o limite do olho na literatura de fulldome.</div>
             </div>
           </div>
         </details>
@@ -6935,13 +6939,21 @@
       var thetaDe = function (f) {
         return Math.acos(Math.min(1, Math.max(-1, 1 - Math.min(1, Math.max(0, f)) * (1 - Math.cos(thetaMax)))));
       };
-      var tCima = thetaDe(aoCentro / n), tBaixo = thetaMax;
+      // Até onde a imagem desce: um projetor de cove aponta para cima e para o
+      // lado oposto, e não põe imagem abaixo do seu próprio plano horizontal
+      // na parede de lá. É a mesma conta que o 3D faz (ver
+      // thetaDoChaoDaImagem em cena.js) -- e é o que faz a altura de montagem
+      // mexer no rácio, em vez de ser só decoração.
+      var yMont = (alturaMont > 0) ? Math.min(h - 0.2, alturaMont) : Math.min(1.2, h * 0.12);
+      var thetaChao = Math.min(thetaMax, Math.acos(
+        Math.min(1, Math.max(-1, (yMont - h + R) / R))));
+      var alcancavel = (1 - Math.cos(thetaChao)) / (1 - Math.cos(thetaMax));
+      var tCima = thetaDe((aoCentro / n) * alcancavel), tBaixo = thetaChao;
       var meio = (Math.PI / noAnel) * (1 + blend);     // meia fatia, com sobreposição
 
       // O projetor: no anel encostado por dentro, à altura de montagem.
-      var y = (alturaMont > 0) ? Math.min(h - 0.2, alturaMont) : Math.min(1.2, h * 0.12);
       var rc = Math.max(0.4, a - 0.5);
-      var P = { x: 0, y: y, z: rc };
+      var P = { x: 0, y: yMont, z: rc };
       // O centro da fatia fica do lado OPOSTO -- e as coordenadas da calota
       // contam-se do centro da esfera, que está a y = h - R.
       var tMeio = (tCima + tBaixo) / 2;
@@ -6957,7 +6969,12 @@
       var E1 = ponto(-meio, tBaixo), E2 = ponto(meio, tBaixo);
       var corda = Math.sqrt(Math.pow(E2.x - E1.x, 2) + Math.pow(E2.y - E1.y, 2) + Math.pow(E2.z - E1.z, 2));
       if (!(corda > 0) || !(dist > 0)) return null;
-      return { tr: dist / corda, dist: dist, largura: corda };
+      // A área que fica por baixo da montagem e não leva imagem nenhuma.
+      var areaTotal = 2 * Math.PI * R * h;
+      var areaSemImagem = 2 * Math.PI * R * (R * (Math.cos(thetaChao) - Math.cos(thetaMax)));
+      return { tr: dist / corda, dist: dist, largura: corda,
+               yMont: yMont, semImagem: Math.max(0, areaSemImagem),
+               fraccaoSemImagem: areaTotal > 0 ? Math.max(0, areaSemImagem) / areaTotal : 0 };
     }
 
     // Escrever no ecrã o que o catálogo diz do modelo escolhido: lúmenes e
@@ -7103,7 +7120,7 @@
             (precisaAtravessa < atravessa ? " — tens mais do que o alvo pede." : ".") +
             ' <button type="button" class="copy" id="dome-usar-atravessa" style="margin-top:6px;">Usar ' + precisaAtravessa + '</button>') +
         '<br>Pela geometria da colocação escolhida, um meridiano atravessa <strong>' + meridiano +
-        '</strong> imagem(ns)' + (meridiano === atravessa ? ", que é o que está aí." : " — de bordo a bordo por cima do pólo.") +
+        '</strong> imagem(ns)' + (meridiano === atravessa ? ", que é o que está aí." : ".") +
         (meridiano !== atravessa
           ? ' <button type="button" class="copy" id="dome-usar-meridiano" style="margin-top:6px;">Usar ' + meridiano + '</button>'
           : "");
@@ -7130,8 +7147,7 @@
         (qtdMinimo !== qtd
           ? ' <button type="button" class="copy" id="dome-usar-qtd" style="margin-top:6px;">Usar ' + qtdMinimo + '</button>'
           : "") +
-        "<br><br>O que decide o número <em>acima</em> deste chão é a <strong>cobertura</strong>: quanto de cúpula cada máquina alcança do sítio onde está pendurada — e isso é a <strong>lente</strong> e a <strong>altura de montagem</strong>, não a resolução. Esta aba não estima a cobertura: o alcance sobre uma superfície curva não sai de um throw ratio sem contas que ainda não estão aqui, e pôr aqui um número sem elas era inventá-lo." +
-        "<br><br>" + sugestaoDeQuantos(g.D);
+        " Acima dele, quem decide é a cobertura — a lente e a altura de montagem, mais abaixo.";
 
       // ── a lente ──
       var pedido = racioQueAFatiaPede(g, colocacao, qtd,
@@ -7140,7 +7156,7 @@
       var tmin = parseFloat(el.tmin.value), tmax = parseFloat(el.tmax.value);
       if (!pedido) {
         el["lente-veredicto"].innerHTML = (colocacao === "centro")
-          ? "Com <strong>fisheye ao centro</strong> não há rácio de tiro para medir: uma lente fisheye não se descreve por throw ratio. O que conta aí é o círculo cobrir a cúpula, e é isso que o aproveitamento acima já diz."
+          ? "Com fisheye ao centro não há rácio de tiro a medir — uma fisheye não se descreve assim."
           : "";
       } else {
         var texto = "Para cobrir a fatia de um projetor do anel — <strong>" +
@@ -7166,7 +7182,12 @@
               servem.slice(0, 3).map(function (l) { return escapeXml(l.marca + " " + l.modelo); }).join(", ") + "."
             : "<br><strong>Nenhuma lente do catálogo cobre esse rácio.</strong> Ou muda o nº de projetores, ou a altura de montagem, ou é caso para lente especial.";
         }
-        texto += "<br><em>Isto é a ordem da lente, não uma encomenda:</em> um quadro retangular sobre uma calota não é um retângulo, e um projetor de cove atira muito fora de eixo. A conta é exacta sobre os pontos da fatia; a aproximação está aqui, e está dita.";
+        if (pedido.fraccaoSemImagem > 0.005) {
+          texto += "<br><strong>Abaixo dos " + fmt(pedido.yMont, 2) + " m não há imagem</strong>: " +
+            fmt(pedido.semImagem, 1) + " m², " + fmt(pedido.fraccaoSemImagem * 100, 0) +
+            " % da superfície (a faixa vermelha no 3D).";
+        }
+        texto += " <em>É a ordem da lente, não uma encomenda</em> — ver o \u201cComo usar\u201d.";
         el["lente-veredicto"].innerHTML = texto;
       }
 
