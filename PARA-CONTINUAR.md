@@ -81,28 +81,57 @@ Combinado:
 
 Rede extra, se se quiser: marcar os tips com tags antes de apagar.
 
-### 3. As TVs no Ecrã Complexo — resolução, peso e amps
+### 3. ~~As TVs no Ecrã Complexo~~ — FEITO a 12 de setembro (v3.41)
 
-Reportado com screenshots: com 4 TVs e mais nada, o painel mostra
-`0 tiles`, **Resolução final do canvas `—`**, `PESO TOTAL 0,0 kg`,
-`AMP TOTAL 0,00 A`. A dimensão do conjunto (7,76 × 1,07 m) sai bem.
+Era: com 4 TVs e mais nada, o painel mostrava `0 tiles`, **canvas `—`**,
+`0,0 kg`, `0,00 A`. O peso e os amps foram resolvidos na v3.40 ("não
+conhecido" em vez de zero). A resolução ficou para aqui, e está feita.
 
-São dois problemas diferentes, e só um tem solução:
+**O que se decidiu, e porquê.** Uma TV de delay e uma projeção são **saídas
+próprias**, cada uma com a sua resolução nativa — não são uma região do
+canvas do LED. Por isso:
 
-- **Resolução: tem solução, mas é de raiz.** Uma zona de TV é um rectângulo
-  em metros — `lzZoneMetrics` (`js/zonas.js`) sai cedo para tipos não-LED — e
-  não tem píxeis nenhuns. Uma zona LED tem, porque traz o modelo de tile
-  consigo. Dar píxeis às TVs implica: campo novo por zona, a viajar na
-  serialização e na ponte para o Preview, e a entrar na conta do canvas (que
-  hoje é toda feita a partir do pitch). O `data/tvs.json` **tem** a resolução
-  de cada modelo, por isso o dado existe — falta o caminho.
-- **Peso e amps: não têm solução pelos dados.** O `data/tvs.json` tem `diag`,
-  `ratio`, `resolucao`, `resolucaoNota`, `touchscreen` e `fonte`. Nem peso
-  nem consumo. Inventá-los parte a regra da casa — e num cálculo de estrutura
-  e de energia é dos sítios onde mentir magoa mais. **Proposta a decidir:**
-  mostrar **"não conhecido"** em vez de `0,00`. Um zero mente; um "não
-  conhecido" não. (Em alternativa, alguém preenche o catálogo com valores de
-  ficha técnica — aí passa a haver dado.)
+- Cada zona de delay passa a ter resolução própria. Uma TV sincronizada da
+  aba TVs traz a do `data/tvs.json`; à mão, escreve-se num campo novo no
+  popup da zona. **Em branco quer dizer "não conhecida"** e é isso que sai
+  escrito — nunca `0×0`.
+- O **canvas do LED não mexe**. `lzComputePixelMap()` passou a filtrar
+  `tipo === "led"` à letra. Isto é o ponto que era preciso acertar: sem ele,
+  dar píxeis às TVs inflava calado o canvas que alimenta o Sinal & Data
+  Rate, o Media Server e **o número de processadores de LED** — mandava
+  alugar um processador maior para alimentar monitores que nunca lhe passam
+  pela frente. Está provado por teste (esconder as TVs não muda o canvas).
+- Linha nova nos totais, **"Saídas de delay (TV/projeção)"**, agrupada por
+  resolução: `3 × 1920×1080 px`. É como se pedem ao media server.
+- O `lz-sum`, o relatório do Projeto e a lista do desenho deixaram de
+  escrever `0×0 tiles` — passa tudo por `lzTextoTiles`/`lzTextoRes`, um
+  sítio só.
+
+**Dois bugs apanhados a testar isto, ambos já cá estavam:**
+
+1. **O nome da TV vinha cortado.** `lzAddZone` metia o nome num atributo
+   HTML sem escapar, e quase todos os modelos de TV têm aspas no nome (a
+   diagonal: `Monitor 13" JOHNWILL`). A aspa fechava o atributo e a zona
+   ficava a chamar-se `Monitor 13`.
+2. **As TVs desapareciam do projeto ao reabrir a app.** O interruptor
+   "Adicionar ao projeto" não se guardava, mas as zonas sim — ao arrancar, o
+   `calcTV()` corria com ele desligado e apagava as zonas acabadas de
+   restaurar. Marcava-se, fechava-se, e no dia seguinte não havia TVs
+   nenhumas. O mesmo valia para o Ecrã LED. Duas peças a corrigir: uma
+   guarda (`lzSyncArmado`, em `js/zonas.js`) que só deixa a sincronização
+   mexer nas zonas depois de alguém tocar mesmo nessa aba, e a aba TVs
+   passou a guardar-se (modelo, diagonal, formato, quantidade, interruptor).
+
+**Fica por fazer, e é pequeno:** a aba **Ecrã LED** guarda só o interruptor,
+não os campos. Com a guarda isso já não destrói nada — a zona restaurada
+fica como estava —, mas no dia em que se tocar nessa aba a zona é refeita a
+partir dos valores por omissão. Falta persistir a aba Ecrã LED inteira, como
+se fez com as TVs.
+
+**Peso e amps continuam sem solução pelos dados.** O `data/tvs.json` tem
+`diag`, `ratio`, `resolucao`, `resolucaoNota`, `touchscreen` e `fonte`. Nem
+peso nem consumo. Enquanto alguém não preencher o catálogo com valores de
+ficha técnica, dizem "não conhecido" — que é a verdade.
 
 ### 4. Os nomes novos do Preview (v2.99)
 
