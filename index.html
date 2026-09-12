@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.51</span>
+    <span class="mark" id="app-versao">v3.52</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2057,6 +2057,11 @@
               <label for="dome-qtd">Nº de projetores</label>
               <div class="inputgroup"><input id="dome-qtd" type="number" autocomplete="off" inputmode="numeric" value="6" min="1" step="1"><span class="unit">un.</span></div>
               <div class="hint" id="dome-qtd-sugestao"></div>
+            </div>
+            <div class="field">
+              <label for="dome-alt-mont">Altura de montagem dos projetores</label>
+              <div class="inputgroup"><input id="dome-alt-mont" type="number" autocomplete="off" inputmode="decimal" placeholder="ex.: 2.5" min="0" step="0.1"><span class="unit">m</span></div>
+              <div class="hint">Do chão ao projetor. Não ficam no chão — numa cúpula de evento vão em truss ou estrutura, e num planetário na cove. <strong>Com esta altura e a lente é que se decide a cobertura</strong>, por isso o número é teu: em branco, o 3D põe-nos baixos e isso é só indicativo, não uma cota.</div>
             </div>
             <div class="field">
               <label for="dome-atravessa">Imagens a atravessar o pólo</label>
@@ -6788,7 +6793,7 @@
     var FL_POR_CD_M2 = 3.426;
 
     var el = {};
-    ["diam", "forma", "altura", "altura-wrap", "ganho", "colocacao", "qtd", "atravessa",
+    ["diam", "forma", "altura", "altura-wrap", "ganho", "colocacao", "qtd", "atravessa", "alt-mont",
      "qtd-sugestao", "atravessa-sugestao", "resmode-field", "res-nota",
      "projmodel", "px-h", "px-v", "lumens", "blend", "truncar", "truncar-wrap", "alvo",
      "out-raio", "out-area", "out-master", "out-arcmin", "out-ppd", "out-aprov",
@@ -6808,7 +6813,7 @@
     // e ninguém percebia porquê. Apanhado a testar a ponte dos projetores.
     var DOME_ABA_KEY = "calculadores-dome-v1";
     var DOME_CAMPOS = ["diam", "forma", "altura", "ganho", "colocacao", "qtd", "atravessa",
-                       "projmodel", "px-h", "px-v", "lumens", "blend", "alvo"];
+                       "alt-mont", "projmodel", "px-h", "px-v", "lumens", "blend", "alvo"];
     // Antes da v3.50 havia um campo só, "arranjo", a fazer as duas coisas:
     // dizer ONDE se montam os projetores e, ao mesmo tempo, quantas imagens
     // atravessam o pólo (que é o que fixa a resolução). Reportado assim:
@@ -6903,6 +6908,15 @@
     // nº. Não há fórmula publicada que ligue diâmetro a número de
     // projetores, e inventar uma era inventar dados técnicos (CLAUDE.md) --
     // por isso o que se mostra são as configurações reais, com quem as diz.
+    // Quantas imagens um MERIDIANO atravessa, para cada colocação. Isto é
+    // geometria das faixas que o 3D desenha, não uma convenção: de bordo a
+    // bordo por cima do pólo, um fisheye ao centro dá uma imagem; um anel sem
+    // zénite dá duas (metade de cada lado); com zénite, três; com anel duplo,
+    // cinco (exterior, interior, calota, interior, exterior). O exemplo
+    // trabalhado do 7thSense -- "3 x 1080 a atravessar o pólo" num anel com
+    // zénite -- cai exactamente nos três.
+    var MERIDIANO_POR_COLOCACAO = { "centro": 1, "anel": 2, "anel-zenite": 3, "anel-duplo": 5 };
+
     function sugestaoDeQuantos(D) {
       var partes = [];
       if (D <= 10) {
@@ -6937,7 +6951,6 @@
       el["truncar-wrap"].style.display = fisheyeAoCentro ? "" : "none";
       var truncado = fisheyeAoCentro && el.truncar.checked;
 
-      el["qtd-sugestao"].innerHTML = (g && g.D > 0) ? sugestaoDeQuantos(g.D) : "";
 
       if (!g || !(pxH > 0) || !(pxV > 0)) {
         ["out-raio","out-area","out-master","out-arcmin","out-ppd","out-aprov","out-imersa","out-lm","out-lux","out-cd","out-fl"]
@@ -6946,6 +6959,7 @@
         el["out-luznota"].textContent = "";
         el["out-cobertura"].style.display = "none";
         el["atravessa-sugestao"].innerHTML = "";
+        el["qtd-sugestao"].innerHTML = (g && g.D > 0) ? sugestaoDeQuantos(g.D) : "";
         el.sum.textContent = "";
         renderProjectItems();
         return;
@@ -7000,12 +7014,44 @@
       // píxeis), não uma regra de ninguém -- por isso pode aparecer como
       // sugestão sem inventar nada.
       var precisaAtravessa = Math.max(1, Math.ceil((10800 / alvo) / (base * (1 - blend))));
-      el["atravessa-sugestao"].innerHTML = precisaAtravessa === atravessa
-        ? "Com este projetor e este blending, " + atravessa + " é exactamente o que o alvo de " + fmt(alvo, 1) + " arcmin/px pede."
-        : "Para o alvo de " + fmt(alvo, 1) + " arcmin/px com este projetor seriam <strong>" +
-          precisaAtravessa + "</strong> imagens a atravessar o pólo" +
-          (precisaAtravessa < atravessa ? " — tens mais do que o alvo pede." : ".") +
-          ' <button type="button" class="copy" id="dome-usar-atravessa" style="margin-top:6px;">Usar ' + precisaAtravessa + '</button>';
+      var meridiano = MERIDIANO_POR_COLOCACAO[colocacao] || 3;
+      el["atravessa-sugestao"].innerHTML =
+        (precisaAtravessa === atravessa
+          ? "Com este projetor e este blending, " + atravessa + " é exactamente o que o alvo de " + fmt(alvo, 1) + " arcmin/px pede."
+          : "Para o alvo de " + fmt(alvo, 1) + " arcmin/px com este projetor seriam <strong>" +
+            precisaAtravessa + "</strong> imagens a atravessar o pólo" +
+            (precisaAtravessa < atravessa ? " — tens mais do que o alvo pede." : ".") +
+            ' <button type="button" class="copy" id="dome-usar-atravessa" style="margin-top:6px;">Usar ' + precisaAtravessa + '</button>') +
+        '<br>Pela geometria da colocação escolhida, um meridiano atravessa <strong>' + meridiano +
+        '</strong> imagem(ns)' + (meridiano === atravessa ? ", que é o que está aí." : " — de bordo a bordo por cima do pólo.") +
+        (meridiano !== atravessa
+          ? ' <button type="button" class="copy" id="dome-usar-meridiano" style="margin-top:6px;">Usar ' + meridiano + '</button>'
+          : "");
+
+      // ── quantos projetores: o chão do orçamento de píxeis ──
+      //
+      // Pedido directo: *"poderia dar a sugestão de quantos projetores"*. A
+      // dica que aqui estava só listava configurações das fontes e dizia "não
+      // há fórmula" -- verdade, mas deixava a pessoa sem número.
+      //
+      // Há um número que se pode dar sem inventar nada: a cúpula precisa de
+      // pi/4 * dMaster^2 píxeis para cumprir o alvo, e cada projetor tem
+      // pxH*pxV. A divisão é um CHÃO que nenhum arranjo pode furar, por
+      // perfeito que seja -- e é chão, não recomendação, porque nenhum
+      // arranjo real aproveita 100%.
+      var dMasterAlvo = 10800 / alvo;
+      var pxAlvo = Math.PI / 4 * dMasterAlvo * dMasterAlvo;
+      var qtdMinimo = Math.max(1, Math.ceil(pxAlvo / (pxH * pxV)));
+      el["qtd-sugestao"].innerHTML =
+        "<strong>Mínimo absoluto para o alvo de " + fmt(alvo, 1) + " arcmin/px: " + qtdMinimo +
+        " projetores</strong> deste modelo — os " + fmt(pxAlvo / 1e6, 1) +
+        " MP que a cúpula pede a dividir pelos " + fmt(pxH * pxV / 1e6, 1) +
+        " MP que o projetor tem. É um <strong>chão</strong>, não uma recomendação: nenhum arranjo real aproveita 100% dos píxeis." +
+        (qtdMinimo !== qtd
+          ? ' <button type="button" class="copy" id="dome-usar-qtd" style="margin-top:6px;">Usar ' + qtdMinimo + '</button>'
+          : "") +
+        "<br><br>O que decide o número <em>acima</em> deste chão é a <strong>cobertura</strong>: quanto de cúpula cada máquina alcança do sítio onde está pendurada — e isso é a <strong>lente</strong> e a <strong>altura de montagem</strong>, não a resolução. Esta aba não estima a cobertura: o alcance sobre uma superfície curva não sai de um throw ratio sem contas que ainda não estão aqui, e pôr aqui um número sem elas era inventá-lo." +
+        "<br><br>" + sugestaoDeQuantos(g.D);
 
       var veredicto;
       if (arcmin <= alvo) {
@@ -7077,7 +7123,8 @@
         (projEscolhido && projEscolhido.resolucaoNativa
           ? (domeResMode === "native" ? " (nativo)" : " (declarado — pixel-shift)") : "") +
         (lumens > 0 ? " @ " + fmtInt(lumens) + " lm" : "") + "\n" +
-        "Colocados: " + colocacaoTexto + "\n" +
+        "Colocados: " + colocacaoTexto +
+        (parseFloat(el["alt-mont"].value) > 0 ? ", a " + fmt(parseFloat(el["alt-mont"].value), 2) + " m do chão" : ", altura de montagem por definir") + "\n" +
         (projEscolhido && projEscolhido.resolucaoNota ? "Nota do projetor: " + projEscolhido.resolucaoNota + "\n" : "") +
         "Imagens a atravessar o pólo: " + atravessa + "\n" +
         "Sobreposição de blending: " + fmt(blend * 100, 0) + " %" + (truncado ? "\nFisheye truncado: cobre 180° × " + fmt(180 * (curto / longo), 0) + "°" : "") + "\n" +
@@ -7125,6 +7172,12 @@
         projetores: {
           n: Math.max(1, Math.round(parseFloat(el.qtd.value) || 1)),
           colocacao: el.colocacao.value,
+          // A altura de montagem, quando lá estiver. Vazio = o 3D escolhe um
+          // valor baixo e indicativo (reportado: "não serão no chão, serão
+          // sempre elevados" -- e tinha razão, o que eu punha era rasteiro).
+          altura: (parseFloat(el["alt-mont"].value) > 0)
+            ? Math.round(parseFloat(el["alt-mont"].value) * 100) / 100
+            : null,
           arranjo: DOME_COLOCACAO_ARRANJO[el.colocacao.value] || 3
         }
       };
@@ -7229,11 +7282,12 @@
     // O "Usar N" nasce e morre a cada calcDome (está dentro de um innerHTML),
     // por isso o ouvinte fica no painel e não no botão.
     document.querySelector('.panel[data-mode="dome"]').addEventListener("click", function (ev) {
-      var bt = ev.target.closest && ev.target.closest("#dome-usar-atravessa");
+      var bt = ev.target.closest && ev.target.closest("#dome-usar-atravessa, #dome-usar-meridiano, #dome-usar-qtd");
       if (!bt) return;
       var n = parseInt(bt.textContent.replace(/\D+/g, ""), 10);
       if (!(n > 0)) return;
-      el.atravessa.value = n;
+      if (bt.id === "dome-usar-qtd") el.qtd.value = n;
+      else el.atravessa.value = n;
       calcDome();
       guardarAbaDome();
       if (typeof lzGuardarParaPreview === "function") lzGuardarParaPreview();
@@ -7249,7 +7303,7 @@
     // é o mesmo das zonas (lzGuardarParaPreview). calcDome() não o chama de
     // propósito: escrever para o Preview a cada tecla de um campo qualquer
     // desta aba seria barulho. Só o que muda a cúpula, e o interruptor.
-    ["diam", "forma", "altura", "qtd", "colocacao", "addproject"].forEach(function (k) {
+    ["diam", "forma", "altura", "qtd", "colocacao", "alt-mont", "addproject"].forEach(function (k) {
       if (!el[k]) return;
       el[k].addEventListener("change", function () {
         if (typeof lzGuardarParaPreview === "function") lzGuardarParaPreview();
