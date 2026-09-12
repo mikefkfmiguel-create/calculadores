@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.42</span>
+    <span class="mark" id="app-versao">v3.43</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -163,13 +163,24 @@
           <details class="card sinal-block" id="asst-medir-card" style="display:none;">
             <summary>Régua na foto — dar escala à imagem</summary>
             <div class="sinal-block-body">
-              <p class="hint" style="margin-top:0;">Uma foto não tem escala: 100 píxeis podem ser 10 cm ou 10 m. Aqui dás-lhe uma, apontando uma coisa de medida conhecida.</p>
-              <ol class="hint" style="margin:0 0 10px; padding-left:18px;">
-                <li>Arrasta a linha <strong>azul</strong> de ponta a ponta de algo cuja medida saibas — uma porta (2,00 m de altura é o normal), um tile de LED, uma marca no chão.</li>
-                <li>Escreve essa medida real.</li>
-                <li>Arrasta a linha <strong>laranja</strong> sobre o que queres medir.</li>
-              </ol>
-              <div class="warn" style="margin-bottom:10px;">Isto só é fiável para coisas <strong>no mesmo plano</strong> da referência e com a câmara mais ou menos de frente. Uma perspetiva forte, ou medir uma coisa muito mais à frente/atrás do que a referência, dá erros grandes — a foto continua a ser uma foto. Serve para uma ordem de grandeza, não para cortar estrutura.</div>
+              <!-- As instruções vivem fechadas: num telemóvel, seis linhas
+                   de texto empurravam a imagem para fora do ecrã, e a
+                   imagem é a ferramenta. Fica de fora só o essencial. -->
+              <p class="hint" style="margin:0 0 8px;"><strong>Azul</strong> = algo de medida conhecida (escreve-a abaixo). <strong>Laranja</strong> = o que queres medir. Aproximado, e só no mesmo plano da referência.</p>
+              <details class="howto" style="margin-bottom:10px;">
+                <summary>Como isto funciona, e onde falha</summary>
+                <div class="howto-body">
+                  <p>Uma foto não tem escala: 100 píxeis podem ser 10 cm ou 10 m. Aqui dás-lhe uma, apontando uma coisa de medida conhecida.</p>
+                  <ol style="padding-left:18px;">
+                    <li>Arrasta a linha <strong>azul</strong> de ponta a ponta de algo cuja medida saibas — uma porta (2,00 m de altura é o normal), um tile de LED, uma marca no chão.</li>
+                    <li>Escreve essa medida real.</li>
+                    <li>Arrasta a linha <strong>laranja</strong> sobre o que queres medir.</li>
+                  </ol>
+                  <p>Só é fiável para coisas <strong>no mesmo plano</strong> da referência e com a câmara mais ou menos de frente. Uma perspetiva forte, ou medir uma coisa muito mais à frente/atrás do que a referência, dá erros grandes — a foto continua a ser uma foto. Serve para uma ordem de grandeza, não para cortar estrutura.</p>
+                  <p>Escolhe a referência <strong>na mesma direção</strong> do que vais medir: uma referência ao alto para medir uma altura, ao comprido para medir uma largura. Numa foto com perspetiva o nº de píxeis por metro não é igual nas duas direções, e misturá-las é o erro mais caro aqui — a app avisa quando isso acontece.</p>
+                  <p>Depois de acertares a azul, <strong>tranca-a</strong>: com as duas linhas cruzadas é fácil agarrar a pega errada e estragar a escala sem dar por isso.</p>
+                </div>
+              </details>
               <canvas id="asst-medir-canvas" style="display:block; width:100%; max-width:100%; border:1px solid var(--line-soft); border-radius:8px; background:var(--paper); touch-action:none; cursor:crosshair;"></canvas>
               <div class="row2" style="margin-top:10px;">
                 <div class="field">
@@ -180,6 +191,12 @@
                   <label>Linha laranja — dá</label>
                   <div class="v" id="asst-medir-out" style="padding-top:6px; font-weight:600;">—</div>
                 </div>
+              </div>
+              <div class="field">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:400;">
+                  <input type="checkbox" id="asst-medir-travar" style="width:auto;">
+                  🔒 Travar a referência — só a linha laranja se mexe
+                </label>
               </div>
               <div class="summary-actions" style="flex-wrap:wrap;">
                 <button type="button" class="copy" id="asst-medir-usar-largura">Usar como largura da sala</button>
@@ -7453,6 +7470,7 @@
     var asstMedirCanvas = document.getElementById("asst-medir-canvas");
     var asstMedirRef = document.getElementById("asst-medir-ref");
     var asstMedirOut = document.getElementById("asst-medir-out");
+    var asstMedirTravar = document.getElementById("asst-medir-travar");
     var asstMedirNota = document.getElementById("asst-medir-nota");
 
     // O botão da câmara só aparece onde há câmara. enumerateDevices()
@@ -7521,6 +7539,11 @@
           refA: { x: 0.25, y: 0.30 }, refB: { x: 0.25, y: 0.75 },
           medA: { x: 0.55, y: 0.50 }, medB: { x: 0.85, y: 0.50 }
         };
+        // Foto nova, linhas nas posições de partida -- com a tranca ligada
+        // ficavam presas nesse sítio e sem maneira de as tirar de lá. A
+        // medida de referência escrita fica, essa: numa série de fotos do
+        // mesmo sítio é a mesma porta.
+        asstMedirTravar.checked = false;
         asstMedirCard.style.display = "block";
         asstMedirCard.open = true;
         asstDesenharRegua();
@@ -7548,7 +7571,7 @@
       ctx.drawImage(reguaImg, 0, 0, larguraCss, alturaCss);
 
       function px(p) { return { x: p.x * larguraCss, y: p.y * alturaCss }; }
-      function linha(a, b, cor, rotulo) {
+      function linha(a, b, cor) {
         var pa = px(a), pb = px(b);
         // Traço escuro por baixo: uma linha de cor sozinha desaparece em
         // cima de uma foto clara, e a foto é de quem a tirou, não nossa.
@@ -7561,13 +7584,53 @@
           ctx.fillStyle = cor; ctx.fill();
           ctx.lineWidth = 2; ctx.strokeStyle = "#fff"; ctx.stroke();
         });
-        ctx.font = "600 13px system-ui, sans-serif";
-        ctx.fillStyle = "#fff"; ctx.strokeStyle = "rgba(0,0,0,0.6)"; ctx.lineWidth = 3;
-        var mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2 - 14;
-        ctx.strokeText(rotulo, mx, my); ctx.fillText(rotulo, mx, my);
+        return { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 };
       }
-      linha(reguaPontas.refA, reguaPontas.refB, "#2f7ff6", "referência");
-      linha(reguaPontas.medA, reguaPontas.medB, "#f08b2b", "a medir");
+      var meioRef = linha(reguaPontas.refA, reguaPontas.refB, "#2f7ff6");
+      var meioMed = linha(reguaPontas.medA, reguaPontas.medB, "#f08b2b");
+      // Trancada: as pegas azuis passam a quadrados, para se ver que não
+      // respondem em vez de se descobrir a tentar arrastá-las.
+      if (asstMedirTravar.checked) {
+        [px(reguaPontas.refA), px(reguaPontas.refB)].forEach(function (p) {
+          ctx.fillStyle = "#2f7ff6"; ctx.fillRect(p.x - 6, p.y - 6, 12, 12);
+          ctx.lineWidth = 2; ctx.strokeStyle = "#fff"; ctx.strokeRect(p.x - 6, p.y - 6, 12, 12);
+        });
+      }
+
+      // As legendas iam ambas para o meio da sua linha -- e com as duas
+      // linhas a cruzarem-se (que é o caso normal: uma vertical de
+      // referência e uma horizontal a medir) saía "referêra medir", as duas
+      // escritas uma por cima da outra, ilegíveis. Reportado com foto.
+      // Agora medem-se as caixas e, se colidirem, uma sobe e a outra desce.
+      //
+      // E dizem o valor, não o nome: a medida tinha de se ir ler lá abaixo,
+      // fora do ecrã enquanto se arrasta com o dedo.
+      ctx.font = "600 13px system-ui, sans-serif";
+      var realRef = parseFloat(asstMedirRef.value);
+      var metrosAgora = asstMetrosDaRegua();
+      var etiquetas = [
+        { texto: realRef > 0 ? "referência " + fmt(realRef, 2) + " m" : "referência (falta a medida)", p: meioRef, cor: "#8ec5ff" },
+        { texto: metrosAgora ? fmt(metrosAgora, 2) + " m" : "a medir", p: meioMed, cor: "#ffc489" }
+      ];
+      var caixas = etiquetas.map(function (e) {
+        var w = ctx.measureText(e.texto).width;
+        return { e: e, x0: e.p.x - w / 2, x1: e.p.x + w / 2, y: e.p.y - 14, w: w };
+      });
+      if (caixas[0].x0 < caixas[1].x1 && caixas[1].x0 < caixas[0].x1 &&
+          Math.abs(caixas[0].y - caixas[1].y) < 18) {
+        caixas[0].y -= 11;
+        caixas[1].y += 11;
+      }
+      caixas.forEach(function (c) {
+        // Presa dentro do canvas, senão uma linha encostada ao topo escreve
+        // a legenda fora da imagem.
+        var x = Math.min(Math.max(c.x0, 4), Math.max(4, larguraCss - c.w - 4));
+        var y = Math.min(Math.max(c.y, 14), alturaCss - 6);
+        ctx.strokeStyle = "rgba(0,0,0,0.75)"; ctx.lineWidth = 4;
+        ctx.strokeText(c.e.texto, x, y);
+        ctx.fillStyle = c.e.cor;
+        ctx.fillText(c.e.texto, x, y);
+      });
 
       // Lupa enquanto se arrasta. Num telemóvel o dedo tapa exatamente o
       // ponto que se está a tentar apontar -- e apontar o canto da porta a
@@ -7610,11 +7673,21 @@
       return Math.sqrt(dx * dx + dy * dy);
     }
 
+    // Só a conta, sem tocar no ecrã -- o desenho do canvas precisa do valor
+    // para o escrever em cima da linha, e chamar aqui uma função que também
+    // escrevesse no DOM a meio de um redesenho era pedir sarilho.
+    function asstMetrosDaRegua() {
+      if (!reguaImg || !reguaPontas) return null;
+      var real = parseFloat(asstMedirRef.value);
+      var dRef = distNativa(reguaPontas.refA, reguaPontas.refB);
+      if (!(real > 0) || !(dRef > 0)) return null;
+      return (distNativa(reguaPontas.medA, reguaPontas.medB) / dRef) * real;
+    }
+
     function asstCalcularRegua() {
       if (!reguaImg || !reguaPontas) return null;
       var real = parseFloat(asstMedirRef.value);
       var dRef = distNativa(reguaPontas.refA, reguaPontas.refB);
-      var dMed = distNativa(reguaPontas.medA, reguaPontas.medB);
       if (!(real > 0)) {
         asstMedirOut.textContent = "—";
         asstMedirNota.textContent = "Falta a medida real da linha azul.";
@@ -7625,21 +7698,46 @@
         asstMedirNota.textContent = "A linha azul tem as duas pontas no mesmo sítio.";
         return null;
       }
-      var metros = (dMed / dRef) * real;
+      var metros = asstMetrosDaRegua();
       asstMedirOut.textContent = fmt(metros, 2) + " m";
-      // A confiança cai a pique quando a referência é curta na imagem: um
-      // erro de 5 px numa referência de 40 px é 12%, na mesma referência a
-      // 400 px é 1,2%. Dizê-lo é mais honesto do que dar duas casas
-      // decimais e calar.
+
+      // Duas maneiras de a medida sair muito errada, e nenhuma delas dá
+      // erro nenhum -- sai um número com duas casas decimais, como se fosse
+      // de fita métrica. Por isso dizem-se as duas.
+      var avisos = [];
+      // 1. Referência curta: um erro de 5 px a apontar uma referência de
+      //    40 px é 12%; na mesma referência a 400 px é 1,2%.
       var ladoMaior = Math.max(reguaImg.width, reguaImg.height);
       var proporcao = dRef / ladoMaior;
-      asstMedirNota.textContent = proporcao < 0.15
-        ? "Referência curta na imagem (" + fmt(proporcao * 100, 0) + "% do lado maior) — o erro sobe muito. Escolhe uma referência maior, se houver."
+      if (proporcao < 0.15) {
+        avisos.push("Referência curta na imagem (" + fmt(proporcao * 100, 0) + "% do lado maior) — o erro sobe muito. Escolhe uma referência maior, se houver.");
+      }
+      // 2. Referência e medida em direções diferentes. Numa foto com
+      //    perspetiva, o nº de píxeis por metro na vertical não é o mesmo
+      //    que na horizontal -- medir ao comprido com uma referência ao
+      //    alto (ou o contrário) é o erro mais fácil de cometer aqui, e o
+      //    mais caro. Reportado a ver uma medida de 32,60 m tirada de uma
+      //    referência vertical curta.
+      var angRef = Math.abs(Math.atan2((reguaPontas.refA.y - reguaPontas.refB.y) * reguaImg.height,
+                                       (reguaPontas.refA.x - reguaPontas.refB.x) * reguaImg.width));
+      var angMed = Math.abs(Math.atan2((reguaPontas.medA.y - reguaPontas.medB.y) * reguaImg.height,
+                                       (reguaPontas.medA.x - reguaPontas.medB.x) * reguaImg.width));
+      function aoAlto(a) { var g = a * 180 / Math.PI; return g > 45 && g < 135; }
+      if (aoAlto(angRef) !== aoAlto(angMed)) {
+        avisos.push("A referência está " + (aoAlto(angRef) ? "ao alto" : "ao comprido") +
+          " e estás a medir " + (aoAlto(angMed) ? "ao alto" : "ao comprido") +
+          " — numa foto com perspetiva isso engana. Usa uma referência na mesma direção do que queres medir.");
+      }
+      asstMedirNota.textContent = avisos.length
+        ? avisos.join(" ")
         : "Escala: 1 m ≈ " + fmt(dRef / real, 0) + " px da imagem.";
       return metros;
     }
 
-    asstMedirRef.addEventListener("input", asstCalcularRegua);
+    // Redesenha, não só recalcula: a legenda em cima da linha mostra a
+    // medida de referência e o resultado, e tem de acompanhar.
+    asstMedirRef.addEventListener("input", function () { asstDesenharRegua(); });
+    asstMedirTravar.addEventListener("change", function () { asstDesenharRegua(); });
 
     // Arrastar as pontas. Pointer events tratam rato e dedo ao mesmo tempo,
     // e o "touch-action:none" no canvas impede a página de andar debaixo do
@@ -7648,7 +7746,12 @@
       var larguraCss = asstMedirCanvas.clientWidth;
       var alturaCss = asstMedirCanvas.clientHeight;
       var maisPerto = null, melhor = 24; // raio de agarrar, em px de ecrã
-      ["refA", "refB", "medA", "medB"].forEach(function (k) {
+      // Com a referência trancada, as pegas azuis deixam de responder --
+      // com as duas linhas cruzadas (o caso normal: uma ao alto para a
+      // referência, uma ao comprido para medir) era fácil demais agarrar a
+      // errada e estragar a escala sem dar por isso.
+      var pegas = asstMedirTravar.checked ? ["medA", "medB"] : ["refA", "refB", "medA", "medB"];
+      pegas.forEach(function (k) {
         var p = reguaPontas[k];
         var dx = p.x * larguraCss - x, dy = p.y * alturaCss - y;
         var d = Math.sqrt(dx * dx + dy * dy);
@@ -7677,9 +7780,14 @@
       var p = posNoCanvas(ev);
       var larguraCss = asstMedirCanvas.clientWidth;
       var alturaCss = asstMedirCanvas.clientHeight;
+      // Uma pega encostada a 0 ou a 1 ficava meia fora do canvas e
+      // impossível de voltar a agarrar (visto numa foto real: a pega de
+      // baixo da linha azul cortada ao meio pela borda). Fica presa a meio
+      // círculo da borda.
+      var margemX = 9 / larguraCss, margemY = 9 / alturaCss;
       reguaPontas[reguaAgarrada] = {
-        x: Math.min(1, Math.max(0, p.x / larguraCss)),
-        y: Math.min(1, Math.max(0, p.y / alturaCss))
+        x: Math.min(1 - margemX, Math.max(margemX, p.x / larguraCss)),
+        y: Math.min(1 - margemY, Math.max(margemY, p.y / alturaCss))
       };
       asstDesenharRegua();
     });
