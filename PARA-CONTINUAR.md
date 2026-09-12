@@ -210,9 +210,29 @@ real de um pavilhão, com a régie em primeiro plano):
 - **Instruções fechadas por omissão.** Seis linhas de texto empurravam a
   imagem para fora do ecrã do telemóvel, e a imagem é a ferramenta.
 
-**Falta:** um modo de ampliar o canvas para ecrã inteiro. Num telemóvel a
-régua fica com ~310 px de largura, que chega mas é apertado para apontar
-cantos com precisão.
+**Zoom e deslocação na v3.44** — pedido directo depois de a usar:
+*"tenho de conseguir fazer zoom na imagem para marcar as referências"*. Era
+o que faltava mesmo: num telemóvel a foto inteira cabe em ~310 px, e apontar
+o canto de uma porta aí é apontar a 3 ou 4 píxeis da imagem original — erro
+que entra inteiro na medida.
+
+- Pinça para ampliar, roda do rato, e botões `−` / `+` / **Foto inteira**.
+  Até 12×, sempre ancorado no ponto que está debaixo do dedo (senão cada
+  passo de zoom manda para longe o sítio que se estava a olhar).
+- Arrastar **fora das pegas** passeia a foto, como em qualquer mapa.
+- **O zoom é só da vista.** As pontas continuam guardadas em 0..1 da imagem:
+  ampliar, passear ou rodar o telemóvel nunca mexe numa medida já feita.
+  Provado por teste — a mesma medida antes e depois de ampliar, passear,
+  rodar a roda e fazer pinça.
+- E dá mesmo a precisão que promete: com a vista a 2,07×, o mesmo deslize de
+  40 px mexe **2,0× menos** na medida.
+- A lupa desliga-se acima de 3×, onde a vista já amplia e a lupa em cima
+  disso só dava quadrados de cor.
+- As pegas voltaram a poder encostar-se à borda da foto (a margem que as
+  travava existia só porque não havia como as trazer para o meio).
+
+**Falta:** nada de bloqueante nesta parte. Se a precisão ainda não chegar,
+o passo seguinte é um modo de ecrã inteiro.
 
 Continuam por fazer os outros dois caminhos da tabela abaixo: a **memória de
 salas** (GPS) e o **AR**.
