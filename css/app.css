@@ -496,6 +496,7 @@
   .tab[data-mode="sinal"] .swatch, .tabs-current[data-mode="sinal"] .swatch { background: var(--rose-500); }
   .tab[data-mode="mediaserver"] .swatch, .tabs-current[data-mode="mediaserver"] .swatch { background: var(--cyan-500); }
   .tab[data-mode="tv"] .swatch, .tabs-current[data-mode="tv"] .swatch { background: var(--orange-500); }
+  .tab[data-mode="dome"] .swatch, .tabs-current[data-mode="dome"] .swatch { background: var(--violet-500); }
   .tab[data-mode="grafismo"] .swatch, .tabs-current[data-mode="grafismo"] .swatch { background: var(--orange-500); }
   .tab[data-mode="ajuda"] .swatch, .tabs-current[data-mode="ajuda"] .swatch { background: var(--ink-faint); }
   .tab[aria-selected="true"] { color: var(--ink); }
@@ -506,6 +507,7 @@
   .tab[data-mode="blend"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
   .tab[data-mode="lentes"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
   .tab[data-mode="tv"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
+  .tab[data-mode="dome"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
   .tab[data-mode="grafismo"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
   .tab[data-mode="ajuda"][aria-selected="true"] { border-bottom-color: var(--ink-faint); }
   .tab[data-mode="projeto"][aria-selected="true"] { border-bottom-color: var(--green-500); }
@@ -1337,6 +1339,9 @@
   .panel[data-mode="projeto"] .stripe, [data-accent="projeto"] .stripe { background: var(--green-500); }
   .panel[data-mode="sinal"] .stripe, [data-accent="sinal"] .stripe { background: var(--rose-500); }
   .panel[data-mode="tv"] .stripe, [data-accent="tv"] .stripe { background: var(--orange-500); }
+  /* O dome partilha o violeta do Blending de propósito: é o mesmo problema,
+     vários projetores a sobreporem-se, e não vale acrescentar mais uma cor. */
+  .panel[data-mode="dome"] .stripe, [data-accent="dome"] .stripe { background: var(--violet-500); }
 
   .readout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
   .readout .item {
@@ -1378,6 +1383,7 @@
   [data-accent="led"] .readout .item .v { color: var(--teal-600); }
   [data-accent="zonas"] .readout .item .v { color: var(--teal-600); }
   [data-accent="blend"] .readout .item .v { color: var(--violet-600); }
+  [data-accent="dome"] .readout .item .v { color: var(--violet-600); }
   [data-accent="lentes"] .readout .item .v { color: var(--blue-600); }
   [data-accent="projeto"] .readout .item .v { color: var(--green-600); }
 
