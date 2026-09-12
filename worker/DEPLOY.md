@@ -72,8 +72,16 @@ Worker está mesmo a responder, o teste rápido de sempre:
 curl -s -X POST https://calculadores-assistente.avkvideoshare.workers.dev/extrair \
   -H "Origin: https://mikefkfmiguel-create.github.io" \
   -H "Content-Type: application/json" \
-  -d '{"texto":"ecrã de 6 por 3 metros"}'
+  -d '{"text":"Ecrã LED de 6 por 3 metros, sala para 300 pessoas sentadas"}'
 ```
+
+O campo é **`text`**, não `texto` — o Worker responde 400 com *"Falta o texto do
+projeto…"* a quem lhe mande a chave errada, que é fácil de confundir com um
+Worker partido quando não é.
+
+Uma resposta boa traz `requisitos` com as medidas extraídas. Confirmado a 12 de
+setembro, na primeira publicação por CI: `200`, 5,1 s, com `larguraM: 6`,
+`alturaM: 3`, `numeroParticipantes: 300` e `tipoEcra: "led"`.
 
 ## Notas
 

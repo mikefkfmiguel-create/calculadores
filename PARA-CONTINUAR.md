@@ -15,7 +15,30 @@ Lista fechada no fim da sessão de 11/9, a pedido do mike: *"guarda para de
 manhã tudo o que fica pendurado para revermos"*. Por ordem do que estava
 combinado.
 
-### 1. O token do Cloudflare — 2 minutos, e destrava tudo
+### 1. ~~O token do Cloudflare~~ — FEITO a 12 de setembro
+
+**O Worker publica-se sozinho, e a publicação por CI está confirmada.** A
+primeira correu a 12/9 às 07:39 UTC: `Uploaded calculadores-assistente`,
+version id `e802f3b5-64df-4469-aabb-9c600c19f9cb`. A seguir, um pedido real ao
+`/extrair` devolveu `200` em 5,1 s, com `larguraM: 6`, `alturaM: 3`,
+`numeroParticipantes: 300` e `tipoEcra: "led"`. **A memória do Assistente está
+finalmente activa em produção.**
+
+Duas coisas que se aprenderam a fazê-lo, e que valem para a próxima:
+
+- **O secret foi criado com o nome errado à primeira** —
+  `CLAUDEFLARE_API_TOKEN`, com "CLAUDE" em vez de "CLOUD". O workflow falhou
+  com `CLOUDFLARE_API_TOKEN:` vazio e a dizer que faltava o secret, o que é
+  exactamente o que devia dizer. O GitHub não deixa **renomear** um secret:
+  cria-se outro com o nome certo e apaga-se o errado.
+- **Um token de API não se cola em conversas nem em ficheiros.** Aconteceu uma
+  vez a meio, foi apanhado na hora e o token foi revogado e substituído. O
+  valor vai do Cloudflare directamente para a caixa do secret do GitHub, e
+  mais lado nenhum.
+
+O que estava aqui escrito antes, e que já não é preciso fazer:
+
+### ~~O que era preciso~~ (histórico)
 
 `.github/workflows/deploy-worker.yml` já publica o Worker sozinho. Os ids das
 KV e o `account_id` já estão no `wrangler.toml`. **Falta um único secret:**
