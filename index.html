@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.54</span>
+    <span class="mark" id="app-versao">v3.56</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2068,6 +2068,11 @@
               <div class="hint">Do chão ao projetor. Define a base da imagem: abaixo desta altura não há imagem.</div>
             </div>
             <div class="field">
+              <label for="dome-prof">Profundidade até à lente</label>
+              <div class="inputgroup"><input id="dome-prof" type="number" autocomplete="off" inputmode="decimal" placeholder="ex.: 0.7" min="0" step="0.05"><span class="unit">m</span></div>
+              <div class="hint">Do ponto de montagem à lente. A distância de tiro conta-se <strong>da lente</strong>, não do corpo. O catálogo não tem dimensões de projetores, por isso este número é teu.</div>
+            </div>
+            <div class="field">
               <label for="dome-atravessa">Imagens a atravessar o pólo</label>
               <div class="inputgroup"><input id="dome-atravessa" type="number" autocomplete="off" inputmode="numeric" value="3" min="1" step="1"><span class="unit">un.</span></div>
               <div class="hint">De bordo a bordo por cima do pólo. É isto que fixa a resolução, não o nº de projetores.</div>
@@ -2156,6 +2161,7 @@
               <div class="item"><div class="k">Píxeis por grau</div><div class="v" id="dome-out-ppd">—</div></div>
               <div class="item wide"><div class="k">Aproveitamento dos píxeis</div><div class="v" id="dome-out-aprov">—</div></div>
               <div class="item wide"><div class="k">Dome master a encomendar (IMERSA)</div><div class="v" id="dome-out-imersa">—</div></div>
+              <div class="item wide"><div class="k">Base da imagem</div><div class="v" id="dome-out-base">—</div></div>
             </div>
             <p class="note" id="dome-out-veredicto">—</p>
             <div class="warn" id="dome-out-cobertura" style="display:none;"></div>
@@ -6818,7 +6824,8 @@
 
     var el = {};
     ["diam", "forma", "altura", "altura-wrap", "ganho", "colocacao", "qtd", "atravessa", "alt-mont",
-     "qtd-sugestao", "atravessa-sugestao", "resmode-field", "res-nota",
+     "qtd-sugestao", "atravessa-sugestao", "resmode-field", "res-nota", "prof",
+     "out-base",
      "lensmodel", "tmin", "tmax", "lente-veredicto",
      "projmodel", "px-h", "px-v", "lumens", "blend", "truncar", "truncar-wrap", "alvo",
      "out-raio", "out-area", "out-master", "out-arcmin", "out-ppd", "out-aprov",
@@ -6838,7 +6845,7 @@
     // e ninguém percebia porquê. Apanhado a testar a ponte dos projetores.
     var DOME_ABA_KEY = "calculadores-dome-v1";
     var DOME_CAMPOS = ["diam", "forma", "altura", "ganho", "colocacao", "qtd", "atravessa",
-                       "alt-mont", "projmodel", "lensmodel", "tmin", "tmax",
+                       "alt-mont", "prof", "projmodel", "lensmodel", "tmin", "tmax",
                        "px-h", "px-v", "lumens", "blend", "alvo"];
     // Antes da v3.50 havia um campo só, "arranjo", a fazer as duas coisas:
     // dizer ONDE se montam os projetores e, ao mesmo tempo, quantas imagens
@@ -6927,7 +6934,74 @@
     // é uma só, e está dita no ecrã: um quadro retangular sobre uma calota
     // não é um retângulo, e um projetor de cove atira muito fora de eixo.
     // O número serve para saber a ORDEM da lente, não para a encomendar.
-    function racioQueAFatiaPede(g, colocacao, n, alturaMont, blend) {
+    // Onde a imagem começa, e a cúpula que há nessa altura. Sai só da
+    // geometria e da altura de montagem -- é a resposta a *"altura do projetor
+    // ao chão, que é onde deve começar a imagem, diâmetro base da imagem"*.
+    function baseDaImagem(g, alturaMont) {
+      if (!g) return null;
+      var h = g.h, R = g.R, cy = h - R;
+      var thetaMax = Math.acos(Math.min(1, Math.max(-1, (R - h) / R)));
+      var y = (alturaMont > 0) ? Math.min(h - 0.2, alturaMont) : Math.min(1.2, h * 0.12);
+      var theta = Math.min(thetaMax, Math.acos(Math.min(1, Math.max(-1, (y - cy) / R))));
+      // O raio horizontal da cúpula à altura y -- o "diâmetro da base da
+      // imagem", que é por onde ela arranca.
+      var rho = Math.sqrt(Math.max(0, R * R - Math.pow(y - cy, 2)));
+      var areaTotal = 2 * Math.PI * R * h;
+      var areaSem = 2 * Math.PI * R * R * (Math.cos(theta) - Math.cos(thetaMax));
+      return {
+        y: y, theta: theta, thetaMax: thetaMax, cy: cy, diametro: 2 * rho, raio: rho,
+        semImagem: Math.max(0, areaSem),
+        fraccaoSemImagem: areaTotal > 0 ? Math.max(0, areaSem) / areaTotal : 0,
+        pedida: alturaMont > 0
+      };
+    }
+
+    // QUANTOS PROJETORES, a partir da montagem e da lente -- que é o que
+    // responde a *"deve devolver quantos consoante o tipo de montagem, a
+    // lente quando escolho o projetor"*.
+    //
+    // Ao contrário do chão de píxeis (que é de resolução), este número é de
+    // COBERTURA: com esta lente, a esta distância, cada projetor faz uma
+    // imagem de largura dist/TRmin -- a mais larga que a lente dá. Quantos
+    // setores desses é que são precisos para fechar os 360°, descontando a
+    // sobreposição. Tudo isto sai dos campos que lá estão; a aproximação é a
+    // mesma do rácio (quadro reto sobre calota), e está dita no "Como usar".
+    function quantosPelaCobertura(g, colocacao, alturaMont, blend, profundidade, trMin) {
+      if (!g || !(trMin > 0) || colocacao === "centro") return null;
+      var base = baseDaImagem(g, alturaMont);
+      if (!base) return null;
+      var a = g.D / 2, h = g.h, R = g.R;
+      var rc = Math.max(0.4, a - 0.5);
+      var prof = (profundidade > 0) ? Math.min(rc - 0.1, profundidade) : 0;
+      var rLente = rc - prof;
+
+      // Distância da lente ao meio da faixa alcançável, do lado oposto.
+      var tMeio = (0 + base.theta) / 2;
+      var alvo = { y: base.cy + R * Math.cos(tMeio), z: -R * Math.sin(tMeio) };
+      var dist = Math.sqrt(Math.pow(alvo.z - rLente, 2) + Math.pow(alvo.y - base.y, 2));
+      if (!(dist > 0)) return null;
+
+      // A imagem mais larga que esta lente dá a essa distância, e o setor de
+      // azimute que ela fecha à altura onde a cúpula é mais larga na faixa.
+      var larguraMax = dist / trMin;
+      var rhoFaixa = Math.max(0.1, Math.sqrt(Math.max(0, R * R - Math.pow(alvo.y - base.cy, 2))));
+      // Quando a lente é larga o suficiente para atravessar a cúpula toda a
+      // essa distância, a COBERTURA deixa de ser a restrição -- e reportar
+      // "25,60 m de largura" numa cúpula de 8 m era aritmética certa a dizer
+      // um absurdo (apanhado a testar com uma lente ultra-short-throw). Nesse
+      // caso quem manda é a resolução, e é isso que se diz.
+      if (larguraMax >= 2 * rhoFaixa) {
+        return { saturada: true, largura: 2 * rhoFaixa, dist: dist };
+      }
+      var setor = 2 * Math.asin(Math.min(1, (larguraMax / 2) / rhoFaixa));
+      if (!(setor > 0.001)) return null;
+      var nAnel = Math.max(1, Math.ceil((2 * Math.PI) / (setor * (1 - blend))));
+      var aoCentro = (colocacao === "anel") ? 0 : 1;
+      return { total: nAnel + aoCentro, nAnel: nAnel, aoCentro: aoCentro,
+               setor: setor, largura: larguraMax, dist: dist };
+    }
+
+    function racioQueAFatiaPede(g, colocacao, n, alturaMont, blend, profundidade) {
       if (!g || !(n > 0)) return null;
       var a = g.D / 2, h = g.h, R = g.R;
       var thetaMax = Math.acos(Math.min(1, Math.max(-1, (R - h) / R)));
@@ -6951,9 +7025,15 @@
       var tCima = thetaDe((aoCentro / n) * alcancavel), tBaixo = thetaChao;
       var meio = (Math.PI / noAnel) * (1 + blend);     // meia fatia, com sobreposição
 
-      // O projetor: no anel encostado por dentro, à altura de montagem.
+      // A LENTE, não o corpo. Reportado: *"tendo em conta tamanho do mesmo em
+      // profundidade, uma vez que o cálculo da lente é a partir dela e não da
+      // posição do projetor"* -- e é verdade: a distância de tiro mede-se da
+      // lente. O corpo assenta no anel; a lente está "profundidade" mais para
+      // dentro, e é de lá que se conta.
       var rc = Math.max(0.4, a - 0.5);
-      var P = { x: 0, y: yMont, z: rc };
+      var prof = (profundidade > 0) ? Math.min(rc - 0.1, profundidade) : 0;
+      var rLente = rc - prof;
+      var P = { x: 0, y: yMont, z: rLente };
       // O centro da fatia fica do lado OPOSTO -- e as coordenadas da calota
       // contam-se do centro da esfera, que está a y = h - R.
       var tMeio = (tCima + tBaixo) / 2;
@@ -6973,7 +7053,9 @@
       var areaTotal = 2 * Math.PI * R * h;
       var areaSemImagem = 2 * Math.PI * R * (R * (Math.cos(thetaChao) - Math.cos(thetaMax)));
       return { tr: dist / corda, dist: dist, largura: corda,
-               yMont: yMont, semImagem: Math.max(0, areaSemImagem),
+               yMont: yMont, prof: prof, noAnel: noAnel, aoCentro: aoCentro,
+               thetaChao: thetaChao, thetaCima: tCima,
+               semImagem: Math.max(0, areaSemImagem),
                fraccaoSemImagem: areaTotal > 0 ? Math.max(0, areaSemImagem) / areaTotal : 0 };
     }
 
@@ -7147,11 +7229,46 @@
         (qtdMinimo !== qtd
           ? ' <button type="button" class="copy" id="dome-usar-qtd" style="margin-top:6px;">Usar ' + qtdMinimo + '</button>'
           : "") +
-        " Acima dele, quem decide é a cobertura — a lente e a altura de montagem, mais abaixo.";
+        " Acima dele, quem decide é a cobertura — a lente e a altura de montagem.";
+
+      var porCobertura = quantosPelaCobertura(g, colocacao, parseFloat(el["alt-mont"].value),
+        blend, profLente, parseFloat(el.tmin.value));
+      if (porCobertura && porCobertura.saturada) {
+        el["qtd-sugestao"].innerHTML +=
+          "<br><br>Esta lente, a " + fmt(porCobertura.dist, 2) + " m, atravessa a cúpula toda " +
+          "(" + fmt(porCobertura.largura, 2) + " m à altura da faixa): <strong>a cobertura não é o que " +
+          "limita o número aqui</strong> — manda a resolução, ou seja o chão de " + qtdMinimo +
+          " e as imagens a atravessar o pólo. Uma lente destas é para poucos projetores.";
+      } else if (porCobertura) {
+        var pedeMais = Math.max(qtdMinimo, porCobertura.total);
+        el["qtd-sugestao"].innerHTML +=
+          "<br><br><strong>Pela cobertura, com esta lente e esta montagem: " + porCobertura.total +
+          " projetores</strong> (" + porCobertura.nAnel + " em anel" +
+          (porCobertura.aoCentro ? " + 1 no zénite" : "") + ") — cada um faz " +
+          fmt(porCobertura.largura, 2) + " m de largura a " + fmt(porCobertura.dist, 2) +
+          " m, ou seja " + fmt(porCobertura.setor * 180 / Math.PI, 0) + "° de azimute cada." +
+          (pedeMais !== qtd
+            ? ' <button type="button" class="copy" id="dome-usar-qtd-cob" style="margin-top:6px;">Usar ' + pedeMais + '</button>'
+            : " É o que está aí.") +
+          (porCobertura.total < qtdMinimo
+            ? "<br>Manda o chão de píxeis (" + qtdMinimo + "): a lente cobria com menos, mas a resolução não chega."
+            : "");
+      }
 
       // ── a lente ──
+      var profLente = parseFloat(el.prof.value);
+      var base = baseDaImagem(g, parseFloat(el["alt-mont"].value));
+      el["out-base"].innerHTML = base
+        ? "começa a " + fmt(base.y, 2) + "<small>m do chão</small><small> — a cúpula tem aí " +
+          fmt(base.diametro, 2) + " m de diâmetro" +
+          (base.fraccaoSemImagem > 0.005
+            ? "; " + fmt(base.fraccaoSemImagem * 100, 0) + " % da superfície fica por baixo, sem imagem"
+            : "") +
+          (base.pedida ? "" : " (altura de montagem por definir)") + "</small>"
+        : "—";
+
       var pedido = racioQueAFatiaPede(g, colocacao, qtd,
-        parseFloat(el["alt-mont"].value), blend);
+        parseFloat(el["alt-mont"].value), blend, profLente);
       var lente = domeLenteEscolhida();
       var tmin = parseFloat(el.tmin.value), tmax = parseFloat(el.tmax.value);
       if (!pedido) {
@@ -7162,7 +7279,10 @@
         var texto = "Para cobrir a fatia de um projetor do anel — <strong>" +
           fmt(pedido.largura, 2) + " m</strong> de largura a <strong>" + fmt(pedido.dist, 2) +
           " m</strong> de distância — o rácio de tiro tem de andar por <strong>" +
-          fmt(pedido.tr, 2) + ":1</strong>.";
+          fmt(pedido.tr, 2) + ":1</strong>" +
+          (pedido.prof > 0
+            ? " (medido da lente, " + fmt(pedido.prof, 2) + " m à frente do ponto de montagem)."
+            : ". <em>Sem a profundidade até à lente, mede-se do ponto de montagem — escreve-a acima para a distância ficar certa.</em>");
         if (tmin > 0 && tmax > 0) {
           var cabe = pedido.tr >= tmin - 0.005 && pedido.tr <= tmax + 0.005;
           texto += cabe
@@ -7324,6 +7444,10 @@
           // nas outras -- reportado: "não vejo a sobreposição nos cones para
           // ter noção". Vai em fracção, que é como o 3D a usa.
           blend: Math.min(50, Math.max(0, parseFloat(el.blend.value) || 0)) / 100,
+          // Profundidade até à lente: o corpo assenta no anel e a lente fica
+          // mais para dentro, e é de lá que a distância de tiro se conta.
+          profundidade: (parseFloat(el.prof.value) > 0)
+            ? Math.round(parseFloat(el.prof.value) * 100) / 100 : null,
           // Quem é, só para o 3D poder etiquetar. O Preview não ganha
           // catálogo nenhum com isto: recebe nomes já escolhidos aqui.
           modelo: (domeProjetorEscolhido() || {}).modelo || null,
@@ -7475,11 +7599,11 @@
     // O "Usar N" nasce e morre a cada calcDome (está dentro de um innerHTML),
     // por isso o ouvinte fica no painel e não no botão.
     document.querySelector('.panel[data-mode="dome"]').addEventListener("click", function (ev) {
-      var bt = ev.target.closest && ev.target.closest("#dome-usar-atravessa, #dome-usar-meridiano, #dome-usar-qtd");
+      var bt = ev.target.closest && ev.target.closest("#dome-usar-atravessa, #dome-usar-meridiano, #dome-usar-qtd, #dome-usar-qtd-cob");
       if (!bt) return;
       var n = parseInt(bt.textContent.replace(/\D+/g, ""), 10);
       if (!(n > 0)) return;
-      if (bt.id === "dome-usar-qtd") el.qtd.value = n;
+      if (bt.id === "dome-usar-qtd" || bt.id === "dome-usar-qtd-cob") el.qtd.value = n;
       else el.atravessa.value = n;
       calcDome();
       guardarAbaDome();
@@ -7496,7 +7620,7 @@
     // é o mesmo das zonas (lzGuardarParaPreview). calcDome() não o chama de
     // propósito: escrever para o Preview a cada tecla de um campo qualquer
     // desta aba seria barulho. Só o que muda a cúpula, e o interruptor.
-    ["diam", "forma", "altura", "qtd", "colocacao", "alt-mont", "blend",
+    ["diam", "forma", "altura", "qtd", "colocacao", "alt-mont", "prof", "blend",
      "projmodel", "lensmodel", "addproject"].forEach(function (k) {
       if (!el[k]) return;
       el[k].addEventListener("change", function () {
