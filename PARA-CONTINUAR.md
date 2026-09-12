@@ -563,6 +563,50 @@ trabalho — o Preview guarda a sua própria cópia do projeto — mas é um
 apagamento que ninguém pediu, e mexer nisso mexe na proteção de loop que já
 deu um susto na v2.49.
 
+**A resolução do projetor vinha errada — corrigido na v3.50, e era um erro
+meu de raiz.** Reportado assim: *"apenas dá a resolução UHD e não posso
+mudar, o projetor que escolhi nem sequer é UHD nativo"*. Na v3.48 deixei a
+resolução de fora do seletor com a justificação de que "o catálogo só guarda
+os lúmenes com fonte" — **e isso era falso**: os 47 projetores de
+`data/projectors.json` têm `resolucao` com fonte, e 7 deles têm ainda a
+`resolucaoNativa` por baixo do pixel-shift. Um PT-RZ120B (1920×1200) a
+mostrar 3840×2160 não é um valor por omissão, é um número errado — e numa
+cúpula é o número que decide os arcmin/px.
+
+Agora o seletor preenche a resolução, e há o par "Declarada (pixel-shift) /
+Nativa (painel/chip)" que as outras abas já usavam, com a `resolucaoNota` do
+catálogo à vista. Aqui a escolha pesa mais do que num ecrã plano: num
+EB-PQ2220B a declarada dá 1,96 arcmin/px e a nativa 3,92 — o dobro, e é a
+diferença entre cumprir o alvo de 3 e não cumprir. Escrever a resolução ou os
+lúmenes à mão volta o seletor a "Personalizado…".
+
+**A colocação deixou de mandar na resolução — v3.50.** Reportado: *"o modo
+pode não ser sempre este, posso querer montar todos ao redor da dome"*, e
+tinha razão. O campo "Arranjo" fazia duas coisas ao mesmo tempo: dizia onde se
+montam os projetores E quantas imagens atravessam o pólo (que é o que fixa a
+resolução). Escolher "todos em anel" baixava a resolução calculada, o que não
+tem nada a ver. São agora dois campos:
+
+- **Colocação** — ao centro com fisheye / todos em anel / anel + zénite /
+  anel duplo + zénite. Só diz onde se montam, e é o que o Preview desenha.
+- **Imagens a atravessar o pólo** — o número que fixa a resolução. Num anel
+  de 10, atravessar o pólo pode ser coisa de 3 ou 4 imagens.
+
+O que estava guardado migra: o `arranjo` antigo dá a colocação, e o seu valor
+numérico dá os atravessamentos.
+
+**A sugestão de quantos — v3.50.** Duas coisas separadas, de propósito:
+
+- **Aritmética** dos campos que lá estão: quantas imagens têm de atravessar o
+  pólo para cumprir o alvo (`ceil((10800/alvo) / (base×(1−blend)))`), com um
+  botão "Usar N". Isto não é regra de ninguém, é a conta ao contrário — por
+  isso pode ser sugestão sem inventar nada.
+- **Configurações que as fontes nomeiam**, para o nº de projetores: um só ao
+  centro até cerca de 10 m (Loch Ness); 1 ao centro ou 3, 6, 10 em cove
+  (Cosm); envelope de 2 a 50 projetores em cúpulas de 2 a 55 m (VIOSO). Cada
+  uma com quem a diz, e a dizer que **não há fórmula** — inventar uma seria
+  inventar dados técnicos.
+
 **Fica por fazer** (não bloqueante): as pontes automáticas. A resolução
 ainda se escreve à mão; podia vir da **Distância de Projeção** e a
 sobreposição da **Blending Multi-Projetor**, e o total de píxeis ir para o
