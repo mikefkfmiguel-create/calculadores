@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.47</span>
+    <span class="mark" id="app-versao">v3.48</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2057,6 +2057,14 @@
               <label for="dome-qtd">Nº de projetores</label>
               <div class="inputgroup"><input id="dome-qtd" type="number" autocomplete="off" inputmode="numeric" value="6" min="1" step="1"><span class="unit">un.</span></div>
               <div class="hint">Configurações conhecidas: 1 ao centro serve até cerca de 10 m de diâmetro; 5 a 7 com lentes short-throw; 1/3/6/10 em anel nos sistemas de planetário; 2 a 50 em cúpulas de 2 a 55 m. Não há fórmula — o nº entra aqui para a conta da luz e do aproveitamento.</div>
+            </div>
+            <div class="field">
+              <label for="dome-projmodel">Projetor de referência</label>
+              <select id="dome-projmodel" class="plain">
+                <option value="custom">Personalizado…</option>
+              </select>
+              <div class="srclink-wrap" id="dome-projmodel-source"></div>
+              <div class="hint">Escolher preenche os lúmenes abaixo. A resolução fica por tua conta: o mesmo projetor vende-se com painéis diferentes, e o catálogo só guarda os lúmenes com fonte.</div>
             </div>
             <div class="row2">
               <div class="field">
@@ -6567,6 +6575,9 @@
       var p = projectors[i];
       addOption(projProjModelSel, String(i), p.modelo + " — " + fmtInt(p.lumens) + " lm", p === defaultProj, undefined, !p.mercado);
     });
+    // A aba Dome tem o seu próprio seletor (trata do stock, da fonte e da
+    // pesquisa por dentro) — ver window.domePreencherProjetores.
+    if (typeof window.domePreencherProjetores === "function") window.domePreencherProjetores(projectors);
 
     var defaultTile = ledTiles.find(function (t) { return t.default; }) || ledTiles[0];
     var tileOrder = stockFirstIndices(ledTiles);
@@ -6711,7 +6722,7 @@
 
     var el = {};
     ["diam", "forma", "altura", "altura-wrap", "ganho", "arranjo", "qtd",
-     "px-h", "px-v", "lumens", "blend", "truncar", "truncar-wrap", "alvo",
+     "projmodel", "px-h", "px-v", "lumens", "blend", "truncar", "truncar-wrap", "alvo",
      "out-raio", "out-area", "out-master", "out-arcmin", "out-ppd", "out-aprov",
      "out-imersa", "out-veredicto", "out-cobertura", "out-lm", "out-lux",
      "out-cd", "out-fl", "out-luznota", "sum", "addproject"].forEach(function (k) {
@@ -6860,13 +6871,16 @@
       }
 
       var arranjoTexto = el.arranjo.options[el.arranjo.selectedIndex].textContent;
+      var nomeProjetor = (el.projmodel && el.projmodel.value !== "custom" && typeof PROJECTORS_DATA !== "undefined")
+        ? ((PROJECTORS_DATA[parseInt(el.projmodel.value, 10)] || {}).modelo || null)
+        : null;
       el.sum.textContent =
         "DOME — " + fmt(g.D, 1) + " m de diâmetro, " +
         (g.meiaEsfera ? "meia-esfera" : "calota de " + fmt(g.h, 1) + " m de altura") +
         " (raio da esfera " + fmt(g.R, 2) + " m)\n" +
         "Área da superfície: " + fmt(g.area, 1) + " m²\n" +
         "\n" +
-        "Projetores: " + qtd + " × " + fmtInt(pxH) + "×" + fmtInt(pxV) +
+        "Projetores: " + qtd + " × " + (nomeProjetor ? nomeProjetor + ", " : "") + fmtInt(pxH) + "×" + fmtInt(pxV) +
         (lumens > 0 ? " @ " + fmtInt(lumens) + " lm" : "") + " — " + arranjoTexto + "\n" +
         "Sobreposição de blending: " + fmt(blend * 100, 0) + " %" + (truncado ? "\nFisheye truncado: cobre 180° × " + fmt(180 * (curto / longo), 0) + "°" : "") + "\n" +
         "\n" +
@@ -6904,9 +6918,63 @@
       return {
         diametro: Math.round(g.D * 100) / 100,
         altura: Math.round(g.h * 100) / 100,
-        raioEsfera: Math.round(g.R * 100) / 100
+        raioEsfera: Math.round(g.R * 100) / 100,
+        // Quantos e como, para o 3D poder desenhar o anel. O "arranjo" é o
+        // mesmo número desta aba: quantas imagens se atravessam por cima do
+        // pólo (1 = um ao centro, 2 = anel, 3 = anel + zénite, 4 = anel
+        // duplo + zénite).
+        projetores: {
+          n: Math.max(1, Math.round(parseFloat(el.qtd.value) || 1)),
+          arranjo: parseInt(el.arranjo.value, 10) || 3
+        }
       };
     };
+
+    // O catálogo de projetores chega assíncrono (data/projectors.json), por
+    // isso é quem o carrega que chama esta função.
+    //
+    // Escolher um modelo preenche os LÚMENES e mais nada. A resolução fica
+    // por escrever à mão de propósito: o mesmo projetor vende-se com painéis
+    // diferentes (e com modos "enhanced"), o catálogo guarda só os lúmenes
+    // com fonte, e inventar aqui uma resolução era inventar dados técnicos.
+    window.domePreencherProjetores = function (projectors) {
+      if (!el.projmodel || !projectors || !projectors.length) return;
+      var porOmissao = projectors.find(function (p) { return p.default; }) || projectors[0];
+      var ordem = (typeof stockFirstIndices === "function")
+        ? stockFirstIndices(projectors)
+        : projectors.map(function (p, i) { return i; });
+      ordem.forEach(function (i) {
+        var p = projectors[i];
+        addOption(el.projmodel, String(i), p.modelo + " — " + fmtInt(p.lumens) + " lm",
+                  p === porOmissao, undefined, !p.mercado);
+      });
+      if (porOmissao && porOmissao.lumens > 0) el.lumens.value = porOmissao.lumens;
+      wireStockColor(el.projmodel);
+      updateSelectStockColor(el.projmodel);
+      lzAttachModelSearch(el.projmodel);
+      updateSourceHint(el.projmodel, projectors, "dome-projmodel-source", true);
+      calcDome();
+    };
+
+    if (el.projmodel) {
+      el.projmodel.addEventListener("change", function () {
+        updateSourceHint(el.projmodel, PROJECTORS_DATA, "dome-projmodel-source", true);
+        if (el.projmodel.value === "custom") return;
+        var p = PROJECTORS_DATA[parseInt(el.projmodel.value, 10)];
+        if (p && p.lumens > 0) el.lumens.value = p.lumens;
+      });
+      // Escrever os lúmenes à mão volta o seletor para "Personalizado": o
+      // contrário era ficar um modelo à vista com um número que não é dele
+      // -- e com o link da fonte ao lado, o que é pior do que não ter link.
+      el.lumens.addEventListener("input", function () {
+        if (el.projmodel.value === "custom") return;
+        var p = PROJECTORS_DATA[parseInt(el.projmodel.value, 10)];
+        if (p && String(p.lumens) === el.lumens.value) return;
+        el.projmodel.value = "custom";
+        updateSelectStockColor(el.projmodel);
+        updateSourceHint(el.projmodel, PROJECTORS_DATA, "dome-projmodel-source", true);
+      });
+    }
 
     document.querySelectorAll('.panel[data-mode="dome"] input, .panel[data-mode="dome"] select').forEach(function (campo) {
       campo.addEventListener("input", calcDome);
@@ -6916,7 +6984,7 @@
     // é o mesmo das zonas (lzGuardarParaPreview). calcDome() não o chama de
     // propósito: escrever para o Preview a cada tecla de um campo qualquer
     // desta aba seria barulho. Só o que muda a cúpula, e o interruptor.
-    ["diam", "forma", "altura", "addproject"].forEach(function (k) {
+    ["diam", "forma", "altura", "qtd", "arranjo", "addproject"].forEach(function (k) {
       if (!el[k]) return;
       el[k].addEventListener("change", function () {
         if (typeof lzGuardarParaPreview === "function") lzGuardarParaPreview();
