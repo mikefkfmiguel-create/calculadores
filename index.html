@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.52</span>
+    <span class="mark" id="app-versao">v3.53</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2096,6 +2096,24 @@
               </div>
             </div>
             <div class="field"><div class="hint" id="dome-res-nota"></div></div>
+            <div class="field">
+              <label for="dome-lensmodel">Lente</label>
+              <select id="dome-lensmodel" class="plain">
+                <option value="custom">Personalizado…</option>
+              </select>
+              <div class="srclink-wrap" id="dome-lensmodel-source"></div>
+              <div class="row2">
+                <div class="field">
+                  <label for="dome-tmin">Rácio mín.</label>
+                  <div class="inputgroup"><input id="dome-tmin" type="number" autocomplete="off" inputmode="decimal" step="0.01" min="0.1" placeholder="0.8"><span class="unit">:1</span></div>
+                </div>
+                <div class="field">
+                  <label for="dome-tmax">Rácio máx.</label>
+                  <div class="inputgroup"><input id="dome-tmax" type="number" autocomplete="off" inputmode="decimal" step="0.01" min="0.1" placeholder="1.0"><span class="unit">:1</span></div>
+                </div>
+              </div>
+              <div class="hint" id="dome-lente-veredicto"></div>
+            </div>
             <div class="field">
               <label for="dome-lumens">Lúmenes por projetor</label>
               <div class="inputgroup"><input id="dome-lumens" type="number" autocomplete="off" inputmode="numeric" value="20000" min="1" step="500"><span class="unit">lm</span></div>
@@ -6671,6 +6689,8 @@
     populateLensModelSelect(lnLensModelSel, document.getElementById("ln-brand").value);
     populateLensModelSelect(pLensModelSel, pSelectedProjBrand());
     populateLensModelSelect(projProjLensModelSel, projProjSelectedBrand());
+    // A aba Dome: as lentes, filtradas pela marca do projetor escolhido lá.
+    if (typeof window.domePreencherLentes === "function") window.domePreencherLentes();
     var brandSel = document.getElementById("ln-brand");
     Array.from(new Set(lenses.map(function (l) { return l.marca; })))
       .sort(function (a, b) { return a.localeCompare(b); })
@@ -6795,6 +6815,7 @@
     var el = {};
     ["diam", "forma", "altura", "altura-wrap", "ganho", "colocacao", "qtd", "atravessa", "alt-mont",
      "qtd-sugestao", "atravessa-sugestao", "resmode-field", "res-nota",
+     "lensmodel", "tmin", "tmax", "lente-veredicto",
      "projmodel", "px-h", "px-v", "lumens", "blend", "truncar", "truncar-wrap", "alvo",
      "out-raio", "out-area", "out-master", "out-arcmin", "out-ppd", "out-aprov",
      "out-imersa", "out-veredicto", "out-cobertura", "out-lm", "out-lux",
@@ -6813,7 +6834,8 @@
     // e ninguém percebia porquê. Apanhado a testar a ponte dos projetores.
     var DOME_ABA_KEY = "calculadores-dome-v1";
     var DOME_CAMPOS = ["diam", "forma", "altura", "ganho", "colocacao", "qtd", "atravessa",
-                       "alt-mont", "projmodel", "px-h", "px-v", "lumens", "blend", "alvo"];
+                       "alt-mont", "projmodel", "lensmodel", "tmin", "tmax",
+                       "px-h", "px-v", "lumens", "blend", "alvo"];
     // Antes da v3.50 havia um campo só, "arranjo", a fazer as duas coisas:
     // dizer ONDE se montam os projetores e, ao mesmo tempo, quantas imagens
     // atravessam o pólo (que é o que fixa a resolução). Reportado assim:
@@ -6880,6 +6902,64 @@
         ? "<strong>" + escapeXml(p.modelo) + ":</strong> " + escapeXml(p.resolucaoNota)
         : "";
     }
+    function domeLenteEscolhida() {
+      if (!el.lensmodel || el.lensmodel.value === "custom") return null;
+      if (typeof LENTES_DATA === "undefined") return null;
+      return LENTES_DATA[parseInt(el.lensmodel.value, 10)] || null;
+    }
+
+    // O RÁCIO DE TIRO QUE A FATIA PEDE.
+    //
+    // Pedido: *"não tenho onde por a lente na dome"* e, antes, *"e a lente vai
+    // influenciar"*. Influencia, e este é o caminho honesto para o dizer:
+    // em vez de estimar a cobertura a partir de uma lente (que sobre uma
+    // superfície curva não sai de um throw ratio), calcula-se ao contrário --
+    // qual o rácio NECESSÁRIO para cobrir a fatia que cada projetor tem, e
+    // confronta-se com o catálogo. A pergunta passa a ser de catálogo
+    // ("existe lente que chegue lá?"), que é verificável.
+    //
+    // A geometria é exacta sobre os pontos da fatia: a distância do projetor
+    // ao centro dela, e a corda mais larga que tem de cobrir. A APROXIMAÇÃO
+    // é uma só, e está dita no ecrã: um quadro retangular sobre uma calota
+    // não é um retângulo, e um projetor de cove atira muito fora de eixo.
+    // O número serve para saber a ORDEM da lente, não para a encomendar.
+    function racioQueAFatiaPede(g, colocacao, n, alturaMont, blend) {
+      if (!g || !(n > 0)) return null;
+      var a = g.D / 2, h = g.h, R = g.R;
+      var thetaMax = Math.acos(Math.min(1, Math.max(-1, (R - h) / R)));
+      var aoCentro = (colocacao === "centro") ? n : (colocacao === "anel" ? 0 : Math.min(1, n));
+      var noAnel = n - aoCentro;
+      if (noAnel <= 0) return null;   // fisheye ao centro não se mede assim
+
+      // A faixa do anel, com a mesma repartição por área igual do 3D.
+      var thetaDe = function (f) {
+        return Math.acos(Math.min(1, Math.max(-1, 1 - Math.min(1, Math.max(0, f)) * (1 - Math.cos(thetaMax)))));
+      };
+      var tCima = thetaDe(aoCentro / n), tBaixo = thetaMax;
+      var meio = (Math.PI / noAnel) * (1 + blend);     // meia fatia, com sobreposição
+
+      // O projetor: no anel encostado por dentro, à altura de montagem.
+      var y = (alturaMont > 0) ? Math.min(h - 0.2, alturaMont) : Math.min(1.2, h * 0.12);
+      var rc = Math.max(0.4, a - 0.5);
+      var P = { x: 0, y: y, z: rc };
+      // O centro da fatia fica do lado OPOSTO -- e as coordenadas da calota
+      // contam-se do centro da esfera, que está a y = h - R.
+      var tMeio = (tCima + tBaixo) / 2;
+      var cy = h - R;
+      var ponto = function (phi, theta) {
+        return { x: R * Math.sin(theta) * Math.sin(phi),
+                 y: cy + R * Math.cos(theta),
+                 z: -R * Math.sin(theta) * Math.cos(phi) };
+      };
+      var C = ponto(0, tMeio);
+      var dist = Math.sqrt(Math.pow(C.x - P.x, 2) + Math.pow(C.y - P.y, 2) + Math.pow(C.z - P.z, 2));
+      // A corda mais larga que a fatia pede: a azimutal no theta mais aberto.
+      var E1 = ponto(-meio, tBaixo), E2 = ponto(meio, tBaixo);
+      var corda = Math.sqrt(Math.pow(E2.x - E1.x, 2) + Math.pow(E2.y - E1.y, 2) + Math.pow(E2.z - E1.z, 2));
+      if (!(corda > 0) || !(dist > 0)) return null;
+      return { tr: dist / corda, dist: dist, largura: corda };
+    }
+
     // Escrever no ecrã o que o catálogo diz do modelo escolhido: lúmenes e
     // resolução, a resolução conforme o modo (declarada ou nativa).
     function domeAplicarProjetor(p) {
@@ -7053,6 +7133,43 @@
         "<br><br>O que decide o número <em>acima</em> deste chão é a <strong>cobertura</strong>: quanto de cúpula cada máquina alcança do sítio onde está pendurada — e isso é a <strong>lente</strong> e a <strong>altura de montagem</strong>, não a resolução. Esta aba não estima a cobertura: o alcance sobre uma superfície curva não sai de um throw ratio sem contas que ainda não estão aqui, e pôr aqui um número sem elas era inventá-lo." +
         "<br><br>" + sugestaoDeQuantos(g.D);
 
+      // ── a lente ──
+      var pedido = racioQueAFatiaPede(g, colocacao, qtd,
+        parseFloat(el["alt-mont"].value), blend);
+      var lente = domeLenteEscolhida();
+      var tmin = parseFloat(el.tmin.value), tmax = parseFloat(el.tmax.value);
+      if (!pedido) {
+        el["lente-veredicto"].innerHTML = (colocacao === "centro")
+          ? "Com <strong>fisheye ao centro</strong> não há rácio de tiro para medir: uma lente fisheye não se descreve por throw ratio. O que conta aí é o círculo cobrir a cúpula, e é isso que o aproveitamento acima já diz."
+          : "";
+      } else {
+        var texto = "Para cobrir a fatia de um projetor do anel — <strong>" +
+          fmt(pedido.largura, 2) + " m</strong> de largura a <strong>" + fmt(pedido.dist, 2) +
+          " m</strong> de distância — o rácio de tiro tem de andar por <strong>" +
+          fmt(pedido.tr, 2) + ":1</strong>.";
+        if (tmin > 0 && tmax > 0) {
+          var cabe = pedido.tr >= tmin - 0.005 && pedido.tr <= tmax + 0.005;
+          texto += cabe
+            ? " <strong>A lente escrita chega lá</strong> (" + fmt(tmin, 2) + "–" + fmt(tmax, 2) + ":1)."
+            : " <strong>A lente escrita não chega</strong> (" + fmt(tmin, 2) + "–" + fmt(tmax, 2) + ":1) — " +
+              (pedido.tr < tmin
+                ? "é curta demais: precisas de uma mais larga (rácio menor) ou de subir o nº de projetores."
+                : "é larga demais: precisas de uma mais longa (rácio maior) ou de baixar o nº de projetores.");
+        }
+        // Quantas do catálogo chegam lá, com os nomes das mais próximas.
+        if (typeof LENTES_DATA !== "undefined" && LENTES_DATA.length) {
+          var servem = LENTES_DATA.filter(function (l) {
+            return pedido.tr >= l.min - 0.005 && pedido.tr <= l.max + 0.005;
+          });
+          texto += servem.length
+            ? "<br>No catálogo há <strong>" + servem.length + "</strong> lente(s) que cobrem esse rácio — ex.: " +
+              servem.slice(0, 3).map(function (l) { return escapeXml(l.marca + " " + l.modelo); }).join(", ") + "."
+            : "<br><strong>Nenhuma lente do catálogo cobre esse rácio.</strong> Ou muda o nº de projetores, ou a altura de montagem, ou é caso para lente especial.";
+        }
+        texto += "<br><em>Isto é a ordem da lente, não uma encomenda:</em> um quadro retangular sobre uma calota não é um retângulo, e um projetor de cove atira muito fora de eixo. A conta é exacta sobre os pontos da fatia; a aproximação está aqui, e está dita.";
+        el["lente-veredicto"].innerHTML = texto;
+      }
+
       var veredicto;
       if (arcmin <= alvo) {
         veredicto = "Cumpre o alvo: " + fmt(arcmin, 2) + " arcmin/px contra os " + fmt(alvo, 1) +
@@ -7126,6 +7243,10 @@
         "Colocados: " + colocacaoTexto +
         (parseFloat(el["alt-mont"].value) > 0 ? ", a " + fmt(parseFloat(el["alt-mont"].value), 2) + " m do chão" : ", altura de montagem por definir") + "\n" +
         (projEscolhido && projEscolhido.resolucaoNota ? "Nota do projetor: " + projEscolhido.resolucaoNota + "\n" : "") +
+        (domeLenteEscolhida()
+          ? "Lente: " + domeLenteEscolhida().marca + " " + domeLenteEscolhida().modelo +
+            " (" + fmt(domeLenteEscolhida().min, 2) + "-" + fmt(domeLenteEscolhida().max, 2) + ":1)\n"
+          : "") +
         "Imagens a atravessar o pólo: " + atravessa + "\n" +
         "Sobreposição de blending: " + fmt(blend * 100, 0) + " %" + (truncado ? "\nFisheye truncado: cobre 180° × " + fmt(180 * (curto / longo), 0) + "°" : "") + "\n" +
         "\n" +
@@ -7177,6 +7298,16 @@
           // sempre elevados" -- e tinha razão, o que eu punha era rasteiro).
           altura: (parseFloat(el["alt-mont"].value) > 0)
             ? Math.round(parseFloat(el["alt-mont"].value) * 100) / 100
+            : null,
+          // A sobreposição, para o 3D poder mostrar as fatias a montar umas
+          // nas outras -- reportado: "não vejo a sobreposição nos cones para
+          // ter noção". Vai em fracção, que é como o 3D a usa.
+          blend: Math.min(50, Math.max(0, parseFloat(el.blend.value) || 0)) / 100,
+          // Quem é, só para o 3D poder etiquetar. O Preview não ganha
+          // catálogo nenhum com isto: recebe nomes já escolhidos aqui.
+          modelo: (domeProjetorEscolhido() || {}).modelo || null,
+          lente: domeLenteEscolhida()
+            ? (domeLenteEscolhida().marca + " " + domeLenteEscolhida().modelo)
             : null,
           arranjo: DOME_COLOCACAO_ARRANJO[el.colocacao.value] || 3
         }
@@ -7235,6 +7366,45 @@
       calcDome();
     };
 
+    // As lentes chegam com o mesmo fetch dos projetores, por isso é quem o
+    // carrega que chama isto. Filtra pela marca do projetor escolhido, como a
+    // Distância de Projeção e a aba Projeto já fazem -- uma lente Barco num
+    // Panasonic não é uma opção.
+    window.domePreencherLentes = function () {
+      if (!el.lensmodel || typeof populateLensModelSelect !== "function") return;
+      var p = domeProjetorEscolhido();
+      populateLensModelSelect(el.lensmodel, p ? p.modelo.split(" ")[0] : null);
+      var guardada = domeGuardado ? domeGuardado.lensmodel : null;
+      if (guardada && guardada !== "custom") {
+        var existe = Array.prototype.some.call(el.lensmodel.options, function (o) { return o.value === guardada; });
+        if (existe) el.lensmodel.value = guardada;
+      }
+      updateSourceHint(el.lensmodel, LENTES_DATA, "dome-lensmodel-source", true);
+      calcDome();
+    };
+
+    if (el.lensmodel) {
+      el.lensmodel.addEventListener("change", function () {
+        updateSourceHint(el.lensmodel, LENTES_DATA, "dome-lensmodel-source", true);
+        var l = domeLenteEscolhida();
+        if (!l) return;
+        el.tmin.value = l.min;
+        el.tmax.value = l.max;
+      });
+      // Escrever um rácio à mão volta o seletor a "Personalizado", a mesma
+      // regra do projetor: um modelo à vista com números que não são dele é
+      // pior do que não ter modelo nenhum.
+      [el.tmin, el.tmax].forEach(function (campo) {
+        campo.addEventListener("input", function () {
+          var l = domeLenteEscolhida();
+          if (!l) return;
+          if (String(l.min) === el.tmin.value && String(l.max) === el.tmax.value) return;
+          el.lensmodel.value = "custom";
+          updateSourceHint(el.lensmodel, LENTES_DATA, "dome-lensmodel-source", true);
+        });
+      });
+    }
+
     if (el.projmodel) {
       el.projmodel.addEventListener("change", function () {
         updateSourceHint(el.projmodel, PROJECTORS_DATA, "dome-projmodel-source", true);
@@ -7245,6 +7415,8 @@
         domeMostrarResmode();
         var p = domeProjetorEscolhido();
         if (p) domeAplicarProjetor(p);
+        // Marca nova, lentes novas: as da marca anterior não servem.
+        if (typeof window.domePreencherLentes === "function") window.domePreencherLentes();
       });
       document.querySelectorAll("#dome-resmode-seg .seg-btn").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -7303,7 +7475,8 @@
     // é o mesmo das zonas (lzGuardarParaPreview). calcDome() não o chama de
     // propósito: escrever para o Preview a cada tecla de um campo qualquer
     // desta aba seria barulho. Só o que muda a cúpula, e o interruptor.
-    ["diam", "forma", "altura", "qtd", "colocacao", "alt-mont", "addproject"].forEach(function (k) {
+    ["diam", "forma", "altura", "qtd", "colocacao", "alt-mont", "blend",
+     "projmodel", "lensmodel", "addproject"].forEach(function (k) {
       if (!el[k]) return;
       el[k].addEventListener("change", function () {
         if (typeof lzGuardarParaPreview === "function") lzGuardarParaPreview();
