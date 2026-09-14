@@ -1792,3 +1792,15 @@
   .menu-portas-leves .menu-porta { padding: 12px 14px; }
   .menu-porta-leve .menu-porta-nome { font-weight: 500; font-size: 14px; }
   .menu-porta-perigo:hover { border-color: var(--danger-600); }
+
+  /* O exemplo na aba: números escritos, mas que não são de ninguém.
+   * A cor diz o que o texto também diz -- e sem cor nenhuma, o texto diz. */
+  .campo-exemplo { color: var(--blue-500); font-style: italic; }
+  .exemplo-barra {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    margin: 0 0 16px; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid var(--blue-200); background: var(--blue-100);
+    font-size: 13px; line-height: 1.45;
+  }
+  .exemplo-texto { flex: 1 1 260px; color: var(--ink); }
+  .exemplo-botoes { display: flex; gap: 8px; flex-wrap: wrap; }

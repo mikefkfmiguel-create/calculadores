@@ -14,6 +14,48 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 14 de setembro — o exemplo nos campos, sem a conta a correr (v3.87)
+
+> *"Põe o exemplo nos campos mas sem cálculo activo. Dá a opção de escolher."*
+
+As abas passaram a abrir vazias (v3.84–86) e isso resolveu o engano, mas tirou
+uma coisa boa: **um exemplo inteiro e coerente mostra o que a aba faz**, e
+mexer num número de cinco é mais fácil do que escrever os cinco. O que não
+pode é a app dar por certa uma conta que ninguém pediu.
+
+**A maneira é não disparar eventos.** As contas desta app correm no `input` e
+no `change` dos campos; escrever no `.value` sem disparar nada enche o
+formulário e **não calcula coisa nenhuma**. Zero alterações nas catorze funções
+de cálculo — e por isso zero maneiras novas de as partir.
+
+**O exemplo sai do `placeholder`**, que já é onde ele vive desde a v3.84: uma
+fonte só, e a dica e o exemplo nunca podem discordar.
+
+**Três caminhos, e o do meio é o que interessa:**
+
+- **"Calcular com estes"** — aceita o exemplo como se fosse teu.
+- **"Começar em branco"** — varre tudo.
+- **Mexer num campo** — é decidir. A marca de exemplo cai em todos, e a conta
+  corre pelos handlers de sempre. Foi para isto que os valores têm de estar
+  *dentro* dos campos e não em cinzento por trás: um `placeholder` desaparece
+  quando se escreve, e não dá nada para editar.
+
+Os campos do exemplo ficam a **azul itálico**, e a barra diz o mesmo por
+palavras — sem cor nenhuma, o texto diz.
+
+Só entra nos campos que estiverem **vazios**: quem já lá escreveu alguma coisa
+manda, e ninguém lhe mexe.
+
+**Medido nas quatro abas:**
+
+| passo | resultado |
+|---|---|
+| porta → TVs | `55` no campo, marcado, barra à vista, as saídas a `—` |
+| "Calcular com estes" | marca cai, barra some, 1,22 × 0,68 m |
+| porta → visualização | 4 campos com exemplo, saídas a `—` |
+| mexer só na diagonal (200") | marcas caem nos 4, 6,64 a 26,57 m |
+| "Começar em branco" (resoluções) | campos vazios, saídas continuam a `—` |
+
 ## 14 de setembro — as últimas duas portas (v3.86)
 
 **Fases 4 e 5 do `PLANO-MENU.md`. O plano está feito.**
