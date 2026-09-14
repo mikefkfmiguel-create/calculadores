@@ -9,6 +9,45 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — a vertical: onde fica a lente, e que shift isso obriga (v3.67)
+
+Pedido direto: *"ter em conta a posição com a relação da altura do ecrã e o
+cone de projeção nas contas e representação no desenho"*, e *"e terá em conta o
+shift da lente"*. Par com a v3.40 do Preview.
+
+A aba sabia a que **distância** a máquina ficava e absolutamente nada sobre a
+que **altura** — e é a altura que decide se a imagem cai no pano ou acima dele.
+Campo novo (**altura da lente acima da base do ecrã**, negativo se ficar
+abaixo) e a conta que daí sai:
+
+> shift vertical = (centro da fila − altura da lente) ÷ altura da imagem
+
+Conferido nos casos em que a resposta se sabe de cabeça, num ecrã de 4 m: lente
+à base → **+50%**; a meia altura → **0%**; no topo → **−50%**; 2 m acima do topo
+→ **−100%**. Numa grelha de duas filas dá o intervalo (−50 a +50%) e diz o que
+isso obriga: ou shift diferente por máquina, ou alturas diferentes.
+
+### O shift da lente
+
+Confrontado com o necessário, mas só quando o fabricante o publica — **9 das 71
+lentes do catálogo**, todas com fonte. Nas outras diz-se que não há dados, em
+vez de aparecer um limite que ninguém verificou (a mesma regra da aba Distância
+de Projeção, e do `CLAUDE.md`). Com a Epson ELPLX02 e +50% necessários:
+*"faz +45 % a +68 %, por isso chega"*, com a nota do fabricante à frente.
+
+Os limites seguem também na ponte, que é como o Preview avisa quando o shift
+pedido lá não cabe — até aqui ia sempre `shift: null` porque não havia UI que
+escolhesse a lente.
+
+**Um defeito que isto destapou:** escolher uma lente só reescrevia o texto, não
+recalculava. Desde que a lente passou a viajar na carga (nome e limites de
+shift), escolher a ELPLX02 deixava a ponte com a lente anterior — o 3D recebia
+`shift: null` à mesma. Os dois selectores passam pelo `calcBlend()`, que é quem
+escreve a ponte no fim.
+
+A ponte leva agora também a **altura do ecrã** e a **altura da lente**: é com
+elas que o Preview tem pano na vertical e põe o cone à altura certa.
+
 ## 14 de setembro — em arco, ou numa linha reta (v3.66)
 
 Pedido direto: *"os projetores poderão ser posicionados tanto em círculo a
