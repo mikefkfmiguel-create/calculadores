@@ -9,6 +9,37 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — três ecrãs iguais são três ecrãs na sala (v3.72)
+
+*"Na calculadora marquei 3 e o 3D apenas mostra um."* Tinha razão, e a minha
+resposta anterior estava a meio caminho: a quantidade da v3.69 multiplicava
+tiles, peso e amperagem — o que se carrega e o que se alimenta — e deixava um
+ecrã no desenho. Mas três ecrãs iguais ocupam três sítios, e um desenho com um
+só não é o desenho da montagem.
+
+Eu tinha escrito no campo que dar-lhes posição era trabalho do Ecrã Complexo, e
+justificado com "inventar onde os pôr era pior do que não os pôr". A segunda
+parte continua verdade; a primeira era preguiça minha — **a app já sabe pôr
+ecrãs iguais em fila**: é o mecanismo das **réplicas**, no diálogo da zona, com
+cópias, gap e direção. Não era preciso inventar esquema nenhum, era preciso
+ligar a quantidade ao que já existia.
+
+Agora a quantidade cria (e tira) as zonas, em fila, com o gap que estiver no
+cartão. O sítio é um ponto de partida, não uma decisão: as cópias arrastam-se
+no 3D como qualquer outra zona.
+
+Duas regras que vêm do botão "Atualizar réplicas" e ficam iguais aqui:
+
+- uma cópia **que já existe** recebe modelo e tamanho, **nunca posição** — quem
+  já as arrumou na sala não quer que mudar o tile lhas atire outra vez para a
+  fila;
+- baixar a quantidade tira as **últimas**, que são as que deixaram de ser
+  precisas.
+
+Medido: quantidade 3 com um ecrã de 5,00 m dá três zonas em x = 0 · 5,05 ·
+10,10 (largura + gap de 0,05), as três na ponte, e no 3D três ecrãs centrados
+em −5,05 · 0 · +5,05. Baixar para 2 tira a terceira; para 1, fica a original.
+
 ## 14 de setembro — a zona chamava-se pelo tile antigo (v3.71)
 
 Reportado com foto do diálogo "Editar zona": *"aqui está confuso, ou sem
