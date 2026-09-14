@@ -42,7 +42,7 @@
             title="Sincronização automática com o Preview 3D — desligada, nada passa sozinho entre as duas apps; os botões manuais continuam a funcionar">🔗 Auto</button>
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
-    <span class="mark" id="app-versao">v3.83</span>
+    <span class="mark" id="app-versao">v3.84</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -103,6 +103,22 @@
     <div class="menu-bloco">
       <h3>Continuar</h3>
       <div id="proj-historico" class="menu-historico"></div>
+    </div>
+
+    <!-- AS CONTAS RÁPIDAS.
+         Cada uma entra aqui no dia em que a aba dela passa a responder sem se
+         abrir nada -- é a regra do PLANO-MENU.md, e é o que separa um menu de
+         uma placa de sinalização para uma sala às escuras. Ordem das fases,
+         da aba mais pequena para a maior: TVs, distâncias, visualização,
+         resoluções. -->
+    <div class="menu-bloco" id="menu-contas">
+      <h3>Uma conta rápida</h3>
+      <div class="menu-portas">
+        <button type="button" class="menu-porta" data-porta="tv">
+          <span class="menu-porta-nome">Ver medidas de TV/ecrã STD</span>
+          <span class="menu-porta-sub">Largura, altura, resolução e a que distância se vê bem</span>
+        </button>
+      </div>
     </div>
 
     <div class="menu-bloco">
@@ -2414,7 +2430,13 @@
       </div>
     </details>
     <div class="grid">
-      <details class="card sinal-block">
+      <!-- ABERTO. A regra do PLANO-MENU.md: uma porta só entra no menu no dia
+           em que a aba dela responde sem se abrir nada. Esta aba tem 5 campos
+           e 3 painéis, e nascia com os três fechados -- chegar aqui pelo menu
+           e ainda ter de abrir dois é a placa de sinalização para a sala às
+           escuras. O "Como usar" fica fechado: esse é para quem pergunta, não
+           para quem já sabe. -->
+      <details class="card sinal-block" open>
         <summary>Modelo de TV</summary>
         <div class="sinal-block-body">
         <div class="field">
@@ -2427,7 +2449,7 @@
         </div>
         <div class="field">
           <label for="tv-diag">Diagonal</label>
-          <div class="inputgroup"><input id="tv-diag" type="number" autocomplete="off" inputmode="decimal" value="55" min="1" step="1"><span class="unit">polegadas</span></div>
+          <div class="inputgroup"><input id="tv-diag" type="number" autocomplete="off" inputmode="decimal" placeholder="55" min="1" step="1"><span class="unit">polegadas</span></div>
         </div>
         <div class="field">
           <label for="tv-ratio">Formato</label>
@@ -2444,7 +2466,7 @@
         </div>
       </details>
 
-      <details class="card results sinal-block" data-accent="tv">
+      <details class="card results sinal-block" data-accent="tv" open>
         <div class="stripe"></div>
         <summary>Tamanho do ecrã</summary>
         <div class="sinal-block-body">
@@ -7368,6 +7390,19 @@
   (function ligarMenu() {
     var completa = document.getElementById("btMenuCompleta");
     if (completa) completa.addEventListener("click", function () { mostrarMenu(false); });
+    // As portas rápidas: fechar o menu e carregar na aba certa. NÃO há um
+    // segundo encaminhador -- o clique na aba já trata do aria-selected, do
+    // painel activo, do atalho "Adicionar ao projeto" e do título da aba.
+    // Um router próprio acabaria a discordar deste no dia em que uma aba
+    // mudasse de nome.
+    document.querySelectorAll("#menu [data-porta]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var aba = document.querySelector('.tab[data-mode="' + b.dataset.porta + '"]');
+        if (!aba) return;
+        mostrarMenu(false);
+        aba.click();
+      });
+    });
     var voltar = document.getElementById("btMenu");
     if (voltar) voltar.addEventListener("click", function () { mostrarMenu(true); });
     // Estes dois são os MESMOS botões de sempre, alcançados daqui -- não
@@ -8020,7 +8055,12 @@
     document.getElementById("tv-out-h").innerHTML = fmt(h, 2) + "<small>m</small>";
 
     var tv = tvModelSel.value !== "custom" ? TVS_DATA[parseInt(tvModelSel.value, 10)] : null;
-    var resLabel = tv && tv.resolucao ? fmtRes(tv.resolucao) : "não confirmada";
+    // Sem modelo escolhido E sem diagonal escrita não há TV nenhuma de que
+    // falar: dizer "não confirmada" num formulário vazio é afirmar uma coisa
+    // sobre um ecrã que ainda não existe. Com uma diagonal à mão, aí sim -- a
+    // resolução é mesmo desconhecida e convém dizê-lo.
+    var resLabel = tv && tv.resolucao ? fmtRes(tv.resolucao)
+      : (tv || diagIn > 0) ? "não confirmada" : "—";
     if (tv && tv.resolucaoNota) resLabel += " (" + tv.resolucaoNota + ")";
     document.getElementById("tv-out-res").textContent = resLabel;
 
