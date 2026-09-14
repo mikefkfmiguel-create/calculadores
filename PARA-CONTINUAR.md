@@ -14,6 +14,45 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 14 de setembro — distâncias, e nenhum modelo escolhido por ti (v3.85)
+
+**Fase 3 do `PLANO-MENU.md`**, e com ela uma descoberta que vale mais do que a
+fase.
+
+A aba abre os dois painéis e os **nove** valores por omissão passam a
+`placeholder`. Mas a medição mostrou que o campo dos lúmens continuava com
+20 000 escritos — e a razão não era um `value` esquecido: **havia um projetor
+pré-escolhido**, o Epson EB-PQ2220B, por causa do `default: true` no
+`projectors.json`. Dele vinham os 20 000 lm e, com eles, um valor de **lux
+calculado a partir de uma máquina que ninguém escolheu**.
+
+Isso é precisamente *"o engano com valores auto de arranque"*, e estava num
+sítio só: **nenhum modelo vem escolhido**, nem projetor nem cabine. As listas
+mantêm a ordem (stock primeiro) e ficam em "Personalizado…" até alguém decidir.
+
+Duas honestidades sobre esta mudança:
+
+- **O `default` do ficheiro não se apagou.** Continua a marcar qual é a máquina
+  da casa, e volta a servir no dia em que fizer falta *sugerir* uma — sugerir
+  não é escolher.
+- **A lista do Sinal & Data Rate fica como estava.** É a única sem
+  "Personalizado…": sem escolha nenhuma o browser escolhe a primeira à mesma, e
+  mais vale ser a da casa do que a que calhar estar no topo. Fica por arrumar.
+
+**Medido:**
+
+| passo | resultado |
+|---|---|
+| menu → "Calcular distâncias" | tudo vazio, as 6 saídas a `—` |
+| projetor à entrada | **Personalizado…**, lúmens vazios |
+| diagonal 150" + 8 m | 3,32 × 1,87 m · rácio preciso **2,41:1** |
+| o lux | continua `—` — sem máquina escolhida não há lux que dizer |
+| escolher a Epson ELPLW05 | 3,45 a 4,85 m |
+
+E as outras abas não partiram: das 115 saídas com tudo vazio, 66 a `—`, zero
+zeros enganadores, e o mesmo único `NaN` do `proj-out-tiles` que já estava
+anotado.
+
 ## 14 de setembro — a primeira porta rápida: TVs (v3.84)
 
 **Fase 2 do `PLANO-MENU.md`.** A aba mais pequena, escolhida de propósito para
