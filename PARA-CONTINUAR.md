@@ -9,6 +9,59 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — frontal ou retro (v3.77)
+
+Perguntado a olhar para o 3D: *"frontal ou retro"*. A resposta era **frontal,
+sempre**, nas duas apps, e em lado nenhum estava escrito. No Preview o centro
+da curvatura fica do lado da plateia e as máquinas a `R − distância` desse
+centro — entre a plateia e o pano.
+
+Não é uma caixa cosmética. Muda quatro coisas, e três delas mudam números:
+
+**1. A conta da lente troca de sinal.** Vista de trás, a superfície côncava é
+convexa: vem ao encontro das pontas do feixe em vez de fugir delas, e a mesma
+lente cobre **mais** arco. Medido com raio 15 m e 6 m de tiro:
+
+| rácio | conta plana | frontal | retro |
+|---|---|---|---|
+| 0,80:1 | 7,50 m | 7,05 m (−6,0%) | 8,32 m (**+11,0%**) |
+| 1,14:1 | 5,26 m | 5,10 m (−3,1%) | 5,52 m (+4,8%) |
+| 1,50:1 | 4,00 m | 3,93 m (−1,9%) | 4,11 m (+2,7%) |
+
+Escolher a lente com a conta do frontal numa montagem de retro dava imagem a
+transbordar para a fatia do lado. Na prática, com corda 26 / raio 15 / 5
+máquinas a 10 m: **1,14:1 em frontal, 1,28:1 em retro**.
+
+**2. O tecto do raio deixa de existir.** Em frontal a máquina tem de caber
+entre o centro da curvatura e o pano, e `distância ≥ raio` é uma montagem que
+não existe — a app recusava-a. Em retro não há esse limite, e a mensagem
+passa a dizê-lo em vez de o impor: verificado a 20 m com raio 15, que trava em
+frontal e dá 2,49:1 em retro.
+
+**3. As máquinas passam para o outro lado, no desenho.** Medido no 3D com a
+mesma configuração (centro do cilindro em z = −9,65, raio 15, tiro 12): a
+máquina do meio estava em **z = −12,65** (r = R − 12 = 3) e passa a
+**z = −36,65** (r = R + 12 = 27). Simétrico ao centímetro. Vale para o arco,
+para a linha reta (a truss vai para trás do ponto mais fundo) e para o ecrã
+plano.
+
+**4. Ninguém na plateia tapa o feixe — e isso saiu de graça.** A conta de quem
+tapa (v3.44) é geométrica: a pirâmide do feixe passa a viver atrás do pano e
+as caixas da plateia deixam de a intersectar, sem uma linha de código
+especial. Medido com o público ligado: frontal **8 pessoas a tapar, 2 dos 5
+projetores**; retro **0 e 0**.
+
+**O que o desenho NÃO faz é inverter a imagem.** É a parte contra-intuitiva:
+em retro manda-se a imagem invertida para o projetor (flip H) precisamente
+para que no pano ela apareça **direita**. Desenhá-la ao contrário no 3D seria
+desenhar o erro de quem se esqueceu do flip. O que não se vê vai escrito — na
+nota de leitura, que chega ao painel, ao "Copiar" e ao relatório.
+
+Um erro meu apanhado a meio: ao acrescentar o campo aos ajustes comi o `};`
+que fechava o objeto em `ajustesGuardados()`, e a app deixou de arrancar
+("Unexpected token 'catch'"). Encontrado por bissecção — reverter um ficheiro
+de cada vez até a app voltar a abrir.
+
 ## 14 de setembro — quem decide não se queixa da decisão (v3.76)
 
 *"Neste aviso ele deveria acrescentar projetores e não dar o aviso; esse

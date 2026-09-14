@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.76</span>
+    <span class="mark" id="app-versao">v3.77</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1267,6 +1267,20 @@
           <label for="b-knowndist">Distância entre a lente e o ecrã</label>
           <div class="inputgroup"><input id="b-knowndist" type="number" autocomplete="off" inputmode="decimal" value="4.00" min="0.1" step="0.01"><span class="unit">m</span></div>
           <div class="hint" id="b-knowndist-hint">A mesma para todos os projetores do blend — precisa dela para "Ver no Preview 3D".</div>
+        </div>
+        <!-- FRONTAL OU RETRO.
+             Até aqui as duas apps assumiam frontal em todo o lado e não o
+             diziam em sítio nenhum. Perguntado a olhar para o 3D: *"frontal ou
+             retro"*. Não é uma caixa cosmética: muda de que lado da superfície
+             ficam as máquinas, inverte a imagem, e num ecrã curvo TROCA O SINAL
+             da correção da curva -- vista de trás a superfície é convexa e a
+             mesma lente cobre MAIS arco, não menos. -->
+        <div class="field">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:400;">
+            <input type="checkbox" id="b-retro" style="width:auto;">
+            Retroprojeção (máquinas atrás do pano)
+          </label>
+          <div class="hint" id="b-retro-hint">Em frontal as máquinas ficam do lado da plateia. Em retro ficam atrás do ecrã, a imagem inverte na horizontal, e ninguém na sala tapa o feixe.</div>
         </div>
         <!-- A VERTICAL. Sem isto a app sabia a que distância a máquina fica mas
              não a que ALTURA, e por isso não conseguia dizer o shift que a
@@ -3703,10 +3717,11 @@
       // do que o raio, a máquina cairia do outro lado do centro, a projetar
       // para trás: não é um arredondamento infeliz, é uma montagem que não
       // existe, e é melhor dizê-lo do que desenhar um disparate.
-      if (dist >= R) {
+      if (dist >= R && !retroDoBlend()) {
         return { erro: "A distância (" + fmt(dist, 2) + " m) é maior do que o raio da curva (" +
-          fmt(R, 2) + " m). Num ecrã curvo os projetores ficam entre o centro da curvatura e a " +
-          "superfície — com esta distância ficariam do outro lado do centro." };
+          fmt(R, 2) + " m). Num ecrã curvo frontal os projetores ficam entre o centro da curvatura " +
+          "e a superfície — com esta distância ficariam do outro lado do centro. Em retroprojeção " +
+          "não há este limite: marca a caixa e as máquinas passam para trás do pano." };
       }
       curva = { raio: Math.round(R * 1000) / 1000,
                 corda: Math.round(bUltimoBlend.curveChord * 1000) / 1000,
@@ -3728,13 +3743,16 @@
                 shiftV: shiftDaPrimeiraCelula(),
                 // Em arco ou em linha reta. Uma carga antiga não traz isto e
                 // lê-se como "arco", que era a única montagem que existia.
-                montagem: montagemDoBlend() };
+                montagem: montagemDoBlend(),
+                // De que lado do pano estão as máquinas. Uma carga antiga não
+                // traz isto e lê-se como frontal, que era o que havia.
+                retro: retroDoBlend() };
       if (curva.montagem === "linha") {
         var gridLinha = blendGridPositions(bUltimoBlend.nh, bUltimoBlend.nv, bUltimoBlend.oh, bUltimoBlend.ov,
           bUltimoBlend.hpx, bUltimoBlend.vpx, bUltimoBlend.totalWm, bUltimoBlend.totalHm,
           bUltimoBlend.totalPxH, bUltimoBlend.totalPxV);
         var linha = maquinasEmLinha(R, celulasDoBlend(gridLinha, bUltimoBlend.nh),
-          bUltimoBlend.curveArc, dist, val("b-truss-width"));
+          bUltimoBlend.curveArc, dist, val("b-truss-width"), retroDoBlend());
         if (!linha) {
           return { erro: "Com esta largura de truss (" + fmt(val("b-truss-width"), 2) + " m) e esta " +
             "distância as máquinas das pontas caem fora da curva — estreita a truss ou aproxima-a do ecrã." };
@@ -3792,7 +3810,11 @@
         alturaOffset: Math.round(-cell.yCenterM * 100) / 100
       };
     });
-    return { v: 2, projetores: projetores, curva: curva, quando: new Date().toISOString() };
+    // O `retro` vai também no topo, e não só dentro da curva: um ecrã PLANO
+    // não tem objecto `curva` nenhum, e a retroprojeção não é privilégio dos
+    // curvos. Uma carga antiga não traz o campo e lê-se como frontal.
+    return { v: 2, projetores: projetores, curva: curva, retro: retroDoBlend(),
+             quando: new Date().toISOString() };
   }
 
   // O blend segue sozinho para o Preview quando está marcado "Adicionar ao
@@ -4598,13 +4620,20 @@
   // círculo. Em arco ou em linha reta muda só ONDE está a lente e PARA ONDE
   // aponta — a conta do que ela apanha é a mesma, e por isso é uma só.
 
-  /** Onde é que um raio que sai de L na direção v (unitária) bate na superfície. */
-  function raioBateNoEcra(R, L, v) {
+  /**
+   * Onde é que um raio que sai de L na direção v (unitária) bate na superfície.
+   *
+   * De DENTRO do círculo (frontal) há uma só interseção à frente, e é essa. De
+   * FORA (retro, a máquina atrás do pano) há duas, e a que conta é a PRIMEIRA —
+   * a luz para na casca, não a atravessa para ir bater do outro lado. Trocar as
+   * raízes aqui era desenhar a imagem na parede oposta do cilindro.
+   */
+  function raioBateNoEcra(R, L, v, deFora) {
     var wv = L[0] * v[0] + L[1] * v[1];
     var ww = L[0] * L[0] + L[1] * L[1];
     var disc = wv * wv + R * R - ww;
     if (disc < 0) return null;
-    var s = -wv + Math.sqrt(disc);
+    var s = deFora ? -wv - Math.sqrt(disc) : -wv + Math.sqrt(disc);
     if (!(s > 0)) return null;
     var Q = [L[0] + s * v[0], L[1] + s * v[1]];
     return { Q: Q, s: s, a: Math.atan2(Q[0], -Q[1]) };
@@ -4623,11 +4652,11 @@
   }
 
   /** Que pedaço do arco é que esta lente apanha, daqui e virada para ali. */
-  function arcoDeUmaLente(R, L, u, racio) {
+  function arcoDeUmaLente(R, L, u, racio, deFora) {
     if (!(racio > 0)) return null;
     var phi = Math.atan(1 / (2 * racio));
-    var e1 = raioBateNoEcra(R, L, rodarVetor(u, phi));
-    var e2 = raioBateNoEcra(R, L, rodarVetor(u, -phi));
+    var e1 = raioBateNoEcra(R, L, rodarVetor(u, phi), deFora);
+    var e2 = raioBateNoEcra(R, L, rodarVetor(u, -phi), deFora);
     if (!e1 || !e2) return null;
     return { a1: Math.min(e1.a, e2.a), a2: Math.max(e1.a, e2.a),
              arco: R * Math.abs(e1.a - e2.a) };
@@ -4654,10 +4683,12 @@
    *   28 m sobram 2,43 m de imagem por máquina das pontas; numa de 14 m, 0,09 m.
    *   O número vai escrito, para a escolha ser de quem monta.
    */
-  function maquinasEmLinha(R, celulas, arcoTotal, distAoFundo, larguraTruss) {
+  function maquinasEmLinha(R, celulas, arcoTotal, distAoFundo, larguraTruss, retro) {
     if (!(R > 0) || !(arcoTotal > 0) || !(distAoFundo > 0)) return null;
     if (!celulas || !celulas.length || !(larguraTruss > 0)) return null;
-    var yTruss = -R + distAoFundo;
+    // Em retro a truss fica ATRÁS do ponto mais fundo, não à frente dele: a
+    // distância medida com a fita é a mesma, o sinal é que é o contrário.
+    var yTruss = retro ? -R - distAoFundo : -R + distAoFundo;
     var out = [];
     for (var i = 0; i < celulas.length; i++) {
       // A CÉLULA, não "o arco a dividir pelo número de máquinas". As células do
@@ -4674,9 +4705,12 @@
       // a corda cada máquina fica em frente à sua fatia.
       var fracao = arcoTotal > 0 ? s / (arcoTotal / 2) : 0;
       var L = [fracao * (larguraTruss / 2), yTruss];
-      // Dentro do círculo? Uma truss muito larga e muito à frente põe a máquina
-      // das pontas FORA da superfície — montagem que não existe.
-      if (Math.hypot(L[0], L[1]) >= R) return null;
+      // Do lado certo da superfície? Em frontal uma truss muito larga e muito à
+      // frente põe a máquina das pontas FORA do pano; em retro o erro é o
+      // simétrico -- uma truss estreita e encostada punha-a DENTRO. As duas são
+      // montagens que não existem.
+      var aoCentro = Math.hypot(L[0], L[1]);
+      if (retro ? aoCentro <= R : aoCentro >= R) return null;
       var dir = [P[0] - L[0], P[1] - L[1]];
       var tiro = Math.hypot(dir[0], dir[1]);
       if (!(tiro > 0)) return null;
@@ -4688,7 +4722,7 @@
       var meioAngulo = Math.max(Math.abs(lado1), Math.abs(lado2));
       if (!(meioAngulo > 0)) return null;
       var racio = 1 / (2 * Math.tan(meioAngulo));
-      var g = arcoDeUmaLente(R, L, u, racio);
+      var g = arcoDeUmaLente(R, L, u, racio, retro);
       out.push({
         x: L[0], y: L[1], tiro: tiro, racio: racio, arcoNoCentro: s,
         cobre: g ? g.arco : fatia, sobra: g ? Math.max(0, g.arco - fatia) : 0
@@ -4716,43 +4750,64 @@
   // sai a phi do eixo bate na superfície a uma distância d que sai de
   // |L + d·v| = R, e o ângulo que esse ponto ocupa NO círculo é
   // asin(d·sin(phi) / R). O arco coberto é R vezes o dobro desse ângulo.
-  function arcoCobertoPelaLente(radiusM, distM, racio) {
+  //
+  // EM RETRO O SINAL TROCA. A lente fica a R + distância do centro e o feixe
+  // aponta para dentro: a superfície, vista de trás, é CONVEXA e vem ao
+  // encontro das pontas do feixe em vez de fugir delas, por isso a mesma lente
+  // cobre MAIS arco do que a conta plana promete. Medido com raio 15 m e 6 m de
+  // tiro: a 0,80:1 são +11,0% em retro contra −6,0% em frontal. Usar a conta do
+  // frontal numa montagem de retro dava imagem a mais, a transbordar do pano.
+  function arcoCobertoPelaLente(radiusM, distM, racio, retro) {
     if (!(racio > 0) || !(distM > 0)) return null;
     var phi = Math.atan(1 / (2 * racio));           // meio-ângulo da lente
     if (!(radiusM > 0)) return 2 * distM * Math.tan(phi);   // ecrã plano
+    var cos = Math.cos(phi);
+    var alfa;
+    if (retro) {
+      var rf = radiusM + distM;
+      var disc = radiusM * radiusM - rf * rf * Math.sin(phi) * Math.sin(phi);
+      // Feixe tão aberto que a ponta passa ao lado do cilindro: a lente apanha
+      // tudo o que há para apanhar deste lado, e o limite é o ponto de
+      // tangência.
+      if (disc <= 0) return Math.PI * radiusM;
+      var df = rf * cos - Math.sqrt(disc);
+      alfa = Math.asin(Math.min(1, df * Math.sin(phi) / radiusM));
+      return 2 * radiusM * alfa;
+    }
     var r = radiusM - distM;
     if (r <= 0) return null;                        // lente para lá do centro
-    var cos = Math.cos(phi);
     var d = -r * cos + Math.sqrt(r * r * cos * cos + radiusM * radiusM - r * r);
-    var alfa = Math.asin(Math.min(1, d * Math.sin(phi) / radiusM));
+    alfa = Math.asin(Math.min(1, d * Math.sin(phi) / radiusM));
     return 2 * radiusM * alfa;
   }
 
   // As duas perguntas ao contrário, por bisseção — a relação é monótona nos
   // dois casos e não tem forma fechada simpática no caso curvo. Vinte passos
   // chegam de sobra para a precisão de um metro de arco.
-  function racioParaCobrirArco(radiusM, distM, arcoM) {
+  function racioParaCobrirArco(radiusM, distM, arcoM, retro) {
     if (!(arcoM > 0) || !(distM > 0)) return null;
     var lo = 0.05, hi = 30;
-    if (arcoCobertoPelaLente(radiusM, distM, hi) > arcoM) return null;  // nem a mais fechada
-    if (arcoCobertoPelaLente(radiusM, distM, lo) < arcoM) return null;  // nem a mais aberta
+    if (arcoCobertoPelaLente(radiusM, distM, hi, retro) > arcoM) return null;  // nem a mais fechada
+    if (arcoCobertoPelaLente(radiusM, distM, lo, retro) < arcoM) return null;  // nem a mais aberta
     for (var i = 0; i < 40; i++) {
       var meio = (lo + hi) / 2;
-      if (arcoCobertoPelaLente(radiusM, distM, meio) > arcoM) lo = meio; else hi = meio;
+      if (arcoCobertoPelaLente(radiusM, distM, meio, retro) > arcoM) lo = meio; else hi = meio;
     }
     return (lo + hi) / 2;
   }
 
   /** A que distância é que ESTA lente cobre a fatia. Mais rácio, mais longe. */
-  function distanciaParaCobrirArco(radiusM, racio, arcoM) {
+  function distanciaParaCobrirArco(radiusM, racio, arcoM, retro) {
     if (!(arcoM > 0) || !(racio > 0)) return null;
-    var maxima = radiusM > 0 ? radiusM * 0.999 : 500;
+    // O tecto de R vale só em frontal, onde a máquina tem de caber entre o
+    // centro da curvatura e o pano. Atrás do pano não há esse tecto.
+    var maxima = (radiusM > 0 && !retro) ? radiusM * 0.999 : 500;
     var lo = 0.05, hi = maxima;
-    var noLimite = arcoCobertoPelaLente(radiusM, hi, racio);
+    var noLimite = arcoCobertoPelaLente(radiusM, hi, racio, retro);
     if (noLimite != null && noLimite < arcoM) return null;   // não chega lá nunca
     for (var i = 0; i < 40; i++) {
       var meio = (lo + hi) / 2;
-      var cobre = arcoCobertoPelaLente(radiusM, meio, racio);
+      var cobre = arcoCobertoPelaLente(radiusM, meio, racio, retro);
       if (cobre == null || cobre < arcoM) lo = meio; else hi = meio;
     }
     return (lo + hi) / 2;
@@ -4774,7 +4829,7 @@
     if (!(fatiaM > 0) || !(distM > 0)) return 0;
     var R = (bUltimoBlend && bUltimoBlend.curveEnabled) ? bUltimoBlend.curveRadius : 0;
     if (!(R > 0)) return distM / fatiaM;
-    return racioParaCobrirArco(R, distM, fatiaM) || distM / fatiaM;
+    return racioParaCobrirArco(R, distM, fatiaM, retroDoBlend()) || distM / fatiaM;
   }
 
   /**
@@ -4792,12 +4847,13 @@
    */
   function janelaDeDistanciaDoCatalogo(radiusM, fatiaM, marca) {
     var min = Infinity, max = -Infinity;
-    var limite = radiusM > 0 ? radiusM - 0.5 : null;
+    var retro = retroDoBlend();
+    var limite = (radiusM > 0 && !retro) ? radiusM - 0.5 : null;
     LENTES_DATA.forEach(function (l) {
       if (marca && !(l.marca === marca || l.marca.indexOf(marca + " (") === 0)) return;
-      var dAberta = distanciaParaCobrirArco(radiusM, l.min, fatiaM);
+      var dAberta = distanciaParaCobrirArco(radiusM, l.min, fatiaM, retro);
       if (dAberta == null) return;                  // nem toda aberta lá chega
-      var dFechada = distanciaParaCobrirArco(radiusM, l.max, fatiaM);
+      var dFechada = distanciaParaCobrirArco(radiusM, l.max, fatiaM, retro);
       // Sem limite de cima pela lente, manda a curva (ou nada, num ecrã plano).
       var topo = dFechada != null ? dFechada : (limite != null ? limite : dAberta * 4);
       if (limite != null && dAberta > limite) return;   // a máquina nem cabia lá
@@ -4964,6 +5020,16 @@
     }
   }
 
+  /**
+   * Frontal ou retro. Um sítio só a ler a caixa: a conta da lente, o desenho,
+   * o aviso e a ponte para o 3D têm todos de concordar sobre de que lado do
+   * pano estão as máquinas.
+   */
+  function retroDoBlend() {
+    var el = document.getElementById("b-retro");
+    return !!(el && el.checked);
+  }
+
   /** Arco a acompanhar, ou linha reta. Só conta num ecrã curvo. */
   function montagemDoBlend() {
     var sel = document.getElementById("b-curve-mount");
@@ -5001,7 +5067,7 @@
     document.getElementById("b-lens-escolhida-wrap").style.display = "none";
 
     var larguraTruss = val("b-truss-width");
-    var maquinas = maquinasEmLinha(R, celulas, arcoTotal, distAoFundo, larguraTruss);
+    var maquinas = maquinasEmLinha(R, celulas, arcoTotal, distAoFundo, larguraTruss, retroDoBlend());
     if (!maquinas) {
       elRacio.textContent = "—"; elLentes.textContent = "—";
       escreverTabelaDaLinha(null);
@@ -5132,9 +5198,14 @@
     }
     escreverTabelaDaLinha(null);
 
-    if (R > 0 && dist >= R) {
+    // Este tecto é só do frontal: é lá que a máquina tem de caber entre o
+    // centro da curvatura e o pano. Em retro ela está do outro lado e a
+    // distância não tem limite nenhum vindo do raio.
+    var retro = retroDoBlend();
+    if (R > 0 && !retro && dist >= R) {
       return vazio("A distância (" + fmt(dist, 2) + " m) é maior do que o raio da curva (" +
-        fmt(R, 2) + " m) — os projetores ficariam do outro lado do centro da curvatura.");
+        fmt(R, 2) + " m) — os projetores ficariam do outro lado do centro da curvatura. " +
+        "Em retroprojeção isto não é limite nenhum: marca a caixa e a conta muda de lado.");
     }
 
     var racio = racioDaFatiaDoBlend(fatia, dist);
@@ -5144,15 +5215,25 @@
     // O aviso que só existe no caso curvo: a grelha acima repartiu o arco em
     // fatias iguais tratando-as como se fossem planas, e numa superfície
     // côncava isso pede uma lente mais aberta do que a conta plana sugere.
+    // O aviso da curva, nos dois sentidos: em frontal a superfície côncava foge
+    // do eixo e a lente plana fica CURTA; em retro é convexa, vem ao encontro do
+    // feixe, e a mesma lente passa-se da fatia. Os dois erros custam caro e são
+    // simétricos, por isso são a mesma frase com o sinal trocado.
     var nota = "";
     if (R > 0) {
       var racioPlano = dist / fatia;
-      var falta = arcoCobertoPelaLente(R, dist, racioPlano);
-      if (falta && falta < fatia - 0.01) {
-        nota = "Num ecrã curvo a superfície afasta-se do eixo e corta as pontas do feixe mais cedo " +
-          "do que um plano: uma lente de " + fmt(racioPlano, 2) + ":1 — o que a conta plana daria — " +
-          "cobriria só " + fmt(falta, 2) + " m dos " + fmt(fatia, 2) + " m da fatia (" +
-          fmt((1 - falta / fatia) * 100, 1) + "% a menos). O rácio acima já é o que cobre mesmo.";
+      var cobre = arcoCobertoPelaLente(R, dist, racioPlano, retro);
+      if (cobre && Math.abs(cobre - fatia) > 0.01) {
+        var pct = Math.abs(cobre / fatia - 1) * 100;
+        nota = cobre < fatia
+          ? "Num ecrã curvo visto de frente a superfície afasta-se do eixo e corta as pontas do " +
+            "feixe mais cedo do que um plano: uma lente de " + fmt(racioPlano, 2) + ":1 — o que a " +
+            "conta plana daria — cobriria só " + fmt(cobre, 2) + " m dos " + fmt(fatia, 2) +
+            " m da fatia (" + fmt(pct, 1) + "% a menos). O rácio acima já é o que cobre mesmo."
+          : "Em retro a superfície é convexa vista da lente e vem ao encontro do feixe: uma lente " +
+            "de " + fmt(racioPlano, 2) + ":1 — o que a conta plana daria — espalharia " +
+            fmt(cobre, 2) + " m para uma fatia de " + fmt(fatia, 2) + " m (" + fmt(pct, 1) +
+            "% a mais), a transbordar para a fatia do lado. O rácio acima já é o que cobre certo.";
       }
     }
     elNota.textContent = nota;
@@ -5620,6 +5701,15 @@
   });
   document.getElementById("b-truss-width").addEventListener("input", calcBlend);
   document.getElementById("b-lens-height").addEventListener("input", calcBlend);
+  // A caixa do retro muda a conta da lente, o desenho do 3D e a distância que
+  // se está a medir — por isso passa pelo calcBlend(), que é quem reescreve
+  // tudo isso e a ponte no fim.
+  document.getElementById("b-retro").addEventListener("change", function () {
+    document.getElementById("b-retro-hint").textContent = this.checked
+      ? "As máquinas ficam atrás do pano, a imagem inverte na horizontal (flip H) e ninguém na sala tapa o feixe. A distância é medida por trás, e esse espaço tem de existir."
+      : "Em frontal as máquinas ficam do lado da plateia. Em retro ficam atrás do ecrã, a imagem inverte na horizontal, e ninguém na sala tapa o feixe.";
+    calcBlend();
+  });
 
   var bLensModelSel = document.getElementById("b-lensmodel");
   // A LENTE MUDA A CARGA, não só o texto. Desde que ela leva o nome e os
