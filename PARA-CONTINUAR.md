@@ -9,6 +9,22 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — o shift também viaja (v3.68)
+
+Pequena, mas fecha um ciclo. A v3.67 passou a calcular o **shift vertical que a
+montagem obriga** — e o número ficava só no ecrã. Do outro lado, o campo do
+shift no Preview arrancava sempre a −25 % por omissão: a app dizia *"shift
+necessário 0 %"* numa aba enquanto o 3D desenhava a imagem meio metro abaixo do
+pano na outra, ao mesmo tempo.
+
+Agora o shift segue na carga (`curva.shiftV`), calculado pela mesma
+`shiftVerticalDoBlend()` que escreve o número na aba — para a ponte e o ecrã
+nunca discordarem. O shift é da fila inteira (decisão já tomada, *"deve ser de
+igual sim"*), por isso vai o da primeira célula.
+
+Par com a v3.41 do Preview, que o aplica ao campo e passa a poder mover o pano
+com ou sem as máquinas.
+
 ## 14 de setembro — a vertical: onde fica a lente, e que shift isso obriga (v3.67)
 
 Pedido direto: *"ter em conta a posição com a relação da altura do ecrã e o
