@@ -236,6 +236,15 @@ meter o novo.
 dois lados. Com o aviso da migração: a quem tinha a sincronização ligada sem
 nunca lhe ter tocado, o menu diz que está desligada e dá o clique para a ligar.
 
+> **Partiu-se em três ao executar, e a razão vale a pena.** A sincronização
+> (1b-i, v3.80) era independente e saiu logo. O resto estava a assentar em
+> areia: o que a app repõe ao arrancar **não são valores automáticos, é a
+> memória do projeto** — e o histórico da v3.79 não cobria as zonas com "usar
+> zonas" desmarcado, nem a aba TVs, nem a Dome. Apagar as reposições nessa
+> altura perdia trabalho e recriava um defeito já corrigido uma vez (*"a
+> cúpula saía do projeto sozinha"*). Alargou-se a rede primeiro (1b-ii,
+> v3.81); só depois é que 1b-iii pode deixar de repor.
+
 **1c. O ecrã.** É a única porta que não precisa de trabalho no destino, porque
 o destino é a app de hoje.
 

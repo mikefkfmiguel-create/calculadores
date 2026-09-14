@@ -14,6 +14,44 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 14 de setembro — a rede sem buracos (v3.81)
+
+**Fase 1b-ii do `PLANO-MENU.md`.** A v3.80 travou o arranque limpo porque o
+histórico não cobria tudo o que a app repõe sozinha. Cobre agora.
+
+O que faltava, e porquê: as zonas só entravam no estado do projeto **quando
+"usar zonas" estava marcado**, e a aba TVs e a aba Dome não entravam de todo —
+vivem em chaves próprias (`calculadores-tv-v1`, `calculadores-dome-v1`) que a
+app repõe ao arrancar.
+
+**Guardam-se ao lado do estado, não dentro dele.** É a parte que interessa: o
+`applyProjState()` continua a fazer exactamente o que fazia, e por isso o
+"Abrir projeto…" e o "Limpar projeto" não mudam de comportamento — um estado
+em branco continua a nunca varrer a lista de zonas, que é independente do
+projeto. Quem repõe as três é o `abrirDoHistorico()`, que sabe que está a
+repor um projeto **inteiro**.
+
+**A aba Dome vive dentro de um IIFE**, e o histórico vive fora. Em vez de
+escrever um segundo serializador dos vinte campos — que amanhã discordava do
+primeiro — expõe-se o que já existe (`window.domeAbaGuardada` /
+`window.domeAbaRepor`), no mesmo padrão do `window.domePreencherLentes` que já
+lá estava. O `domeAbaRepor()` repõe também o modelo de projetor, que o
+`restaurarAbaDome()` salta de propósito (no arranque a lista ainda não tem
+opções) — e só se a opção existir, para um projeto antigo com um modelo que
+saiu do catálogo não deixar o campo num valor fantasma.
+
+**Medido, incluindo o caso que motivou tudo isto:**
+
+| caso | resultado |
+|---|---|
+| projeto com TV 85" ×4 e Dome ⌀14 × 7 m | guardado inteiro |
+| estragar tudo e abrir do histórico | volta ao que era, campo a campo |
+| **2 zonas com "usar zonas" DESMARCADO** | estado leva **0** (como antes), a entrada leva **2** ao lado |
+| apagar as zonas e repor pelo histórico | **voltam as duas** |
+
+Com isto, a outra metade da Fase 1b (deixar de repor ao arrancar) deixa de
+perder trabalho e pode avançar.
+
 ## 14 de setembro — a sincronização nasce desligada (v3.80 · Preview v3.50)
 
 **Fase 1b-i do `PLANO-MENU.md`.** Só a metade da fase que não tinha risco — a

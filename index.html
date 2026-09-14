@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.80</span>
+    <span class="mark" id="app-versao">v3.81</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -7175,6 +7175,10 @@
       function (el) { return el.value !== el.defaultValue; });
   }
 
+  function lerChaveDeAba(chave) {
+    try { return JSON.parse(localStorage.getItem(chave) || "null"); } catch (e) { return null; }
+  }
+
   function lerHistorico() {
     try {
       var bruto = JSON.parse(localStorage.getItem(HISTORICO_KEY) || "[]");
@@ -7209,7 +7213,25 @@
     var lista = lerHistorico();
     var agora = new Date().toISOString();
     var nome = String(estado.nome || "").trim();
-    var entrada = { quando: agora, nome: nome, estado: estado };
+    // O ESTADO DO PROJETO NÃO CHEGA, e a v3.80 apanhou-o a medir: as zonas só
+    // entram no estado quando "usar zonas" está marcado, e a aba TVs e a aba
+    // Dome não entram de todo -- vivem em chaves próprias que a app repõe ao
+    // arrancar. Enquanto isso for assim, o histórico não é uma rede: é uma
+    // rede com três buracos.
+    //
+    // Guardam-se AO LADO do estado, não dentro dele, para o applyProjState()
+    // continuar a fazer exactamente o que fazia (um estado em branco nunca
+    // mexe na lista de zonas -- é o que faz o "Limpar projeto" não varrer
+    // zonas que são independentes do projeto). Quem repõe estas três é o
+    // abrirDoHistorico(), que sabe que está a repor um projeto inteiro.
+    var entrada = {
+      quando: agora, nome: nome, estado: estado,
+      zonas: (typeof lzSerializeZones === "function") ? lzSerializeZones() : null,
+      abaTV: lerChaveDeAba(TV_ABA_KEY),
+      abaDome: (typeof window.domeAbaGuardada === "function") ? window.domeAbaGuardada() : null,
+      ledNoProjeto: document.getElementById("l-addproject")
+        ? document.getElementById("l-addproject").checked : null
+    };
     if (lista.length && String(lista[0].nome || "").trim() === nome) lista[0] = entrada;
     else lista.unshift(entrada);
     lista = lista.slice(0, HISTORICO_MAX);
@@ -7235,6 +7257,24 @@
     var entrada = lerHistorico()[i];
     if (!entrada || !entrada.estado) return;
     applyProjState(entrada.estado);
+    // E as três que vivem fora do estado do projeto. Repõem-se pelas funções
+    // que já existem, escrevendo primeiro a chave que cada uma lê -- é a
+    // memória daquela aba, e repor um projeto é mesmo pô-la como estava.
+    if (Array.isArray(entrada.zonas) && typeof lzAddZone === "function") {
+      lzList.innerHTML = "";
+      entrada.zonas.forEach(function (z) { lzAddZone(z.name, z); });
+    }
+    if (entrada.abaTV) {
+      try { localStorage.setItem(TV_ABA_KEY, JSON.stringify(entrada.abaTV)); } catch (e) {}
+      restaurarAbaTV();
+    }
+    if (entrada.abaDome && typeof window.domeAbaRepor === "function") {
+      window.domeAbaRepor(entrada.abaDome);
+    }
+    if (entrada.ledNoProjeto != null && document.getElementById("l-addproject")) {
+      document.getElementById("l-addproject").checked = !!entrada.ledNoProjeto;
+      guardarLedNoProjeto();
+    }
     escreverHistorico("Aberto: " + (entrada.nome || carimboDeData(entrada.quando)));
   }
 
@@ -8366,6 +8406,33 @@
       return d;
     }
     var domeGuardado = restaurarAbaDome();
+
+    // A ABA DOME, PARA O HISTÓRICO DOS ÚLTIMOS PROJETOS.
+    //
+    // Estes vinte campos vivem aqui dentro, e o histórico (que é lá fora)
+    // precisa deles: sem isto, abrir um projeto da lista trazia tudo menos a
+    // cúpula -- o mesmo buraco que já tinha feito a cúpula "sair do projeto
+    // sozinha" antes de esta aba passar a guardar-se. Expõe-se o que já
+    // existe, em vez de escrever um segundo serializador que amanhã discorda
+    // deste. Mesmo padrão do window.domePreencherLentes.
+    window.domeAbaGuardada = function () {
+      try { return JSON.parse(localStorage.getItem(DOME_ABA_KEY) || "null"); } catch (e) { return null; }
+    };
+    window.domeAbaRepor = function (d) {
+      if (!d) return;
+      try { localStorage.setItem(DOME_ABA_KEY, JSON.stringify(d)); } catch (e) {}
+      restaurarAbaDome();
+      // O restaurarAbaDome() salta o modelo de projetor de propósito: no
+      // arranque a lista ainda não tem opções. Aqui já tem, por isso repõe-se
+      // -- mas só se a opção existir mesmo, para um projeto antigo com um
+      // modelo que saiu do catálogo não deixar o campo num valor fantasma.
+      if (el.projmodel && d.projmodel != null) {
+        var existe = Array.prototype.some.call(el.projmodel.options,
+          function (o) { return o.value === d.projmodel; });
+        if (existe) el.projmodel.value = d.projmodel;
+      }
+      if (typeof calcDome === "function") calcDome();
+    };
 
     // A colocação → o arranjo numérico antigo, só para um Preview que ainda
     // não tenha atualizado (ver lzDomeParaPreview).
