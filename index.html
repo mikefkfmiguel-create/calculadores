@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.67</span>
+    <span class="mark" id="app-versao">v3.68</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -3588,6 +3588,13 @@
                 // E a que altura fica o eixo da lente, medido da base do ecrã:
                 // é isto que faz o cone subir ou descer no desenho.
                 alturaLente: Math.round(val("b-lens-height") * 1000) / 1000,
+                // E O SHIFT QUE ISSO OBRIGA, para o Preview arrancar com ele em
+                // vez do -25% por omissão. Esta aba já o calcula (é a mesma
+                // conta que se mostra em "shift vertical necessário"); mandá-lo
+                // é o que faz o 3D nascer com a imagem no pano em vez de meio
+                // metro abaixo dele. A fila partilha o shift, decisão já tomada
+                // ("deve ser de igual sim"), por isso vai o da primeira célula.
+                shiftV: shiftDaPrimeiraCelula(),
                 // Em arco ou em linha reta. Uma carga antiga não traz isto e
                 // lê-se como "arco", que era a única montagem que existia.
                 montagem: montagemDoBlend() };
@@ -4717,6 +4724,20 @@
   /** "+50" / "−12" — com sinal, que num shift é metade da informação. */
   function fmtSinal(v) {
     return (v > 0 ? "+" : "") + fmt(v, 0);
+  }
+
+  /**
+   * O shift da PRIMEIRA célula, que é o da fila (o shift é igual para todas,
+   * decisão já tomada). Sai da mesma shiftVerticalDoBlend() que escreve o
+   * número no ecrã, para a ponte e a aba nunca discordarem.
+   */
+  function shiftDaPrimeiraCelula() {
+    if (!bUltimoBlend || !(bUltimoBlend.totalHm > 0)) return 0;
+    var grid = blendGridPositions(bUltimoBlend.nh, bUltimoBlend.nv, bUltimoBlend.oh, bUltimoBlend.ov,
+      bUltimoBlend.hpx, bUltimoBlend.vpx, bUltimoBlend.totalWm, bUltimoBlend.totalHm,
+      bUltimoBlend.totalPxH, bUltimoBlend.totalPxV);
+    var s = shiftVerticalDoBlend(grid, bUltimoBlend.totalHm, val("b-lens-height"));
+    return s ? Math.round(s.min * 10) / 10 : 0;
   }
 
   /** Arco a acompanhar, ou linha reta. Só conta num ecrã curvo. */
