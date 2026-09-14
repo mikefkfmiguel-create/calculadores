@@ -595,6 +595,36 @@
     if (qual in lzSyncArmado) lzSyncArmado[qual] = true;
   };
 
+  /**
+   * MARCADO MAS AUSENTE: repor o que o interruptor promete.
+   *
+   * A guarda acima existe por uma boa razão -- sem ela, o primeiro calcTV() de
+   * cada arranque apagava as zonas acabadas de restaurar. Mas tem um preço: o
+   * "Adicionar ao projeto" e as zonas passam a ser duas verdades guardadas em
+   * sítios diferentes, e qualquer caminho que apague umas sem desmarcar o
+   * outro deixa a app a prometer uma coisa e a desenhar outra. Reportado:
+   * *"as TVs do projeto tive de desmarcar e marcar o adicionar para que
+   * aparecessem no 3D"* -- ou seja, a caixa dizia que sim e o 3D não tinha
+   * nada, e a única saída era mexer na caixa para armar a sincronização.
+   *
+   * Corre uma vez, no fim do arranque, quando as zonas e os campos de cada aba
+   * já estão repostos. Só CRIA o que está marcado e não existe -- nunca apaga
+   * nada, e por isso não pode repetir o bug que a guarda foi lá pôr.
+   */
+  function lzReconciliarMarcados(calculadoras) {
+    [{ chave: "tv", caixa: "tv-addproject", marca: "origem-tv" },
+     { chave: "led", caixa: "l-addproject", marca: "origem-led" }].forEach(function (f) {
+      var cb = document.getElementById(f.caixa);
+      if (!cb || !cb.checked) return;
+      if (lzList.querySelector('.card[data-' + f.marca + '="1"]')) return;
+      var calc = calculadoras && calculadoras[f.chave];
+      if (typeof calc !== "function") return;
+      lzSyncArmado[f.chave] = true;
+      calc();
+    });
+  }
+  window.lzReconciliarMarcados = lzReconciliarMarcados;
+
   function lzSincronizarTVs(spec) {
     if (!lzSyncArmado.tv) return;
     // Os ids da fila anterior, pela ordem em que estavam. Recriar a fila do

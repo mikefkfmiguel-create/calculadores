@@ -9,6 +9,33 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — marcado numa gaveta, ausente noutra (v3.73)
+
+Reportado: *"as TVs do projeto tive de desmarcar e marcar o adicionar para que
+aparecessem no 3D"*. A caixa dizia que sim, o 3D não tinha nada, e a única
+saída era mexer na caixa.
+
+**Não reproduzi o caminho exacto dele** — marcar, recarregar, marcar LED e
+depois TVs, apagar a zona à mão: em todos, as zonas sobrevivem. Fica dito, em
+vez de fingir que sei. Mas o defeito de fundo existe e é demonstrável:
+
+`lzSyncArmado` (a guarda que impede o primeiro `calcTV()` de cada arranque de
+apagar as zonas acabadas de restaurar) tem um preço. O **"Adicionar ao
+projeto"** e as **zonas** passam a ser duas verdades guardadas em sítios
+diferentes, e qualquer caminho que apague umas sem desmarcar a outra deixa a
+app a prometer uma coisa e a desenhar outra — sem correção possível a não ser
+mexer no interruptor, que é a única coisa que arma a sincronização.
+
+`lzReconciliarMarcados()` corre uma vez, no fim do arranque, quando as zonas e
+os campos de cada aba já estão repostos. Só **cria** o que está marcado e não
+existe: nunca apaga nada, e por isso não pode repetir o bug que a guarda foi lá
+pôr.
+
+Demonstrado: marcar as TVs (zona criada, ponte escrita), apagar as zonas do
+armazém deixando a marca, reabrir — a zona volta e a ponte também, sem ninguém
+lhe tocar. E sem regressão: um recarregamento normal continua a manter as zonas
+que lá estavam, e as réplicas da quantidade também.
+
 ## 14 de setembro — três ecrãs iguais são três ecrãs na sala (v3.72)
 
 *"Na calculadora marquei 3 e o 3D apenas mostra um."* Tinha razão, e a minha
