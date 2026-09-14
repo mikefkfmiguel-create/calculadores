@@ -802,6 +802,31 @@
     color: var(--ink-faint);
     margin-top: 4px;
   }
+
+  /* A resposta da lente, escrita ao lado de onde se escolhe a lente. Verde
+     quando há resposta, âmbar quando a conta trava e o que se mostra é a
+     razão -- ler a cor já diz qual dos dois é. */
+  .dica-lente {
+    margin: 4px 0 14px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    border-left: 3px solid var(--green-500);
+    background: var(--green-100);
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .dica-lente.trava {
+    border-left-color: var(--amber-500);
+    background: var(--amber-100);
+  }
+  .dica-lente strong { font-weight: 650; }
+  .dica-lente .dica-mais {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .inputgroup input[type="date"] { min-width: 0; }
   @media (max-width: 480px) {
