@@ -9,6 +9,40 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — a aba Lentes responde sozinha (v3.78)
+
+*"Esta menina deveria fazer a conta e dar as opções sozinha para consulta."*
+
+E fazia — mas escondia. O ratio saía num painel de resultados que nasce
+fechado, e as lentes compatíveis ficavam destacadas a azul numa **tabela que
+vive noutro painel, ainda mais abaixo e também fechado**. Quem escreve a
+distância e a largura tem os dois campos à frente e, por baixo deles, nada.
+É a mesma doença que a aba Blending tinha, curada na v3.75.
+
+**A mesma caixa, por baixo da escolha da lente.** Verde com a resposta
+(*"precisas de uma lente 1,25:1 — 8,00 m de ecrã a 10,00 m; 2 lentes servem
+(só Epson), marcadas com ✓ na lista aqui em baixo: Epson ELPLW05, Epson
+ELPLW06"*), âmbar quando nenhuma serve — e aí diz **a que distâncias é que o
+catálogo tem resposta** para aquela largura, em vez de deixar a pessoa a
+experimentar números até calhar.
+
+**E ✓ nas lentes da lista**, como no Blending desde a v3.74. A própria opção
+"Nenhuma" passa a dizer quantas há: *"Nenhuma — 2 servem (✓)"*, que é o que se
+lê sem sequer abrir a lista.
+
+**Nada disto é código novo a calcular.** As duas funções que já faziam isto no
+Blending (`dicaDaLente` e `marcarLentesQueServem`) passaram a receber em que
+caixa escrevem e em que lista marcam. Duas cópias acabariam a discordar no dia
+em que uma delas mudasse.
+
+Medido em seis casos: 10/8 só Epson → 1,25:1, 2 de 10 com ✓; todas as marcas →
+8 de 71; Sony → 1 de 14; ratio 7,50 → 1 (Sony Z 4045); ratio 0,10 → nenhuma, e
+a janela útil escrita (2,35 a 107,20 m para 10 m de ecrã); o mesmo só com
+Epson → 3,40 a 52,30 m.
+
+De caminho, a concordância no singular nas duas abas: *"1 lente serve,
+**marcada** com ✓"*.
+
 ## 14 de setembro — frontal ou retro (v3.77)
 
 Perguntado a olhar para o 3D: *"frontal ou retro"*. A resposta era **frontal,
