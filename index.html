@@ -42,7 +42,7 @@
             title="Sincronização automática com o Preview 3D — desligada, nada passa sozinho entre as duas apps; os botões manuais continuam a funcionar">🔗 Auto</button>
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
-    <span class="mark" id="app-versao">v3.86</span>
+    <span class="mark" id="app-versao">v3.87</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -436,6 +436,15 @@
 
   <!-- PROJEÇÃO -->
   <section class="panel active" data-mode="projecao">
+    <!-- A barra do exemplo. Nasce escondida: só aparece quando a aba abre com
+         campos por preencher e o exemplo entra neles. -->
+    <div class="exemplo-barra" id="exemplo-projecao" style="display:none;">
+      <span class="exemplo-texto">Os números a azul são <strong>um exemplo</strong>. Nada está calculado — muda o que for teu, ou escolhe:</span>
+      <span class="exemplo-botoes">
+        <button type="button" class="copy" data-exemplo-usar="projecao">Calcular com estes</button>
+        <button type="button" class="copy" data-exemplo-limpar="projecao">Começar em branco</button>
+      </span>
+    </div>
     <details class="howto">
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
@@ -630,6 +639,15 @@
 
   <!-- DISTÂNCIA DE VISUALIZAÇÃO -->
   <section class="panel" data-mode="visualizacao">
+    <!-- A barra do exemplo. Nasce escondida: só aparece quando a aba abre com
+         campos por preencher e o exemplo entra neles. -->
+    <div class="exemplo-barra" id="exemplo-visualizacao" style="display:none;">
+      <span class="exemplo-texto">Os números a azul são <strong>um exemplo</strong>. Nada está calculado — muda o que for teu, ou escolhe:</span>
+      <span class="exemplo-botoes">
+        <button type="button" class="copy" data-exemplo-usar="visualizacao">Calcular com estes</button>
+        <button type="button" class="copy" data-exemplo-limpar="visualizacao">Começar em branco</button>
+      </span>
+    </div>
     <details class="howto">
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
@@ -808,6 +826,15 @@
 
   <!-- LED -->
   <section class="panel" data-mode="led">
+    <!-- A barra do exemplo. Nasce escondida: só aparece quando a aba abre com
+         campos por preencher e o exemplo entra neles. -->
+    <div class="exemplo-barra" id="exemplo-led" style="display:none;">
+      <span class="exemplo-texto">Os números a azul são <strong>um exemplo</strong>. Nada está calculado — muda o que for teu, ou escolhe:</span>
+      <span class="exemplo-botoes">
+        <button type="button" class="copy" data-exemplo-usar="led">Calcular com estes</button>
+        <button type="button" class="copy" data-exemplo-limpar="led">Começar em branco</button>
+      </span>
+    </div>
     <details class="howto">
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
@@ -2446,6 +2473,15 @@
 
   <!-- TVs -->
   <section class="panel" data-mode="tv">
+    <!-- A barra do exemplo. Nasce escondida: só aparece quando a aba abre com
+         campos por preencher e o exemplo entra neles. -->
+    <div class="exemplo-barra" id="exemplo-tv" style="display:none;">
+      <span class="exemplo-texto">Os números a azul são <strong>um exemplo</strong>. Nada está calculado — muda o que for teu, ou escolhe:</span>
+      <span class="exemplo-botoes">
+        <button type="button" class="copy" data-exemplo-usar="tv">Calcular com estes</button>
+        <button type="button" class="copy" data-exemplo-limpar="tv">Começar em branco</button>
+      </span>
+    </div>
     <details class="howto">
       <summary>Como usar esta calculadora</summary>
       <div class="howto-body">
@@ -3158,6 +3194,10 @@
       tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
       syncAddProjectFixed(tab.dataset.mode);
       updateTabsCurrent(tab);
+      // O exemplo entra ao abrir a aba, e só nos campos que estiverem vazios:
+      // quem já lá escreveu alguma coisa manda, e ninguém lhe mexe.
+      if (typeof porExemploNaAba === "function" &&
+          ABAS_COM_EXEMPLO.indexOf(tab.dataset.mode) >= 0) porExemploNaAba(tab.dataset.mode);
     });
   });
   var tabsCurrentEl = document.getElementById("tabs-current");
@@ -7398,6 +7438,92 @@
     if (painel) painel.addEventListener(ev, armarHistorico, true);
   });
 
+  // ─────────────────────────────────────────────────── o exemplo na aba
+  //
+  // Pedido, depois de as abas passarem a abrir vazias: *"põe o exemplo nos
+  // campos mas sem cálculo activo. Dá a opção de escolher"*.
+  //
+  // O vazio resolvia o engano mas tirava uma coisa boa: um exemplo inteiro e
+  // coerente mostra o que a aba faz, e mexer NUM número de cinco é mais fácil
+  // do que escrever os cinco. O que não pode é a app dar por certa uma conta
+  // que ninguém pediu.
+  //
+  // A MANEIRA É NÃO DISPARAR EVENTOS. As contas desta app correm no "input" e
+  // no "change" dos campos; escrever no `.value` sem disparar nada enche o
+  // formulário e não calcula coisa nenhuma. Zero alterações nas catorze
+  // funções de cálculo -- e por isso zero maneiras novas de as partir.
+  //
+  // O exemplo sai do `placeholder`, que já é onde ele vive desde a v3.84: uma
+  // fonte só, e a dica e o exemplo nunca podem discordar.
+  var ABAS_COM_EXEMPLO = ["projecao", "visualizacao", "tv", "led"];
+
+  function camposDaAba(modo) {
+    var painel = document.querySelector('.panel[data-mode="' + modo + '"]');
+    if (!painel) return [];
+    return Array.prototype.filter.call(
+      painel.querySelectorAll('input[type="number"][placeholder]'),
+      function (el) { return el.placeholder !== ""; });
+  }
+
+  function porExemploNaAba(modo) {
+    var campos = camposDaAba(modo);
+    var postos = 0;
+    campos.forEach(function (el) {
+      if (el.value !== "") return;          // o que a pessoa escreveu manda
+      el.value = el.placeholder;            // SEM disparar evento: não calcula
+      el.classList.add("campo-exemplo");
+      postos++;
+    });
+    var barra = document.getElementById("exemplo-" + modo);
+    if (barra) barra.style.display = postos ? "flex" : "none";
+    return postos;
+  }
+
+  /** O exemplo deixa de o ser: ou porque se aceitou, ou porque se lhe mexeu. */
+  function esquecerExemplo(modo) {
+    camposDaAba(modo).forEach(function (el) { el.classList.remove("campo-exemplo"); });
+    var barra = document.getElementById("exemplo-" + modo);
+    if (barra) barra.style.display = "none";
+  }
+
+  function limparAba(modo) {
+    camposDaAba(modo).forEach(function (el) {
+      el.classList.remove("campo-exemplo");
+      el.value = "";
+    });
+    esquecerExemplo(modo);
+    disparar(modo);
+  }
+
+  /** Acorda a conta da aba mexendo num campo qualquer -- a conta é uma só. */
+  function disparar(modo) {
+    var campos = camposDaAba(modo);
+    if (!campos.length) return;
+    campos[0].dispatchEvent(new Event("input", { bubbles: true }));
+    campos[0].dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  ABAS_COM_EXEMPLO.forEach(function (modo) {
+    var painel = document.querySelector('.panel[data-mode="' + modo + '"]');
+    if (!painel) return;
+    // Mexer num campo É decidir. A partir daí nada ali é exemplo, e a conta
+    // corre pelos handlers de sempre -- não é preciso chamá-la aqui.
+    painel.addEventListener("input", function (e) {
+      if (e.target && e.target.classList.contains("campo-exemplo")) esquecerExemplo(modo);
+    }, true);
+  });
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("[data-exemplo-usar],[data-exemplo-limpar]") : null;
+    if (!b) return;
+    if (b.dataset.exemploUsar !== undefined) {
+      esquecerExemplo(b.dataset.exemploUsar);
+      disparar(b.dataset.exemploUsar);
+    } else {
+      limparAba(b.dataset.exemploLimpar);
+    }
+  });
+
   // ───────────────────────────────────────────── o ecrã de boas-vindas
   //
   // Não é um modo: é um ecrã. A `body.no-menu` decide qual dos dois se vê, e
@@ -7459,6 +7585,10 @@
    */
   function arranqueTerminado() {
     if (typeof window.lzArranqueTerminado === "function") window.lzArranqueTerminado();
+    // A aba que nasce activa não passa pelo clique, por isso o exemplo dela
+    // tem de entrar aqui -- depois de tudo montado, para não ser varrido.
+    var activa = document.querySelector('.tab[aria-selected="true"]');
+    if (activa && ABAS_COM_EXEMPLO.indexOf(activa.dataset.mode) >= 0) porExemploNaAba(activa.dataset.mode);
     if (lerHistorico().length) {
       escreverHistorico("A app abre sempre num projeto limpo, para nenhum valor " +
         "de arranque se confundir com o teu. O teu último trabalho está aqui — " +
