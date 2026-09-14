@@ -14,6 +14,47 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 14 de setembro — as últimas duas portas (v3.86)
+
+**Fases 4 e 5 do `PLANO-MENU.md`. O plano está feito.**
+
+**Visualização** (5 painéis, 4 abrem; 6 palpites a `placeholder`). O nº de
+ecrãs (1) fica: é norma, não palpite.
+
+**Resoluções** (5 painéis, 4 abrem; 12 campos a `placeholder`, entre palpites
+sobre o trabalho e specs da cabine). Ficam o nº de ecrãs iguais, o rácio 16:9 e
+o ângulo por tile — convenções, não adivinhações.
+
+**"Calcular resoluções" tinha três donos** — ledwall, blend de projetores, ou
+grafismo px↔cm. A porta traz para o Ecrã LED, que é o caso comum, e as outras
+duas ficam **à entrada da aba** em vez de irem para um submenu: um passo, não
+dois. Usam o `data-jumptab` que já existia — nenhum mecanismo novo.
+
+**E o gémeo do bug da v3.85.** Lá tinha-se descoberto um projetor
+pré-escolhido a escrever 20 000 lm; aqui havia sete linhas a fazer o mesmo com
+a cabine da casa — 500 × 500 mm, 128 × 128 px escritos nos campos com a lista
+em "Personalizado…", e daí **um pitch de 3,91 mm à vista num formulário onde
+ninguém escolheu cabine nenhuma**. Saíram. Quem escolhe uma cabine continua a
+receber as medidas dela, que é o que a escolha quer dizer.
+
+**Medido:**
+
+| passo | resultado |
+|---|---|
+| visualização, 150" a 12 m | 4,98 a 19,92 m · ecrã ideal 90" a 361" |
+| resoluções, à chegada | sem cabine, sem medidas, pitch `—` |
+| Absen NT 2.6, 10 × 6 cabines | 1920 × 1152 px · 5,00 × 3,00 m · 2,60 mm · 450 kg |
+| atalho "blend" | vai à aba do blend |
+| app inteira com tudo vazio | 66 saídas a `—`, **zero** zeros enganadores |
+
+O único `NaN` continua a ser o `proj-out-tiles`, já anotado desde a v3.82.
+
+### O menu, completo
+
+> Continuar (os últimos 5) · Calcular resoluções · Calcular distâncias ·
+> Calcular visualização · Ver medidas de TV/ecrã STD · Ver em 3D ·
+> Abrir a calculadora completa · Abrir ficheiro · Limpar tudo
+
 ## 14 de setembro — distâncias, e nenhum modelo escolhido por ti (v3.85)
 
 **Fase 3 do `PLANO-MENU.md`**, e com ela uma descoberta que vale mais do que a
