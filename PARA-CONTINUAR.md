@@ -14,6 +14,64 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 14 de setembro — a app abre limpa (v3.82)
+
+**Fase 1b-iii do `PLANO-MENU.md`**, a última da 1b. Com a rede completa
+(v3.79 e v3.81), deixar de repor já não perde nada.
+
+> *"Abre sempre dos dois lados com o sync desligado e em projeto limpo até eu
+> abrir um. Mesmo na calculadora, para que nunca leve a engano com valores auto
+> de arranque."*
+
+Saíram do arranque o `lzRestoreFromStorage()`, o `restaurarAbaTV()`, o
+`restaurarLedNoProjeto()` e o `restaurarAbaDome()`. **As chaves ficam** —
+continuam a escrever-se durante a sessão (é assim que cada aba se lembra de si
+entre mudanças de aba) e é o "Limpar projeto" que as varre. O que deixou de
+haver foi a **leitura** no arranque.
+
+### O perigo que isto tinha, e a guarda
+
+Isto quase apagava projetos. O `lzForcarParaPreview()` faz assim:
+
+```js
+if (payload) localStorage.setItem(LZ_CHAVE_PREVIEW, …);
+else localStorage.removeItem(LZ_CHAVE_PREVIEW);   // ← apaga a ponte
+```
+
+E faz bem: tirar a última zona tem mesmo de a tirar do 3D. Só que com a app a
+abrir limpa, **o primeiro recálculo tem zero zonas** — e com a sincronização
+ligada, abrir os Calculadores apagaria o projeto que estava à espera no
+Preview, sem ninguém ter tocado em nada.
+
+A guarda é uma bandeira `lzAArrancar`, no mesmo padrão do `lzAImportarDoPreview`
+que já lá estava contra os ecos: enquanto o arranque corre, o **automático**
+cala-se. O caminho manual ("Ver em 3D", "Sincronizar") passa pelo
+`lzForcarParaPreview()` e nunca é travado — quem carrega num botão está a
+pedir.
+
+### E diz que abriu limpa
+
+Uma app que costumava trazer o trabalho de volta e deixa de o fazer, sem uma
+palavra, parece uma app que **perdeu** o trabalho. A nota só aparece quando há
+mesmo alguma coisa na lista para ir buscar — a quem nunca guardou nada, isto
+não é notícia nenhuma.
+
+### Medido, com a sincronização LIGADA (o caso perigoso)
+
+| passo | resultado |
+|---|---|
+| trabalho feito: 2 zonas, TV 85", Dome ⌀14, nome | ponte escrita, histórico com a entrada |
+| **recarregar** | nome vazio, TV e Dome nos valores de origem, zero zonas |
+| **a ponte do Preview** | **continua lá** — não foi apagada |
+| a nota | aparece, a dizer onde está o último trabalho |
+| abrir do histórico | volta tudo, zonas incluídas |
+| depois do arranque, juntar zonas | a ponte volta a escrever (1 zona, 2 zonas) |
+
+A remoção da última zona pelos botões deixa a ponte com uma zona a mais —
+**comparado com e sem estas alterações e é idêntico**, portanto é anterior a
+isto (muito provavelmente o teste a carregar nos dois botões no mesmo instante)
+e não uma regressão. Fica anotado para se ver a sério.
+
 ## 14 de setembro — a rede sem buracos (v3.81)
 
 **Fase 1b-ii do `PLANO-MENU.md`.** A v3.80 travou o arranque limpo porque o
