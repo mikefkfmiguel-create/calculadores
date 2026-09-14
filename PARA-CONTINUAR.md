@@ -9,6 +9,49 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — quantos ecrãs iguais, e o nome que não viajava (v3.69)
+
+Duas coisas pequenas, as duas reportadas com foto.
+
+### Quantidade no Ecrã LED
+
+*"Aqui poderia ter quantidade para quando é mais que um igual"*, com a foto da
+secção **Peso & energia**. Um evento com três ecrãs iguais em sítios diferentes
+é caso comum, e quem monta precisa da carga e da corrente do conjunto — não de
+um deles para multiplicar de cabeça.
+
+Campo novo (**Ecrãs iguais a este**) que multiplica **só o que é do conjunto**:
+nº de tiles, peso e amperagem. O tamanho, a resolução, o pitch e a distância de
+visualização são de CADA ecrã e não mudam por haver mais um ao lado.
+
+Com mais do que um, os dois números ficam à vista — o do conjunto (que é o que
+se pede ao fornecedor) e o de cada ecrã (que é o que se monta). Mostrar só um
+obrigava à divisão de cabeça, que é precisamente o que isto veio evitar.
+
+Conferido contra os números da foto dele: 10×6 tiles de 500 mm, 6,3 kg e 0,65 A
+por tile → 60 tiles, 378,0 kg, 39,00 A e 13,00 A por fase com quantidade 1
+(exactamente o que lá estava), e 180 / 1134,0 / 117,00 / 39,00 com quantidade 3.
+
+Não cria três ecrãs no 3D, e o texto do campo di-lo: dar-lhes posição na sala é
+trabalho do **Ecrã Complexo**. Inventar onde os pôr era pior do que não os pôr.
+
+### O nome do projeto só viajava no clique
+
+*"O nome do projeto não está a viajar desde o assistente até ao projeto."*
+Medido: viaja — mas **só quando se carrega em "Aplicar"**, que é a única coisa
+que chama a `applyProjMeta()`. Quem escreve ou corrige o nome depois de aplicar,
+ou quem o escreve sem nunca aplicar porque só queria o nome, fica com dois
+campos a dizer coisas diferentes e o relatório com o antigo.
+
+Um campo que parece o nome do projeto e não é o nome do projeto é uma
+armadilha. Agora o nome (e as datas) acompanham ao escrever — **sem passar por
+cima de um nome escrito à mão na aba Projeto**: só escreve quando o campo de lá
+está vazio ou ainda tem exactamente o que o assistente lá pôs da última vez.
+Quem corrigiu o nome no destino fica com a correção.
+
+Confirmado que a cadeia toda continua inteira, com a resposta da IA simulada:
+`asst-nome` → "Aplicar" → `proj-nome` → ponte do Preview ("Gala AVK 2026").
+
 ## 14 de setembro — o shift também viaja (v3.68)
 
 Pequena, mas fecha um ciclo. A v3.67 passou a calcular o **shift vertical que a

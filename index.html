@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.68</span>
+    <span class="mark" id="app-versao">v3.69</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -788,6 +788,21 @@
           <div class="hint">O nº de tiles arredonda sempre para cima, para garantir que cobre pelo menos esta medida — o tamanho real fica no resultado. Para modelos com meio-tile disponível (ex: 100×50 + 50×50), a medida é afinada automaticamente com um meio-tile na borda quando isso bate mais certo.</div>
         </div>
 
+        <!-- QUANTOS ECRÃS IGUAIS. Pedido direto, com foto da secção "Peso &
+             energia": "aqui poderia ter quantidade para quando é mais que um
+             igual". Um evento com três ecrãs iguais em sítios diferentes é um
+             caso comum, e quem monta precisa da carga e da corrente do
+             conjunto, não de um deles a multiplicar de cabeça.
+             Multiplica só o que é do CONJUNTO -- tiles, peso, amperagem. O
+             tamanho, a resolução, o pitch e a distância de visualização são de
+             CADA ecrã e não mudam por haver mais um. -->
+        <div class="divider">Quantos</div>
+        <div class="field">
+          <label for="l-qty">Ecrãs iguais a este</label>
+          <div class="inputgroup"><input id="l-qty" type="number" autocomplete="off" value="1" min="1" step="1"></div>
+          <div class="hint">Multiplica o nº de tiles, o peso e a amperagem — o que se carrega e o que se alimenta. O tamanho, a resolução e o pitch são de cada ecrã e não mudam. Para ecrãs <em>diferentes</em> uns dos outros, ou para lhes dar posição na sala, usa o <b>Ecrã Complexo</b>.</div>
+        </div>
+
         <div class="divider">Tamanho do tile</div>
         <div class="row2">
           <div class="field">
@@ -918,6 +933,7 @@
           <div class="item"><div class="k">Amp total (máx.)</div><div class="v" id="l-out-amp">—</div></div>
           <div class="item"><div class="k">Amp por fase (máx.)</div><div class="v" id="l-out-ampphase">—</div></div>
         </div>
+        <p class="note" id="l-qty-nota" style="display:none;"></p>
         <p class="note">Valores de amperagem são o consumo máximo publicado pelo fabricante (pico, não a média em uso real) — a margem de segurança correta para dimensionar disjuntores/circuitos. Trifásica: amp por fase = (amp por tile × nº de tiles) ÷ 3.</p>
 
         <div class="summary">
@@ -4258,11 +4274,33 @@
     document.getElementById("l-out-dmax").innerHTML = fmt(dmax,1) + "<small>m</small>";
     document.getElementById("l-viewrule-note").textContent = "Regra: " + viewRuleDescription();
 
-    var ampPhase = ampTotal / 3;
-    document.getElementById("l-out-tiles").textContent = fmtInt(numTiles);
-    document.getElementById("l-out-weight").innerHTML = fmt(weightTotal,1) + "<small>kg</small>";
-    document.getElementById("l-out-amp").innerHTML = fmt(ampTotal,2) + "<small>A</small>";
+    // O CONJUNTO, não um ecrã. Com quantidade 1 dá exactamente o que dava
+    // antes; com mais, multiplica o que é de carregar e de alimentar. O que é
+    // de CADA ecrã (tamanho, resolução, pitch, distância de visualização) fica
+    // como está -- não muda por haver mais um igual ao lado.
+    var qtd = Math.max(1, Math.round(val("l-qty") || 1));
+    var numTilesTodos = numTiles * qtd;
+    var weightTodos = weightTotal * qtd;
+    var ampTodos = ampTotal * qtd;
+    var ampPhase = ampTodos / 3;
+    document.getElementById("l-out-tiles").textContent = fmtInt(numTilesTodos);
+    document.getElementById("l-out-weight").innerHTML = fmt(weightTodos,1) + "<small>kg</small>";
+    document.getElementById("l-out-amp").innerHTML = fmt(ampTodos,2) + "<small>A</small>";
     document.getElementById("l-out-ampphase").innerHTML = fmt(ampPhase,2) + "<small>A</small>";
+    // Com mais do que um, os dois números têm de estar à vista: o do conjunto
+    // (que é o que se pede ao fornecedor) e o de cada ecrã (que é o que se
+    // monta). Mostrar só um deles obriga a fazer a divisão de cabeça, que é
+    // precisamente o que isto veio evitar.
+    var qtdNota = document.getElementById("l-qty-nota");
+    if (qtd > 1) {
+      qtdNota.style.display = "block";
+      qtdNota.textContent = "São " + qtd + " ecrãs iguais de " + fmt(totalWm,2) + " × " + fmt(totalHm,2) +
+        " m. Cada um: " + fmtInt(numTiles) + " tiles, " + fmt(weightTotal,1) + " kg, " +
+        fmt(ampTotal,2) + " A. Os números acima são o conjunto.";
+    } else {
+      qtdNota.style.display = "none";
+      qtdNota.textContent = "";
+    }
 
     var halfNoteEl = document.getElementById("l-halftile-note");
     if (halfNoteText) {
@@ -4294,6 +4332,7 @@
 
     document.getElementById("l-sum").textContent =
       "Ecrã LED: " + mx + " x " + my + " tiles (" + mw + " x " + mh + " mm cada, " + fmtInt(numTiles) + " tiles)\n" +
+      (qtd > 1 ? "Quantidade: " + qtd + " ecrãs iguais\n" : "") +
       (halfNoteText ? halfNoteText + "\n" : "") +
       "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px  —  formato " + describeRatio(totalPx, totalPy) + "\n" +
       "Tamanho físico: " + fmt(totalWm,2) + " x " + fmt(totalHm,2) + " m  (" + fmt(area,2) + " m²)\n" +
@@ -4301,7 +4340,11 @@
       (isNaN(nits) ? "" : "Brilho: " + (nitsRangeText || fmtInt(nits)) + " nits\n") +
       curveSummaryText +
       "Distância de visualização: " + fmt(dmin,1) + " – " + fmt(dmax,1) + " m (mín. – máx.)\n" +
-      "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps (máx.): " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)";
+      (qtd > 1
+        ? "Por ecrã: " + fmtInt(numTiles) + " tiles, " + fmt(weightTotal,1) + " kg, " + fmt(ampTotal,2) + " A\n" +
+          "TOTAL (" + qtd + " ecrãs): " + fmtInt(numTilesTodos) + " tiles  —  Peso " + fmt(weightTodos,1) +
+          " kg  —  Amps (máx.): " + fmt(ampTodos,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)"
+        : "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps (máx.): " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)");
 
     calcLedSuggest();
     renderProjectItems();
@@ -10338,7 +10381,41 @@
       setFieldValAndFire("proj-nome", fieldVal("asst-nome"));
       setFieldValAndFire("proj-data-inicio", fieldVal("asst-data-inicio"));
       setFieldValAndFire("proj-data-fim", fieldVal("asst-data-fim"));
+      ASST_META_ULTIMO.nome = fieldVal("asst-nome");
+      ASST_META_ULTIMO["data-inicio"] = fieldVal("asst-data-inicio");
+      ASST_META_ULTIMO["data-fim"] = fieldVal("asst-data-fim");
     }
+
+    // O NOME NÃO ESPERA PELO BOTÃO.
+    //
+    // Reportado assim: *"o nome do projeto não está a viajar desde o
+    // assistente até ao projeto"*. E viajava — mas só no clique em "Aplicar".
+    // Quem escreve (ou corrige) o nome DEPOIS de aplicar, ou quem o escreve
+    // sem nunca aplicar porque só queria o nome, ficava com dois campos a
+    // dizer coisas diferentes e o relatório com o antigo. Um campo que parece
+    // o nome do projeto e não é o nome do projeto é uma armadilha.
+    //
+    // Agora acompanha ao escrever. O que NÃO faz é passar por cima de um nome
+    // escrito à mão na aba Projeto: só escreve quando o campo de lá está vazio
+    // ou ainda tem exactamente o que o assistente lá pôs da última vez. Quem
+    // corrigiu o nome no destino fica com a correção.
+    var ASST_META_ULTIMO = { nome: "", "data-inicio": "", "data-fim": "" };
+    [["asst-nome", "proj-nome", "nome"],
+     ["asst-data-inicio", "proj-data-inicio", "data-inicio"],
+     ["asst-data-fim", "proj-data-fim", "data-fim"]].forEach(function (par) {
+      var origem = document.getElementById(par[0]);
+      if (!origem) return;
+      origem.addEventListener("input", function () {
+        var destino = document.getElementById(par[1]);
+        if (!destino) return;
+        var atual = destino.value.trim();
+        if (atual !== "" && atual !== ASST_META_ULTIMO[par[2]].trim()) return;
+        destino.value = origem.value;
+        destino.dispatchEvent(new Event("input", { bubbles: true }));
+        destino.dispatchEvent(new Event("change", { bubbles: true }));
+        ASST_META_ULTIMO[par[2]] = origem.value;
+      });
+    });
 
     // Sinal & Data Rate, Media Server e Grafismo px↔cm pedem normalmente um
     // clique manual em "↙ Projeto" para irem buscar a resolução — depois de
