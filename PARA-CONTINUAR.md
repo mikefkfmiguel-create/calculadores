@@ -9,6 +9,45 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — a resposta onde se faz a pergunta (v3.75)
+
+*"Na calculadora não está a fazer o cálculo quando ponho o projetor, o ecrã e
+as distâncias — A LENTE????"*
+
+Estava a fazer. Estava era a responder noutra divisão da casa: o rácio
+necessário, as lentes que servem e o shift vivem todos no fundo do painel
+**"Tela combinada (canvas)"**, que nasce fechado. Quem está a escrever a
+distância e a altura da lente está no formulário, do lado esquerdo — e via um
+campo mudo.
+
+Medido com a configuração dele (corda 26, altura 4,3, diâmetro 30, 5
+projetores, distância 15, lente a 5 m): a app tinha a resposta escrita, e a
+resposta era **"a distância (15,00 m) é maior do que o raio da curva
+(15,00 m) — os projetores ficariam do outro lado do centro da curvatura"**.
+Distância igual ao raio: as máquinas cairiam no centro da curvatura. A conta
+para, e com razão — o que faltava era ele poder ler isso.
+
+**Uma caixa por baixo da altura da lente, mesmo antes de se escolher a
+marca.** Verde quando há resposta (*"precisas de uma lente 1,34:1 — fatia de
+7,19 m de arco a 10,00 m · shift vertical −20%; 2 lentes servem, marcadas com
+✓ na lista aqui em baixo"*), âmbar quando a conta trava, e aí o que se lê é a
+razão e o que a destrava. Não é uma segunda conta: é a mesma
+`escreverLenteDoBlend()`, escrita também aqui. Cobre os cinco caminhos — arco,
+linha reta, distância impossível, nenhuma lente do catálogo, ecrã plano.
+
+**E a marca da lente segue a marca do projetor.** *"Nem a marca da lente põe
+quando escolho o projetor."* Uma lente monta-se no corpo para que foi feita:
+escolhido um Epson, as 71 lentes passam a ser as 10 que lá encaixam; um
+Christie abre as 20 (a regra de marca já apanhava "Christie (Boxer)" e
+"Christie (ILS)"). A aba Distância de Projeção já filtrava assim desde sempre.
+Continua a poder pôr "Todas as marcas" à mão.
+
+Um caso que o teste apanhou e que estava mal na primeira versão: com um
+**Hitachi** (sem lentes no catálogo) a nota dizia "a lista fica com todas as
+marcas" e a lista ficava na marca do projetor anterior — a dica respondia
+"nenhuma lente desta marca serve" com três a servirem, da marca errada. Agora
+abre mesmo a lista a todas, e a nota diz porquê.
+
 ## 14 de setembro — ✓ nas lentes que servem, na lista onde se escolhe (v3.74)
 
 Reportado com a lista aberta: *"era aqui que devia sugerir logo"*. E tinha

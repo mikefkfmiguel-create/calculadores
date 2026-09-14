@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.74</span>
+    <span class="mark" id="app-versao">v3.75</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1275,6 +1275,16 @@
           <div class="inputgroup"><input id="b-lens-height" type="number" autocomplete="off" inputmode="decimal" value="0" step="0.1"><span class="unit">m</span></div>
           <div class="hint">Da base do ecrã ao eixo da lente. Negativo se a máquina ficar abaixo da base (chão a descer, plateia em anfiteatro). É daqui que sai o shift vertical que a montagem obriga.</div>
         </div>
+        <!-- A RESPOSTA ONDE SE FAZ A PERGUNTA.
+             A app já sabia o rácio, as lentes que servem e a razão de não haver
+             nenhuma -- mas escrevia tudo isso no fundo do painel "Tela combinada",
+             que nasce fechado. Quem está a escrever a distância e a altura da
+             lente está AQUI, e via um campo vazio. Reportado assim:
+             *"na calculadora não está a fazer o cálculo quando ponho o projetor,
+             o ecrã e as distâncias — A LENTE????"*. Estava a fazer; estava era a
+             responder noutra divisão da casa.
+             Não é uma segunda conta: é a mesma, escrita também aqui. -->
+        <div id="b-lente-aqui" class="dica-lente" style="display:none;"></div>
         <!-- A lente de cada projetor do blend, nos dois sentidos: a partir da
              distância diz que rácio é preciso e quais as lentes que o cobrem;
              escolhida uma lente, diz a que distância ela cobre a fatia. O
@@ -1285,6 +1295,7 @@
           <select id="b-lensbrand" class="plain">
             <option value="" selected>Todas as marcas</option>
           </select>
+          <div class="hint" id="b-lensbrand-nota"></div>
         </div>
         <div class="field">
           <label for="b-lensmodel">Lente</label>
@@ -3272,8 +3283,50 @@
       document.getElementById("b-hpx").value = selP.resolucao.rx;
       document.getElementById("b-vpx").value = selP.resolucao.ry;
     }
+    seguirMarcaDoProjetor(selP);
     calcBlend();
   });
+
+  /**
+   * A MARCA DA LENTE SEGUE A MARCA DO PROJETOR.
+   *
+   * Uma lente monta-se no corpo da máquina para que foi feita: escolhido um
+   * Epson, as setenta e uma lentes do catálogo deixam de ser setenta e uma —
+   * são as dez que lá encaixam. A aba Distância de Projeção já filtrava assim
+   * (pSelectedProjBrand); aqui a marca ficava em "Todas as marcas" e a escolha
+   * era toda dele. Reportado: *"nem a marca da lente põe quando escolho o
+   * projetor"*.
+   *
+   * Filtra, não decide: continua a poder pôr "Todas as marcas" à mão, que é o
+   * que se faz quando a lente é de outro fabricante. E quando o catálogo não
+   * tem lentes dessa marca — Hitachi, Sanyo — abre a lista a todas e DIZ
+   * porquê, em vez de deixar a pessoa à espera de um filtro que nunca vem.
+   */
+  function seguirMarcaDoProjetor(projetor) {
+    var brandSel = document.getElementById("b-lensbrand");
+    var nota = document.getElementById("b-lensbrand-nota");
+    if (!brandSel || !projetor) return;
+    var marca = String(projetor.modelo || "").split(" ")[0];
+    var existe = Array.prototype.some.call(brandSel.options, function (o) { return o.value === marca; });
+    // Sem lentes desta marca no catálogo, ABRE mesmo a lista a todas. Deixá-la
+    // na marca do projetor anterior era o pior dos dois mundos: a nota dizia
+    // "fica com todas as marcas" e a conta continuava a responder "nenhuma
+    // lente desta marca serve" -- com três a servirem, da marca errada.
+    marca = existe ? marca : "";
+    if (brandSel.value !== marca) {
+      brandSel.value = marca;
+      // A mesma volta que o "change" da marca já dá, para as duas listas nunca
+      // discordarem: repovoar e largar a lente escolhida, que era de outra casa.
+      populateLensModelSelect(bLensModelSel, marca);
+      bLensModelSel.value = "custom";
+    }
+    if (!nota) return;
+    nota.textContent = existe
+      ? "Só as lentes " + marca + ", que são as que montam neste projetor. " +
+        "Põe \"Todas as marcas\" se a lente for de outro fabricante."
+      : "O catálogo não tem lentes " + String(projetor.modelo || "").split(" ")[0] +
+        " — a lista abriu a todas as marcas.";
+  }
   document.getElementById("b-lumens").addEventListener("input", function () {
     populateProjectorSelect(blendProjModelSel, val("b-lumens"));
   });
@@ -4798,7 +4851,7 @@
     if (!el) return;
     var alturaLente = val("b-lens-height");
     var s = shiftVerticalDoBlend(grid, hm, alturaLente);
-    if (!s) { el.textContent = "—"; nota.textContent = ""; return; }
+    if (!s) { el.textContent = "—"; nota.textContent = ""; return null; }
     var iguais = Math.abs(s.max - s.min) < 0.5;
     el.innerHTML = (iguais ? fmtSinal(s.min) : fmtSinal(s.min) + " a " + fmtSinal(s.max)) + "<small>%</small>";
 
@@ -4825,6 +4878,29 @@
       }
     }
     nota.textContent = partes.join(" ");
+    return s;
+  }
+
+  /**
+   * A MESMA RESPOSTA, ESCRITA JUNTO AO CAMPO DA LENTE.
+   *
+   * Não é uma segunda conta nem um segundo texto: é o resultado da
+   * escreverLenteDoBlend() posto também onde a pergunta se faz. O painel "Tela
+   * combinada" nasce fechado, e quem está a escrever a distância, a altura da
+   * lente e o tamanho do ecrã está no formulário -- via um campo mudo e
+   * concluía que a app não estava a calcular. *"Na calculadora não está a
+   * fazer o cálculo quando ponho o projetor, o ecrã e as distâncias — A
+   * LENTE????"*. Estava; respondia era noutro sítio.
+   *
+   * `trava` marca os casos em que a conta PARA: aí o que se mostra é a razão e
+   * o que a desbloqueia, nunca um número inventado para preencher o espaço.
+   */
+  function dicaDaLente(html, trava) {
+    var el = document.getElementById("b-lente-aqui");
+    if (!el) return;
+    el.className = "dica-lente" + (trava ? " trava" : "");
+    el.innerHTML = html || "";
+    el.style.display = html ? "block" : "none";
   }
 
   /** "+50" / "−12" — com sinal, que num shift é metade da informação. */
@@ -4914,7 +4990,7 @@
    * rácios diferentes — cada máquina precisa da sua lente, ou de uma lente com
    * zoom que chegue a todas e regulada uma a uma.
    */
-  function escreverLinhaDoBlend(R, celulas, arcoTotal, distAoFundo) {
+  function escreverLinhaDoBlend(R, celulas, arcoTotal, distAoFundo, extraShift) {
     var elRacio = document.getElementById("b-out-racio");
     var elLentes = document.getElementById("b-out-lentes");
     var elNota = document.getElementById("b-lens-nota");
@@ -4927,6 +5003,8 @@
       escreverTabelaDaLinha(null);
       elNota.textContent = "Com esta largura de truss e esta distância as máquinas das pontas " +
         "caem fora da curva — ou estreita a truss, ou aproxima-a do ecrã.";
+      dicaDaLente("Com esta largura de truss e esta distância as máquinas das pontas caem fora " +
+        "da curva — ou estreita a truss, ou aproxima-a do ecrã.", true);
       return;
     }
     var racios = maquinas.map(function (m) { return m.racio; });
@@ -4942,13 +5020,24 @@
       var daMarca = !marca || l.marca === marca || l.marca.indexOf(marca + " (") === 0;
       return daMarca && l.min <= rMin + 0.001 && l.max >= rMax - 0.001;
     });
+    var gama = iguais ? fmt(rMin, 2) + ":1" : fmt(rMin, 2) + ":1 a " + fmt(rMax, 2) + ":1";
     if (!servem.length) {
       elLentes.innerHTML = "<small>nenhuma cobre " + fmt(rMin, 2) + " a " + fmt(rMax, 2) +
         ":1 sozinha</small>";
+      dicaDaLente("<strong>Em linha, cada máquina pede o seu rácio: " + gama + "</strong>" +
+        (extraShift || "") + "<span class=\"dica-mais\">Nenhuma lente do catálogo" +
+        (marca ? " desta marca" : "") + " cobre esse intervalo sozinha: ou lentes diferentes " +
+        "máquina a máquina, ou estreitar a truss para aproximar os rácios.</span>", true);
     } else {
       var nomes = servem.slice(0, 3).map(function (l) { return l.marca + " " + l.modelo; });
       elLentes.innerHTML = servem.length + "<small> de " + LENTES_DATA.length + " — " +
         escapeXml(nomes.join(", ")) + (servem.length > 3 ? ", …" : "") + "</small>";
+      dicaDaLente("<strong>Em linha, cada máquina pede o seu rácio: " + gama + "</strong>" +
+        (extraShift || "") + "<span class=\"dica-mais\">" + servem.length +
+        (servem.length === 1 ? " lente com zoom chega" : " lentes com zoom chegam") +
+        " às duas pontas e serve" + (servem.length === 1 ? "" : "m") +
+        " a fila toda, regulada máquina a máquina — marcadas com ✓ na lista aqui em baixo: " +
+        escapeXml(nomes.join(", ")) + (servem.length > 3 ? ", …" : "") + "</span>");
     }
 
     var sobraMax = Math.max.apply(null, maquinas.map(function (m) { return m.sobra; }));
@@ -4991,6 +5080,10 @@
       elFatia.textContent = "—"; elRacio.textContent = "—"; elLentes.textContent = "—";
       elNota.textContent = razao || "";
       wrapEsc.style.display = "none";
+      // A razão vai também para junto do campo da lente. Sem isto, todos os
+      // casos em que a conta trava ficavam invisíveis para quem tem o painel
+      // dos resultados fechado -- que é como ele nasce.
+      dicaDaLente(razao ? escapeXml(razao) : "", true);
       // Sem rácio não há nada a sugerir -- e um ✓ que sobrou da conta anterior
       // é pior do que ✓ nenhum.
       marcarLentesQueServem(0);
@@ -5019,13 +5112,19 @@
     elFatia.innerHTML = fmt(fatia, 2) + "<small>m" + (R > 0 ? " de arco" : "") + "</small>";
     // A vertical vale para as duas montagens e para o ecrã plano: o shift não
     // depende de a superfície ser curva, depende de onde está o eixo da lente.
-    escreverShiftDoBlend(grid, bUltimoBlend.totalHm);
+    var shift = escreverShiftDoBlend(grid, bUltimoBlend.totalHm);
+    // Um shift de 0% é o caso normal (lente à meia-altura do ecrã) e não vale
+    // uma linha; o que interessa dizer aqui é quando a montagem obriga a um.
+    var extraShift = (shift && (Math.abs(shift.min) > 0.5 || Math.abs(shift.max) > 0.5))
+      ? " · shift vertical " + (Math.abs(shift.max - shift.min) < 0.5
+          ? fmtSinal(shift.min) : fmtSinal(shift.min) + " a " + fmtSinal(shift.max)) + "%"
+      : "";
 
     // NUMA LINHA RETA a resposta não é um número, é uma tabela: as máquinas
     // deixam de ser iguais umas às outras. Sai por outro caminho, e o de cima
     // (um rácio, uma lente) fica escondido para não dizer duas coisas.
     if (R > 0 && montagemDoBlend() === "linha") {
-      return escreverLinhaDoBlend(R, celulasDoBlend(grid, bUltimoBlend.nh), bUltimoBlend.curveArc, dist);
+      return escreverLinhaDoBlend(R, celulasDoBlend(grid, bUltimoBlend.nh), bUltimoBlend.curveArc, dist, extraShift);
     }
     escreverTabelaDaLinha(null);
 
@@ -5082,10 +5181,23 @@
         : "Não há lente no catálogo" + (marca ? " desta marca" : "") + " que cubra " +
           fmt(fatia, 2) + " m" + (R > 0 ? " de arco" : "") + " a distância nenhuma. " +
           "Com mais um projetor a fatia fica menor e a conta abre-se.");
+      dicaDaLente("<strong>Rácio preciso: " + fmt(racio, 2) + ":1</strong> — fatia de " +
+        fmt(fatia, 2) + " m" + (R > 0 ? " de arco" : "") + " a " + fmt(dist, 2) + " m" +
+        extraShift + ".<span class=\"dica-mais\">Nenhuma lente do catálogo" +
+        (marca ? " desta marca" : "") + " chega lá. " + (jan
+          ? "A distância teria de estar entre " + fmt(jan.min, 2) + " e " + fmt(jan.max, 2) +
+            " m — ou mais um projetor, que torna a fatia menor."
+          : "Nem a distância nenhuma — com mais um projetor a fatia fica menor e a conta abre-se.") +
+        "</span>", true);
     } else {
       var nomes = servem.slice(0, 3).map(function (l) { return l.marca + " " + l.modelo; });
       elLentes.innerHTML = servem.length + "<small> de " + LENTES_DATA.length + " — " +
         escapeXml(nomes.join(", ")) + (servem.length > 3 ? ", …" : "") + "</small>";
+      dicaDaLente("<strong>Precisas de uma lente " + fmt(racio, 2) + ":1</strong> — fatia de " +
+        fmt(fatia, 2) + " m" + (R > 0 ? " de arco" : "") + " a " + fmt(dist, 2) + " m" +
+        extraShift + ".<span class=\"dica-mais\">" + servem.length +
+        (servem.length === 1 ? " lente serve" : " lentes servem") + ", marcadas com ✓ na lista aqui em baixo: " +
+        escapeXml(nomes.join(", ")) + (servem.length > 3 ? ", …" : "") + "</span>");
     }
 
     // E o sentido contrário: escolhida uma lente, a que distância fica.
@@ -5459,6 +5571,9 @@
   document.getElementById("b-lensbrand").addEventListener("change", function () {
     populateLensModelSelect(bLensModelSel, this.value);
     bLensModelSel.value = "custom";
+    // Escolhida a marca à mão, a explicação de quem a escolheu deixa de valer.
+    var notaMarca = document.getElementById("b-lensbrand-nota");
+    if (notaMarca) notaMarca.textContent = "";
     calcBlend();
   });
   bLensModelSel.addEventListener("change", calcBlend);
