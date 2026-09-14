@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.77</span>
+    <span class="mark" id="app-versao">v3.78</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1454,6 +1454,14 @@
           </select>
           <div class="hint">Escolhe uma lente pela referência para veres a que distância ela cobre a largura de ecrã indicada acima.</div>
         </div>
+        <!-- A MESMA RESPOSTA, AQUI. O ratio e as lentes compatíveis existem
+             desde sempre, mas num painel de resultados que nasce fechado e
+             numa tabela que vive noutro painel ainda mais abaixo. Quem escreve
+             a distância e a largura está AQUI, e via dois campos e um silêncio.
+             Reportado: *"esta menina deveria fazer a conta e dar as opções
+             sozinha para consulta"*. É a mesma calcLentes(), escrita também
+             onde a pergunta se faz. -->
+        <div id="ln-lente-aqui" class="dica-lente" style="display:none;"></div>
         </div>
       </details>
       <details class="card results sinal-block" data-accent="lentes">
@@ -4955,8 +4963,8 @@
    * `trava` marca os casos em que a conta PARA: aí o que se mostra é a razão e
    * o que a desbloqueia, nunca um número inventado para preencher o espaço.
    */
-  function dicaDaLente(html, trava) {
-    var el = document.getElementById("b-lente-aqui");
+  function dicaDaLente(html, trava, onde) {
+    var el = document.getElementById(onde || "b-lente-aqui");
     if (!el) return;
     el.className = "dica-lente" + (trava ? " trava" : "");
     el.innerHTML = html || "";
@@ -4993,8 +5001,8 @@
    * Vale para a lista do blend e mais nada: as outras abas fazem outra
    * pergunta, e a mesma marca lá significaria outra coisa.
    */
-  function marcarLentesQueServem(racio, ate) {
-    var sel = document.getElementById("b-lensmodel");
+  function marcarLentesQueServem(racio, ate, qualLista) {
+    var sel = document.getElementById(qualLista || "b-lensmodel");
     if (!sel) return;
     // Numa linha reta cada máquina pede o seu rácio, e "servir" passa a ser
     // cobrir o intervalo INTEIRO com o zoom -- não basta chegar a uma delas.
@@ -5281,7 +5289,8 @@
       dicaDaLente("<strong>Precisas de uma lente " + fmt(racio, 2) + ":1</strong> — fatia de " +
         fmt(fatia, 2) + " m" + (R > 0 ? " de arco" : "") + " a " + fmt(dist, 2) + " m" +
         extraShift + ".<span class=\"dica-mais\">" + servem.length +
-        (servem.length === 1 ? " lente serve" : " lentes servem") + ", marcadas com ✓ na lista aqui em baixo: " +
+        (servem.length === 1 ? " lente serve, marcada" : " lentes servem, marcadas") +
+        " com ✓ na lista aqui em baixo: " +
         escapeXml(nomes.join(", ")) + (servem.length > 3 ? ", …" : "") + "</span>");
     }
 
@@ -5727,11 +5736,65 @@
   });
   bLensModelSel.addEventListener("change", calcBlend);
 
+  /**
+   * O RATIO E AS LENTES QUE SERVEM, ESCRITOS ONDE SE ESCOLHE A LENTE.
+   *
+   * A conta é a mesma da calcLentes(); o que muda é o sítio. O ratio saía num
+   * painel de resultados fechado e as lentes compatíveis numa tabela ainda
+   * mais abaixo, noutro painel também fechado -- e a pessoa que acabou de
+   * escrever a distância e a largura tem os dois campos à frente e nada por
+   * baixo deles. Também marca com ✓ as lentes que servem, na própria lista
+   * onde se escolhe, como a aba Blending já faz desde a v3.74.
+   */
+  function escreverDicaDasLentes(dist, w, ratio, marca) {
+    if (!document.getElementById("ln-lente-aqui")) return;
+    if (!(dist > 0) || !(w > 0) || !(ratio > 0)) {
+      marcarLentesQueServem(0, undefined, "ln-lensmodel");
+      dicaDaLente("Escreve a distância e a largura do ecrã para saber que lente serve.", true, "ln-lente-aqui");
+      return;
+    }
+    marcarLentesQueServem(ratio, undefined, "ln-lensmodel");
+    var servem = LENTES_DATA.filter(function (l) {
+      var daMarca = !marca || l.marca === marca || l.marca.indexOf(marca + " (") === 0;
+      return daMarca && ratio >= l.min && ratio <= l.max;
+    });
+    var cabeca = "<strong>Precisas de uma lente " + fmt(ratio, 2) + ":1</strong> — " +
+      fmt(w, 2) + " m de ecrã a " + fmt(dist, 2) + " m.";
+    if (servem.length) {
+      var nomes = servem.slice(0, 3).map(function (l) { return l.marca + " " + l.modelo; });
+      dicaDaLente(cabeca + "<span class=\"dica-mais\">" + servem.length +
+        (servem.length === 1 ? " lente serve" : " lentes servem") +
+        (marca ? " (só " + escapeXml(marca) + ")" : "") +
+        (servem.length === 1 ? ", marcada" : ", marcadas") + " com ✓ na lista aqui em baixo: " + escapeXml(nomes.join(", ")) +
+        (servem.length > 3 ? ", …" : "") + "</span>", false, "ln-lente-aqui");
+      return;
+    }
+    // "Nenhuma" e ponto final deixa a pessoa a experimentar distâncias à mão
+    // até calhar. A pergunta ao contrário responde-se com a mesma base: num
+    // ecrã plano a distância que uma lente cobre é ratio x largura, por isso a
+    // janela útil do catálogo sai direta dos mínimos e máximos.
+    var doCatalogo = LENTES_DATA.filter(function (l) {
+      return !marca || l.marca === marca || l.marca.indexOf(marca + " (") === 0;
+    });
+    var menor = Infinity, maior = -Infinity;
+    doCatalogo.forEach(function (l) {
+      if (l.min * w < menor) menor = l.min * w;
+      if (l.max * w > maior) maior = l.max * w;
+    });
+    var temJanela = menor < Infinity && maior > -Infinity;
+    dicaDaLente(cabeca + "<span class=\"dica-mais\">Nenhuma lente do catálogo" +
+      (marca ? " desta marca" : "") + " cobre esse ratio. " + (temJanela
+        ? "Para " + fmt(w, 2) + " m de ecrã, estas lentes servem entre " + fmt(menor, 2) +
+          " e " + fmt(maior, 2) + " m de distância."
+        : "Escolhe outra marca, ou põe \"Todas as marcas\".") + "</span>", true, "ln-lente-aqui");
+  }
+
   function calcLentes() {
     var dist = val("ln-dist"), w = val("ln-w");
     var ratio = dist / w;
     var brand = document.getElementById("ln-brand").value;
     document.getElementById("ln-out-ratio").innerHTML = fmt(ratio, 2) + "<small>:1</small>";
+    escreverDicaDasLentes(dist, w, ratio, brand);
 
     var lensDistWrap = document.getElementById("ln-out-lensdist-wrap");
     if (lnLensModelSel.value !== "custom") {
