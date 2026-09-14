@@ -9,6 +9,39 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — quem decide não se queixa da decisão (v3.76)
+
+*"Neste aviso ele deveria acrescentar projetores e não dar o aviso; esse
+apenas deve aparecer se eu manualmente alterar o número de projetores
+sugeridos."*
+
+Em **"Calcular a partir do ecrã"** o modo automático escolhia o número
+**mínimo** de máquinas que cobre a largura e ficava com o overlap que
+sobrasse. Com 32 × 5 m: 4 projetores de 8,89 m cada, sobra 1,19 m por junção,
+**256 px** — abaixo dos 300 recomendados. E a app respondia com um aviso
+vermelho a uma escolha que tinha sido dela.
+
+Agora sobe o número até o overlap chegar ao recomendado: **5 projetores, 672
+px por junção**, sem aviso nenhum. Acrescentar uma máquina só aumenta a folga,
+por isso basta subir — com um teto de +10 para o caso degenerado não pôr o
+ciclo a contar para sempre.
+
+**E o aviso continua a existir, para quem decide.** Passa a aparecer só em
+modo manual, ou quando ele força o overlap à mão (que também é decisão dele,
+mesmo dentro do automático). Medido nos cinco casos: 32 × 5 auto → 5 máquinas
+com nota e sem aviso; 18 × 5 auto → o mínimo já chegava, nem nota nem aviso;
+8 × 5 → um projetor só, a pergunta nem se põe; overlap forçado a 150 dentro do
+automático → aviso de volta; manual com 4 e 256 → aviso, como ele pediu.
+
+A máquina a mais **não aparece calada**: uma nota por baixo do nº de
+projetores diz *"4 projetores cobriam a largura, mas com pouca sobreposição. 5
+dão 672 px por junção, acima dos 300 px recomendados."* Uma máquina a mais na
+lista de carga sem explicação seria trocar um problema por outro.
+
+Os 300 px passam a viver num sítio só (`OVERLAP_RECOMENDADO`) — é o número que
+o automático persegue e o que o aviso cita, e duas cópias acabariam a
+discordar.
+
 ## 14 de setembro — a resposta onde se faz a pergunta (v3.75)
 
 *"Na calculadora não está a fazer o cálculo quando ponho o projetor, o ecrã e

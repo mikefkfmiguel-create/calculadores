@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.75</span>
+    <span class="mark" id="app-versao">v3.76</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1166,6 +1166,10 @@
           <div class="field">
             <label for="b-nh">Nº de projetores (horizontal)</label>
             <div class="inputgroup"><input id="b-nh" type="number" autocomplete="off" value="2" min="1" step="1"></div>
+            <!-- Em "Calcular a partir do ecrã" é a app que decide o número, e
+                 quando o decide por causa do overlap tem de o dizer -- uma
+                 máquina a mais na lista de carga não pode aparecer sozinha. -->
+            <div class="hint" id="b-nh-nota" style="display:none;"></div>
           </div>
           <div class="field">
             <label for="b-nv">Nº de projetores (vertical)</label>
@@ -5360,6 +5364,31 @@
       : "";
   }
 
+  /**
+   * O overlap mínimo que se recomenda por junção, em píxeis. Um número só:
+   * é ele que o modo automático persegue e é ele que o aviso cita, e duas
+   * cópias acabariam a discordar no dia em que mudasse.
+   */
+  var OVERLAP_RECOMENDADO = 300;
+
+  /**
+   * A NOTA DE QUEM DECIDIU O NÚMERO DE MÁQUINAS.
+   *
+   * Só fala quando a app subiu o número por causa do overlap: uma máquina a
+   * mais na lista de carga não pode aparecer sem explicação. Com `minimo` a
+   * zero (modo manual, ou overlap forçado à mão) cala-se, porque aí quem
+   * decidiu foi ele.
+   */
+  function escreverNotaDoAutomatico(minimo, nh, oh) {
+    var el = document.getElementById("b-nh-nota");
+    if (!el) return;
+    if (!minimo || nh <= minimo) { el.style.display = "none"; el.textContent = ""; return; }
+    el.style.display = "block";
+    el.textContent = fmtInt(minimo) + (minimo === 1 ? " projetor cobria" : " projetores cobriam") +
+      " a largura, mas com pouca sobreposição. " + fmtInt(nh) + " dão " + fmtInt(oh) +
+      " px por junção, acima dos " + OVERLAP_RECOMENDADO + " px recomendados.";
+  }
+
   function calcBlend() {
     updateSourceHint(blendProjModelSel, PROJECTORS_DATA, "b-projmodel-source");
     var wm = val("b-w"), hm = val("b-h");
@@ -5389,12 +5418,32 @@
       var widthPerProj = hRow * aspect;
 
       if (!bOhManualOverride) {
-        nh = Math.max(1, Math.ceil(effWm / widthPerProj));
-        var overlapM = nh > 1 ? (nh * widthPerProj - effWm) / (nh - 1) : 0;
-        oh = Math.max(0, Math.round(overlapM * hpx / widthPerProj));
+        // O MODO AUTOMÁTICO DECIDE, E DECIDE BEM.
+        //
+        // Antes escolhia o número MÍNIMO de máquinas que cobre a largura e
+        // ficava com o overlap que sobrasse -- 32 x 5 m davam 4 projetores com
+        // 256 px de sobreposição, abaixo dos 300 recomendados, e a app
+        // respondia com um aviso vermelho. Mas o aviso é para quem decidiu;
+        // aqui quem decidiu foi ela. Reportado assim: *"neste aviso ele deveria
+        // acrescentar projetores e não dar o aviso, esse apenas deve aparecer
+        // se eu manualmente alterar o número de projetores sugeridos"*.
+        //
+        // Acrescentar uma máquina só aumenta a folga, por isso basta subir até
+        // o overlap chegar ao recomendado. O teto existe para o caso
+        // degenerado (resolução minúscula) não pôr isto a contar para sempre.
+        var minimo = Math.max(1, Math.ceil(effWm / widthPerProj));
+        var ohDe = function (n) {
+          var folga = n > 1 ? (n * widthPerProj - effWm) / (n - 1) : 0;
+          return Math.max(0, Math.round(folga * hpx / widthPerProj));
+        };
+        nh = minimo;
+        while (nh > 1 && ohDe(nh) < OVERLAP_RECOMENDADO && nh < minimo + 10) nh++;
+        oh = ohDe(nh);
         bNhInput.value = nh;
         document.getElementById("b-oh").value = oh;
+        escreverNotaDoAutomatico(minimo, nh, oh);
       } else {
+        escreverNotaDoAutomatico(0, 0, 0);
         oh = val("b-oh");
         var overlapM2 = oh * widthPerProj / hpx;
         nh = Math.max(1, Math.ceil((effWm - overlapM2) / (widthPerProj - overlapM2)));
@@ -5402,6 +5451,7 @@
       }
       bNvInput.value = nv;
     } else {
+      escreverNotaDoAutomatico(0, 0, 0);
       nh = val("b-nh");
       nv = val("b-nv");
       oh = val("b-oh");
@@ -5462,11 +5512,20 @@
     if (Math.abs(pitchMmH - pitchMmV) / pitchAvg > 0.05) {
       warnMsgs.push("A proporção física (" + fmt(effWm,2) + " x " + fmt(hm,2) + " m) não bate certo com a resolução resultante — a imagem pode ficar esticada. Confirma largura/altura ou o overlap vertical.");
     }
-    if (nh > 1 && oh < 300) {
-      warnMsgs.push("Overlap horizontal de " + fmtInt(oh) + "px está abaixo dos 300px recomendados — não aconselhável, mas possível.");
+    // O aviso do overlap é para quem DECIDIU o número de máquinas. No modo
+    // automático sem overlap forçado quem decide é a app, e ela já sobe o
+    // número até o overlap chegar ao recomendado -- avisar ali seria a app a
+    // queixar-se de uma escolha sua.
+    var decideEle = bBlendMode !== "auto" || bOhManualOverride;
+    if (decideEle && nh > 1 && oh < OVERLAP_RECOMENDADO) {
+      warnMsgs.push("Overlap horizontal de " + fmtInt(oh) + "px está abaixo dos " +
+        OVERLAP_RECOMENDADO + "px recomendados — não aconselhável, mas possível.");
     }
-    if (nv > 1 && ov < 300) {
-      warnMsgs.push("Overlap vertical de " + fmtInt(ov) + "px está abaixo dos 300px recomendados — não aconselhável, mas possível.");
+    // O vertical é sempre escolha dele: o modo automático decide o número de
+    // fiadas mas nunca mexe neste campo.
+    if (nv > 1 && ov < OVERLAP_RECOMENDADO) {
+      warnMsgs.push("Overlap vertical de " + fmtInt(ov) + "px está abaixo dos " +
+        OVERLAP_RECOMENDADO + "px recomendados — não aconselhável, mas possível.");
     }
     var warnEl = document.getElementById("b-warn");
     if (warnMsgs.length) {
