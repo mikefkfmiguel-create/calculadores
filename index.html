@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.69</span>
+    <span class="mark" id="app-versao">v3.70</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1469,6 +1469,15 @@
         <p>No fim, usa <strong>"Copiar relatório"</strong> ou <strong>"Descarregar .txt"</strong> para enviar a ficha técnica, e <strong>"Guardar projeto"</strong> para gravar um ficheiro que podes reabrir depois com <strong>"Abrir projeto…"</strong>. Para começar um projeto novo do zero, usa <strong>"Limpar projeto"</strong> — repõe <strong>todas</strong> as calculadoras (incluindo as zonas do Ecrã Complexo e o Assistente de Projeto) ao estado inicial.</p>
       </div>
     </details>
+    <!-- O QUE VAI PARA O 3D, à vista e sem ter de abrir gaveta nenhuma.
+         Reportado com foto: "não transportou o nome e não chegou nada ao 3D",
+         com esta aba cheia — modelo de tile, 60 tiles, 378 kg, relatório
+         inteiro — e o Preview a dizer "a sala está vazia". As duas coisas eram
+         a mesma: nada estava marcado com "Adicionar ao projeto", por isso não
+         havia carga nenhuma, e sem carga o nome também não tem onde viajar.
+         A app sabia-o e não o dizia: o aviso "nenhum item adicionado" vivia
+         dentro de um <details> fechado. -->
+    <div id="proj-3d-aviso" class="warn" style="display:none; margin-bottom:12px;"></div>
     <div style="margin-bottom:16px;" data-accent="projeto">
       <details class="card sinal-block">
         <summary>Itens do projeto</summary>
@@ -2696,7 +2705,56 @@
     { label: "Ecrã Complexo", checkboxId: "z-addproject" }
   ];
 
+  /**
+   * O QUE ESTÁ MARCADO PARA O 3D — escrito à vista, na aba Projeto.
+   *
+   * Esta aba mostra um relatório completo: modelo de tile, peso, amperagem,
+   * switchers. Parece o projeto todo. Mas o que chega ao Preview é só o que
+   * estiver marcado com "Adicionar ao projeto" numa das calculadoras — e com
+   * nada marcado não há carga nenhuma, o 3D fica vazio, e o nome do projeto
+   * não tem em que viajar. Foi exactamente o que aconteceu, reportado com
+   * foto: a aba cheia de um lado, "a sala está vazia" do outro.
+   *
+   * A app já sabia: "Nenhum item adicionado ainda" existe desde sempre — mas
+   * dentro de um <details> fechado, que é o mesmo que não existir. Passa a
+   * estar em cima, aberto, e com o botão que resolve.
+   */
+  function escreverAvisoDo3D() {
+    var el = document.getElementById("proj-3d-aviso");
+    if (!el) return;
+    // Os ids vivem em ADDPROJECT_BY_MODE, que é a lista canónica -- usar a
+    // dela evita que uma calculadora nova apareça numa lista e falte na outra.
+    var ids = Object.keys(ADDPROJECT_BY_MODE).map(function (k) { return ADDPROJECT_BY_MODE[k]; });
+    var marcadas = ids.filter(function (id) {
+      var cb = document.getElementById(id);
+      return cb && cb.checked;
+    });
+    if (marcadas.length) { el.style.display = "none"; el.innerHTML = ""; return; }
+    el.style.display = "block";
+    // O botão marca a caixa da calculadora que corresponde ao tipo de projeto
+    // escolhido aqui em cima -- é o passo que falta, e fazê-lo à mão obriga a
+    // saber onde a caixa está.
+    var botaoTipo = document.querySelector("#proj-type-seg .seg-btn.active");
+    var tipo = botaoTipo ? botaoTipo.dataset.projtype : "led";
+    var alvo = ADDPROJECT_BY_MODE[tipo === "projecao" ? "projecao" : "led"];
+    el.innerHTML = "<b>Nada marcado para o 3D.</b> Esta aba junta a ficha técnica, mas o que chega " +
+      "ao Preview é o que estiver com <b>“Adicionar ao projeto”</b> marcado numa calculadora — " +
+      "Ecrã LED, TVs, Distância de Projeção, Blending, Dome ou Ecrã Complexo. Sem isso o 3D fica " +
+      "vazio e o nome do projeto também não segue, porque não há carga onde ele viaje. " +
+      '<button type="button" class="copy" id="proj-marcar-3d" style="margin-top:8px;">Marcar o ' +
+      (alvo === "p-addproject" ? "ecrã de projeção" : "ecrã LED") + " para o 3D</button>";
+    var bt = document.getElementById("proj-marcar-3d");
+    if (bt) bt.addEventListener("click", function () {
+      var cb = document.getElementById(alvo);
+      if (!cb) return;
+      cb.checked = true;
+      cb.dispatchEvent(new Event("change", { bubbles: true }));
+      showToast("Marcado. O que estiver nessa calculadora passa a ir para o 3D.");
+    });
+  }
+
   function renderProjectItems() {
+    escreverAvisoDo3D();
     var listEl = document.getElementById("proj-items-list");
     var summaryWrap = document.getElementById("proj-items-summary-wrap");
     if (!listEl || !summaryWrap) return;
