@@ -60,11 +60,14 @@ substantivo.
 
 ## A regra que decide as fases
 
-**Uma porta só entra no menu no mesmo dia em que o destino dela responde à
-chegada.**
+**Uma porta só entra no menu no mesmo dia em que o destino dela responde sem se
+abrir nada.**
 
-Isto não é zelo: é a medição. Hoje, **as quatro portas rápidas aterram num
-painel fechado** —
+(Responder *sem abrir nada* — não *à chegada*. O que aparece à chegada é a dica
+do que escrever; ver "Limpo é o projeto" abaixo.)
+
+Isto não é zelo: é a medição. Hoje, **as quatro portas rápidas escondem a
+resposta num painel fechado** —
 
 | destino | aba | campos | painéis | a resposta nasce |
 |---|---|---|---|---|
@@ -99,20 +102,53 @@ a mesma ideia vista dos dois lados: **nada é assumido, e nada se perde.**
 - O Preview já nasce assim desde a v3.32 (sala vazia, tudo desligado). Passa a
   valer também para os Calculadores.
 
-**Limpo não é em branco — e isto é a distinção que decide as fases.** Um campo
-com 10 m escritos não engana ninguém; o que engana é um *projeto* que parece
-teu e não é. Por isso:
+**Limpo é o projeto. E os campos não calculam nada.** Decidido em conversa:
+
+> *"O projeto. Os campos ficam com os valores de exemplo sem calcular nada —
+> em outline, apenas de exemplo mesmo do que escrever."*
 
 - **O projeto** nasce vazio: nada lá dentro até o abrires ou o construíres.
-- **Os campos das contas rápidas** mantêm os valores de trabalho (são 93 em
-  117), porque é deles que vem a resposta à chegada — sem eles a porta rápida
-  não responde nada, que era o problema que o menu existe para resolver. Ficam
-  marcados como **exemplo** até serem tocados, e a porta di-lo.
+- **Os campos** mostram o valor como **placeholder** (cinzento, em `placeholder`
+  e não em `value`): é a dica do que se escreve ali, não um número.
+- **Nada é calculado** enquanto ninguém escrever. As saídas ficam em `—`.
 
-> ⚠️ **Por confirmar com o mike:** se "limpo" quiser dizer mesmo *campos em
-> branco*, as Fases 2 a 5 mudam de forma — a porta rápida deixa de poder
-> responder à chegada e passa a pedir dois números primeiro. Não é impossível,
-> é outro plano.
+### Isto corrige uma regra deste plano
+
+A primeira versão dizia *"a resposta à chegada"*. **Está errado**, e a razão é
+a mesma que motivou a decisão: um número calculado a partir de valores de
+exemplo é precisamente a coisa enganadora — olha-se de relance para "2,50:1" e
+julga-se que é a resposta do trabalho.
+
+A regra passa a ser: **a resposta aparece onde estás a olhar, assim que houver
+o que responder.** À chegada, o honesto é o vazio com a dica. O que continua a
+valer, e é o que importa, é que ninguém tenha de **abrir um painel** para ver o
+número quando ele existir.
+
+### O custo, medido
+
+Com **todos** os campos numéricos vazios, das 115 saídas:
+
+- **114 já se portam bem** — mostram `—`, `— m`, `—:1`, com a unidade ao lado.
+  As contas foram escritas defensivamente e já sabem calar-se.
+- **Nenhuma mostra zeros enganadores.**
+- **Uma está mal:** `proj-out-tiles` diz `NaN x NaN (—)`.
+
+Ou seja: trocar `value` por `placeholder`, dar-lhe estilo de exemplo, e
+corrigir um NaN.
+
+### Nem todos os valores são palpites
+
+São 77 campos com rótulo e valor por omissão, e **não são a mesma coisa**:
+
+| tipo | exemplos | o que fazer |
+|---|---|---|
+| **Palpite sobre o trabalho** | largura 2,66 m · distância 4,00 m · 16×9 tiles | `placeholder` — é o perigoso |
+| **Spec de um modelo** | módulo 500×500 · 128×128 px · 6,0 kg · 0,52 A | `placeholder`, mas enchem-se sozinhos ao escolher a cabine |
+| **Norma da indústria** | 1920×1080 · 3840×2160 · overlap 600 px · 80% | **fica como está** |
+
+Apagar as normas não protege de nada e obriga a escrever 1920 todas as vezes.
+**O que engana é o palpite, não a convenção.** A separação faz-se campo a
+campo, na fase de cada porta.
 
 **Cuidado na migração:** hoje a sincronização está **ligada por omissão**
 (`sincronizacaoAutomaticaLigada()` devolve `true` quando a chave não existe).
@@ -231,9 +267,10 @@ conta rápida e precisa de mais, carrega nas abas e está lá.
 
 O destino mais pequeno: 5 campos, 3 painéis (`tv`).
 
-1. A resposta à chegada: largura, altura, resolução e distância mínima/máxima
-   (`tv-out-w`, `tv-out-h`, `tv-out-res`, `tv-out-dmin`, `tv-out-dmax`)
-   visíveis sem abrir nada.
+1. A resposta sem abrir nada: largura, altura, resolução e distância
+   mínima/máxima (`tv-out-w`, `tv-out-h`, `tv-out-res`, `tv-out-dmin`,
+   `tv-out-dmax`) à vista assim que houver o que calcular.
+   Os campos desta aba passam a `placeholder`.
 2. **"Adicionar ao projeto" à vista**, no topo da conta.
 3. A entrada no menu.
 
@@ -257,15 +294,17 @@ quais são as saídas que têm de aparecer.
 
 `visualizacao`, 13 campos, 5 painéis.
 
-1. À chegada: `v-out-dmin`, `v-out-dmax` e o ângulo (`v-out-angle`), que é o
-   que decide se a plateia vê.
+1. Sem abrir nada: `v-out-dmin`, `v-out-dmax` e o ângulo (`v-out-angle`), que
+   é o que decide se a plateia vê. Campos a `placeholder`.
 2. A entrada no menu.
 
 ### Fase 5 — Calcular resoluções
 
 `led`, 21 campos, 5 painéis. O maior, e o único com três donos possíveis.
 
-1. À chegada: `l-out-px`, `l-out-py`, `l-out-size` e `l-out-pitch`.
+1. Sem abrir nada: `l-out-px`, `l-out-py`, `l-out-size` e `l-out-pitch`.
+   Campos a `placeholder`, menos as normas (1920×1080 e afins). E o `NaN x NaN`
+   do `proj-out-tiles` corrigido, que é o único que se porta mal a vazio.
 2. **Os dois atalhos laterais**, à entrada da aba: *"é um blend de
    projetores?"* → `blend`; *"é grafismo?"* → `grafismo`. Um passo, não um
    submenu.
@@ -314,7 +353,7 @@ serve os dois, e fazer o menu primeiro deixa esse corte meio feito.
 
 ## O que me faria parar
 
-Se, ao fazer a Fase 2, "a resposta à chegada" obrigar a reorganizar a aba em
+Se, ao fazer a Fase 2, pôr a resposta à vista obrigar a reorganizar a aba em
 vez de a abrir — então o problema não é o menu, é a aba, e as fases seguintes
 ficam mais caras do que este plano assume. Nesse caso volta-se a falar antes
 de continuar.
