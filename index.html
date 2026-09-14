@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.62</span>
+    <span class="mark" id="app-versao">v3.63</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -8651,7 +8651,11 @@
       if (r.local && r.local.alturaSalaM != null) detalhes.push("Altura da sala: " + r.local.alturaSalaM + " m");
       if (r.local && r.local.numeroParticipantes != null) detalhes.push(r.local.numeroParticipantes + " participantes");
       if (r.local && r.local.publicoEmPe === true) detalhes.push("Público de pé");
-      if (r.local && r.local.publicoEmPe === false) detalhes.push("Público sentado");
+      if (r.local && r.local.publicoEmPe === false) {
+        detalhes.push(r.local.plateiaComMesas === true ? "Público sentado às mesas" : "Público sentado");
+      } else if (r.local && r.local.plateiaComMesas === true) {
+        detalhes.push("Plateia com mesas");
+      }
       if (r.local && r.local.interior === true) detalhes.push("Interior");
       if (r.local && r.local.interior === false) detalhes.push("Exterior");
       if (r.local && r.local.curvo === true) detalhes.push("Ecrã curvo");
@@ -8686,6 +8690,15 @@
     // https://up.codes/s/areas-without-fixed-seating
     var ASST_M2_POR_PESSOA_SENTADO = 0.65;
     var ASST_M2_POR_PESSOA_DE_PE = 0.46;
+    // A terceira linha da MESMA tabela: "unconcentrated (tables and chairs)"
+    // = 15 pés²/pessoa (~1,39 m²). É a plateia sentada ÀS MESAS -- um jantar,
+    // uma gala com mesas redondas --, que ocupa mais do DOBRO do chão por
+    // pessoa do que cadeiras em filas. Veio da revisão semanal: um pedido
+    // real dizia "plateia em mesas meia lua de 6 pessoas cada uma" e caía na
+    // densidade de cadeiras, o que subestimava a sala para menos de metade
+    // (300 pessoas: 195 m² em vez de 418 m²). Valor conferido na fonte, não
+    // escrito de cor -- é a mesma linha da mesma tabela dos outros dois.
+    var ASST_M2_POR_PESSOA_MESAS = 1.39;
 
     function renderScreenRecommendation(r) {
       var block = document.getElementById("asst-recommend-block");
@@ -8694,8 +8707,14 @@
       var roomHeight = r.local ? r.local.alturaSalaM : null;
       var participantes = r.local ? r.local.numeroParticipantes : null;
       var publicoEmPe = !!(r.local && r.local.publicoEmPe === true);
+      var plateiaComMesas = !!(r.local && r.local.plateiaComMesas === true);
       var estimadoDeParticipantes = false;
-      var m2PorPessoa = publicoEmPe ? ASST_M2_POR_PESSOA_DE_PE : ASST_M2_POR_PESSOA_SENTADO;
+      // De pé manda: quem está de pé não está às mesas, e se o texto disser
+      // as duas coisas é de uma zona mista, onde a mais apertada seria a
+      // suposição optimista. Entre sentado e sentado-às-mesas, mandam as
+      // mesas -- é o caso que precisa de mais chão.
+      var m2PorPessoa = publicoEmPe ? ASST_M2_POR_PESSOA_DE_PE
+        : (plateiaComMesas ? ASST_M2_POR_PESSOA_MESAS : ASST_M2_POR_PESSOA_SENTADO);
 
       // Sem distância/largura nenhuma, mas com o nº de pessoas do evento: a
       // única forma de sugerir um tamanho sem inventar uma medida é partir
@@ -8788,11 +8807,14 @@
       // Frase de veredito — só tamanhos, sem apontar nenhuma tecnologia.
       var verdictParts = [];
       if (estimadoDeParticipantes) {
+        var comoEstao = publicoEmPe ? "de pé" : (plateiaComMesas ? "sentadas às mesas" : "sentadas");
+        var linhaDaNorma = publicoEmPe ? "de pé"
+          : (plateiaComMesas ? "com mesas e cadeiras" : "com cadeiras soltas");
         verdictParts.push("⚠ Estimativa a partir de " + participantes + " pessoas " +
-          (publicoEmPe ? "de pé" : "sentadas") + " (sem sala indicada) — " +
+          comoEstao + " (sem sala indicada) — " +
           "plateia quadrada de ~" + fmt(audienceWidth, 1) + " × " + fmt(audienceWidth, 1) +
           " m, calculada com " + fmt(m2PorPessoa, 2) + " m²/pessoa (IBC, assembleia " +
-          (publicoEmPe ? "de pé" : "com cadeiras soltas") + "). " +
+          linhaDaNorma + "). " +
           "Confirma sempre a disposição real da sala antes de aplicar.");
       }
       verdictParts.push((nScreens > 1 ? nScreens + " ecrãs lado a lado" : "1 ecrã") + ".");

@@ -9,6 +9,73 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — revisão semanal do Assistente: a plateia às mesas (v3.63)
+
+Primeira revisão semanal a sair da rotina automática (skill `rever-assistente`).
+**31 pedidos** na janela de 30 dias, 27 com texto — mas muitos são o mesmo
+pedido submetido várias vezes a testar, por isso são ~9 pedidos *distintos*.
+
+### O padrão que apareceu
+
+Em **3 dos ~9 pedidos distintos**, a pessoa diz no texto **como é que a plateia
+está disposta**, e não havia campo nenhum para isso:
+
+- *"gostava que a plateia estivesse em mesas meia lua de 6 pessoas cada uma"*
+- *"3 plateias em gomos para 500 pessoas"*
+- *"Plateia de pavilhão e reta"*
+
+E num quarto a própria IA pôs a pergunta no `pontosPorConfirmar` (*"disposição
+de mesas"*) — o sinal que a skill manda procurar: a IA a desistir de um campo
+que devia poder preencher.
+
+### O que se fez, e só isso
+
+Destes três, só **um** tem para onde ir hoje: a **plateia às mesas**, porque a
+densidade de gente já é uma conta que a app faz.
+
+Campo novo `local.plateiaComMesas` no `EXTRACT_TOOL`, e uma terceira densidade
+do lado do cliente. **Sem inventar nada:** é a terceira linha da *mesma* tabela
+de onde já vinham as outras duas — IBC 1004.5, *"Unconcentrated (tables and
+chairs)"* = **15 pés² líquidos/pessoa ≈ 1,39 m²**, contra os 7 pés² (0,65 m²)
+das cadeiras soltas e os 5 pés² (0,46 m²) de pé. Fui confirmar o número à fonte
+antes de o escrever; não saiu de cor.
+
+O efeito é grande, e é por isso que valia a pena: **300 pessoas às mesas pedem
+416 m², não 196 m²** — mais do dobro. Antes, uma gala com mesas redondas caía
+na densidade de cadeiras e a app dizia que cabia numa sala que não chega.
+
+**De pé manda sobre as mesas** quando o texto disser as duas coisas: é uma zona
+mista, e a densidade mais apertada seria a suposição optimista.
+
+### O que NÃO se fez, e porquê
+
+A **forma** da plateia (gomos, reta) ficou de fora, apesar de aparecer em dois
+pedidos. O Preview tem mesmo `formatoPlateia` (reto/circular) e `gomos` — mas
+não há hoje caminho nenhum do Assistente até lá: a ponte leva o público do
+Preview *para* os Calculadores, não ao contrário. Um campo que ninguém lê é
+decoração, e a skill proíbe acrescentar campos sem quem os consuma. Fica
+registado: se essa ligação se fizer um dia, o campo passa a valer a pena.
+
+### Medido
+
+Oito verificações no caminho real do cliente (resposta da IA fingida, código da
+app a sério): sentado continua 0,65 · de pé continua 0,46 · **nada dito continua
+0,65**, ou seja nenhum pedido antigo muda de comportamento · às mesas passa a
+1,39 · a área mais do que duplica · de pé manda sobre mesas · a frase nomeia a
+linha certa da norma · o resumo passa a dizer "Público sentado às mesas".
+
+Em **produção**, depois do deploy, com pedidos a sério:
+
+| pedido | `plateiaComMesas` |
+|---|---|
+| *"plateia em mesas meia lua de 6 pessoas"* (o que destapou isto) | `true` ✓ |
+| *"jantar de empresa em mesas redondas de 10"* | `true` ✓ |
+| *"conferência em plateia de auditório"* | `false` ✓ |
+| *"gala de entrega de prémios"* (sem falar de mesas) | **`null`** ✓ |
+
+A última linha é a que interessa: a IA **não inventa** mesas só por ser uma
+gala, que era o risco de acrescentar este campo.
+
 ## PENDENTE — retomar aqui (noite de 11 de setembro)
 
 Lista fechada no fim da sessão de 11/9, a pedido do mike: *"guarda para de
