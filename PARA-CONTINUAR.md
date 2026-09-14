@@ -14,6 +14,53 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 14 de setembro — o ecrã de boas-vindas (v3.83)
+
+**Fase 1c do `PLANO-MENU.md`.** A Fase 1 está completa.
+
+> *"O menu tornaria menos confuso para quem não precisa de tudo e está no
+> terreno e quer apenas fazer uma conta."*
+
+**Não é um modo, é um ecrã.** Uma classe no `body` decide qual dos dois se vê,
+e nada guarda estado: quem entra pelo menu e precisa das catorze abas carrega
+numa porta e está lá, sem interruptor nenhum para procurar depois. O botão
+**☰ Menu** no cabeçalho é a porta de volta, e só aparece quando o menu está
+fechado — o logótipo já é um link para o AV Planner e não se lhe rouba o
+destino.
+
+O menu aparece a cada abertura, e faz par com a app abrir limpa (v3.82): **se
+ela não assume um projeto, tem de perguntar por onde se começa.**
+
+**O que tem, por agora:**
+
+- **Continuar** — a lista dos últimos 5, que saiu da aba Projeto e veio para
+  onde sempre pertenceu. Escolher um fecha o menu: fica mal continuar a
+  perguntar depois de alguém ter respondido.
+- **Abrir a calculadora completa** e **Ver em 3D** — as duas portas grandes. O
+  menu é a entrada para os dois serviços, não só para as abas.
+- **Abrir um ficheiro** e **Limpar tudo**, que saíram do cabeçalho apertado.
+  São ações de início de sessão; o **Guardar** fica no cabeçalho, porque esse
+  usa-se a meio do trabalho.
+
+**As quatro contas rápidas ainda não estão lá**, e é de propósito: a regra do
+plano diz que uma porta só entra no menu no dia em que a aba dela responde sem
+se abrir nada. Entram nas fases 2 a 5. Um menu que leve a uma sala às escuras é
+pior do que menu nenhum.
+
+Os botões do cabeçalho que saíram continuam a ser procurados pelo JS, com a
+guarda de "existe mesmo?" — quem tiver o HTML antigo em cache e o JS novo da
+rede continua com eles a funcionar.
+
+**Medido, a 390 px:**
+
+| passo | resultado |
+|---|---|
+| app de fresco | menu visível, abas e painéis escondidos |
+| "Abrir a calculadora completa" | app normal, botão ☰ Menu aparece |
+| ☰ Menu | volta ao menu |
+| trabalho + recarregar | menu com o projeto na lista e a nota do arranque limpo |
+| escolher da lista | repõe o projeto **e** fecha o menu |
+
 ## 14 de setembro — a app abre limpa (v3.82)
 
 **Fase 1b-iii do `PLANO-MENU.md`**, a última da 1b. Com a rede completa
