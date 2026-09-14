@@ -9,6 +9,56 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — em arco, ou numa linha reta (v3.66)
+
+Pedido direto: *"os projetores poderão ser posicionados tanto em círculo a
+acompanhar como em uma linha reta"*. Um selector novo na Curvatura, e uma
+conta nova por trás — porque não é a mesma montagem noutra pose.
+
+Num **arco** concêntrico todas as máquinas ficam à mesma distância da
+superfície e cada uma olha a direito para a sua fatia: uma lente serve a fila
+toda, e a resposta cabe num número. Numa **linha reta** as pontas do ecrã vêm
+para a frente, por isso a máquina do meio fica mais longe da sua fatia do que
+as das pontas. Distâncias diferentes com fatias iguais são rácios diferentes:
+**cada máquina precisa da sua lente**, ou de uma com zoom que chegue a todas e
+regulada uma a uma. Por isso a saída deixa de ser um número e passa a ser uma
+tabela — máquina, sítio na truss, distância, rácio e sobra.
+
+### A largura da truss é um número com consequência, e por isso pergunta-se
+
+Medido, num ecrã de 28 m de corda, raio 18, 4 máquinas a 12 m:
+
+| Largura da truss | Rácios | Sobra por máquina nas pontas |
+|---|---|---|
+| 28 m (tão larga como o ecrã) | 0,69–1,01:1 | 3,31 m |
+| 14 m | 0,92–1,06:1 | 0,18 m |
+
+Uma truss larga põe as máquinas das pontas a olhar para a sua fatia muito de
+esguelha; o cone é simétrico, a fatia vista dali não é, e o que sobra passa ao
+lado. Com 28 m **nenhuma lente do catálogo cobre o intervalo sozinha**; com
+14 m há uma. Escolher a largura por ele seria inventar-lhe a montagem — vai
+perguntado, com o número ao lado.
+
+### A geometria, escrita uma vez
+
+`raioBateNoEcra` / `arcoDeUmaLente` respondem a "onde é que esta lente apanha o
+ecrã, daqui e virada para ali", e servem as duas montagens. Confirmado contra a
+conta já publicada (`arcoCobertoPelaLente`) em quatro casos, à quarta casa
+decimal — o arco é o caso particular em que a lente está no raio e olha a
+direito.
+
+**Um erro que a própria mudança apanhou:** a primeira versão da tabela repartia
+o arco em partes iguais pelo número de máquinas. As células do blend
+**sobrepõem-se** — é disso que o blend é feito — e cada máquina tem de cobrir a
+sua inteira, sobreposição incluída. Dividir o arco dava fatias mais estreitas
+do que a realidade e lentes mais fechadas do que as que lá têm de ir. Agora a
+tabela e a ponte bebem as duas de `blendGridPositions()`, a mesma grelha que
+desenha o diagrama, e por construção não podem discordar.
+
+A ponte leva `montagem`, `trussLargura`, `trussDistancia` e a lista das
+máquinas; o Preview desenha-as na v3.39. Uma carga antiga não traz `montagem`
+e lê-se como "arco", que era a única que existia.
+
 ## 14 de setembro — a app dizia as duas coisas ao mesmo tempo (v3.65)
 
 Reportado a seco: *"não dá a dica da lente/distância — tenho de estar a
