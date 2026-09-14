@@ -9,6 +9,32 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — a zona chamava-se pelo tile antigo (v3.71)
+
+Reportado com foto do diálogo "Editar zona": *"aqui está confuso, ou sem
+lembrança do vizinho de trás"*. E estava — a mesma caixa dizia duas coisas:
+
+> **Nome da zona:** Unilumin Upad III/IV P2.6
+> **Modelo da tile:** YESTECH MG65 P3.91 — 500×500mm, 128×128px, 6,0kg
+
+O nome de uma zona criada pela aba Ecrã LED **é** o modelo do tile. Mas ao
+actualizar, o `lzSincronizarLed()` preservava o nome de propósito — para não
+deitar fora um nome escrito por alguém. O efeito: trocar o tile deixava o nome
+do tile anterior colado à zona, com a ficha logo por baixo a desmenti-lo.
+
+Preservar um nome **escrito** continua certo. O que não faz sentido é preservar
+um nome que ninguém escreveu. Agora o nome segue o modelo enquanto for o que a
+app lá pôs; a partir do momento em que alguém o muda, é dele e fica.
+
+**As zonas criadas antes desta marca existir** não têm como dizer se foram
+renomeadas — e são precisamente as que estão erradas hoje. Para essas
+pergunta-se ao catálogo: se o nome é, tal e qual, o modelo de um tile
+conhecido, foi a app que o pôs. É uma verificação, não um palpite.
+
+Verificado nos três casos: criar com Unilumin dá "Unilumin Upad III/IV P2.6";
+trocar para Yestech renomeia para "Yestech 3.9"; renomear à mão para "Ecrã do
+palco" e trocar outra vez de modelo deixa "Ecrã do palco" em paz.
+
 ## 14 de setembro — a aba Projeto parecia o projeto, e não era (v3.70)
 
 Reportado com foto e duas frases: *"não transportou o nome e não chegou nada ao

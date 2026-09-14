@@ -685,14 +685,51 @@
     // aba Ecrã LED punha a zona de volta na posição de fábrica.
     if (existente) {
       lzApplyOptsToCard(existente, opts);
+      // O NOME SEGUE O MODELO, quando ainda é o nome que a app lhe deu.
+      //
+      // Preservar o nome é decisão tomada (logo acima) e continua de pé para
+      // um nome ESCRITO por alguém. Mas o nome inicial não foi escrito por
+      // ninguém: é o modelo do tile. Trocar o tile na aba Ecrã LED e deixar o
+      // nome antigo dava uma zona chamada "Unilumin Upad III/IV P2.6" com
+      // tiles YESTECH MG65 lá dentro, e a ficha logo por baixo a dizer as duas
+      // coisas ao mesmo tempo. Reportado assim: "aqui está confuso, ou sem
+      // lembrança do vizinho de trás".
+      //
+      // Só se reescreve enquanto o nome for exactamente o que a app lá pôs da
+      // última vez. Quem renomeou a zona fica com o nome dele.
+      var campoNome = existente.querySelector(".lz-name");
+      var nomeNovo = spec.nome || "Ecrã LED";
+      if (campoNome && lzNomeEhAutomatico(existente, campoNome.value.trim())) {
+        campoNome.value = nomeNovo;
+        existente.dataset.nomeAutomatico = nomeNovo;
+        campoNome.dispatchEvent(new Event("input", { bubbles: true }));
+      }
       calcLedZones();
       return;
     }
     var card = lzAddZone(spec.nome || "Ecrã LED", opts, false);
     card.dataset.origemLed = "1";
+    card.dataset.nomeAutomatico = spec.nome || "Ecrã LED";
     calcLedZones();
   }
   window.lzSincronizarLed = lzSincronizarLed;
+
+  /**
+   * O nome desta zona ainda é o que a app lhe deu, ou alguém o escreveu?
+   *
+   * Normalmente basta comparar com o que ficou guardado no cartão. As zonas
+   * criadas ANTES desta marca existir não a têm -- e são precisamente as que
+   * estão com o nome errado hoje. Para essas pergunta-se ao catálogo: se o
+   * nome é, tal e qual, o modelo de um tile conhecido, foi a app que o pôs.
+   * É a diferença entre uma adivinhação e uma verificação.
+   */
+  function lzNomeEhAutomatico(card, nomeAtual) {
+    if (card.dataset.nomeAutomatico) return nomeAtual === card.dataset.nomeAutomatico;
+    if (nomeAtual === "Ecrã LED") return true;
+    return typeof LED_TILES_DATA !== "undefined" && LED_TILES_DATA.some(function (t) {
+      return t && t.modelo === nomeAtual;
+    });
+  }
 
   function lzBaseName(name) {
     var m = name.match(/^(.*?)\s+\d+$/);
