@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.66</span>
+    <span class="mark" id="app-versao">v3.67</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1248,6 +1248,17 @@
           <div class="inputgroup"><input id="b-knowndist" type="number" autocomplete="off" inputmode="decimal" value="4.00" min="0.1" step="0.01"><span class="unit">m</span></div>
           <div class="hint" id="b-knowndist-hint">A mesma para todos os projetores do blend — precisa dela para "Ver no Preview 3D".</div>
         </div>
+        <!-- A VERTICAL. Sem isto a app sabia a que distância a máquina fica mas
+             não a que ALTURA, e por isso não conseguia dizer o shift que a
+             montagem obriga — que é o que decide se a lente escolhida serve
+             mesmo ou se a imagem vai cair ao lado do ecrã. Pedido direto:
+             "ter em conta a posição com a relação da altura do ecrã e o cone
+             de projeção nas contas e representação no desenho". -->
+        <div class="field">
+          <label for="b-lens-height">Altura da lente acima da base do ecrã</label>
+          <div class="inputgroup"><input id="b-lens-height" type="number" autocomplete="off" inputmode="decimal" value="0" step="0.1"><span class="unit">m</span></div>
+          <div class="hint">Da base do ecrã ao eixo da lente. Negativo se a máquina ficar abaixo da base (chão a descer, plateia em anfiteatro). É daqui que sai o shift vertical que a montagem obriga.</div>
+        </div>
         <!-- A lente de cada projetor do blend, nos dois sentidos: a partir da
              distância diz que rácio é preciso e quais as lentes que o cobrem;
              escolhida uma lente, diz a que distância ela cobre a fatia. O
@@ -1315,7 +1326,9 @@
           <div class="item"><div class="k">Fatia de cada projetor</div><div class="v" id="b-out-fatia">—</div></div>
           <div class="item"><div class="k">Rácio necessário</div><div class="v" id="b-out-racio">—</div></div>
           <div class="item wide"><div class="k">Lentes que servem</div><div class="v" id="b-out-lentes">—</div></div>
+          <div class="item wide"><div class="k">Shift vertical necessário</div><div class="v" id="b-out-shiftv">—</div></div>
         </div>
+        <p class="note" id="b-shiftv-nota"></p>
         <p class="note" id="b-lens-nota"></p>
         <div id="b-lens-escolhida-wrap" style="display:none;">
           <div class="readout">
@@ -3567,6 +3580,14 @@
       curva = { raio: Math.round(R * 1000) / 1000,
                 corda: Math.round(bUltimoBlend.curveChord * 1000) / 1000,
                 arco: Math.round(bUltimoBlend.curveArc * 1000) / 1000,
+                // A ALTURA DO ECRÃ. Sem ela o 3D não tinha ecrã nenhum na
+                // vertical -- a "tela" era a soma das imagens, e uma imagem
+                // fora do sítio não tinha nada onde parar. O mesmo buraco que
+                // na horizontal deu a ferradura da v3.36.
+                altura: Math.round(bUltimoBlend.totalHm * 1000) / 1000,
+                // E a que altura fica o eixo da lente, medido da base do ecrã:
+                // é isto que faz o cone subir ou descer no desenho.
+                alturaLente: Math.round(val("b-lens-height") * 1000) / 1000,
                 // Em arco ou em linha reta. Uma carga antiga não traz isto e
                 // lê-se como "arco", que era a única montagem que existia.
                 montagem: montagemDoBlend() };
@@ -3616,7 +3637,11 @@
         altura: Math.round(cell.hM * 100) / 100,
         modelo: bUltimoBlend.modelo,
         lente: lenteEscolhida ? lenteEscolhida.marca + " " + lenteEscolhida.modelo : "",
-        shift: null,
+        // Os limites de shift da lente escolhida, quando o fabricante os
+        // publica (9 das 71 do catálogo) -- é com eles que o Preview avisa
+        // quando o shift pedido lá não cabe. Sem lente, ou sem dados dela,
+        // vai nulo: um limite inventado é pior do que limite nenhum.
+        shift: (lenteEscolhida && lenteEscolhida.shift) ? lenteEscolhida.shift : null,
         lumens: bUltimoBlend.lumens,
         // Num ecrã plano isto é a posição lateral em metros. Num curvo é a
         // posição AO LONGO DO ARCO, a partir do meio do ecrã -- o mesmo
@@ -4624,6 +4649,76 @@
     });
   }
 
+  /**
+   * O SHIFT VERTICAL QUE A MONTAGEM OBRIGA, e se a lente o dá.
+   *
+   * Pedido direto: *"ter em conta a posição com a relação da altura do ecrã e
+   * o cone de projeção nas contas e representação no desenho"*. Até aqui a app
+   * sabia a que distância a máquina ficava e nada sobre a que altura — e é a
+   * altura que decide se a imagem cai no ecrã ou ao lado dele.
+   *
+   * A conta não tem mistério: o shift vertical é a distância do eixo da lente
+   * ao centro da imagem, medida em percentagem da ALTURA DA IMAGEM. O que
+   * faltava era saber onde está o eixo, e isso agora pergunta-se.
+   *
+   * Numa grelha de duas filas cada fila pede o seu (a de cima mais para cima),
+   * por isso devolve o intervalo — e as máquinas ou têm shift diferente, ou
+   * ficam a alturas diferentes.
+   */
+  function shiftVerticalDoBlend(grid, hm, alturaLente) {
+    if (!grid || !grid.length || !(hm > 0)) return null;
+    var valores = grid.map(function (cell) {
+      if (!(cell.hM > 0)) return null;
+      // O centro desta célula, medido da BASE do ecrã. O yCenterM da grelha
+      // cresce para baixo a partir do meio (como o diagrama SVG), daí o sinal.
+      var centro = hm / 2 - cell.yCenterM;
+      return ((centro - alturaLente) / cell.hM) * 100;
+    }).filter(function (v) { return v !== null && isFinite(v); });
+    if (!valores.length) return null;
+    return { min: Math.min.apply(null, valores), max: Math.max.apply(null, valores) };
+  }
+
+  /** Escreve o shift necessário e confronta-o com a lente escolhida. */
+  function escreverShiftDoBlend(grid, hm) {
+    var el = document.getElementById("b-out-shiftv");
+    var nota = document.getElementById("b-shiftv-nota");
+    if (!el) return;
+    var alturaLente = val("b-lens-height");
+    var s = shiftVerticalDoBlend(grid, hm, alturaLente);
+    if (!s) { el.textContent = "—"; nota.textContent = ""; return; }
+    var iguais = Math.abs(s.max - s.min) < 0.5;
+    el.innerHTML = (iguais ? fmtSinal(s.min) : fmtSinal(s.min) + " a " + fmtSinal(s.max)) + "<small>%</small>";
+
+    var partes = [];
+    if (!iguais) {
+      partes.push("Cada fila pede o seu: ou as máquinas levam shift diferente, ou ficam a alturas diferentes.");
+    }
+    // O shift da LENTE só se confronta quando o fabricante o publica. Inventar
+    // um limite era pior do que não ter nenhum -- ver a mesma regra na aba
+    // Distância de Projeção.
+    var sel = document.getElementById("b-lensmodel");
+    var lente = (sel && sel.value !== "custom") ? LENTES_DATA[parseInt(sel.value, 10)] : null;
+    if (lente) {
+      if (!lente.shift) {
+        partes.push("O fabricante não publica o shift desta lente, por isso não há como dizer se ela lá chega.");
+      } else {
+        var fora = s.min < lente.shift.vMin - 0.5 || s.max > lente.shift.vMax + 0.5;
+        partes.push(fora
+          ? "A " + lente.marca + " " + lente.modelo + " faz " + fmtShiftRange(lente.shift.vMin, lente.shift.vMax) +
+            " — não chega lá. Ou muda a altura da máquina, ou muda de lente."
+          : "A " + lente.marca + " " + lente.modelo + " faz " + fmtShiftRange(lente.shift.vMin, lente.shift.vMax) +
+            ", por isso chega.");
+        if (lente.shift.nota) partes.push("(" + lente.shift.nota + ")");
+      }
+    }
+    nota.textContent = partes.join(" ");
+  }
+
+  /** "+50" / "−12" — com sinal, que num shift é metade da informação. */
+  function fmtSinal(v) {
+    return (v > 0 ? "+" : "") + fmt(v, 0);
+  }
+
   /** Arco a acompanhar, ou linha reta. Só conta num ecrã curvo. */
   function montagemDoBlend() {
     var sel = document.getElementById("b-curve-mount");
@@ -4753,6 +4848,9 @@
     var fatia = grid[0].wM;
     var R = bUltimoBlend.curveEnabled ? bUltimoBlend.curveRadius : 0;
     elFatia.innerHTML = fmt(fatia, 2) + "<small>m" + (R > 0 ? " de arco" : "") + "</small>";
+    // A vertical vale para as duas montagens e para o ecrã plano: o shift não
+    // depende de a superfície ser curva, depende de onde está o eixo da lente.
+    escreverShiftDoBlend(grid, bUltimoBlend.totalHm);
 
     // NUMA LINHA RETA a resposta não é um número, é uma tabela: as máquinas
     // deixam de ser iguais umas às outras. Sai por outro caminho, e o de cima
@@ -5175,14 +5273,20 @@
     calcBlend();
   });
   document.getElementById("b-truss-width").addEventListener("input", calcBlend);
+  document.getElementById("b-lens-height").addEventListener("input", calcBlend);
 
   var bLensModelSel = document.getElementById("b-lensmodel");
+  // A LENTE MUDA A CARGA, não só o texto. Desde que ela leva o nome e os
+  // limites de shift para o Preview, escolher uma e não recalcular deixava a
+  // ponte com a lente anterior -- escolhida a ELPLX02, o 3D continuava a
+  // receber shift nulo. Por isso passa pelo calcBlend(), que é quem escreve a
+  // ponte no fim.
   document.getElementById("b-lensbrand").addEventListener("change", function () {
     populateLensModelSelect(bLensModelSel, this.value);
     bLensModelSel.value = "custom";
-    escreverLenteDoBlend();
+    calcBlend();
   });
-  bLensModelSel.addEventListener("change", escreverLenteDoBlend);
+  bLensModelSel.addEventListener("change", calcBlend);
 
   function calcLentes() {
     var dist = val("ln-dist"), w = val("ln-w");
