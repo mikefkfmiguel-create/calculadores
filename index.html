@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.61</span>
+    <span class="mark" id="app-versao">v3.62</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1276,6 +1276,9 @@
             <span class="k">Resumo para ficha técnica</span>
             <div class="summary-actions">
               <label class="addproject"><input type="checkbox" id="b-addproject">Adicionar ao projeto</label>
+              <!-- Porque é que a caixa está marcada e o 3D continua vazio. Só
+                   aparece quando há mesmo uma razão — ver escreverAvisoDaPonte(). -->
+              <p class="note" id="b-ponte-aviso" style="display:none; flex-basis:100%; margin:4px 0 0;"></p>
               <button type="button" class="copy bridge-btn" id="b-ver-3d" title="Abre o Preview 3D com todos os projetores do blend montados na sala">Ver no Preview 3D ↗</button>
               <select class="copy" id="b-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
                 <option value="" selected>↗ Partilhar/Guardar</option>
@@ -3447,18 +3450,51 @@
 
   // O mesmo botão, mas para TODOS os projetores do blend de uma vez --
   // pedido direto ("o 3D não está a trazer os projetores do projeto...
-  // Blending Multi-Projetor nunca manda nada"). Ecrãs curvos ficam de fora
-  // (ver aviso abaixo): a distância de tiro varia ao longo do arco, uma só
-  // distância partilhada seria inventar um número que ninguém mediu.
+  // Blending Multi-Projetor nunca manda nada").
+  //
+  // ECRÃS CURVOS também vão, desde a v3.62. Estiveram de fora com a razão de
+  // que "a distância de tiro varia ao longo do arco" -- o que é verdade para
+  // UM projetor a cobrir um arco a partir de um ponto fixo, mas não é o que
+  // aqui se calcula. Esta aba reparte o arco em fatias IGUAIS e diz, no campo
+  // da distância, "a mesma para todos os projetores do blend": isso só é
+  // verdade com as máquinas num arco concêntrico com o ecrã, cada uma a
+  // apontar para o meio da sua fatia. A geometria estava implícita nos
+  // números; o que faltava era mandá-la para o outro lado. Quem a enrola é o
+  // Preview -- daí seguirem o raio e a corda, e a posição de cada projetor
+  // medida AO LONGO DO ARCO.
+  //
   // A carga do blend, à parte do botão, porque também se escreve sozinha --
-  // ver guardarBlendParaPreview(). Devolve null (em vez de avisar) sempre que
-  // faltar alguma coisa: quem carrega no botão quer a explicação, quem está só
-  // a escrever números não quer um toast a cada tecla.
+  // ver guardarBlendParaPreview(). Devolve null com a RAZÃO em .porque, para
+  // quem precise de a mostrar; quem está só a escrever números não quer um
+  // toast a cada tecla.
   function cargaDoBlend() {
-    if (!bUltimoBlend || !(bUltimoBlend.totalWm > 0) || !(bUltimoBlend.totalHm > 0)) return null;
-    if (bUltimoBlend.curveEnabled) return null;
+    if (!bUltimoBlend || !(bUltimoBlend.totalWm > 0) || !(bUltimoBlend.totalHm > 0)) {
+      return { erro: "Falta calcular o blend primeiro." };
+    }
     var dist = val("b-knowndist");
-    if (!(dist > 0)) return null;
+    if (!(dist > 0)) {
+      return { erro: "Falta a distância entre a lente e o ecrã." };
+    }
+    var curva = null;
+    if (bUltimoBlend.curveEnabled) {
+      var R = bUltimoBlend.curveRadius;
+      if (!(R > 0) || !(bUltimoBlend.curveArc > 0)) {
+        return { erro: "A curvatura está ligada mas o diâmetro não dá um arco possível." };
+      }
+      // Os projetores ficam num arco concêntrico, a "dist" da superfície --
+      // ou seja, a R − dist do centro da curvatura. Com uma distância maior
+      // do que o raio, a máquina cairia do outro lado do centro, a projetar
+      // para trás: não é um arredondamento infeliz, é uma montagem que não
+      // existe, e é melhor dizê-lo do que desenhar um disparate.
+      if (dist >= R) {
+        return { erro: "A distância (" + fmt(dist, 2) + " m) é maior do que o raio da curva (" +
+          fmt(R, 2) + " m). Num ecrã curvo os projetores ficam entre o centro da curvatura e a " +
+          "superfície — com esta distância ficariam do outro lado do centro." };
+      }
+      curva = { raio: Math.round(R * 1000) / 1000,
+                corda: Math.round(bUltimoBlend.curveChord * 1000) / 1000,
+                arco: Math.round(bUltimoBlend.curveArc * 1000) / 1000 };
+    }
     var grid = blendGridPositions(bUltimoBlend.nh, bUltimoBlend.nv, bUltimoBlend.oh, bUltimoBlend.ov,
       bUltimoBlend.hpx, bUltimoBlend.vpx, bUltimoBlend.totalWm, bUltimoBlend.totalHm,
       bUltimoBlend.totalPxH, bUltimoBlend.totalPxV);
@@ -3474,6 +3510,10 @@
         lente: "",
         shift: null,
         lumens: bUltimoBlend.lumens,
+        // Num ecrã plano isto é a posição lateral em metros. Num curvo é a
+        // posição AO LONGO DO ARCO, a partir do meio do ecrã -- o mesmo
+        // número, medido sobre a superfície em vez de em linha reta. É o
+        // Preview que o converte em ângulo (arco ÷ raio) e o enrola.
         lateral: Math.round(cell.xCenterM * 100) / 100,
         // yCenterM cresce para BAIXO (como o diagrama SVG); alturaOffset do
         // Preview é o oposto -- uma fila mais alta no ecrã tem de ficar
@@ -3481,7 +3521,7 @@
         alturaOffset: Math.round(-cell.yCenterM * 100) / 100
       };
     });
-    return { v: 2, projetores: projetores, quando: new Date().toISOString() };
+    return { v: 2, projetores: projetores, curva: curva, quando: new Date().toISOString() };
   }
 
   // O blend segue sozinho para o Preview quando está marcado "Adicionar ao
@@ -3492,25 +3532,33 @@
     var addProject = document.getElementById("b-addproject");
     if (!addProject || !addProject.checked) return;
     var carga = cargaDoBlend();
-    if (!carga) return;
+    // Marcar a caixa e não ir nada para o 3D, sem uma palavra, foi o que
+    // aconteceu com os ecrãs curvos durante meses: a caixa verde dizia
+    // "Adicionar ao projeto" e o Preview ficava vazio. Agora a razão fica
+    // escrita por baixo da caixa -- e só ali, porque isto corre a cada tecla
+    // e um toast a cada tecla era pior do que o silêncio.
+    escreverAvisoDaPonte(carga.erro || "");
+    if (carga.erro) return;
     try { localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga)); } catch (e) {}
   }
 
+  // O aviso vive ao pé da caixa "Adicionar ao projeto", que é onde está a
+  // pessoa que marcou a caixa e ficou à espera de ver alguma coisa no 3D.
+  function escreverAvisoDaPonte(texto) {
+    var nota = document.getElementById("b-ponte-aviso");
+    if (!nota) return;
+    nota.textContent = texto;
+    nota.style.display = texto ? "block" : "none";
+  }
+
   function verNoPreview3DBlend() {
-    if (!bUltimoBlend || !(bUltimoBlend.totalWm > 0) || !(bUltimoBlend.totalHm > 0)) {
-      showToast("Falta calcular o blend primeiro.");
-      return;
-    }
-    if (bUltimoBlend.curveEnabled) {
-      showToast("Ecrã curvo: a distância de tiro varia ao longo do arco, por isso este botão fica desligado para blending curvo.");
-      return;
-    }
-    if (!(val("b-knowndist") > 0)) {
-      showToast("Falta a distância entre a lente e o ecrã.");
-      return;
-    }
     var carga = cargaDoBlend();
-    if (!carga) return;
+    if (carga.erro) {
+      showToast(carga.erro);
+      escreverAvisoDaPonte(carga.erro);
+      return;
+    }
+    escreverAvisoDaPonte("");
     try { localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga)); } catch (e) {}
 
     var bytes = new TextEncoder().encode(JSON.stringify(carga));
@@ -4414,10 +4462,12 @@
     document.getElementById("b-out-ratio").textContent = describeRatio(effWm * 1000, hm * 1000);
     document.getElementById("b-out-pitch").innerHTML = fmt(pitchAvg, 2) + "<small>mm</small>";
 
-    // Ecrã curvo: a distância de tiro varia ao longo do arco, uma só
-    // distância partilhada seria inventar um número — por isso "Ver no
-    // Preview 3D" fica desligado enquanto a curvatura estiver ligada.
-    document.getElementById("b-ver-3d").disabled = curveEnabled;
+    // O ecrã curvo já vai para o 3D (v3.62): as fatias são iguais ao longo do
+    // arco e a distância é a mesma para todos, o que quer dizer projetores num
+    // arco concêntrico — geometria que o Preview sabe enrolar. O botão só fica
+    // desligado quando falta mesmo alguma coisa, e a razão vai escrita ao pé
+    // da caixa "Adicionar ao projeto".
+    document.getElementById("b-ver-3d").disabled = false;
 
     var curveResultsEl = document.getElementById("b-curve-results");
     var curveWarnEl = document.getElementById("b-curve-warn");
@@ -4487,6 +4537,12 @@
       nh: nh, nv: nv, oh: oh, ov: ov, hpx: hpx, vpx: vpx,
       totalWm: effWm, totalHm: hm, totalPxH: totalPxH, totalPxV: totalPxV,
       curveEnabled: curveEnabled,
+      // O raio e a corda seguem para a ponte do Preview: num ecrã curvo a
+      // grelha acima é medida AO LONGO DO ARCO (totalWm = effWm), e sem estes
+      // dois números não há maneira de a enrolar outra vez na sala.
+      curveRadius: curveEnabled ? curveRadius : null,
+      curveChord: curveEnabled ? wm : null,
+      curveArc: curveEnabled ? curveArc : null,
       modelo: bSelProj ? bSelProj.modelo : "",
       lumens: lumensEach
     };
