@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.64</span>
+    <span class="mark" id="app-versao">v3.65</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -3511,7 +3511,16 @@
     if (bUltimoBlend.curveEnabled) {
       var R = bUltimoBlend.curveRadius;
       if (!(R > 0) || !(bUltimoBlend.curveArc > 0)) {
-        return { erro: "A curvatura está ligada mas o diâmetro não dá um arco possível." };
+        // Dizer "não dá um arco possível" e ficar por aí manda a pessoa mexer
+        // em números às cegas -- e foi o que aconteceu, com o 3D a ficar com a
+        // montagem anterior enquanto ela escrevia. O número que falha e o que
+        // o desbloqueia vão os dois escritos.
+        var corda = bUltimoBlend.totalWm;
+        var diam = val("b-curve-diameter");
+        return { erro: "O diâmetro do círculo (" + fmt(diam, 2) + " m) é menor do que a largura " +
+          "entre as pontas do ecrã (" + fmt(bUltimoBlend.curveChord || corda, 2) + " m) — nenhum " +
+          "círculo assim passa pelas duas pontas. Aumenta o diâmetro para mais de " +
+          fmt(bUltimoBlend.curveChord || corda, 2) + " m. Até lá o 3D fica com a montagem anterior." };
       }
       // Os projetores ficam num arco concêntrico, a "dist" da superfície --
       // ou seja, a R − dist do centro da curvatura. Com uma distância maior
@@ -4406,6 +4415,37 @@
   }
 
   /**
+   * A QUE DISTÂNCIAS É QUE O CATÁLOGO TEM RESPOSTA para uma fatia deste tamanho.
+   *
+   * Dizer só "nenhuma lente serve" deixa quem está a projetar a experimentar
+   * distâncias à mão até calhar — foi o que aconteceu: *"tenho de estar a
+   * adivinhar eu a colocar várias medidas"*. A pergunta ao contrário responde-se
+   * com a mesma conta: para cada lente, a distância a que a ponta mais aberta
+   * chega à fatia e aquela a que a ponta mais fechada ainda lá vai; a união
+   * dessas janelas é o intervalo onde o catálogo tem alguma coisa a oferecer.
+   *
+   * Devolve null quando não há mesmo nada — nesse caso a saída é outra (mais um
+   * projetor, que torna a fatia menor), e é isso que se escreve.
+   */
+  function janelaDeDistanciaDoCatalogo(radiusM, fatiaM, marca) {
+    var min = Infinity, max = -Infinity;
+    var limite = radiusM > 0 ? radiusM - 0.5 : null;
+    LENTES_DATA.forEach(function (l) {
+      if (marca && !(l.marca === marca || l.marca.indexOf(marca + " (") === 0)) return;
+      var dAberta = distanciaParaCobrirArco(radiusM, l.min, fatiaM);
+      if (dAberta == null) return;                  // nem toda aberta lá chega
+      var dFechada = distanciaParaCobrirArco(radiusM, l.max, fatiaM);
+      // Sem limite de cima pela lente, manda a curva (ou nada, num ecrã plano).
+      var topo = dFechada != null ? dFechada : (limite != null ? limite : dAberta * 4);
+      if (limite != null && dAberta > limite) return;   // a máquina nem cabia lá
+      if (dAberta < min) min = dAberta;
+      if (topo > max) max = topo;
+    });
+    if (!(min < Infinity) || !(max > -Infinity) || max <= min) return null;
+    return { min: min, max: max };
+  }
+
+  /**
    * A LENTE DE CADA PROJETOR DO BLEND, nos dois sentidos.
    *
    * Pedido directo: *"nos blends falta poder ver a lente sugerida e vice
@@ -4428,6 +4468,14 @@
       wrapEsc.style.display = "none";
     };
     if (!bUltimoBlend || !(bUltimoBlend.totalWm > 0)) return vazio("");
+    // Curva ligada e impossível: a grelha acima foi repartida como se o ecrã
+    // fosse plano, e qualquer lente que saísse daqui seria para um ecrã que não
+    // existe. Cala-se, e diz-se o que destrava -- responder com um número
+    // confiante a uma pergunta sem resposta é pior do que não responder.
+    if (bUltimoBlend.curveEnabled && !(bUltimoBlend.curveArc > 0)) {
+      return vazio("Enquanto o diâmetro for menor do que a largura entre as pontas não há ecrã " +
+        "nenhum para medir, e por isso também não há lente. Corrige o diâmetro em cima.");
+    }
     var dist = val("b-knowndist");
     if (!(dist > 0)) return vazio("Escreve a distância entre a lente e o ecrã para saber que lente serve.");
 
@@ -4474,7 +4522,21 @@
       return daMarca && racio >= l.min && racio <= l.max;
     });
     if (!servem.length) {
+      // "Nenhuma" e ponto final deixa a pessoa a adivinhar distâncias à mão até
+      // acertar -- reportado assim mesmo: *"tenho de estar a adivinhar eu a
+      // colocar várias medidas"*. Se nenhuma lente serve a esta distância,
+      // diz-se a que distância é que alguma serviria. A conta já está toda
+      // escrita; o que faltava era fazê-la ao contrário e dizer o resultado.
       elLentes.innerHTML = "<small>nenhuma no catálogo" + (marca ? " desta marca" : "") + "</small>";
+      var jan = janelaDeDistanciaDoCatalogo(R, fatia, marca);
+      elNota.textContent = (nota ? nota + " " : "") + (jan
+        ? "A esta distância não há lente que cubra a fatia. Com as lentes do catálogo" +
+          (marca ? " desta marca" : "") + ", a distância tem de estar entre " +
+          fmt(jan.min, 2) + " e " + fmt(jan.max, 2) + " m — ou então mais um projetor, " +
+          "que torna a fatia menor e a lente mais fácil."
+        : "Não há lente no catálogo" + (marca ? " desta marca" : "") + " que cubra " +
+          fmt(fatia, 2) + " m" + (R > 0 ? " de arco" : "") + " a distância nenhuma. " +
+          "Com mais um projetor a fatia fica menor e a conta abre-se.");
     } else {
       var nomes = servem.slice(0, 3).map(function (l) { return l.marca + " " + l.modelo; });
       elLentes.innerHTML = servem.length + "<small> de " + LENTES_DATA.length + " — " +
@@ -4486,29 +4548,54 @@
     if (!sel || sel.value === "custom") { wrapEsc.style.display = "none"; return; }
     var lente = LENTES_DATA[parseInt(sel.value, 10)];
     if (!lente) { wrapEsc.style.display = "none"; return; }
-    var dMin = distanciaParaCobrirArco(R, lente.min, fatia);
-    var dMax = distanciaParaCobrirArco(R, lente.max, fatia);
+    // OS DOIS LIMITES DE UMA LENTE COM ZOOM, e porque é que faltar um não quer
+    // dizer que a lente não sirva.
+    //
+    // A ponta mais ABERTA (rácio mínimo) cobre mais arco, por isso chega à
+    // fatia mais perto: é o limite de BAIXO. A ponta mais FECHADA cobre menos,
+    // por isso precisa de mais distância: é o limite de CIMA.
+    //
+    // Faltar o de cima é o caso normal de uma lente aberta: nem toda fechada
+    // ela chega a fazer uma imagem tão grande, e por isso não há distância a
+    // partir da qual deixe de servir — serve do limite de baixo até onde a
+    // curva deixar pôr a máquina. Exigir os dois fazia a app dizer as duas
+    // coisas ao mesmo tempo: "1 lente serve" em cima, e "esta lente não
+    // consegue" logo a seguir. Foi o que o mike apanhou, e tinha razão em não
+    // perceber nada.
+    var dAberta = distanciaParaCobrirArco(R, lente.min, fatia);   // limite de baixo
+    var dFechada = distanciaParaCobrirArco(R, lente.max, fatia);  // limite de cima
     wrapEsc.style.display = "block";
-    if (dMin == null || dMax == null) {
-      document.getElementById("b-out-lensdist").innerHTML = "—";
-      document.getElementById("b-lens-veredito").textContent =
-        "Esta lente não consegue cobrir " + fmt(fatia, 2) + " m" + (R > 0 ? " de arco" : "") +
-        (R > 0 ? " dentro de uma curva de " + fmt(R, 2) + " m de raio." : ".");
+    var elDist = document.getElementById("b-out-lensdist");
+    var elVer = document.getElementById("b-lens-veredito");
+    if (dAberta == null) {
+      // Nem no mais aberto chega: aí é mesmo que não dá.
+      elDist.innerHTML = "—";
+      elVer.textContent = "Nem toda aberta esta lente cobre " + fmt(fatia, 2) +
+        " m" + (R > 0 ? " de arco" : "") + ". Precisas de uma lente mais aberta " +
+        "(rácio " + fmt(racio, 2) + ":1 ou menos) ou de mais um projetor, que torna a fatia menor.";
       return;
     }
-    // Uma lente fixa tem um sítio, não um intervalo — escrever "entre 16,42 e
-    // 16,42 m" é fazer o leitor parar a perceber porque é que os dois números
-    // são iguais.
+    // O topo do intervalo: ou a lente deixa de servir, ou é a curva que manda —
+    // a máquina tem de ficar entre o centro da curvatura e a superfície.
+    var topo = dFechada, topoEhACurva = false;
+    if (topo == null && R > 0) { topo = R - 0.5; topoEhACurva = true; }
     var fixa = lente.min === lente.max;
-    document.getElementById("b-out-lensdist").innerHTML =
-      (fixa ? fmt(dMin, 2) : fmt(dMin, 2) + "–" + fmt(dMax, 2)) + "<small>m</small>";
-    var dentro = dist >= dMin - 0.005 && dist <= dMax + 0.005;
-    document.getElementById("b-lens-veredito").textContent = dentro
-      ? "A distância que escreveste (" + fmt(dist, 2) + " m) está dentro do que esta lente faz."
-      : "Atenção: escreveste " + fmt(dist, 2) + " m, e esta lente cobre a fatia " +
-        (fixa ? "a " + fmt(dMin, 2) + " m (é uma lente fixa)."
-              : "entre " + fmt(dMin, 2) + " e " + fmt(dMax, 2) + " m.") +
+    elDist.innerHTML = (fixa ? fmt(dAberta, 2)
+      : topo == null ? fmt(dAberta, 2) + " ou mais"
+      : fmt(dAberta, 2) + "–" + fmt(topo, 2)) + "<small>m</small>";
+
+    var dentro = dist >= dAberta - 0.005 && (topo == null || dist <= topo + 0.005);
+    if (dentro) {
+      elVer.textContent = "A distância que escreveste (" + fmt(dist, 2) + " m) está dentro do que " +
+        "esta lente faz" + (topoEhACurva ? " — o limite de cima é a própria curva, não a lente." : ".");
+    } else {
+      elVer.textContent = "Atenção: escreveste " + fmt(dist, 2) + " m, e com esta lente o projetor " +
+        (fixa ? "tem de ficar a " + fmt(dAberta, 2) + " m (é uma lente fixa)."
+              : topo == null ? "tem de ficar a " + fmt(dAberta, 2) + " m ou mais."
+              : "fica entre " + fmt(dAberta, 2) + " e " + fmt(topo, 2) + " m" +
+                (topoEhACurva ? " (o limite de cima é a curva, não a lente)." : ".")) +
         " Ou muda a distância, ou muda de lente.";
+    }
   }
 
   // Vista de cima da curvatura do blend — mesmo "blueprint do chão" do

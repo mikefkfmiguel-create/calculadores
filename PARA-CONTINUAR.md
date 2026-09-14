@@ -9,6 +9,56 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — a app dizia as duas coisas ao mesmo tempo (v3.65)
+
+Reportado a seco: *"não dá a dica da lente/distância — tenho de estar a
+adivinhar eu a colocar várias medidas"*. Com uma fotografia que mostrava a app
+a contradizer-se:
+
+> LENTES QUE SERVEM: **1** de 71 — Epson ELPLW05
+> COM ESTA LENTE, O PROJETOR FICA A: **—**
+> *"Esta lente não consegue cobrir 10,67 m de arco dentro de uma curva de
+> 18,00 m de raio."*
+
+Serve e não consegue, na mesma caixa. Bug meu, da v3.64, e vale a pena perceber
+porquê porque a geometria não é óbvia.
+
+**Uma lente com zoom tem dois limites.** A ponta mais ABERTA (rácio mínimo)
+cobre mais arco, por isso chega à fatia mais perto: é o limite de baixo. A
+ponta mais FECHADA cobre menos, por isso precisa de mais distância: é o limite
+de cima. Eu exigia os dois — e faltar o de cima é o caso **normal** de uma
+lente aberta: nem toda fechada ela chega a fazer uma imagem tão grande, e por
+isso não há distância a partir da qual deixe de servir. Serve do limite de
+baixo até onde a curva deixar pôr a máquina.
+
+Corrigido: com um dos limites em falta a resposta é "14,97 m ou mais", ou
+"14,97–17,50 m" quando é a curva que manda, e o veredito diz qual dos dois é o
+limite. Só quando nem toda aberta chega é que a lente não serve — e aí diz o
+que serviria (rácio mais aberto, ou mais um projetor, que torna a fatia menor).
+
+### E deixar de o obrigar a adivinhar
+
+A outra metade do pedido. "Nenhuma lente serve" e ponto final é o que o punha a
+experimentar distâncias à mão até calhar. A mesma conta responde à pergunta ao
+contrário: para cada lente, a distância a que a ponta aberta chega à fatia e
+aquela a que a ponta fechada ainda lá vai; a união dessas janelas é onde o
+catálogo tem resposta. Agora escreve-se: *"com as lentes do catálogo desta
+marca, a distância tem de estar entre 5,74 e 17,50 m — ou então mais um
+projetor"*.
+
+### Dois avisos que não diziam nada
+
+- **"A curvatura está ligada mas o diâmetro não dá um arco possível."** Manda
+  mexer em números às cegas. Passa a nomear os dois números e a saída: *"o
+  diâmetro (26,00 m) é menor do que a largura entre as pontas (28,00 m) —
+  aumenta o diâmetro para mais de 28,00 m. Até lá o 3D fica com a montagem
+  anterior."* Essa última frase é metade do outro relatório dele ("não desenha
+  o curvo"): enquanto a curva é impossível a ponte recusa-se a escrever, e o 3D
+  fica com o que lá estava.
+- **O bloco da lente respondia com confiança a uma pergunta sem resposta.** Com
+  a curva impossível, a grelha reparte o ecrã como se fosse plano, e saía uma
+  lente para um ecrã que não existe. Agora cala-se e diz o que destrava.
+
 ## 14 de setembro — a lente do blend, nos dois sentidos (v3.64)
 
 Pedido direto: *"nos blends falta poder ver a lente sugerida e vice versa —
