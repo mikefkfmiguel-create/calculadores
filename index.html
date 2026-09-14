@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.81</span>
+    <span class="mark" id="app-versao">v3.82</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -7308,6 +7308,33 @@
     if (painel) painel.addEventListener(ev, armarHistorico, true);
   });
 
+  /**
+   * O ARRANQUE ACABOU AQUI.
+   *
+   * Duas coisas dependem de se saber que a app já parou de se montar:
+   *
+   * 1. A PONTE DESTRAVA. O lzForcarParaPreview() APAGA a chave do Preview
+   *    quando não há zonas -- e faz bem, porque tirar a última zona tem mesmo
+   *    de a tirar do 3D. Só que desde que a app abre limpa, o primeiro
+   *    recálculo tem zero zonas: com a sincronização ligada, abrir os
+   *    Calculadores apagaria o projeto que estava à espera no Preview, sem
+   *    ninguém ter tocado em nada. Enquanto o arranque corre, o automático
+   *    cala-se (ver lzAArrancar em js/zonas.js).
+   *
+   * 2. DIZ-SE QUE ABRIU LIMPA. Uma app que costumava trazer o trabalho de
+   *    volta e deixa de o fazer, sem uma palavra, parece uma app que perdeu o
+   *    trabalho. Só se diz quando há mesmo alguma coisa na lista para ir
+   *    buscar -- a quem nunca guardou nada, isto não é notícia nenhuma.
+   */
+  function arranqueTerminado() {
+    if (typeof window.lzArranqueTerminado === "function") window.lzArranqueTerminado();
+    if (lerHistorico().length) {
+      escreverHistorico("A app abre sempre num projeto limpo, para nenhum valor " +
+        "de arranque se confundir com o teu. O teu último trabalho está aqui — " +
+        "carrega para o abrires.");
+    }
+  }
+
   document.getElementById("proj-save").addEventListener("click", function () {
     var nome = document.getElementById("proj-nome").value.trim() || "projeto";
     var stripped = Array.from(nome.normalize("NFD")).filter(function (ch) {
@@ -8225,13 +8252,21 @@
     // A lista dos últimos projetos, logo no arranque: uma rede que só aparece
     // depois de se mexer em alguma coisa não serve de rede.
     escreverHistorico();
-    lzRestoreFromStorage();
-    // Depois das zonas estarem repostas: assim o calcTV() lá em baixo já
-    // corre com a aba TVs como o utilizador a deixou, e a sincronização
-    // reconstrói exatamente as mesmas zonas (mesmos ids) em vez de as
-    // apagar ou de as refazer com o modelo por omissão.
-    restaurarAbaTV();
-    restaurarLedNoProjeto();
+    // A APP ABRE LIMPA -- e é por isso que aqui já não há
+    //     lzRestoreFromStorage();  restaurarAbaTV();  restaurarLedNoProjeto();
+    //
+    // Repunham as zonas, a aba TVs e o interruptor do LED da sessão anterior,
+    // em silêncio. Pedido: *"abre sempre dos dois lados com o sync desligado e
+    // em projeto limpo até eu abrir um. Mesmo na calculadora, para que nunca
+    // leve a engano com valores auto de arranque"*.
+    //
+    // O trabalho não se perde: desde a v3.81 o histórico leva as zonas, a aba
+    // TVs e a Dome, e a lista está na aba Projeto. Era essa a ordem -- a rede
+    // primeiro (v3.79 e v3.81), só depois deixar de repor.
+    //
+    // As CHAVES ficam. Continuam a escrever-se durante a sessão (é assim que
+    // cada aba se lembra de si entre mudanças de aba) e é o "Limpar projeto"
+    // que as varre. O que deixou de haver foi a LEITURA no arranque.
     calcBlend();
     calcLentes();
     calcProjeto();
@@ -8251,6 +8286,7 @@
     // uma cúpula montada antes deles. Escreve só o campo "dome", nunca o
     // payload inteiro -- ver lzActualizarDomeNaPonte() em js/zonas.js.
     if (typeof lzActualizarDomeNaPonte === "function") lzActualizarDomeNaPonte();
+    arranqueTerminado();
   }).catch(function (err) {
     console.error("Falha a carregar dados de data/*.json:", err);
     calcProjecao();
@@ -8259,13 +8295,21 @@
     // A lista dos últimos projetos, logo no arranque: uma rede que só aparece
     // depois de se mexer em alguma coisa não serve de rede.
     escreverHistorico();
-    lzRestoreFromStorage();
-    // Depois das zonas estarem repostas: assim o calcTV() lá em baixo já
-    // corre com a aba TVs como o utilizador a deixou, e a sincronização
-    // reconstrói exatamente as mesmas zonas (mesmos ids) em vez de as
-    // apagar ou de as refazer com o modelo por omissão.
-    restaurarAbaTV();
-    restaurarLedNoProjeto();
+    // A APP ABRE LIMPA -- e é por isso que aqui já não há
+    //     lzRestoreFromStorage();  restaurarAbaTV();  restaurarLedNoProjeto();
+    //
+    // Repunham as zonas, a aba TVs e o interruptor do LED da sessão anterior,
+    // em silêncio. Pedido: *"abre sempre dos dois lados com o sync desligado e
+    // em projeto limpo até eu abrir um. Mesmo na calculadora, para que nunca
+    // leve a engano com valores auto de arranque"*.
+    //
+    // O trabalho não se perde: desde a v3.81 o histórico leva as zonas, a aba
+    // TVs e a Dome, e a lista está na aba Projeto. Era essa a ordem -- a rede
+    // primeiro (v3.79 e v3.81), só depois deixar de repor.
+    //
+    // As CHAVES ficam. Continuam a escrever-se durante a sessão (é assim que
+    // cada aba se lembra de si entre mudanças de aba) e é o "Limpar projeto"
+    // que as varre. O que deixou de haver foi a LEITURA no arranque.
     calcBlend();
     calcLentes();
     calcSinal();
@@ -8284,6 +8328,7 @@
     // uma cúpula montada antes deles. Escreve só o campo "dome", nunca o
     // payload inteiro -- ver lzActualizarDomeNaPonte() em js/zonas.js.
     if (typeof lzActualizarDomeNaPonte === "function") lzActualizarDomeNaPonte();
+    arranqueTerminado();
   });
 
   // ── DOME (projeção em cúpula) ───────────────────────────────────────────
@@ -8405,7 +8450,15 @@
       domeARestaurar = false;
       return d;
     }
-    var domeGuardado = restaurarAbaDome();
+    // A APP ABRE LIMPA, e a Dome também: era `restaurarAbaDome()` aqui, a
+    // repor os vinte campos da sessão anterior em silêncio. A cúpula que
+    // estava a ser trabalhada ontem vai agora no histórico (v3.81) e volta
+    // pela lista dos últimos projetos, não por adivinhação no arranque.
+    //
+    // Fica a null de propósito: quem o lê a seguir (a escolha de projetor, a
+    // de lente e o modo de resolução) já sabe lidar com "não havia nada
+    // guardado" -- era esse o caso de quem abria a app pela primeira vez.
+    var domeGuardado = null;
 
     // A ABA DOME, PARA O HISTÓRICO DOS ÚLTIMOS PROJETOS.
     //

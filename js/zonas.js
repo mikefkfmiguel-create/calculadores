@@ -1110,6 +1110,21 @@
   // lzGuardarParaPreview() saber que não é uma alteração local.
   var lzAImportarDoPreview = false;
 
+  // A MESMA IDEIA, PARA O ARRANQUE.
+  //
+  // O lzForcarParaPreview() APAGA a chave quando não há zonas -- e faz bem,
+  // porque tirar a última zona tem mesmo de a tirar do 3D. Só que desde a
+  // v3.82 a app abre limpa: se o primeiro recálculo corresse como uma
+  // alteração normal, abrir os Calculadores com a sincronização ligada
+  // apagava o projeto que estava à espera no Preview, sem ninguém ter tocado
+  // em nada.
+  //
+  // Enquanto esta bandeira estiver ligada, o automático cala-se. O caminho
+  // manual ("Ver em 3D", "Sincronizar") passa pelo lzForcarParaPreview() e
+  // nunca é travado -- quem carrega num botão está a pedir.
+  var lzAArrancar = true;
+  window.lzArranqueTerminado = function () { lzAArrancar = false; };
+
   // Devolve o nº de zonas trazidas (0 se não havia nada de jeito).
   function lzImportarProjetoDoPreview(projeto) {
     if (!projeto || !Array.isArray(projeto.zonas) || !projeto.zonas.length) return 0;
@@ -1139,6 +1154,8 @@
     // A meio de aplicar o que acabou de chegar do Preview — não ecoar de
     // volta, é a mesma alteração que ele já tem.
     if (lzAImportarDoPreview) return;
+    // A arrancar: o que a app tem agora não é uma alteração de ninguém.
+    if (lzAArrancar) return;
     // Escrita automática (corre a cada recálculo): com a sincronização
     // automática desligada não passa nada sozinho. O caminho manual ("Ver
     // em 3D"/"Sincronizar") continua a escrever à mesma, por lzForcarParaPreview.
