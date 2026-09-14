@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.73</span>
+    <span class="mark" id="app-versao">v3.74</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -4846,6 +4846,44 @@
     return s ? Math.round(s.min * 10) / 10 : 0;
   }
 
+  /**
+   * ✓ nas lentes que cobrem a fatia, na lista onde se escolhe.
+   *
+   * O rótulo original guarda-se em `dataset.base` na primeira passagem: sem
+   * isso, cada recálculo empilhava mais um ✓ no mesmo nome. E mexe-se no
+   * TEXTO, não na ordem -- reordenar uma lista aberta é tirar o dedo de cima
+   * daquilo em que a pessoa ia carregar.
+   *
+   * Vale para a lista do blend e mais nada: as outras abas fazem outra
+   * pergunta, e a mesma marca lá significaria outra coisa.
+   */
+  function marcarLentesQueServem(racio, ate) {
+    var sel = document.getElementById("b-lensmodel");
+    if (!sel) return;
+    // Numa linha reta cada máquina pede o seu rácio, e "servir" passa a ser
+    // cobrir o intervalo INTEIRO com o zoom -- não basta chegar a uma delas.
+    // É a mesma regra que a caixa "lentes que servem" já usa.
+    var rMin = racio, rMax = ate === undefined ? racio : ate;
+    var quantas = 0;
+    Array.prototype.forEach.call(sel.options, function (o) {
+      if (o.value === "custom") return;
+      if (o.dataset.base === undefined) o.dataset.base = o.textContent;
+      var l = LENTES_DATA[parseInt(o.value, 10)];
+      var serve = l && rMin > 0 && l.min <= rMin + 0.001 && l.max >= rMax - 0.001;
+      if (serve) quantas++;
+      o.textContent = (serve ? "✓ " : "") + o.dataset.base;
+    });
+    // A opção "Nenhuma" diz quantas há -- é a que está escolhida enquanto
+    // ninguém escolheu nada, e por isso é a que se lê primeiro.
+    var nenhuma = sel.querySelector('option[value="custom"]');
+    if (nenhuma) {
+      if (nenhuma.dataset.base === undefined) nenhuma.dataset.base = nenhuma.textContent;
+      nenhuma.textContent = quantas
+        ? "Nenhuma — " + quantas + (quantas === 1 ? " serve (✓)" : " servem (✓)")
+        : nenhuma.dataset.base;
+    }
+  }
+
   /** Arco a acompanhar, ou linha reta. Só conta num ecrã curvo. */
   function montagemDoBlend() {
     var sel = document.getElementById("b-curve-mount");
@@ -4893,6 +4931,7 @@
     }
     var racios = maquinas.map(function (m) { return m.racio; });
     var rMin = Math.min.apply(null, racios), rMax = Math.max.apply(null, racios);
+    marcarLentesQueServem(rMin, rMax);
     var iguais = rMax - rMin < 0.02;
     elRacio.innerHTML = (iguais ? fmt(rMin, 2) : fmt(rMin, 2) + "–" + fmt(rMax, 2)) + "<small>:1</small>";
 
@@ -4952,6 +4991,9 @@
       elFatia.textContent = "—"; elRacio.textContent = "—"; elLentes.textContent = "—";
       elNota.textContent = razao || "";
       wrapEsc.style.display = "none";
+      // Sem rácio não há nada a sugerir -- e um ✓ que sobrou da conta anterior
+      // é pior do que ✓ nenhum.
+      marcarLentesQueServem(0);
     };
     if (!bUltimoBlend || !(bUltimoBlend.totalWm > 0)) return vazio("");
     // Curva ligada e impossível: a grelha acima foi repartida como se o ecrã
@@ -5018,6 +5060,12 @@
       var daMarca = !marca || l.marca === marca || l.marca.indexOf(marca + " (") === 0;
       return daMarca && racio >= l.min && racio <= l.max;
     });
+    // AS QUE SERVEM, MARCADAS NA PRÓPRIA LISTA. Reportado com a lista aberta:
+    // *"era aqui que devia sugerir logo"*. E tinha razão -- a app sabia quais
+    // eram as três de setenta e uma, e escrevia-o num sítio, enquanto na lista
+    // onde ele estava a escolher as setenta e uma tinham todas o mesmo ar. Ler
+    // num lado e escolher no outro é trabalho que a app pode fazer.
+    marcarLentesQueServem(racio);
     if (!servem.length) {
       // "Nenhuma" e ponto final deixa a pessoa a adivinhar distâncias à mão até
       // acertar -- reportado assim mesmo: *"tenho de estar a adivinhar eu a

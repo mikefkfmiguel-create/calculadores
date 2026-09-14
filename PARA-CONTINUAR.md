@@ -9,6 +9,29 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — ✓ nas lentes que servem, na lista onde se escolhe (v3.74)
+
+Reportado com a lista aberta: *"era aqui que devia sugerir logo"*. E tinha
+razão. A app sabia quais eram as três de setenta e uma e escrevia-o na caixa
+"lentes que servem" — enquanto na lista onde ele estava mesmo a escolher, as
+setenta e uma tinham todas o mesmo ar. Ler num lado e escolher no outro é
+trabalho que a app pode fazer por ele.
+
+As que cobrem a fatia levam **✓** à frente do nome, e a opção "Nenhuma" passa a
+dizer quantas são. Mexe-se no texto, não na ordem: reordenar uma lista aberta é
+tirar o dedo de cima daquilo em que a pessoa ia carregar.
+
+Numa montagem **em linha reta** "servir" é outra coisa — cada máquina pede o seu
+rácio, e a lente tem de cobrir o intervalo inteiro com o zoom, não chegar a uma
+delas. É a mesma regra que a caixa já usava; agora as duas concordam por
+construção.
+
+Medido: curvo com 5 projetores a 12 m e marca Epson → rácio 1,38:1, duas
+marcadas (ELPLW05 e ELPLW06) e "Nenhuma — 2 servem (✓)". Em linha reta o rácio
+passa a 1,02–1,38:1 e nenhuma fica marcada, que é o mesmo que a caixa diz. Sem
+distância, as marcas desaparecem — um ✓ que sobrou da conta anterior é pior do
+que ✓ nenhum.
+
 ## 14 de setembro — marcado numa gaveta, ausente noutra (v3.73)
 
 Reportado: *"as TVs do projeto tive de desmarcar e marcar o adicionar para que
