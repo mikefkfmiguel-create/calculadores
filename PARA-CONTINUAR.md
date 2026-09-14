@@ -14,6 +14,43 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 14 de setembro — a primeira porta rápida: TVs (v3.84)
+
+**Fase 2 do `PLANO-MENU.md`.** A aba mais pequena, escolhida de propósito para
+a mecânica se provar no caso barato.
+
+- **Os dois painéis nascem abertos.** A aba tinha 5 campos e 3 painéis, os três
+  fechados: chegar pelo menu e ainda ter de abrir dois é a placa de sinalização
+  para a sala às escuras. O "Como usar" fica fechado — esse é para quem
+  pergunta, não para quem já sabe.
+- **A diagonal passa a `placeholder`.** Era `value="55"`, um palpite sobre o
+  trabalho de alguém. A quantidade (1) fica: é norma, não palpite.
+- **A porta entra no menu**, em "Uma conta rápida".
+
+**Duas coisas que o plano pedia e já existiam ou não faziam falta:**
+
+O *"Adicionar ao projeto à vista"* **já estava feito** — o atalho fixo do topo
+(`addproject-fixed`) espelha a caixa da aba activa desde que foi posto lá, e
+aparece nas 9 abas que têm uma. Confirmado a medir; não se duplicou nada.
+
+E **não há encaminhador novo**: a porta do menu carrega na aba, e o clique da
+aba já trata do `aria-selected`, do painel activo, do atalho e do título. Um
+router próprio acabaria a discordar deste no dia em que uma aba mudasse.
+
+**Um retoque que a medição deu:** com o formulário vazio, a resolução dizia
+*"não confirmada"* — uma afirmação sobre um ecrã que ainda não existe. Agora
+diz `—` até haver modelo escolhido ou diagonal escrita.
+
+**Medido:**
+
+| passo | resultado |
+|---|---|
+| menu → "Ver medidas de TV" | aba TVs activa, menu fechado |
+| "Adicionar ao projeto" | visível no topo |
+| diagonal | vazia, com `55` de dica |
+| as 5 saídas | todas a `—`, painéis abertos |
+| escrever `85` | 1,88 × 1,06 m · 2,82 a 11,29 m, sem abrir nada |
+
 ## 14 de setembro — o ecrã de boas-vindas (v3.83)
 
 **Fase 1c do `PLANO-MENU.md`.** A Fase 1 está completa.
