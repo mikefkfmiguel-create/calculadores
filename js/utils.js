@@ -190,16 +190,51 @@ function lzAttachModelSearch(select) {
 // ("Trazer do Preview", "Sincronizar", "Ver em 3D") continuam sempre a
 // funcionar — o interruptor é só sobre o que acontece por si.
 var SYNC_PREF_KEY = "mikeapps-sincronizacao-v1";
+// Já se disse a esta pessoa que a sincronização passou a nascer desligada?
+// Uma vez chega, e é partilhado pelas duas apps: quem abrir primeiro avisa.
+var SYNC_AVISO_KEY = "mikeapps-sincronizacao-aviso-v1";
 
+/**
+ * DESLIGADA POR OMISSÃO, desde a v3.80.
+ *
+ * Pedido: *"abre sempre dos dois lados com o sync desligado e em projeto limpo
+ * até eu abrir um"*. Antes, a ausência da chave lia-se como LIGADA -- e uma
+ * app que começa a mandar coisas para o 3D sem ninguém pedir é o contrário do
+ * que ele quer de manhã, no terreno.
+ *
+ * O interruptor no cabeçalho continua a valer, e é um clique.
+ */
 function syncAutoLigada() {
   var raw;
-  try { raw = localStorage.getItem(SYNC_PREF_KEY); } catch (e) { return true; }
-  if (raw == null) return true;
+  try { raw = localStorage.getItem(SYNC_PREF_KEY); } catch (e) { return false; }
+  if (raw == null) return false;
   // O valor tanto pode vir como JSON ("\"desligada\"") como em texto simples
   // — as duas apps escrevem-no e não vale a pena obrigar a um formato só.
   var valor = raw;
   try { var parsed = JSON.parse(raw); if (typeof parsed === "string") valor = parsed; } catch (e) {}
   return String(valor).trim().toLowerCase() !== "desligada";
+}
+
+/**
+ * A MIGRAÇÃO, QUE NÃO PODE SER MUDA.
+ *
+ * Quem nunca tocou no interruptor tinha-o ligado sem saber -- era esse o valor
+ * por omissão. Virá-lo em silêncio desligava-lhe a sincronização e ele ia
+ * descobri-lo quando o 3D não recebesse nada, que é exactamente o defeito que
+ * esta app passa a vida a corrigir.
+ *
+ * Por isso, à primeira vez: escreve-se o valor por extenso (deixa de haver
+ * ausência para interpretar) e diz-se uma vez. Devolve true quando há algo a
+ * dizer, para quem chama mostrar o aviso.
+ */
+function syncAutoMigrar() {
+  try {
+    if (localStorage.getItem(SYNC_PREF_KEY) != null) return false;
+    if (localStorage.getItem(SYNC_AVISO_KEY) === "1") return false;
+    localStorage.setItem(SYNC_PREF_KEY, JSON.stringify("desligada"));
+    localStorage.setItem(SYNC_AVISO_KEY, "1");
+    return true;
+  } catch (e) { return false; }
 }
 
 function syncAutoDefinir(ligada) {
@@ -230,6 +265,11 @@ window.addEventListener("storage", function (e) {
     btn.classList.toggle("is-off", !ligada);
     btn.setAttribute("aria-pressed", ligada ? "true" : "false");
   });
+  if (syncAutoMigrar()) {
+    syncAutoNotificar();
+    showToast("A app passou a abrir com a sincronização automática DESLIGADA, " +
+      "para nada ir para o 3D sem tu pedires. O interruptor \"Auto\" aqui em cima liga-a.");
+  }
   btn.addEventListener("click", function () {
     var novo = !syncAutoLigada();
     syncAutoDefinir(novo);

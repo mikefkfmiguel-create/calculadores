@@ -14,6 +14,59 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 14 de setembro — a sincronização nasce desligada (v3.80 · Preview v3.50)
+
+**Fase 1b-i do `PLANO-MENU.md`.** Só a metade da fase que não tinha risco — a
+outra metade está travada, e a razão está mais abaixo.
+
+> *"Abre sempre dos dois lados com o sync desligado."*
+
+Antes, a **ausência** da chave lia-se como LIGADA. Uma app que começa a mandar
+coisas para o 3D sem ninguém pedir é o contrário do que se quer de manhã, no
+terreno. Agora nasce desligada, nos dois lados, e o interruptor do cabeçalho
+continua a ser um clique.
+
+**A migração não é muda, e isso é o ponto.** Quem nunca tocou no interruptor
+tinha-o ligado sem saber; virá-lo em silêncio era deixá-lo a descobrir sozinho
+que o 3D deixou de receber — o defeito que esta app passa a vida a corrigir. À
+primeira vez escreve-se o valor **por extenso** (deixa de haver ausência para
+interpretar) e diz-se, uma vez só. A chave do aviso é partilhada: quem abrir
+primeiro avisa, o outro fica calado.
+
+**Medido em quatro cenários:**
+
+| cenário | resultado |
+|---|---|
+| Calculadores pela 1.ª vez | ⛔ desligada, chave escrita, aviso mostrado |
+| segunda visita | sem aviso repetido |
+| Preview pela 1.ª vez, Calculadores a seguir | o Preview avisa, os Calculadores ficam calados |
+| quem já tinha ligado à mão | 🔗 fica **ligada**, não se lhe toca |
+
+### A outra metade está travada, e porquê
+
+O plano dizia para a app deixar de repor coisas ao arrancar. **Fui ver o que
+ela repõe, e não são "valores automáticos" — é a memória do projeto.** Há um
+comentário no código, escrito por quem já levou com isto:
+
+> *"Sem isto, reabrir a app punha a aba em branco com o interruptor desligado —
+> e o primeiro recálculo de zonas escrevia `dome: null` na ponte. Ou seja: a
+> cúpula SAÍA do projeto sozinha, sem ninguém a tirar."*
+
+O que persiste hoje, e se o histórico da v3.79 o protege:
+
+| chave | traz de volta | no histórico? |
+|---|---|---|
+| `calculadores-zonas-v1` | zonas do Ecrã Complexo | **só se "usar zonas" estiver marcado** |
+| `calculadores-tv-v1` | TV, diagonal, rácio, quantidade | **não** |
+| `calculadores-dome-v1` | 20 campos da Dome | **não** |
+| `calculadores-led-noprojeto-v1` | a caixa do LED | não |
+
+Apagar as reposições agora perde trabalho e recria um defeito já corrigido. A
+ordem certa é a mesma do resto do plano — **a rede antes**: alargar o
+`estadoDoProjeto()` para carregar as zonas sempre, a aba TVs e a aba Dome (as
+três já têm serializador próprio, é juntá-los, não escrever outro), e só depois
+deixar de repor. Fica para decisão antes de avançar.
+
 ## 14 de setembro — os últimos 5 projetos, guardados sozinhos (v3.79)
 
 **Fase 1a do `PLANO-MENU.md`.** É a rede que tem de existir antes de a app
