@@ -9,6 +9,54 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — a lente do blend, nos dois sentidos (v3.64)
+
+Pedido direto: *"nos blends falta poder ver a lente sugerida e vice versa —
+escolher a lente e ter a informação de onde fica"*, e depois *"faz a lente dos
+blends"*.
+
+A aba Blending já sabia repartir o ecrã por projetores e já pedia a distância,
+mas nunca dizia **que lente é que isso obriga**. Agora diz, e nos dois sentidos:
+
+- **Da distância para a lente:** a fatia de cada projetor (medida sobre a
+  superfície), o rácio que a cobre, e quantas lentes do catálogo o fazem — com
+  os três primeiros nomes.
+- **Da lente para a distância:** escolhida uma marca e um modelo, a que
+  distância é que essa lente cobre a fatia, e se a distância escrita cabe lá
+  dentro. Uma lente fixa diz "a 16,42 m (é uma lente fixa)" e não "entre 16,42
+  e 16,42 m".
+
+Catálogo nenhum novo: é a mesma `LENTES_DATA` da aba Lentes (71 lentes, todas
+com fonte), vista do lado do blend. A lente escolhida segue também na ponte
+para o Preview, que é quem sabe os limites de shift dela.
+
+### E a conta estava errada num ecrã curvo
+
+Isto é o que fez a funcionalidade demorar. Num ecrã **curvo** a fatia é um arco,
+e `distância ÷ fatia` — a conta plana — dá a lente errada: numa superfície
+côncava as pontas do feixe afastam-se do eixo e batem mais cedo, por isso a
+mesma lente cobre **menos** arco do que promete. Medido: 5,8% menos num raio de
+15 m com 6 m de tiro (num de 10 m, 7,8%; num de 50 m, 2,1%). Numa fila de quatro
+projetores, 5,8% por fatia são 1,7 m de arco por cobrir — o suficiente para comer
+o blend todo e abrir banda preta.
+
+Eu próprio tinha dito ao mike que a diferença era "~1%", de cabeça. Não é;
+contei-lhe a correção assim que a medi. A conta certa está em
+`arcoCobertoPelaLente()` e as duas perguntas inversas em `racioParaCobrirArco()`
+e `distanciaParaCobrirArco()`, por bisseção — a relação é monótona e não tem
+forma fechada simpática. Um só sítio decide o rácio (`racioDaFatiaDoBlend()`),
+para o número que se mostra na aba e o número que vai para o Preview nunca
+discordarem. Num ecrã plano devolve a conta de sempre, exactamente.
+
+O Preview ganhou a mesma conta na v3.37 (`medidasDaCurva().arcoDaLente()`).
+Ficam duas cópias de propósito: são duas apps separadas e a ponte leva dados,
+não funções — o que não podia acontecer é uma ter a conta e a outra não.
+
+Verificado com as duas apps a falar: corda 28, diâmetro 36, 4 projetores a 6 m
+→ fatia 9,51 m de arco, rácio 0,57:1, e o Preview desenha quatro fatias de
+9,50 m. Resoluções todas pares em quatro combinações de overlap, que é regra da
+casa (*"lembra-te das contas nunca poderem ser ímpares"*).
+
 ## 14 de setembro — revisão semanal do Assistente: a plateia às mesas (v3.63)
 
 Primeira revisão semanal a sair da rotina automática (skill `rever-assistente`).

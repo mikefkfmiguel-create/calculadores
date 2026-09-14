@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.63</span>
+    <span class="mark" id="app-versao">v3.64</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1227,6 +1227,24 @@
           <div class="inputgroup"><input id="b-knowndist" type="number" autocomplete="off" inputmode="decimal" value="4.00" min="0.1" step="0.01"><span class="unit">m</span></div>
           <div class="hint">A mesma para todos os projetores do blend — precisa dela para "Ver no Preview 3D".</div>
         </div>
+        <!-- A lente de cada projetor do blend, nos dois sentidos: a partir da
+             distância diz que rácio é preciso e quais as lentes que o cobrem;
+             escolhida uma lente, diz a que distância ela cobre a fatia. O
+             catálogo é o mesmo da aba Lentes — aqui não há tabela nenhuma
+             própria, só a mesma LENTES_DATA vista de outro lado. -->
+        <div class="field">
+          <label for="b-lensbrand">Marca da lente</label>
+          <select id="b-lensbrand" class="plain">
+            <option value="" selected>Todas as marcas</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="b-lensmodel">Lente</label>
+          <select id="b-lensmodel" class="plain">
+            <option value="custom" selected>Nenhuma — só dizer que rácio é preciso</option>
+          </select>
+          <div class="hint">Escolhe a lente que tens para saber a que distância ela cobre a fatia de cada projetor.</div>
+        </div>
         </div>
       </details>
 
@@ -1270,6 +1288,20 @@
           <div class="item wide"><div class="k">Lux no ecrã (somatório)</div><div class="v" id="b-out-lux">—</div></div>
         </div>
         <p class="note">Trabalha sempre a 80% da luminosidade nominal (um projetor mais gasto obriga os outros a acompanhar) — lux = (lumens × 0,8 × nº total de projetores) ÷ área do ecrã. Assume blending uniforme entre projetores.</p>
+
+        <h2 style="margin-top:18px;">A lente de cada projetor</h2>
+        <div class="readout">
+          <div class="item"><div class="k">Fatia de cada projetor</div><div class="v" id="b-out-fatia">—</div></div>
+          <div class="item"><div class="k">Rácio necessário</div><div class="v" id="b-out-racio">—</div></div>
+          <div class="item wide"><div class="k">Lentes que servem</div><div class="v" id="b-out-lentes">—</div></div>
+        </div>
+        <p class="note" id="b-lens-nota"></p>
+        <div id="b-lens-escolhida-wrap" style="display:none;">
+          <div class="readout">
+            <div class="item wide"><div class="k">Com esta lente, o projetor fica a</div><div class="v" id="b-out-lensdist">—</div></div>
+          </div>
+          <p class="note" id="b-lens-veredito"></p>
+        </div>
 
         <div class="summary">
           <div class="summary-head">
@@ -3498,16 +3530,24 @@
     var grid = blendGridPositions(bUltimoBlend.nh, bUltimoBlend.nv, bUltimoBlend.oh, bUltimoBlend.ov,
       bUltimoBlend.hpx, bUltimoBlend.vpx, bUltimoBlend.totalWm, bUltimoBlend.totalHm,
       bUltimoBlend.totalPxH, bUltimoBlend.totalPxV);
+    // A lente escolhida na aba, se alguma. É ela que dá ao Preview os limites
+    // de shift da máquina -- sem lente não se inventa nenhum, cala-se.
+    var lenteSel = document.getElementById("b-lensmodel");
+    var lenteEscolhida = (lenteSel && lenteSel.value !== "custom")
+      ? LENTES_DATA[parseInt(lenteSel.value, 10)] : null;
     var projetores = grid.map(function (cell) {
       return {
-        racio: Math.round((dist / cell.wM) * 1000) / 1000,
+        // O RÁCIO É O QUE COBRE A FATIA DE FACTO. Num ecrã curvo a superfície
+        // afasta-se do eixo e corta as pontas do feixe mais cedo do que um
+        // plano: dist÷fatia deixava cada projetor a cobrir menos do que a sua
+        // fatia (5,8% a menos num raio de 15 m, medido), e 5,8% por fatia numa
+        // fila de quatro come o blend todo e abre banda preta.
+        racio: Math.round(racioDaFatiaDoBlend(cell.wM, dist) * 1000) / 1000,
         distancia: Math.round(dist * 100) / 100,
         largura: Math.round(cell.wM * 100) / 100,
         altura: Math.round(cell.hM * 100) / 100,
         modelo: bUltimoBlend.modelo,
-        // Sem seleção de lente no blend (ainda não existe essa UI aqui) --
-        // fica vazio/nulo em vez de inventar um valor.
-        lente: "",
+        lente: lenteEscolhida ? lenteEscolhida.marca + " " + lenteEscolhida.modelo : "",
         shift: null,
         lumens: bUltimoBlend.lumens,
         // Num ecrã plano isto é a posição lateral em metros. Num curvo é a
@@ -4285,6 +4325,192 @@
   // escuras ao empilharem-se, sem precisar de desenhar essas zonas à
   // parte. Tal como no Ecrã LED, a curvatura não muda este desenho —
   // mostra sempre a superfície desenrolada (reta).
+  // ---------------------------------------------------- a lente de cada fatia
+  //
+  // Quanto é que UMA lente cobre, medido SOBRE a superfície.
+  //
+  // Num ecrã plano isto é a definição de throw ratio e mais nada: largura =
+  // distância ÷ rácio. Num ecrã CURVO não: a superfície é côncava e afasta-se
+  // do eixo à medida que se anda para o lado, por isso intercepta as pontas do
+  // feixe mais cedo do que um plano à mesma distância — e a imagem aterra mais
+  // curta do que a conta plana diz.
+  //
+  // Quanto? Depende de quão fechada é a curva. Com 6 m de tiro: num raio de
+  // 15 m falta 5,8%; num de 50 m, 2,1%; num ecrã quase plano, nada. Numa fila
+  // de 4 projetores, 5,8% por fatia são 1,7 m de arco por cobrir — o suficiente
+  // para comer o blend todo e abrir banda preta.
+  //
+  // A lente vive dentro do círculo, a r = R − distância do centro. Um raio que
+  // sai a phi do eixo bate na superfície a uma distância d que sai de
+  // |L + d·v| = R, e o ângulo que esse ponto ocupa NO círculo é
+  // asin(d·sin(phi) / R). O arco coberto é R vezes o dobro desse ângulo.
+  function arcoCobertoPelaLente(radiusM, distM, racio) {
+    if (!(racio > 0) || !(distM > 0)) return null;
+    var phi = Math.atan(1 / (2 * racio));           // meio-ângulo da lente
+    if (!(radiusM > 0)) return 2 * distM * Math.tan(phi);   // ecrã plano
+    var r = radiusM - distM;
+    if (r <= 0) return null;                        // lente para lá do centro
+    var cos = Math.cos(phi);
+    var d = -r * cos + Math.sqrt(r * r * cos * cos + radiusM * radiusM - r * r);
+    var alfa = Math.asin(Math.min(1, d * Math.sin(phi) / radiusM));
+    return 2 * radiusM * alfa;
+  }
+
+  // As duas perguntas ao contrário, por bisseção — a relação é monótona nos
+  // dois casos e não tem forma fechada simpática no caso curvo. Vinte passos
+  // chegam de sobra para a precisão de um metro de arco.
+  function racioParaCobrirArco(radiusM, distM, arcoM) {
+    if (!(arcoM > 0) || !(distM > 0)) return null;
+    var lo = 0.05, hi = 30;
+    if (arcoCobertoPelaLente(radiusM, distM, hi) > arcoM) return null;  // nem a mais fechada
+    if (arcoCobertoPelaLente(radiusM, distM, lo) < arcoM) return null;  // nem a mais aberta
+    for (var i = 0; i < 40; i++) {
+      var meio = (lo + hi) / 2;
+      if (arcoCobertoPelaLente(radiusM, distM, meio) > arcoM) lo = meio; else hi = meio;
+    }
+    return (lo + hi) / 2;
+  }
+
+  /** A que distância é que ESTA lente cobre a fatia. Mais rácio, mais longe. */
+  function distanciaParaCobrirArco(radiusM, racio, arcoM) {
+    if (!(arcoM > 0) || !(racio > 0)) return null;
+    var maxima = radiusM > 0 ? radiusM * 0.999 : 500;
+    var lo = 0.05, hi = maxima;
+    var noLimite = arcoCobertoPelaLente(radiusM, hi, racio);
+    if (noLimite != null && noLimite < arcoM) return null;   // não chega lá nunca
+    for (var i = 0; i < 40; i++) {
+      var meio = (lo + hi) / 2;
+      var cobre = arcoCobertoPelaLente(radiusM, meio, racio);
+      if (cobre == null || cobre < arcoM) lo = meio; else hi = meio;
+    }
+    return (lo + hi) / 2;
+  }
+
+  /**
+   * O rácio que cobre MESMO a fatia de um projetor do blend.
+   *
+   * Num ecrã plano é a conta de sempre, distância ÷ largura — e a bisseção
+   * acima devolveria exactamente isso, mas escreve-se à mão para o caso comum
+   * não depender de um método numérico.
+   *
+   * Num ecrã curvo não é: a superfície côncava afasta-se do eixo e corta as
+   * pontas do feixe mais cedo, por isso a mesma lente cobre menos arco do que
+   * a conta plana promete. Um só sítio a decidir isto, para o número que vai
+   * para o Preview e o número que se mostra na aba nunca discordarem.
+   */
+  function racioDaFatiaDoBlend(fatiaM, distM) {
+    if (!(fatiaM > 0) || !(distM > 0)) return 0;
+    var R = (bUltimoBlend && bUltimoBlend.curveEnabled) ? bUltimoBlend.curveRadius : 0;
+    if (!(R > 0)) return distM / fatiaM;
+    return racioParaCobrirArco(R, distM, fatiaM) || distM / fatiaM;
+  }
+
+  /**
+   * A LENTE DE CADA PROJETOR DO BLEND, nos dois sentidos.
+   *
+   * Pedido directo: *"nos blends falta poder ver a lente sugerida e vice
+   * versa — escolher a lente e ter a informação de onde fica"*.
+   *
+   * O catálogo é o mesmo da aba Lentes (LENTES_DATA, 71 lentes com fonte).
+   * Aqui não há tabela própria nem números de lentes escritos à mão: só a
+   * mesma base, vista do lado do blend.
+   */
+  function escreverLenteDoBlend() {
+    var elFatia = document.getElementById("b-out-fatia");
+    var elRacio = document.getElementById("b-out-racio");
+    var elLentes = document.getElementById("b-out-lentes");
+    var elNota = document.getElementById("b-lens-nota");
+    var wrapEsc = document.getElementById("b-lens-escolhida-wrap");
+    if (!elFatia) return;
+    var vazio = function (razao) {
+      elFatia.textContent = "—"; elRacio.textContent = "—"; elLentes.textContent = "—";
+      elNota.textContent = razao || "";
+      wrapEsc.style.display = "none";
+    };
+    if (!bUltimoBlend || !(bUltimoBlend.totalWm > 0)) return vazio("");
+    var dist = val("b-knowndist");
+    if (!(dist > 0)) return vazio("Escreve a distância entre a lente e o ecrã para saber que lente serve.");
+
+    // A fatia de UM projetor, medida sobre a superfície — é o que a lente tem
+    // mesmo de cobrir. Sai da mesma grelha que desenha o diagrama, para os
+    // dois nunca discordarem.
+    var grid = blendGridPositions(bUltimoBlend.nh, bUltimoBlend.nv, bUltimoBlend.oh, bUltimoBlend.ov,
+      bUltimoBlend.hpx, bUltimoBlend.vpx, bUltimoBlend.totalWm, bUltimoBlend.totalHm,
+      bUltimoBlend.totalPxH, bUltimoBlend.totalPxV);
+    if (!grid.length) return vazio("");
+    var fatia = grid[0].wM;
+    var R = bUltimoBlend.curveEnabled ? bUltimoBlend.curveRadius : 0;
+    elFatia.innerHTML = fmt(fatia, 2) + "<small>m" + (R > 0 ? " de arco" : "") + "</small>";
+
+    if (R > 0 && dist >= R) {
+      return vazio("A distância (" + fmt(dist, 2) + " m) é maior do que o raio da curva (" +
+        fmt(R, 2) + " m) — os projetores ficariam do outro lado do centro da curvatura.");
+    }
+
+    var racio = racioDaFatiaDoBlend(fatia, dist);
+    if (!racio) return vazio("Não há rácio nenhum que cubra esta fatia a esta distância.");
+    elRacio.innerHTML = fmt(racio, 2) + "<small>:1</small>";
+
+    // O aviso que só existe no caso curvo: a grelha acima repartiu o arco em
+    // fatias iguais tratando-as como se fossem planas, e numa superfície
+    // côncava isso pede uma lente mais aberta do que a conta plana sugere.
+    var nota = "";
+    if (R > 0) {
+      var racioPlano = dist / fatia;
+      var falta = arcoCobertoPelaLente(R, dist, racioPlano);
+      if (falta && falta < fatia - 0.01) {
+        nota = "Num ecrã curvo a superfície afasta-se do eixo e corta as pontas do feixe mais cedo " +
+          "do que um plano: uma lente de " + fmt(racioPlano, 2) + ":1 — o que a conta plana daria — " +
+          "cobriria só " + fmt(falta, 2) + " m dos " + fmt(fatia, 2) + " m da fatia (" +
+          fmt((1 - falta / fatia) * 100, 1) + "% a menos). O rácio acima já é o que cobre mesmo.";
+      }
+    }
+    elNota.textContent = nota;
+
+    // Quantas lentes do catálogo servem — e, da marca escolhida, quais.
+    var marca = document.getElementById("b-lensbrand").value;
+    var servem = LENTES_DATA.filter(function (l) {
+      var daMarca = !marca || l.marca === marca || l.marca.indexOf(marca + " (") === 0;
+      return daMarca && racio >= l.min && racio <= l.max;
+    });
+    if (!servem.length) {
+      elLentes.innerHTML = "<small>nenhuma no catálogo" + (marca ? " desta marca" : "") + "</small>";
+    } else {
+      var nomes = servem.slice(0, 3).map(function (l) { return l.marca + " " + l.modelo; });
+      elLentes.innerHTML = servem.length + "<small> de " + LENTES_DATA.length + " — " +
+        escapeXml(nomes.join(", ")) + (servem.length > 3 ? ", …" : "") + "</small>";
+    }
+
+    // E o sentido contrário: escolhida uma lente, a que distância fica.
+    var sel = document.getElementById("b-lensmodel");
+    if (!sel || sel.value === "custom") { wrapEsc.style.display = "none"; return; }
+    var lente = LENTES_DATA[parseInt(sel.value, 10)];
+    if (!lente) { wrapEsc.style.display = "none"; return; }
+    var dMin = distanciaParaCobrirArco(R, lente.min, fatia);
+    var dMax = distanciaParaCobrirArco(R, lente.max, fatia);
+    wrapEsc.style.display = "block";
+    if (dMin == null || dMax == null) {
+      document.getElementById("b-out-lensdist").innerHTML = "—";
+      document.getElementById("b-lens-veredito").textContent =
+        "Esta lente não consegue cobrir " + fmt(fatia, 2) + " m" + (R > 0 ? " de arco" : "") +
+        (R > 0 ? " dentro de uma curva de " + fmt(R, 2) + " m de raio." : ".");
+      return;
+    }
+    // Uma lente fixa tem um sítio, não um intervalo — escrever "entre 16,42 e
+    // 16,42 m" é fazer o leitor parar a perceber porque é que os dois números
+    // são iguais.
+    var fixa = lente.min === lente.max;
+    document.getElementById("b-out-lensdist").innerHTML =
+      (fixa ? fmt(dMin, 2) : fmt(dMin, 2) + "–" + fmt(dMax, 2)) + "<small>m</small>";
+    var dentro = dist >= dMin - 0.005 && dist <= dMax + 0.005;
+    document.getElementById("b-lens-veredito").textContent = dentro
+      ? "A distância que escreveste (" + fmt(dist, 2) + " m) está dentro do que esta lente faz."
+      : "Atenção: escreveste " + fmt(dist, 2) + " m, e esta lente cobre a fatia " +
+        (fixa ? "a " + fmt(dMin, 2) + " m (é uma lente fixa)."
+              : "entre " + fmt(dMin, 2) + " e " + fmt(dMax, 2) + " m.") +
+        " Ou muda a distância, ou muda de lente.";
+  }
+
   // Vista de cima da curvatura do blend — mesmo "blueprint do chão" do
   // Ecrã LED, mas com um arco contínuo (não em degraus de tile) já que o
   // blend é uma superfície de projeção lisa, não tiles rígidos.
@@ -4547,6 +4773,7 @@
       lumens: lumensEach
     };
 
+    escreverLenteDoBlend();
     renderProjectItems();
     if (document.getElementById("b-addproject").checked) syncBlendToProject();
     guardarBlendParaPreview();
@@ -4572,6 +4799,17 @@
     populateLensModelSelect(lnLensModelSel, this.value);
     lnLensModelSel.value = "custom";
   });
+
+  // A mesma dupla marca/modelo na aba Blending. O catálogo é o mesmo — o que
+  // muda é a pergunta: lá é "que imagem faz esta lente", aqui é "que lente
+  // cobre a fatia de um projetor desta grelha".
+  var bLensModelSel = document.getElementById("b-lensmodel");
+  document.getElementById("b-lensbrand").addEventListener("change", function () {
+    populateLensModelSelect(bLensModelSel, this.value);
+    bLensModelSel.value = "custom";
+    escreverLenteDoBlend();
+  });
+  bLensModelSel.addEventListener("change", escreverLenteDoBlend);
 
   function calcLentes() {
     var dist = val("ln-dist"), w = val("ln-w");
@@ -6777,17 +7015,24 @@
     populateLensModelSelect(lnLensModelSel, document.getElementById("ln-brand").value);
     populateLensModelSelect(pLensModelSel, pSelectedProjBrand());
     populateLensModelSelect(projProjLensModelSel, projProjSelectedBrand());
+    populateLensModelSelect(bLensModelSel, document.getElementById("b-lensbrand").value);
     // A aba Dome: as lentes, filtradas pela marca do projetor escolhido lá.
     if (typeof window.domePreencherLentes === "function") window.domePreencherLentes();
-    var brandSel = document.getElementById("ln-brand");
-    Array.from(new Set(lenses.map(function (l) { return l.marca; })))
-      .sort(function (a, b) { return a.localeCompare(b); })
-      .forEach(function (marca) {
+    // As marcas, nos dois sítios que as têm. Uma lista só, montada uma vez:
+    // duas cópias desta volta acabariam a discordar no dia em que entrasse
+    // uma marca nova no catálogo.
+    var marcas = Array.from(new Set(lenses.map(function (l) { return l.marca; })))
+      .sort(function (a, b) { return a.localeCompare(b); });
+    ["ln-brand", "b-lensbrand"].forEach(function (id) {
+      var brandSel = document.getElementById(id);
+      if (!brandSel) return;
+      marcas.forEach(function (marca) {
         var opt = document.createElement("option");
         opt.value = marca;
         opt.textContent = marca;
         brandSel.appendChild(opt);
       });
+    });
 
     [projModelSel, blendProjModelSel, projProjModelSel, ledModelSel, projLedModelSel].forEach(function (sel) {
       wireStockColor(sel);
