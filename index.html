@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.65</span>
+    <span class="mark" id="app-versao">v3.66</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1206,6 +1206,27 @@
             <div class="inputgroup"><input id="b-curve-diameter" type="number" autocomplete="off" inputmode="decimal" value="30" min="0.1" step="0.5"><span class="unit">m</span></div>
             <div class="hint">A "Largura" acima passa a ser a corda — a distância reta entre as duas pontas do ecrã (o espaço que ocupa no local). Junto com o diâmetro do círculo, dá a largura real da superfície curva (o arco) — é essa que conta para a resolução, nº de projetores e luminosidade, não a corda.</div>
           </div>
+          <!-- Onde ficam as máquinas. Pedido direto: "os projetores poderão ser
+               posicionados tanto em círculo a acompanhar como em uma linha
+               reta". Não é a mesma montagem noutra pose: num arco concêntrico
+               todas ficam à mesma distância e cada uma aponta a direito para a
+               sua fatia; numa linha reta as pontas do ecrã vêm para a frente,
+               a máquina do meio fica a mais distância do que as das pontas, e
+               por isso cada uma precisa da SUA lente. Ver a tabela por
+               máquina, mais abaixo. -->
+          <div class="field">
+            <label for="b-curve-mount">Onde ficam os projetores</label>
+            <select id="b-curve-mount" class="plain">
+              <option value="arco" selected>Em arco, a acompanhar o ecrã</option>
+              <option value="linha">Em linha reta (truss a direito)</option>
+            </select>
+            <div class="hint" id="b-curve-mount-hint">Em arco, todas as máquinas ficam à mesma distância da superfície e servem-se todas da mesma lente.</div>
+          </div>
+          <div class="field" id="b-truss-field" style="display:none;">
+            <label for="b-truss-width">Largura da truss</label>
+            <div class="inputgroup"><input id="b-truss-width" type="number" autocomplete="off" inputmode="decimal" value="28" min="0.1" step="0.5"><span class="unit">m</span></div>
+            <div class="hint">Onde ficam as máquinas, de ponta a ponta. Uma truss larga põe as das pontas a olhar para a sua fatia de esguelha, e o feixe passa-lhes muito para lá — a tabela por máquina, mais abaixo, diz quanto. Estreitá-la desperdiça menos luz.</div>
+          </div>
           <p class="note" id="b-curve-warn" style="display:none;"></p>
         </div>
 
@@ -1225,7 +1246,7 @@
         <div class="field">
           <label for="b-knowndist">Distância entre a lente e o ecrã</label>
           <div class="inputgroup"><input id="b-knowndist" type="number" autocomplete="off" inputmode="decimal" value="4.00" min="0.1" step="0.01"><span class="unit">m</span></div>
-          <div class="hint">A mesma para todos os projetores do blend — precisa dela para "Ver no Preview 3D".</div>
+          <div class="hint" id="b-knowndist-hint">A mesma para todos os projetores do blend — precisa dela para "Ver no Preview 3D".</div>
         </div>
         <!-- A lente de cada projetor do blend, nos dois sentidos: a partir da
              distância diz que rácio é preciso e quais as lentes que o cobrem;
@@ -1301,6 +1322,17 @@
             <div class="item wide"><div class="k">Com esta lente, o projetor fica a</div><div class="v" id="b-out-lensdist">—</div></div>
           </div>
           <p class="note" id="b-lens-veredito"></p>
+        </div>
+
+        <!-- Numa linha reta as máquinas deixam de ser iguais umas às outras, e
+             por isso deixa de haver UM número para dar: cada uma tem o seu
+             sítio, o seu tiro e a sua lente. -->
+        <div id="b-linha-wrap" style="display:none;">
+          <h2 style="margin-top:18px;">Máquina a máquina, na truss</h2>
+          <div class="lenstable-wrap"><table class="lenstable" id="b-linha-tabela"><thead><tr>
+            <th>Projetor</th><th>Fora do centro</th><th>Distância</th><th>Rácio</th><th>Sobra</th>
+          </tr></thead><tbody></tbody></table></div>
+          <p class="note" id="b-linha-nota"></p>
         </div>
 
         <div class="summary">
@@ -3534,7 +3566,29 @@
       }
       curva = { raio: Math.round(R * 1000) / 1000,
                 corda: Math.round(bUltimoBlend.curveChord * 1000) / 1000,
-                arco: Math.round(bUltimoBlend.curveArc * 1000) / 1000 };
+                arco: Math.round(bUltimoBlend.curveArc * 1000) / 1000,
+                // Em arco ou em linha reta. Uma carga antiga não traz isto e
+                // lê-se como "arco", que era a única montagem que existia.
+                montagem: montagemDoBlend() };
+      if (curva.montagem === "linha") {
+        var gridLinha = blendGridPositions(bUltimoBlend.nh, bUltimoBlend.nv, bUltimoBlend.oh, bUltimoBlend.ov,
+          bUltimoBlend.hpx, bUltimoBlend.vpx, bUltimoBlend.totalWm, bUltimoBlend.totalHm,
+          bUltimoBlend.totalPxH, bUltimoBlend.totalPxV);
+        var linha = maquinasEmLinha(R, celulasDoBlend(gridLinha, bUltimoBlend.nh),
+          bUltimoBlend.curveArc, dist, val("b-truss-width"));
+        if (!linha) {
+          return { erro: "Com esta largura de truss (" + fmt(val("b-truss-width"), 2) + " m) e esta " +
+            "distância as máquinas das pontas caem fora da curva — estreita a truss ou aproxima-a do ecrã." };
+        }
+        curva.trussLargura = Math.round(val("b-truss-width") * 1000) / 1000;
+        curva.trussDistancia = Math.round(dist * 1000) / 1000;
+        curva.maquinas = linha.map(function (m) {
+          return { x: Math.round(m.x * 1000) / 1000,
+                   arco: Math.round(m.arcoNoCentro * 1000) / 1000,
+                   tiro: Math.round(m.tiro * 1000) / 1000,
+                   racio: Math.round(m.racio * 1000) / 1000 };
+        });
+      }
     }
     var grid = blendGridPositions(bUltimoBlend.nh, bUltimoBlend.nv, bUltimoBlend.oh, bUltimoBlend.ov,
       bUltimoBlend.hpx, bUltimoBlend.vpx, bUltimoBlend.totalWm, bUltimoBlend.totalHm,
@@ -3544,15 +3598,20 @@
     var lenteSel = document.getElementById("b-lensmodel");
     var lenteEscolhida = (lenteSel && lenteSel.value !== "custom")
       ? LENTES_DATA[parseInt(lenteSel.value, 10)] : null;
-    var projetores = grid.map(function (cell) {
+    var projetores = grid.map(function (cell, indice) {
+      // Numa linha reta cada máquina tem o SEU rácio e a SUA distância -- essa
+      // é a diferença toda entre as duas montagens. Numa grelha de duas filas
+      // as colunas repetem-se, por isso o índice dá a volta pelo nº de colunas.
+      var naLinha = (curva && curva.maquinas)
+        ? curva.maquinas[indice % bUltimoBlend.nh] : null;
       return {
         // O RÁCIO É O QUE COBRE A FATIA DE FACTO. Num ecrã curvo a superfície
         // afasta-se do eixo e corta as pontas do feixe mais cedo do que um
         // plano: dist÷fatia deixava cada projetor a cobrir menos do que a sua
         // fatia (5,8% a menos num raio de 15 m, medido), e 5,8% por fatia numa
         // fila de quatro come o blend todo e abre banda preta.
-        racio: Math.round(racioDaFatiaDoBlend(cell.wM, dist) * 1000) / 1000,
-        distancia: Math.round(dist * 100) / 100,
+        racio: naLinha ? naLinha.racio : Math.round(racioDaFatiaDoBlend(cell.wM, dist) * 1000) / 1000,
+        distancia: naLinha ? naLinha.tiro : Math.round(dist * 100) / 100,
         largura: Math.round(cell.wM * 100) / 100,
         altura: Math.round(cell.hM * 100) / 100,
         modelo: bUltimoBlend.modelo,
@@ -4334,6 +4393,115 @@
   // escuras ao empilharem-se, sem precisar de desenhar essas zonas à
   // parte. Tal como no Ecrã LED, a curvatura não muda este desenho —
   // mostra sempre a superfície desenrolada (reta).
+  // ------------------------------------------- uma lente dentro de um círculo
+  //
+  // A GEOMETRIA COMUM ÀS DUAS MONTAGENS, escrita uma vez.
+  //
+  // Trabalha num sistema local: o centro da curvatura na origem, e o ponto da
+  // superfície ao ângulo `a` em (R·sin a, −R·cos a). O ecrã fica em y negativo
+  // (o fundo da sala) e a plateia em y positivo; a lente vive dentro do
+  // círculo. Em arco ou em linha reta muda só ONDE está a lente e PARA ONDE
+  // aponta — a conta do que ela apanha é a mesma, e por isso é uma só.
+
+  /** Onde é que um raio que sai de L na direção v (unitária) bate na superfície. */
+  function raioBateNoEcra(R, L, v) {
+    var wv = L[0] * v[0] + L[1] * v[1];
+    var ww = L[0] * L[0] + L[1] * L[1];
+    var disc = wv * wv + R * R - ww;
+    if (disc < 0) return null;
+    var s = -wv + Math.sqrt(disc);
+    if (!(s > 0)) return null;
+    var Q = [L[0] + s * v[0], L[1] + s * v[1]];
+    return { Q: Q, s: s, a: Math.atan2(Q[0], -Q[1]) };
+  }
+
+  function rodarVetor(u, ang) {
+    var c = Math.cos(ang), s = Math.sin(ang);
+    return [u[0] * c - u[1] * s, u[0] * s + u[1] * c];
+  }
+
+  /** O ângulo, COM SINAL, entre a direção `u` e o raio que vai dar a P(alvo). */
+  function anguloAteAoArco(R, L, u, alvo) {
+    var Q = [R * Math.sin(alvo), -R * Math.cos(alvo)];
+    var d = [Q[0] - L[0], Q[1] - L[1]];
+    return Math.atan2(u[0] * d[1] - u[1] * d[0], u[0] * d[0] + u[1] * d[1]);
+  }
+
+  /** Que pedaço do arco é que esta lente apanha, daqui e virada para ali. */
+  function arcoDeUmaLente(R, L, u, racio) {
+    if (!(racio > 0)) return null;
+    var phi = Math.atan(1 / (2 * racio));
+    var e1 = raioBateNoEcra(R, L, rodarVetor(u, phi));
+    var e2 = raioBateNoEcra(R, L, rodarVetor(u, -phi));
+    if (!e1 || !e2) return null;
+    return { a1: Math.min(e1.a, e2.a), a2: Math.max(e1.a, e2.a),
+             arco: R * Math.abs(e1.a - e2.a) };
+  }
+
+  /**
+   * OS PROJETORES NUMA LINHA RETA, em vez de num arco.
+   *
+   * Pedido direto: *"os projetores poderão ser posicionados tanto em círculo a
+   * acompanhar como em uma linha reta"*. Não é a mesma montagem noutra pose, e
+   * é por isso que tem conta própria: num arco concêntrico todas as máquinas
+   * ficam à mesma distância da superfície e servem-se todas da mesma lente;
+   * numa linha reta as pontas do ecrã vêm para a frente, a máquina do meio fica
+   * MAIS LONGE do que as das pontas, e cada uma precisa da sua lente.
+   *
+   * Duas decisões que se escrevem porque mudam os números, e não se adivinham:
+   *
+   * - A distância é medida da truss ao PONTO MAIS FUNDO do ecrã (o meio). É o
+   *   número que alguém consegue medir na sala com uma fita.
+   * - Cada máquina aponta ao meio da SUA fatia, e a largura da truss é dada:
+   *   uma truss larga põe as máquinas das pontas a olhar para a sua fatia muito
+   *   de esguelha, e o cone — que é simétrico — passa-lhe muito para lá. Medido
+   *   num ecrã de 28 m de corda, raio 18, com 4 máquinas a 12 m: numa truss de
+   *   28 m sobram 2,43 m de imagem por máquina das pontas; numa de 14 m, 0,09 m.
+   *   O número vai escrito, para a escolha ser de quem monta.
+   */
+  function maquinasEmLinha(R, celulas, arcoTotal, distAoFundo, larguraTruss) {
+    if (!(R > 0) || !(arcoTotal > 0) || !(distAoFundo > 0)) return null;
+    if (!celulas || !celulas.length || !(larguraTruss > 0)) return null;
+    var yTruss = -R + distAoFundo;
+    var out = [];
+    for (var i = 0; i < celulas.length; i++) {
+      // A CÉLULA, não "o arco a dividir pelo número de máquinas". As células do
+      // blend SOBREPÕEM-SE -- é disso que o blend é feito -- e cada máquina tem
+      // de cobrir a sua inteira, sobreposição incluída. Dividir o arco em
+      // partes iguais dava fatias mais estreitas do que a realidade e, com
+      // elas, lentes mais fechadas do que as que lá têm de ir.
+      var s = celulas[i].centro, fatia = celulas[i].largura;
+      var a = s / R;
+      var P = [R * Math.sin(a), -R * Math.cos(a)];
+      // Onde a máquina fica na truss: à mesma fração do meio a que a sua fatia
+      // está no arco. Espaçá-las por igual seria arbitrário -- assim a fila na
+      // truss acompanha a fila no ecrã, e no limite de uma truss tão larga como
+      // a corda cada máquina fica em frente à sua fatia.
+      var fracao = arcoTotal > 0 ? s / (arcoTotal / 2) : 0;
+      var L = [fracao * (larguraTruss / 2), yTruss];
+      // Dentro do círculo? Uma truss muito larga e muito à frente põe a máquina
+      // das pontas FORA da superfície — montagem que não existe.
+      if (Math.hypot(L[0], L[1]) >= R) return null;
+      var dir = [P[0] - L[0], P[1] - L[1]];
+      var tiro = Math.hypot(dir[0], dir[1]);
+      if (!(tiro > 0)) return null;
+      var u = [dir[0] / tiro, dir[1] / tiro];
+      // O rácio sai do lado que mais custa: o cone é simétrico, a fatia vista
+      // dali não é, e quem manda é a ponta mais afastada do eixo.
+      var lado1 = anguloAteAoArco(R, L, u, (s - fatia / 2) / R);
+      var lado2 = anguloAteAoArco(R, L, u, (s + fatia / 2) / R);
+      var meioAngulo = Math.max(Math.abs(lado1), Math.abs(lado2));
+      if (!(meioAngulo > 0)) return null;
+      var racio = 1 / (2 * Math.tan(meioAngulo));
+      var g = arcoDeUmaLente(R, L, u, racio);
+      out.push({
+        x: L[0], y: L[1], tiro: tiro, racio: racio, arcoNoCentro: s,
+        cobre: g ? g.arco : fatia, sobra: g ? Math.max(0, g.arco - fatia) : 0
+      });
+    }
+    return out;
+  }
+
   // ---------------------------------------------------- a lente de cada fatia
   //
   // Quanto é que UMA lente cobre, medido SOBRE a superfície.
@@ -4446,6 +4614,102 @@
   }
 
   /**
+   * As células de UMA fila, como a grelha do blend as define — centro medido
+   * sobre o arco e largura, sobreposição incluída. Numa grelha de duas filas as
+   * duas têm a mesma disposição horizontal, por isso basta a primeira.
+   */
+  function celulasDoBlend(grid, nh) {
+    return grid.slice(0, nh).map(function (c) {
+      return { centro: c.xCenterM, largura: c.wM };
+    });
+  }
+
+  /** Arco a acompanhar, ou linha reta. Só conta num ecrã curvo. */
+  function montagemDoBlend() {
+    var sel = document.getElementById("b-curve-mount");
+    return sel && sel.value === "linha" ? "linha" : "arco";
+  }
+
+  /** A tabela por máquina. Com `null` desaparece — não é uma tabela vazia. */
+  function escreverTabelaDaLinha(maquinas, nota) {
+    var wrap = document.getElementById("b-linha-wrap");
+    var tbody = document.querySelector("#b-linha-tabela tbody");
+    if (!wrap || !tbody) return;
+    if (!maquinas || !maquinas.length) { wrap.style.display = "none"; tbody.innerHTML = ""; return; }
+    wrap.style.display = "block";
+    tbody.innerHTML = maquinas.map(function (m, i) {
+      return "<tr><td>P" + (i + 1) + "</td><td>" + fmt(m.x, 2) + " m</td><td>" +
+        fmt(m.tiro, 2) + " m</td><td>" + fmt(m.racio, 2) + ":1</td><td>" +
+        (m.sobra > 0.05 ? fmt(m.sobra, 2) + " m" : "—") + "</td></tr>";
+    }).join("");
+    document.getElementById("b-linha-nota").textContent = nota || "";
+  }
+
+  /**
+   * O BLEND COM AS MÁQUINAS NUMA LINHA RETA.
+   *
+   * A diferença que obriga a uma tabela em vez de um número: as pontas de um
+   * ecrã curvo vêm para a frente, por isso a máquina do meio fica mais longe da
+   * sua fatia do que as das pontas. Distâncias diferentes com fatias iguais são
+   * rácios diferentes — cada máquina precisa da sua lente, ou de uma lente com
+   * zoom que chegue a todas e regulada uma a uma.
+   */
+  function escreverLinhaDoBlend(R, celulas, arcoTotal, distAoFundo) {
+    var elRacio = document.getElementById("b-out-racio");
+    var elLentes = document.getElementById("b-out-lentes");
+    var elNota = document.getElementById("b-lens-nota");
+    document.getElementById("b-lens-escolhida-wrap").style.display = "none";
+
+    var larguraTruss = val("b-truss-width");
+    var maquinas = maquinasEmLinha(R, celulas, arcoTotal, distAoFundo, larguraTruss);
+    if (!maquinas) {
+      elRacio.textContent = "—"; elLentes.textContent = "—";
+      escreverTabelaDaLinha(null);
+      elNota.textContent = "Com esta largura de truss e esta distância as máquinas das pontas " +
+        "caem fora da curva — ou estreita a truss, ou aproxima-a do ecrã.";
+      return;
+    }
+    var racios = maquinas.map(function (m) { return m.racio; });
+    var rMin = Math.min.apply(null, racios), rMax = Math.max.apply(null, racios);
+    var iguais = rMax - rMin < 0.02;
+    elRacio.innerHTML = (iguais ? fmt(rMin, 2) : fmt(rMin, 2) + "–" + fmt(rMax, 2)) + "<small>:1</small>";
+
+    // Uma lente só serve a fila inteira quando o zoom dela cobre o intervalo
+    // todo -- não basta servir uma das máquinas.
+    var marca = document.getElementById("b-lensbrand").value;
+    var servem = LENTES_DATA.filter(function (l) {
+      var daMarca = !marca || l.marca === marca || l.marca.indexOf(marca + " (") === 0;
+      return daMarca && l.min <= rMin + 0.001 && l.max >= rMax - 0.001;
+    });
+    if (!servem.length) {
+      elLentes.innerHTML = "<small>nenhuma cobre " + fmt(rMin, 2) + " a " + fmt(rMax, 2) +
+        ":1 sozinha</small>";
+    } else {
+      var nomes = servem.slice(0, 3).map(function (l) { return l.marca + " " + l.modelo; });
+      elLentes.innerHTML = servem.length + "<small> de " + LENTES_DATA.length + " — " +
+        escapeXml(nomes.join(", ")) + (servem.length > 3 ? ", …" : "") + "</small>";
+    }
+
+    var sobraMax = Math.max.apply(null, maquinas.map(function (m) { return m.sobra; }));
+    var partes = [];
+    partes.push("A distância é medida da truss ao ponto mais fundo do ecrã. Cada máquina fica " +
+      "a distância diferente da sua fatia, porque as pontas do ecrã vêm para a frente.");
+    if (!iguais) {
+      partes.push("Por isso os rácios vão de " + fmt(rMin, 2) + ":1 a " + fmt(rMax, 2) + ":1 — " +
+        (servem.length ? "uma lente com zoom que chegue às duas pontas serve a fila toda, regulada máquina a máquina."
+                       : "nenhuma lente do catálogo" + (marca ? " desta marca" : "") +
+                         " cobre esse intervalo sozinha: ou lentes diferentes, ou estreitar a truss."));
+    }
+    if (sobraMax > 0.05) {
+      partes.push("Sobra até " + fmt(sobraMax, 2) + " m de imagem para lá da fatia nas máquinas " +
+        "das pontas: o cone é simétrico e a fatia, vista de esguelha, não é. Estreitar a truss " +
+        "reduz essa sobra.");
+    }
+    escreverTabelaDaLinha(maquinas, partes.join(" "));
+    elNota.textContent = "";
+  }
+
+  /**
    * A LENTE DE CADA PROJETOR DO BLEND, nos dois sentidos.
    *
    * Pedido directo: *"nos blends falta poder ver a lente sugerida e vice
@@ -4489,6 +4753,14 @@
     var fatia = grid[0].wM;
     var R = bUltimoBlend.curveEnabled ? bUltimoBlend.curveRadius : 0;
     elFatia.innerHTML = fmt(fatia, 2) + "<small>m" + (R > 0 ? " de arco" : "") + "</small>";
+
+    // NUMA LINHA RETA a resposta não é um número, é uma tabela: as máquinas
+    // deixam de ser iguais umas às outras. Sai por outro caminho, e o de cima
+    // (um rácio, uma lente) fica escondido para não dizer duas coisas.
+    if (R > 0 && montagemDoBlend() === "linha") {
+      return escreverLinhaDoBlend(R, celulasDoBlend(grid, bUltimoBlend.nh), bUltimoBlend.curveArc, dist);
+    }
+    escreverTabelaDaLinha(null);
 
     if (R > 0 && dist >= R) {
       return vazio("A distância (" + fmt(dist, 2) + " m) é maior do que o raio da curva (" +
@@ -4890,6 +5162,20 @@
   // A mesma dupla marca/modelo na aba Blending. O catálogo é o mesmo — o que
   // muda é a pergunta: lá é "que imagem faz esta lente", aqui é "que lente
   // cobre a fatia de um projetor desta grelha".
+  // Arco ou linha reta: muda a conta e muda os campos que fazem falta.
+  document.getElementById("b-curve-mount").addEventListener("change", function () {
+    var linha = this.value === "linha";
+    document.getElementById("b-truss-field").style.display = linha ? "block" : "none";
+    document.getElementById("b-curve-mount-hint").textContent = linha
+      ? "Em linha reta, as pontas do ecrã vêm para a frente: a máquina do meio fica mais longe da sua fatia do que as das pontas, e cada uma precisa da sua lente."
+      : "Em arco, todas as máquinas ficam à mesma distância da superfície e servem-se todas da mesma lente.";
+    document.getElementById("b-knowndist-hint").textContent = linha
+      ? "Da truss ao ponto mais fundo do ecrã (o meio) — é o que se mede na sala com uma fita."
+      : "A mesma para todos os projetores do blend — precisa dela para \"Ver no Preview 3D\".";
+    calcBlend();
+  });
+  document.getElementById("b-truss-width").addEventListener("input", calcBlend);
+
   var bLensModelSel = document.getElementById("b-lensmodel");
   document.getElementById("b-lensbrand").addEventListener("change", function () {
     populateLensModelSelect(bLensModelSel, this.value);
