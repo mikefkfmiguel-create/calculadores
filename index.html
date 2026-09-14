@@ -42,7 +42,7 @@
             title="Sincronização automática com o Preview 3D — desligada, nada passa sozinho entre as duas apps; os botões manuais continuam a funcionar">🔗 Auto</button>
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
-    <span class="mark" id="app-versao">v3.85</span>
+    <span class="mark" id="app-versao">v3.86</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -114,9 +114,17 @@
     <div class="menu-bloco" id="menu-contas">
       <h3>Uma conta rápida</h3>
       <div class="menu-portas">
+        <button type="button" class="menu-porta" data-porta="led">
+          <span class="menu-porta-nome">Calcular resoluções</span>
+          <span class="menu-porta-sub">Píxeis, tamanho e pitch de um ecrã LED — e os atalhos para blend e grafismo</span>
+        </button>
         <button type="button" class="menu-porta" data-porta="projecao">
           <span class="menu-porta-nome">Calcular distâncias</span>
           <span class="menu-porta-sub">A que distância o projetor faz o ecrã que queres, e que lente serve</span>
+        </button>
+        <button type="button" class="menu-porta" data-porta="visualizacao">
+          <span class="menu-porta-nome">Calcular visualização</span>
+          <span class="menu-porta-sub">Se a plateia vê bem dali, e que tamanho de ecrã é preciso</span>
         </button>
         <button type="button" class="menu-porta" data-porta="tv">
           <span class="menu-porta-nome">Ver medidas de TV/ecrã STD</span>
@@ -630,7 +638,7 @@
       </div>
     </details>
     <div class="grid">
-      <details class="card sinal-block">
+      <details class="card sinal-block" open>
         <summary>Ecrã</summary>
         <div class="sinal-block-body">
         <div class="field">
@@ -662,21 +670,21 @@
           <div class="field" id="v-diag-field">
             <label for="v-diag">Diagonal do ecrã</label>
             <div class="inputgroup">
-              <input id="v-diag" type="number" autocomplete="off" inputmode="decimal" value="120" min="1" step="1">
+              <input id="v-diag" type="number" autocomplete="off" inputmode="decimal" placeholder="120" min="1" step="1">
               <span class="unit">polegadas</span>
             </div>
           </div>
           <div class="field" id="v-width-field" style="display:none;">
             <label for="v-width-fixed">Largura do ecrã</label>
             <div class="inputgroup">
-              <input id="v-width-fixed" type="number" autocomplete="off" inputmode="decimal" value="2.66" min="0.1" step="0.01">
+              <input id="v-width-fixed" type="number" autocomplete="off" inputmode="decimal" placeholder="2.66" min="0.1" step="0.01">
               <span class="unit">m</span>
             </div>
           </div>
           <div class="field" id="v-height-field" style="display:none;">
             <label for="v-height-fixed">Altura do ecrã</label>
             <div class="inputgroup">
-              <input id="v-height-fixed" type="number" autocomplete="off" inputmode="decimal" value="1.49" min="0.1" step="0.01">
+              <input id="v-height-fixed" type="number" autocomplete="off" inputmode="decimal" placeholder="1.49" min="0.1" step="0.01">
               <span class="unit">m</span>
             </div>
           </div>
@@ -684,11 +692,11 @@
         <div class="row2" id="v-custom-ratio" style="display:none;">
           <div class="field">
             <label for="v-rw">Largura do ecrã</label>
-            <div class="inputgroup"><input id="v-rw" type="number" autocomplete="off" inputmode="decimal" value="2.66" min="0.1" step="0.01"><span class="unit">m</span></div>
+            <div class="inputgroup"><input id="v-rw" type="number" autocomplete="off" inputmode="decimal" placeholder="2.66" min="0.1" step="0.01"><span class="unit">m</span></div>
           </div>
           <div class="field">
             <label for="v-rh">Altura do ecrã</label>
-            <div class="inputgroup"><input id="v-rh" type="number" autocomplete="off" inputmode="decimal" value="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
+            <div class="inputgroup"><input id="v-rh" type="number" autocomplete="off" inputmode="decimal" placeholder="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
           </div>
         </div>
 
@@ -713,7 +721,7 @@
         </div>
       </details>
 
-      <details class="card results sinal-block" data-accent="visualizacao">
+      <details class="card results sinal-block" data-accent="visualizacao" open>
         <div class="stripe"></div>
         <summary>Distância de visualização ideal</summary>
         <div class="sinal-block-body">
@@ -746,13 +754,13 @@
 
     <div class="divider" style="margin-top:26px;">ou calcular a partir da distância disponível</div>
     <div class="grid">
-      <details class="card sinal-block">
+      <details class="card sinal-block" open>
         <summary>Distância da plateia</summary>
         <div class="sinal-block-body">
         <div class="field">
           <label for="v-avail">Distância entre a plateia e o ecrã</label>
           <div class="inputgroup">
-            <input id="v-avail" type="number" autocomplete="off" inputmode="decimal" value="6" min="0.1" step="0.1">
+            <input id="v-avail" type="number" autocomplete="off" inputmode="decimal" placeholder="6" min="0.1" step="0.1">
             <span class="unit">metros</span>
           </div>
           <div class="hint">Usa o standard escolhido acima e o mesmo formato de ecrã.</div>
@@ -775,7 +783,7 @@
         </div>
         </div>
       </details>
-      <details class="card results sinal-block" data-accent="visualizacao">
+      <details class="card results sinal-block" data-accent="visualizacao" open>
         <div class="stripe"></div>
         <summary>Tamanho de ecrã ideal</summary>
         <div class="sinal-block-body">
@@ -808,8 +816,18 @@
         <p>Para modelos com meio-tile disponível (ex: 100×50 + 50×50), o modo "Medida do ecrã (m)" afina automaticamente a medida final com um meio-tile na borda quando isso bate mais certo que arredondar sempre para o tile inteiro.</p>
       </div>
     </details>
+    <!-- "CALCULAR RESOLUÇÕES" TEM TRÊS DONOS.
+         Pode ser a resolução de um ledwall (esta aba), a resolução combinada
+         de um blend de projetores, ou píxeis↔cm de grafismo. A porta do menu
+         traz para aqui, que é o caso comum, e as outras duas ficam à entrada
+         em vez de irem para um submenu -- um passo, não dois. -->
+    <p class="note" style="margin-top:0;">É outra coisa que procuras?
+      <button type="button" data-jumptab="blend" style="font:inherit; font-weight:600; color:var(--violet-600); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">Resolução de um blend de projetores</button>
+      ·
+      <button type="button" data-jumptab="grafismo" style="font:inherit; font-weight:600; color:var(--orange-600); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">Grafismo px↔cm</button>
+    </p>
     <div class="grid">
-      <details class="card sinal-block">
+      <details class="card sinal-block" open>
         <summary>Modelo de tile</summary>
         <div class="sinal-block-body">
         <div class="field">
@@ -833,11 +851,11 @@
           <div class="row2">
             <div class="field">
               <label for="l-mx">Tiles na horizontal</label>
-              <div class="inputgroup"><input id="l-mx" type="number" autocomplete="off" value="16" min="1" step="1"></div>
+              <div class="inputgroup"><input id="l-mx" type="number" autocomplete="off" placeholder="16" min="1" step="1"></div>
             </div>
             <div class="field">
               <label for="l-my">Tiles na vertical</label>
-              <div class="inputgroup"><input id="l-my" type="number" autocomplete="off" value="9" min="1" step="1"></div>
+              <div class="inputgroup"><input id="l-my" type="number" autocomplete="off" placeholder="9" min="1" step="1"></div>
             </div>
           </div>
         </div>
@@ -845,11 +863,11 @@
           <div class="row2">
             <div class="field">
               <label for="l-target-w">Largura desejada</label>
-              <div class="inputgroup"><input id="l-target-w" type="number" autocomplete="off" inputmode="decimal" value="8.0" min="0.1" step="0.1"><span class="unit">m</span></div>
+              <div class="inputgroup"><input id="l-target-w" type="number" autocomplete="off" inputmode="decimal" placeholder="8.0" min="0.1" step="0.1"><span class="unit">m</span></div>
             </div>
             <div class="field">
               <label for="l-target-h">Altura desejada</label>
-              <div class="inputgroup"><input id="l-target-h" type="number" autocomplete="off" inputmode="decimal" value="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
+              <div class="inputgroup"><input id="l-target-h" type="number" autocomplete="off" inputmode="decimal" placeholder="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
             </div>
           </div>
           <div class="summary-actions" style="margin:2px 0 10px; flex-wrap:wrap;">
@@ -877,11 +895,11 @@
         <div class="row2">
           <div class="field">
             <label for="l-mw">Largura do módulo</label>
-            <div class="inputgroup"><input id="l-mw" type="number" autocomplete="off" inputmode="decimal" value="500" min="1" step="1"><span class="unit">mm</span></div>
+            <div class="inputgroup"><input id="l-mw" type="number" autocomplete="off" inputmode="decimal" placeholder="500" min="1" step="1"><span class="unit">mm</span></div>
           </div>
           <div class="field">
             <label for="l-mh">Altura do módulo</label>
-            <div class="inputgroup"><input id="l-mh" type="number" autocomplete="off" inputmode="decimal" value="500" min="1" step="1"><span class="unit">mm</span></div>
+            <div class="inputgroup"><input id="l-mh" type="number" autocomplete="off" inputmode="decimal" placeholder="500" min="1" step="1"><span class="unit">mm</span></div>
           </div>
         </div>
 
@@ -921,11 +939,11 @@
         <div class="row2">
           <div class="field">
             <label for="l-rx">Píxeis (horizontal)</label>
-            <div class="inputgroup"><input id="l-rx" type="number" autocomplete="off" value="128" min="1" step="1"><span class="unit">px</span></div>
+            <div class="inputgroup"><input id="l-rx" type="number" autocomplete="off" placeholder="128" min="1" step="1"><span class="unit">px</span></div>
           </div>
           <div class="field">
             <label for="l-ry">Píxeis (vertical)</label>
-            <div class="inputgroup"><input id="l-ry" type="number" autocomplete="off" value="128" min="1" step="1"><span class="unit">px</span></div>
+            <div class="inputgroup"><input id="l-ry" type="number" autocomplete="off" placeholder="128" min="1" step="1"><span class="unit">px</span></div>
           </div>
         </div>
         <div id="l-warn" class="warn" style="display:none;"></div>
@@ -934,11 +952,11 @@
         <div class="row2">
           <div class="field">
             <label for="l-weight">Peso por tile</label>
-            <div class="inputgroup"><input id="l-weight" type="number" autocomplete="off" inputmode="decimal" value="6.0" min="0" step="0.1"><span class="unit">kg</span></div>
+            <div class="inputgroup"><input id="l-weight" type="number" autocomplete="off" inputmode="decimal" placeholder="6.0" min="0" step="0.1"><span class="unit">kg</span></div>
           </div>
           <div class="field">
             <label for="l-amp">Amp máx. por tile</label>
-            <div class="inputgroup"><input id="l-amp" type="number" autocomplete="off" inputmode="decimal" value="0.52" min="0" step="0.01"><span class="unit">A</span></div>
+            <div class="inputgroup"><input id="l-amp" type="number" autocomplete="off" inputmode="decimal" placeholder="0.52" min="0" step="0.01"><span class="unit">A</span></div>
           </div>
         </div>
 
@@ -951,7 +969,7 @@
         </div>
       </details>
 
-      <details class="card results sinal-block" data-accent="led">
+      <details class="card results sinal-block" data-accent="led" open>
         <div class="stripe"></div>
         <summary>Resolução total</summary>
         <div class="sinal-block-body">
@@ -1029,7 +1047,7 @@
 
     <div class="divider" style="margin-top:26px;">sugestão de grelha para formato standard</div>
     <div class="grid">
-      <details class="card sinal-block">
+      <details class="card sinal-block" open>
         <summary>Formato alvo</summary>
         <div class="sinal-block-body">
         <div class="field">
@@ -1056,17 +1074,17 @@
         <div class="row2">
           <div class="field">
             <label for="l-suggest-diag">Diagonal aproximada</label>
-            <div class="inputgroup"><input id="l-suggest-diag" type="number" autocomplete="off" inputmode="decimal" value="180" min="1" step="1"><span class="unit">polegadas</span></div>
+            <div class="inputgroup"><input id="l-suggest-diag" type="number" autocomplete="off" inputmode="decimal" placeholder="180" min="1" step="1"><span class="unit">polegadas</span></div>
           </div>
           <div class="field">
             <label for="l-suggest-diag-m">Diagonal aproximada</label>
-            <div class="inputgroup"><input id="l-suggest-diag-m" type="number" autocomplete="off" inputmode="decimal" value="4.57" min="0.01" step="0.01"><span class="unit">metros</span></div>
+            <div class="inputgroup"><input id="l-suggest-diag-m" type="number" autocomplete="off" inputmode="decimal" placeholder="4.57" min="0.01" step="0.01"><span class="unit">metros</span></div>
           </div>
         </div>
         <div class="hint">Usa o tamanho de módulo (largura/altura definidas acima em "Tamanho do tile") para sugerir a grelha de tiles mais próxima deste formato. Os dois campos ajustam-se automaticamente um ao outro.</div>
         </div>
       </details>
-      <details class="card results sinal-block" data-accent="led">
+      <details class="card results sinal-block" data-accent="led" open>
         <div class="stripe"></div>
         <summary>Grelhas sugeridas</summary>
         <div class="sinal-block-body">
@@ -8323,15 +8341,12 @@
           escolhePorOmissao && t === defaultTile, undefined, !t.mercado);
       });
     });
-    if (defaultTile) {
-      document.getElementById("l-mw").value = defaultTile.mw;
-      document.getElementById("l-mh").value = defaultTile.mh;
-      document.getElementById("l-rx").value = defaultTile.rx;
-      document.getElementById("l-ry").value = defaultTile.ry;
-      document.getElementById("l-weight").value = defaultTile.weight == null ? "" : defaultTile.weight;
-      document.getElementById("l-amp").value = defaultTile.amp;
-      document.getElementById("l-nits").value = defaultTile.nitsMax == null ? "" : defaultTile.nitsMax;
-    }
+    // AQUI TAMBÉM NÃO. Estas sete linhas escreviam as medidas da cabine da casa
+    // (500 × 500, 128 × 128 px) nos campos, com a lista em "Personalizado…" --
+    // e daí um pitch de 3,91 mm à vista num formulário onde ninguém escolheu
+    // cabine nenhuma. É o gémeo do que fazia o mesmo com os lúmens do projetor.
+    // Quem escolhe uma cabine na lista continua a receber as medidas dela, que
+    // é o que a escolha quer dizer -- ver o "change" do l-model.
 
     var tvOrder = stockFirstIndices(tvs);
     [tvModelSel, projDsmTvModelSel, projDelayTvModelSel, vTvModelSel].forEach(function (sel) {
