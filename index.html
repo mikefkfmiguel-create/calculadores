@@ -42,7 +42,8 @@
             title="Sincronização automática com o Preview 3D — desligada, nada passa sozinho entre as duas apps; os botões manuais continuam a funcionar">🔗 Auto</button>
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
-    <span class="mark" id="app-versao">v3.87</span>
+    <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v3.88</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -52,6 +53,13 @@
     <div class="install-banner-text" id="install-banner-text"><strong>Instala esta app</strong> — acesso direto no ecrã principal, sem andares à procura do link.</div>
     <button class="install-btn" id="install-banner-btn" style="display:none;">Instalar</button>
     <button class="install-dismiss" id="install-banner-dismiss" aria-label="Fechar">×</button>
+  </div>
+
+  <div class="update-banner" id="update-banner" style="display:none;">
+    <span class="update-dot"></span>
+    <div class="install-banner-text" id="update-banner-text"></div>
+    <button class="update-btn" id="update-banner-btn">Atualizar</button>
+    <button class="install-dismiss" id="update-banner-dismiss" aria-label="Fechar">×</button>
   </div>
 
   <div id="app-toast" role="status" aria-live="polite"></div>
@@ -10061,6 +10069,153 @@
     calcGfx();
   }());
 
+  // ------------------------------------------------------------------
+  // A VERSÃO NOVA TEM DE SE VER, E TEM DE SE PODER FORÇAR
+  //
+  // Reportado do telemóvel, com a app instalada no ecrã principal: *"abre
+  // no browser, não sobrepôs a APP já instalada"*. O separador do browser
+  // mostrava a versão nova e o ícone continuava na antiga -- e, pior do que
+  // estar velha, estava velha EM SILÊNCIO: nada, em lado nenhum, dizia que
+  // havia coisa mais recente publicada. É o defeito que esta app passa a
+  // vida a corrigir, desta vez sobre ela própria.
+  //
+  // O service worker já se actualiza sozinho (skipWaiting + clients.claim,
+  // e a navegação vai primeiro à rede). Quando isso corre bem, nada disto
+  // aparece. Isto é para quando NÃO corre: rede a meio, o Android a segurar
+  // o WebAPK instalado, um cache teimoso.
+  //
+  // A pergunta "que versão está publicada?" vai ao sw.js (4 kB) e não ao
+  // index.html (perto de 700 kB, e ele está num telemóvel com dados). O
+  // CLAUDE.md obriga a que o `const CACHE = "calculadores-vNNN"` suba a
+  // cada alteração visível, por isso é a etiqueta mais barata que existe
+  // para saber se há coisa nova -- e não obriga a bumpar um terceiro sítio.
+  // ------------------------------------------------------------------
+  var atualizacaoAvisada = false;
+
+  // O que está publicado na rede. `null` quando não se sabe (sem rede, ou
+  // resposta estranha) -- e não se sabe é diferente de "está igual": sem
+  // resposta não se diz nada a ninguém, nem se apaga cache nenhum.
+  function etiquetaPublicada() {
+    return fetch("sw.js?ver=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .then(function (txt) {
+        var m = txt && txt.match(/calculadores-v(\d+)/);
+        return m ? parseInt(m[1], 10) : null;
+      })
+      .catch(function () { return null; });
+  }
+
+  // O que esta app tem mesmo em casa. Vem do CacheStorage e não de uma
+  // variável escrita à mão: é o cache que serve os ficheiros, por isso é ele
+  // que diz a verdade sobre a versão que está a correr.
+  function etiquetaEmUso() {
+    if (!window.caches) return Promise.resolve(null);
+    return caches.keys().then(function (keys) {
+      var nums = [];
+      keys.forEach(function (k) {
+        var m = /^calculadores-v(\d+)$/.exec(k);
+        if (m) nums.push(parseInt(m[1], 10));
+      });
+      return nums.length ? Math.max.apply(null, nums) : null;
+    }).catch(function () { return null; });
+  }
+
+  function haTrabalhoAberto() {
+    try { return projetoTemTrabalho(estadoDoProjeto()); } catch (e) { return false; }
+  }
+
+  function mostrarBarraDeAtualizacao(recado) {
+    var barra = document.getElementById("update-banner");
+    var texto = document.getElementById("update-banner-text");
+    if (!barra || !texto) return;
+    texto.innerHTML = recado;
+    barra.style.display = "flex";
+  }
+
+  /**
+   * FORÇAR A VERSÃO NOVA, A SÉRIO.
+   *
+   * Desfazer o registo do service worker E apagar os caches é o único
+   * caminho que cura uma app instalada presa numa versão antiga sem ter de
+   * ir às definições do Android. A seguir ao reload, a app volta a buscar
+   * tudo à rede e regista o service worker novo.
+   *
+   * Só se faz com a rede confirmada (quem chama já tem a etiqueta
+   * publicada na mão): apagar o cache offline deixava-o sem app nenhuma no
+   * meio de um pavilhão sem wifi, que é o pior sítio para isso acontecer.
+   */
+  function forcarAtualizacao() {
+    var limpezas = [];
+    if (window.caches) {
+      limpezas.push(caches.keys().then(function (keys) {
+        return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+      }).catch(function () {}));
+    }
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+      limpezas.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+        return Promise.all(regs.map(function (r) { return r.unregister(); }));
+      }).catch(function () {}));
+    }
+    Promise.all(limpezas).then(function () {
+      window.location.reload();
+    });
+  }
+
+  // `manual` = veio de um toque no número da versão. Aí responde-se sempre
+  // alguma coisa, mesmo que seja "já estás na mais recente" -- um botão que
+  // não dá sinal nenhum é um botão avariado aos olhos de quem lhe tocou.
+  function procurarVersaoNova(manual) {
+    if (manual) showToast("A procurar versão nova…");
+    return Promise.all([etiquetaPublicada(), etiquetaEmUso()]).then(function (r) {
+      var publicada = r[0];
+      var emUso = r[1];
+      if (publicada === null) {
+        if (manual) showToast("Sem resposta da rede — não dá para confirmar agora.");
+        return;
+      }
+      // Sem cache local (primeira visita, ou o service worker ainda a
+      // instalar-se) não há nada velho para curar: tudo o que está no ecrã
+      // veio agora da rede. Dizer "há versão nova" aqui seria o alarme
+      // falso mais fácil de programar -- e o mais rápido a perder a
+      // confiança de quem o lê.
+      if (emUso === null) {
+        if (manual) showToast("Estás a correr a versão publicada, direto da rede.");
+        return;
+      }
+      if (publicada <= emUso) {
+        if (manual) {
+          var v = document.getElementById("app-versao");
+          showToast("Já estás na versão mais recente" + (v ? " (" + v.textContent.trim() + ")" : "") + ".");
+        }
+        return;
+      }
+      if (manual) { forcarAtualizacao(); return; }
+      if (atualizacaoAvisada) return;
+      atualizacaoAvisada = true;
+      mostrarBarraDeAtualizacao("<strong>Há uma versão nova publicada.</strong> " +
+        (haTrabalhoAberto()
+          ? "Guarda o que tens aberto primeiro — atualizar recarrega a app."
+          : "Toca em Atualizar para a ires buscar."));
+    });
+  }
+
+  (function ligarBotoesDeAtualizacao() {
+    var badge = document.getElementById("app-versao");
+    if (badge) {
+      badge.addEventListener("click", function () { procurarVersaoNova(true); });
+      badge.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); procurarVersaoNova(true); }
+      });
+    }
+    var btn = document.getElementById("update-banner-btn");
+    if (btn) btn.addEventListener("click", function () { forcarAtualizacao(); });
+    var fechar = document.getElementById("update-banner-dismiss");
+    if (fechar) fechar.addEventListener("click", function () {
+      var barra = document.getElementById("update-banner");
+      if (barra) barra.style.display = "none";
+    });
+  }());
+
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
       navigator.serviceWorker.register("sw.js").then(function (reg) {
@@ -10076,7 +10231,35 @@
       navigator.serviceWorker.addEventListener("controllerchange", function () {
         if (refreshedOnce) return;
         refreshedOnce = true;
+        // NUNCA recarregar por cima de trabalho aberto. Desde que a app
+        // abre limpa (v3.82) e enche os campos com um exemplo (v3.87), um
+        // reload espontâneo a meio de uma conta apagava o que ele estava a
+        // escrever -- e o service worker actualiza-se quando lhe apetece,
+        // não quando calha bem. Com trabalho aberto, a versão nova espera
+        // na barra e é ele que decide quando.
+        if (haTrabalhoAberto()) {
+          mostrarBarraDeAtualizacao("<strong>A versão nova já está descarregada.</strong> " +
+            "Guarda o que tens aberto e toca em Atualizar.");
+          atualizacaoAvisada = true;
+          return;
+        }
         window.location.reload();
+      });
+
+      // Uma pergunta à rede ao arrancar, e outra sempre que a app volta à
+      // frente depois de estar fechada há mais de cinco minutos. É pouco
+      // para o bolso de dados (4 kB) e é o que evita andar uma semana com
+      // uma versão velha sem saber.
+      var ultimaPergunta = 0;
+      function perguntarSeCalhar() {
+        var agora = Date.now();
+        if (agora - ultimaPergunta < 5 * 60 * 1000) return;
+        ultimaPergunta = agora;
+        procurarVersaoNova(false);
+      }
+      perguntarSeCalhar();
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") perguntarSeCalhar();
       });
     });
   }
