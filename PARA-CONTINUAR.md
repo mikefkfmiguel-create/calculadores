@@ -14,6 +14,53 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 14 de setembro — os últimos 5 projetos, guardados sozinhos (v3.79)
+
+**Fase 1a do `PLANO-MENU.md`.** É a rede que tem de existir antes de a app
+passar a abrir limpa — pela ordem contrária seria uma regressão com boas
+intenções.
+
+> *"Guarda sempre os 5 últimos projetos auto em cache para escolher, com
+> nomeação automática pela data."*
+
+Não substitui o "Guardar projeto", que é um **ficheiro** e serve para levar o
+trabalho daqui para fora. Isto é memória local, escrita sozinha quatro segundos
+depois de se parar de escrever, para nada se perder entre sessões sem ninguém
+se ter lembrado de carregar num botão.
+
+**O estado do projeto passou a viver num sítio só.** Estava solto dentro do
+clique do "Guardar projeto" — existia só no momento em que alguém carregava no
+botão. O `estadoDoProjeto()` é agora a metade da frente do par que o
+`applyProjState()` já era atrás. Trinta campos em duas cópias acabariam a
+discordar no dia em que entrasse mais um.
+
+**Um erro meu, apanhado à segunda linha do teste.** A primeira versão do
+"projeto vazio não conta" perguntava se havia medidas maiores do que zero — e a
+aba Projeto nasce com 16×9 tiles e outros números escritos, por isso um projeto
+acabado de abrir dizia logo *"tenho trabalho"* e entrava na lista como "Sem
+nome". A régua certa é o **`defaultValue`**: trabalho é o que **difere** do que
+a app ofereceu sozinha. Mantém-se sozinha — um campo novo amanhã entra na conta
+sem ninguém se lembrar dele.
+
+**Medido:**
+
+| caso | resultado |
+|---|---|
+| app de fresco | lista vazia, com a explicação do que ela faz |
+| sem nome nem medidas | **não entra** |
+| seis projetos seguidos | ficam 5, o mais antigo sai, o mais recente à frente |
+| mesmo nome, três gravações | **uma** entrada, não três |
+| recarregar a página | a lista está lá |
+| abrir o 4.º da lista | repõe o projeto inteiro |
+| `setItem` a rebentar (quota) | **não apaga nada** e escreve *"não coube na memória do navegador — usa Guardar projeto"* |
+
+O ramo da quota foi forçado a partir o `setItem` de propósito: encher a memória
+do navegador a sério não chegou a falhar, e um ramo de erro que nunca se
+executou não está testado.
+
+A lista vive por agora ao pé do Guardar/Abrir, na aba Projeto. Muda-se para o
+ecrã de boas-vindas na Fase 1c.
+
 ## 14 de setembro — a aba Lentes responde sozinha (v3.78)
 
 *"Esta menina deveria fazer a conta e dar as opções sozinha para consulta."*

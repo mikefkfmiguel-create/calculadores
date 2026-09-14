@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.78</span>
+    <span class="mark" id="app-versao">v3.79</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1924,6 +1924,13 @@
                   <input type="file" id="proj-open-file" accept="application/json,.json" style="display:none;">
                   <button class="copy" id="proj-clear" title="Repõe TODAS as calculadoras (incluindo zonas do Ecrã Complexo e o Assistente de Projeto) ao estado inicial">Limpar projeto</button>
                 </div>
+              </div>
+              <!-- Os últimos 5, gravados sozinhos. Ficam aqui até o ecrã de
+                   boas-vindas existir (Fase 1c do PLANO-MENU.md), que é onde
+                   vão ser a primeira coisa que se vê. -->
+              <div class="field" style="margin-top:14px;">
+                <label>Últimos projetos <small>(guardados sozinhos)</small></label>
+                <div id="proj-historico" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
               </div>
               <pre class="sumbox" id="proj-sum"></pre>
             </div>
@@ -7084,15 +7091,18 @@
     return idx >= 0 ? String(idx) : "custom";
   }
 
-  document.getElementById("proj-save").addEventListener("click", function () {
-    var nome = document.getElementById("proj-nome").value.trim() || "projeto";
-    var stripped = Array.from(nome.normalize("NFD")).filter(function (ch) {
-      var code = ch.codePointAt(0);
-      return code < 768 || code > 879;
-    }).join("");
-    var slug = stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
-
-    var state = {
+  /**
+   * O ESTADO DO PROJETO, NUM SÍTIO SÓ.
+   *
+   * Vivia solto dentro do clique do "Guardar projeto", e por isso só existia
+   * no momento em que alguém carregava no botão. O histórico automático
+   * precisa exactamente do mesmo objeto, sem clique nenhum -- e duas cópias
+   * desta lista de 30 campos acabariam a discordar no dia em que entrasse
+   * mais um. O `applyProjState()` já era a metade de trás deste par; isto é a
+   * da frente.
+   */
+  function estadoDoProjeto() {
+    return {
       _app: "calculadores-projeto",
       _v: 1,
       nome: fieldVal("proj-nome"),
@@ -7118,7 +7128,155 @@
       selectedSwitchers: Array.from(selectedSwitcherKeys),
       selectedLedProcs: Array.from(selectedLedProcKeys)
     };
-    saveOrShareFile(slug + ".calculadores.json", JSON.stringify(state, null, 2), "application/json;charset=utf-8");
+  }
+
+  // ------------------------------------------------- os últimos 5 projetos
+  //
+  // A REDE QUE TORNA O ARRANQUE LIMPO SEGURO.
+  //
+  // Pedido: *"guarda sempre os 5 últimos projetos auto em cache para escolher,
+  // com nomeação automática pela data"*. Não substitui o "Guardar projeto",
+  // que é um FICHEIRO e serve para levar o trabalho daqui para fora; isto é
+  // outra coisa -- memória local, escrita sozinha, para nada se perder entre
+  // sessões sem ninguém se ter lembrado de carregar num botão.
+  //
+  // Existe antes do arranque limpo de propósito: a app só pode passar a abrir
+  // sem nada carregado depois de haver por onde voltar. Ao contrário, era uma
+  // regressão com boas intenções.
+  var HISTORICO_KEY = "calculadores-historico-v1";
+  var HISTORICO_MAX = 5;
+
+  /**
+   * Um projeto vazio não conta.
+   *
+   * Cinco entradas todas em branco é o mesmo que não ter rede nenhuma -- e é
+   * exactamente o que aconteceria se isto gravasse a cada tecla desde o
+   * arranque. Conta como "há aqui trabalho" ter nome, ter zonas, ou ter
+   * qualquer medida escrita à mão.
+   */
+  function projetoTemTrabalho(estado) {
+    if (!estado) return false;
+    if (String(estado.nome || "").trim()) return true;
+    if (Array.isArray(estado.ledZones) && estado.ledZones.length) return true;
+    // E NÃO "tem medidas maiores do que zero", que foi a primeira versão e
+    // estava errada: a aba Projeto nasce com 16x9 tiles e um punhado de outros
+    // números escritos, por isso um projeto acabado de abrir dizia logo "tenho
+    // trabalho" e entrava na lista com o nome "Sem nome". Apanhado a medir, à
+    // segunda linha do teste.
+    //
+    // A régua certa é o `defaultValue`, que é o valor do HTML e não muda
+    // quando o JS escreve no campo: trabalho é o que DIFERE do que a app
+    // ofereceu sozinha. Mantém-se sozinha -- um campo novo amanhã entra nesta
+    // conta sem ninguém se lembrar dele.
+    var painel = document.querySelector('.panel[data-mode="projeto"]');
+    if (!painel) return false;
+    return Array.prototype.some.call(
+      painel.querySelectorAll('input[type="number"], input[type="text"], input[type="date"]'),
+      function (el) { return el.value !== el.defaultValue; });
+  }
+
+  function lerHistorico() {
+    try {
+      var bruto = JSON.parse(localStorage.getItem(HISTORICO_KEY) || "[]");
+      return Array.isArray(bruto) ? bruto : [];
+    } catch (e) { return []; }
+  }
+
+  /** "14/09/2026, 22:31" — a data é o nome de quem não escreveu nenhum. */
+  function carimboDeData(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return iso || "";
+    var dois = function (n) { return String(n).padStart(2, "0"); };
+    return dois(d.getDate()) + "/" + dois(d.getMonth() + 1) + "/" + d.getFullYear() +
+           ", " + dois(d.getHours()) + ":" + dois(d.getMinutes());
+  }
+
+  /**
+   * Grava o estado de agora à frente da lista.
+   *
+   * Substitui a entrada do topo quando é a mesma sessão de trabalho (mesmo
+   * nome), em vez de encher os cinco lugares com a mesma coisa de minuto a
+   * minuto -- cinco cópias do mesmo projeto não são uma rede, são um eco.
+   *
+   * QUANDO A QUOTA ESGOTA, NÃO APAGA NADA. Cinco projetos com plantas podem
+   * não caber, e a saída fácil -- deitar fora os antigos para meter o novo --
+   * seria perder trabalho para guardar trabalho. Prefere ficar como está e
+   * dizê-lo.
+   */
+  function guardarNoHistorico() {
+    var estado = estadoDoProjeto();
+    if (!projetoTemTrabalho(estado)) return false;
+    var lista = lerHistorico();
+    var agora = new Date().toISOString();
+    var nome = String(estado.nome || "").trim();
+    var entrada = { quando: agora, nome: nome, estado: estado };
+    if (lista.length && String(lista[0].nome || "").trim() === nome) lista[0] = entrada;
+    else lista.unshift(entrada);
+    lista = lista.slice(0, HISTORICO_MAX);
+    try {
+      localStorage.setItem(HISTORICO_KEY, JSON.stringify(lista));
+      escreverHistorico();
+      return true;
+    } catch (e) {
+      escreverHistorico("Não coube na memória do navegador — o histórico ficou como estava. " +
+        "Usa \"Guardar projeto\" para levares este para um ficheiro.");
+      return false;
+    }
+  }
+
+  // Grava sozinho, mas não a cada tecla: espera que a pessoa pare de escrever.
+  var historicoAEspera = null;
+  function armarHistorico() {
+    clearTimeout(historicoAEspera);
+    historicoAEspera = setTimeout(guardarNoHistorico, 4000);
+  }
+
+  function abrirDoHistorico(i) {
+    var entrada = lerHistorico()[i];
+    if (!entrada || !entrada.estado) return;
+    applyProjState(entrada.estado);
+    escreverHistorico("Aberto: " + (entrada.nome || carimboDeData(entrada.quando)));
+  }
+
+  function escreverHistorico(recado) {
+    var caixa = document.getElementById("proj-historico");
+    if (!caixa) return;
+    var lista = lerHistorico();
+    if (!lista.length) {
+      caixa.innerHTML = '<div class="hint">Ainda não há nada guardado aqui. ' +
+        'A app grava sozinha os ' + HISTORICO_MAX + ' últimos projetos, para nada se perder.</div>';
+      return;
+    }
+    caixa.innerHTML = lista.map(function (e, i) {
+      var titulo = e.nome || "Sem nome";
+      return '<button type="button" class="copy" data-historico="' + i + '">' +
+        escapeXml(titulo) + ' <small>· ' + escapeXml(carimboDeData(e.quando)) + '</small></button>';
+    }).join("") + (recado ? '<div class="hint">' + escapeXml(recado) + '</div>' : "");
+  }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("[data-historico]") : null;
+    if (b) abrirDoHistorico(parseInt(b.dataset.historico, 10));
+  });
+
+  // O que mexe no projeto arma a gravação. A aba Projeto é o espelho de tudo
+  // o resto (é para lá que as outras abas mandam o que está marcado), por
+  // isso ouvir esta chega -- e ouvir as catorze seria catorze sítios a
+  // lembrarem-se de fazer o mesmo.
+  ["input", "change"].forEach(function (ev) {
+    var painel = document.querySelector('.panel[data-mode="projeto"]');
+    if (painel) painel.addEventListener(ev, armarHistorico, true);
+  });
+
+  document.getElementById("proj-save").addEventListener("click", function () {
+    var nome = document.getElementById("proj-nome").value.trim() || "projeto";
+    var stripped = Array.from(nome.normalize("NFD")).filter(function (ch) {
+      var code = ch.codePointAt(0);
+      return code < 768 || code > 879;
+    }).join("");
+    var slug = stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
+    saveOrShareFile(slug + ".calculadores.json",
+      JSON.stringify(estadoDoProjeto(), null, 2), "application/json;charset=utf-8");
   });
 
   // Aplica um estado de projeto (guardado num ficheiro, ou o "em branco"
@@ -8024,6 +8182,9 @@
     calcProjecao();
     calcVisualizacao();
     calcLed();
+    // A lista dos últimos projetos, logo no arranque: uma rede que só aparece
+    // depois de se mexer em alguma coisa não serve de rede.
+    escreverHistorico();
     lzRestoreFromStorage();
     // Depois das zonas estarem repostas: assim o calcTV() lá em baixo já
     // corre com a aba TVs como o utilizador a deixou, e a sincronização
@@ -8055,6 +8216,9 @@
     calcProjecao();
     calcVisualizacao();
     calcLed();
+    // A lista dos últimos projetos, logo no arranque: uma rede que só aparece
+    // depois de se mexer em alguma coisa não serve de rede.
+    escreverHistorico();
     lzRestoreFromStorage();
     // Depois das zonas estarem repostas: assim o calcTV() lá em baixo já
     // corre com a aba TVs como o utilizador a deixou, e a sincronização
