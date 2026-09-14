@@ -9,6 +9,11 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+**Combinado e ainda por fazer:** o `PLANO-MENU.md` — um ecrã de boas-vindas com
+cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
+Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
+só entra no menu no dia em que o destino dela passa a responder à chegada.
+
 ## 14 de setembro — a aba Lentes responde sozinha (v3.78)
 
 *"Esta menina deveria fazer a conta e dar as opções sozinha para consulta."*
