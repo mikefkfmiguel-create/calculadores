@@ -14,6 +14,43 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 14 de setembro — a versão nova tem de se ver, e de se poder forçar (v3.88)
+
+> *"Abre no browser, não sobrepôs a APP já instalada."*
+
+Do telemóvel, com a app no ecrã principal: o separador do browser mostrava a
+v3.87 e o ícone instalado continuava atrás. O service worker já se actualiza
+sozinho (`skipWaiting` + `clients.claim`, navegação primeiro à rede), e nos
+testes faz-lhe justiça — o problema não é ele falhar, é **falhar em silêncio**:
+não havia nada, em lado nenhum, a dizer que estava publicada coisa mais nova.
+
+**Duas peças, e nenhuma delas é um terceiro sítio para bumpar a versão:**
+
+- **A pergunta.** Ao arrancar (e quando a app volta à frente, no máximo de 5
+  em 5 minutos) vai buscar o `sw.js` à rede — 4 kB, não os ~700 kB do
+  `index.html` — e lê o `const CACHE = "calculadores-vNNN"`. Do outro lado,
+  a versão em casa sai do `caches.keys()`, que é o cache que serve mesmo os
+  ficheiros. Publicada > em uso, aparece uma barra âmbar.
+- **O número da versão passa a ser um botão.** Toca e ele procura; se houver
+  coisa nova, apaga os caches, desfaz o registo do service worker e recarrega
+  — que é o único caminho que cura uma app instalada presa numa versão antiga
+  sem ir às definições do Android. Se não houver, diz "já estás na mais
+  recente": um botão que não dá sinal nenhum está avariado aos olhos de quem
+  lhe tocou.
+
+**O que se corrigiu de caminho:** o `controllerchange` recarregava a página
+*sempre*. Desde que a app abre limpa (v3.82) e enche os campos com um exemplo
+(v3.87), um reload espontâneo a meio de uma conta apagava o que ele estava a
+escrever — e o service worker actualiza-se quando lhe apetece, não quando
+calha bem. Agora, **com trabalho aberto não recarrega**: a versão nova espera
+na barra, com o recado a dizer que já está descarregada. Medido: nome de
+projeto escrito, versão nova publicada, `update()` forçado — o nome sobreviveu
+e a barra apareceu.
+
+**Sem lixo no cache:** o `sw.js?ver=` da pergunta sai do service worker sem
+`respondWith`. Pelo ramo cache-first, cada pergunta deixava lá uma entrada nova
+que ninguém apagava.
+
 ## 14 de setembro — o exemplo nos campos, sem a conta a correr (v3.87)
 
 > *"Põe o exemplo nos campos mas sem cálculo activo. Dá a opção de escolher."*

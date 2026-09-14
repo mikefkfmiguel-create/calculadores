@@ -1,4 +1,4 @@
-const CACHE = "calculadores-v375";
+const CACHE = "calculadores-v376";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -51,6 +51,13 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+
+  // A pergunta "que versão está publicada?" que a app faz ao arrancar leva
+  // um ?ver= diferente de cada vez. Tem de ir sempre à rede (é essa a
+  // razão de existir) e não pode passar por aqui: o ramo cache-first lá
+  // em baixo guardava uma entrada nova a cada pergunta, e ninguém as
+  // apagava. Sair sem respondWith deixa o browser tratar dela.
+  if (url.pathname.endsWith("/sw.js")) return;
 
   const isData = DATA_FILES.some((f) => url.pathname.endsWith(f.replace("./", "/")));
 
