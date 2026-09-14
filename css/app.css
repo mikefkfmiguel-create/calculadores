@@ -1746,3 +1746,49 @@
     cursor: pointer;
   }
   .calcw-apply:hover { background: var(--cyan-600); }
+
+  /* ─────────────────────────────────────────────── o ecrã de boas-vindas
+   *
+   * Fase 1c do PLANO-MENU.md. A app tem 14 abas, 126 campos e 115 saídas; quem
+   * está no terreno e quer uma conta não devia ter de escolher entre catorze
+   * substantivos. O menu chama as coisas pelo que se quer delas.
+   *
+   * Enquanto está aberto, as abas e os painéis não existem -- não é um painel
+   * por cima, é o outro ecrã. */
+  #menu { display: none; padding: 4px 0 28px; }
+  body.no-menu #menu { display: none; }
+  body:not(.no-menu) #menu { display: block; }
+  body:not(.no-menu) #tabs-wrap,
+  body:not(.no-menu) .panel,
+  body:not(.no-menu) #btMenu { display: none; }
+
+  .menu-titulo { font-size: 20px; font-weight: 650; margin: 10px 0 20px; }
+  .menu-bloco { margin-bottom: 26px; }
+  .menu-bloco h3 {
+    font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 0 10px;
+  }
+  .menu-historico { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Uma coluna no telemóvel, duas a partir do tablet: as portas são para se
+     ler de relance, não para caberem muitas. */
+  .menu-portas { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .menu-portas { grid-template-columns: 1fr 1fr; } }
+
+  .menu-porta {
+    display: block; text-align: left; text-decoration: none;
+    padding: 16px 18px; border-radius: 12px;
+    border: 1px solid var(--line); background: var(--paper-raised);
+    color: var(--ink); cursor: pointer; width: 100%;
+    font-family: inherit; font-size: inherit;
+  }
+  .menu-porta:hover { border-color: var(--focus); }
+  .menu-porta-nome { display: block; font-weight: 600; font-size: 15px; }
+  .menu-porta-sub {
+    display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .menu-porta-forte { border-color: var(--focus); border-width: 1.5px; }
+  .menu-portas-leves .menu-porta { padding: 12px 14px; }
+  .menu-porta-leve .menu-porta-nome { font-weight: 500; font-size: 14px; }
+  .menu-porta-perigo:hover { border-color: var(--danger-600); }
