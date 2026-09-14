@@ -662,8 +662,13 @@
     // Mesma guarda das TVs -- ver lzSyncArmado.
     if (!lzSyncArmado.led) return;
     var existente = lzList.querySelector('.card[data-origem-led="1"]');
+    var copias = Array.prototype.slice.call(lzList.querySelectorAll('.card[data-origem-led-copia="1"]'));
     if (!spec || !spec.ativo || !(spec.mx > 0) || !(spec.my > 0)) {
-      if (existente) { existente.remove(); calcLedZones(); }
+      if (existente || copias.length) {
+        if (existente) existente.remove();
+        copias.forEach(function (c) { c.remove(); });
+        calcLedZones();
+      }
       return;
     }
     var opts = {
@@ -704,14 +709,66 @@
         existente.dataset.nomeAutomatico = nomeNovo;
         campoNome.dispatchEvent(new Event("input", { bubbles: true }));
       }
+      lzAcertarCopiasDoLed(existente, spec, opts);
       calcLedZones();
       return;
     }
     var card = lzAddZone(spec.nome || "Ecrã LED", opts, false);
     card.dataset.origemLed = "1";
     card.dataset.nomeAutomatico = spec.nome || "Ecrã LED";
+    lzAcertarCopiasDoLed(card, spec, opts);
     calcLedZones();
   }
+  /**
+   * OS ECRÃS IGUAIS, na sala.
+   *
+   * A quantidade da aba Ecrã LED multiplicava tiles, peso e amperagem e
+   * deixava UM ecrã no 3D. Reportado assim: *"na calculadora marquei 3 e o 3D
+   * apenas mostra um"*. Tinha razão -- três ecrãs iguais ocupam três sítios, e
+   * um desenho com um só não é o desenho da montagem.
+   *
+   * Não se inventa aqui um esquema de colocação: usa-se o das RÉPLICAS, que já
+   * existe no diálogo da zona e que ele já conhece -- em fila, com o gap que
+   * lá estiver escrito. O sítio é um ponto de partida, não uma decisão: as
+   * cópias arrastam-se no 3D como qualquer outra zona.
+   *
+   * Uma cópia que já existe só recebe modelo e tamanho, nunca posição. É a
+   * mesma regra do botão "Atualizar réplicas", e pela mesma razão: quem já as
+   * arrumou na sala não quer que mudar o tile lhas atire outra vez para a fila.
+   */
+  function lzAcertarCopiasDoLed(principal, spec, opts) {
+    var quantas = Math.max(1, Math.round(spec.qtd || 1));
+    var querCopias = quantas - 1;
+    var copias = Array.prototype.slice.call(lzList.querySelectorAll('.card[data-origem-led-copia="1"]'));
+    // A mais: saem as últimas, que são as que ele acabou de deixar de querer.
+    while (copias.length > querCopias) copias.pop().remove();
+    var nomeBase = principal.querySelector(".lz-name").value.trim() || "Ecrã LED";
+    copias.forEach(function (c, i) {
+      lzApplyOptsToCard(c, opts);
+      var campo = c.querySelector(".lz-name");
+      if (campo && lzNomeEhAutomatico(c, campo.value.trim())) {
+        campo.value = nomeBase + " " + (i + 2);
+        c.dataset.nomeAutomatico = campo.value;
+      }
+    });
+    if (copias.length >= querCopias) return;
+    // Em falta: nascem em fila, a partir da última que lá estiver.
+    var gap = parseFloat(principal.querySelector(".lz-dup-gap").value);
+    if (isNaN(gap)) gap = 0;
+    var wh = lzCardWH(principal);
+    var baseX = parseFloat(principal.querySelector(".lz-posx").value) || 0;
+    var baseY = parseFloat(principal.querySelector(".lz-posy").value) || 0;
+    for (var i = copias.length; i < querCopias; i++) {
+      var novas = Object.assign({}, opts);
+      novas.posX = baseX + (i + 1) * ((wh.w || 0) + gap);
+      novas.posY = baseY;
+      novas.posMode = "center";
+      var nova = lzAddZone(nomeBase + " " + (i + 2), novas, false);
+      nova.dataset.origemLedCopia = "1";
+      nova.dataset.nomeAutomatico = nomeBase + " " + (i + 2);
+    }
+  }
+
   window.lzSincronizarLed = lzSincronizarLed;
 
   /**

@@ -41,7 +41,7 @@
             title="Abrir projeto — carrega um ficheiro guardado antes, em qualquer aba">📂 Abrir</button>
     <button type="button" class="mark topbtn topbtn-danger" id="btLimparProjetoTopo"
             title="Limpar projeto — repõe todas as calculadoras ao estado inicial">🗑 Limpar</button>
-    <span class="mark" id="app-versao">v3.71</span>
+    <span class="mark" id="app-versao">v3.72</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -800,7 +800,7 @@
         <div class="field">
           <label for="l-qty">Ecrãs iguais a este</label>
           <div class="inputgroup"><input id="l-qty" type="number" autocomplete="off" value="1" min="1" step="1"></div>
-          <div class="hint">Multiplica o nº de tiles, o peso e a amperagem — o que se carrega e o que se alimenta. O tamanho, a resolução e o pitch são de cada ecrã e não mudam. Para ecrãs <em>diferentes</em> uns dos outros, ou para lhes dar posição na sala, usa o <b>Ecrã Complexo</b>.</div>
+          <div class="hint">Multiplica o nº de tiles, o peso e a amperagem — o que se carrega e o que se alimenta — e põe os ecrãs na sala, em fila, no <b>Ecrã Complexo</b> e no 3D. O tamanho, a resolução e o pitch são de cada ecrã e não mudam. O sítio de cada um é só um ponto de partida: arrastam-se no 3D como qualquer zona. Para ecrãs <em>diferentes</em> uns dos outros, usa o <b>Ecrã Complexo</b>.</div>
         </div>
 
         <div class="divider">Tamanho do tile</div>
@@ -4426,7 +4426,12 @@
       curveEnabled: lCurveEnabled.checked,
       curveMode: lCurveMode,
       curveValue: val("l-curve-value"),
-      curveDir: document.getElementById("l-curve-dir").value
+      curveDir: document.getElementById("l-curve-dir").value,
+      // Quantos ecrãs iguais. Três ecrãs iguais ocupam três sítios na sala, e
+      // um desenho com um só não é o desenho da montagem -- reportado assim:
+      // "na calculadora marquei 3 e o 3D apenas mostra um". Quem os coloca é
+      // o mecanismo de réplicas da Ecrã Complexo (ver lzAcertarCopiasDoLed).
+      qtd: Math.max(1, Math.round(val("l-qty") || 1))
     });
   }
 
