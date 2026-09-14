@@ -9,6 +9,40 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+## 14 de setembro — a aba Projeto parecia o projeto, e não era (v3.70)
+
+Reportado com foto e duas frases: *"não transportou o nome e não chegou nada ao
+3D"*. Na imagem, a aba **Projeto** cheia — modelo de tile Unilumin, 60 tiles,
+378 kg, relatório completo com switchers e processadores — e, ao lado, o Preview
+a dizer **"A sala está vazia"**.
+
+As duas queixas eram a mesma coisa, e reproduzi-la deu a resposta:
+
+| | ponte para o 3D | nome |
+|---|---|---|
+| nada marcado, nome escrito | **(vazia)** | perde-se |
+| "Adicionar ao projeto" marcado | 1 zona | — |
+| …e depois o nome | 1 zona | **chega** |
+
+Nada estava marcado com **"Adicionar ao projeto"**, por isso não existia carga
+nenhuma. Sem carga o 3D fica vazio — e o nome também não vai, porque não há
+onde ele viaje: o `lzGuardarParaPreview()` desiste logo quando não há zonas nem
+cúpula, e o nome é um campo do payload, não um payload.
+
+**A app já sabia.** "Nenhum item adicionado ainda" existe desde sempre — dentro
+do `<details>` "Itens do projeto", **fechado**. É a mesma gaveta fechada da
+v3.38 do Preview, e dá o mesmo resultado: quem olha vê uma ficha técnica
+completa e conclui, com toda a razão, que o projeto está feito.
+
+Agora há um aviso em cima, aberto, a dizer o que falta — e um **botão que o
+faz**, que marca a caixa da calculadora correspondente ao tipo de projeto
+escolhido (Ecrã LED ou Projeção). Um clique, e a zona aparece, a ponte
+escreve-se e o nome passa a seguir com ela.
+
+A lista de ids vem do `ADDPROJECT_BY_MODE`, que é a canónica, e não de uma
+segunda lista escrita à mão — uma calculadora nova não pode aparecer numa e
+faltar na outra.
+
 ## 14 de setembro — quantos ecrãs iguais, e o nome que não viajava (v3.69)
 
 Duas coisas pequenas, as duas reportadas com foto.
