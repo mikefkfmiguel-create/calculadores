@@ -134,7 +134,7 @@ v3.88.
 Sete coisas, medidas hoje. As duas primeiras já eram conhecidas; as outras
 cinco saíram desta análise.
 
-### 4.1 `Nº de tiles` mostra `NaN x NaN` — **uma linha**
+### 4.1 `Nº de tiles` mostra `NaN x NaN` — **uma linha** ✅ *resolvido na v3.89*
 
 `index.html:6330` é a **única** linha de resultado do bloco que concatena
 números crus:
@@ -148,7 +148,7 @@ devolvem `—` para um valor não-finito** (`utils.js:5-12`). A guarda existe,
 está escrita, e esta linha é a única que a contorna. Com o formulário vazio,
 `mx` e `my` vêm `NaN` e o `NaN x NaN` chega ao ecrã.
 
-### 4.2 Sinal & Data Rate escolhe a cabine da casa por ti
+### 4.2 Sinal & Data Rate escolhe a cabine da casa por ti ✅ *resolvido na v3.89*
 
 É a **única** lista de cabines sem `Personalizado…`. Sem essa opção o browser
 escolhe a primeira à mesma, e o código decide deliberadamente que seja a da
@@ -156,7 +156,36 @@ casa (`index.html:8468-8480`). É o último sobrevivente do defeito 3.3 —
 corrigido em todo o lado menos aqui, e está comentado no código como "fica por
 arrumar".
 
-### 4.3 O inglês está **partido** nos ecrãs novos — o pior dos sete
+### 4.2-bis A aba Projeto inventava uma cabine — **o pior de todos** ✅ *resolvido na v3.89*
+
+Saiu ao medir a correcção da 4.1, e é mais grave do que as duas que a
+motivaram. `parseInt("custom")` dá `NaN`, e a linha era:
+
+```js
+var tile = LED_TILES_DATA[isNaN(tileIdx) ? 0 : tileIdx];
+```
+
+Ou seja: com **"Personalizado…"** na lista — que é o que a app mostra à
+entrada desde que deixou de escolher modelos por ti — a aba Projeto calculava
+tudo a partir da **primeira cabine do catálogo**. Medido a frio, antes da
+correcção:
+
+> pitch **3,91 mm** · 2048 × 1152 px · **864,0 kg** · **82,08 A** (27,36 A/fase)
+
+São os números da YESTECH MG6S P3.91, que ninguém tinha escolhido. E o
+`ledSumText` nomeava-a por extenso — por isso a cabine errada saía **no resumo
+copiado e no PDF**.
+
+Peso e amperagem não são um engano como os outros: são o que decide se a
+estrutura aguenta e se o quadro chega. Era o pior sítio onde esta app podia
+enganar alguém.
+
+Sem cabine escolhida, os campos ficam a `—` e o resumo fica vazio. O resto do
+caminho já estava preparado: o `ledPixels` fica no `0` com que nasce, a lista
+de processadores de LED só corre com `ledPixels > 0`, e o resumo já escrevia
+"(por preencher)".
+
+### 4.3 O inglês está **partido** nos ecrãs novos — o pior dos que ficam
 
 O motor de tradução é substituição de frases: percorre o texto visível e troca
 cada trecho em PT que reconhece. Os ecrãs novos — o menu (v3.83), a barra de
@@ -267,8 +296,8 @@ com testes.
 
 ## 8. Ordem sugerida
 
-1. **`NaN x NaN`** e **a lista do Sinal & Data Rate** — uma linha e um
-   `<option>`. Fecham as duas pontas conhecidas.
+1. ~~**`NaN x NaN`** e **a lista do Sinal & Data Rate**~~ — feitos na v3.89, e
+   com eles a cabine inventada da 4.2-bis, que só apareceu ao medir.
 2. **O inglês dos ecrãs novos** — é o defeito mais feio que está no ar, e
    aparece a quem carregar em EN. Levar também uma forma de o detetar.
 3. **O botão de versão no Preview** — o mesmo remédio de ontem, do outro lado.

@@ -43,7 +43,7 @@
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v3.88</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v3.89</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -6309,7 +6309,42 @@
       else {
       updateSourceHint(projLedModelSel, LED_TILES_DATA, "proj-led-model-source", true);
       var tileIdx = parseInt(projLedModelSel.value, 10);
-      var tile = LED_TILES_DATA[isNaN(tileIdx) ? 0 : tileIdx];
+      // NENHUMA CABINE ESCOLHIDA -> NENHUM NÚMERO INVENTADO.
+      //
+      // Isto era `LED_TILES_DATA[isNaN(tileIdx) ? 0 : tileIdx]`, e o
+      // `parseInt("custom")` dá NaN -- ou seja, com "Personalizado…" na lista
+      // (o que a app mostra à entrada, desde que deixou de escolher modelos
+      // por ti) a aba Projeto calculava tudo a partir da PRIMEIRA cabine do
+      // catálogo. Medido a frio: pitch 3,91 mm, 2048 × 1152 px, 864,0 kg e
+      // 82,08 A -- os números da YESTECH MG6S, que ninguém escolheu. E o
+      // `ledSumText` lá em baixo nomeava-a por extenso, por isso a cabine
+      // errada saía no resumo copiado e no PDF.
+      //
+      // Peso e amperagem não são um engano como os outros: são o que decide
+      // se a estrutura aguenta e se o quadro chega. Um número destes numa
+      // ficha técnica é o pior sítio onde esta app pode enganar alguém.
+      //
+      // Sem cabine escolhida os campos ficam a "—" e o resumo fica vazio. O
+      // resto do caminho já está preparado para isso sem mais nada: o
+      // `ledPixels` fica no 0 com que nasce e a lista de processadores de LED
+      // só corre com `ledPixels > 0`; o resumo já escreve "(por preencher)"
+      // quando o `ledSumText` está vazio.
+      var tile = isNaN(tileIdx) ? null : LED_TILES_DATA[tileIdx];
+      if (!tile) {
+        document.getElementById("proj-out-tiles").textContent = "—";
+        document.getElementById("proj-out-res").innerHTML = "—";
+        document.getElementById("proj-out-size").innerHTML = "—";
+        document.getElementById("proj-out-pitch").innerHTML = "—<small> escolhe uma cabine</small>";
+        document.getElementById("proj-out-weight").innerHTML = "—";
+        document.getElementById("proj-out-amp").innerHTML = "—";
+        document.getElementById("proj-out-area").innerHTML = "—";
+        document.getElementById("proj-out-boxes-wrap").style.display = "none";
+        // A resolução do ecrã do projeto vive fora desta função e não se
+        // limpa sozinha -- sem isto, escolher uma cabine e voltar a
+        // "Personalizado…" deixava o aviso do Sinal a comparar-se com uma
+        // resolução que já não existe.
+        projLastRes = null;
+      } else {
       var mx, my;
       if (projLedSizeMode === "tiles") {
         mx = val("proj-led-mx");
@@ -6327,7 +6362,14 @@
       var ampTotal = tile.amp == null ? null : tile.amp * numTiles;
       var ampPhase = ampTotal == null ? null : ampTotal / 3;
 
-      document.getElementById("proj-out-tiles").textContent = mx + " x " + my + " (" + fmtInt(numTiles) + ")";
+      // A ÚNICA linha deste bloco que concatenava números crus -- e por isso a
+      // única que mostrava "NaN x NaN" com o formulário vazio. As oito à volta
+      // passam todas por fmt()/fmtInt(), e esses já devolvem "—" para um valor
+      // não-finito (utils.js). A guarda existia; faltava esta linha usá-la.
+      var temGrelha = isFinite(mx) && isFinite(my);
+      document.getElementById("proj-out-tiles").textContent = temGrelha
+        ? (fmtInt(mx) + " x " + fmtInt(my) + " (" + fmtInt(numTiles) + ")")
+        : "—";
       document.getElementById("proj-out-res").innerHTML = fmtInt(totalPx) + " x " + fmtInt(totalPy) + "<small>px</small>";
       document.getElementById("proj-out-size").innerHTML = fmt(totalWm, 2) + " x " + fmt(totalHm, 2) + "<small>m</small>";
       document.getElementById("proj-out-pitch").innerHTML = fmt(pitchAvg, 2) + "<small>mm</small>";
@@ -6362,6 +6404,7 @@
         "Peso total: " + (weightTotal == null ? "não conhecido" : fmt(weightTotal, 1) + " kg") + "\n" +
         "Amp total (máx.): " + (ampTotal == null ? "não conhecido" : fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)") + "\n" +
         "Área total (uso interno): " + fmt(areaTotal, 2) + " m²";
+      }
       }
       }
     }
@@ -8465,18 +8508,28 @@
     // pesquisa por dentro) — ver window.domePreencherProjetores.
     if (typeof window.domePreencherProjetores === "function") window.domePreencherProjetores(projectors);
 
-    // Pela mesma razão, nenhuma cabine vem escolhida -- MENOS na lista do
-    // Sinal & Data Rate, que não tem "Personalizado…" nenhum: sem escolha
-    // nenhuma o browser escolhe a primeira à mesma, e mais vale ser a da casa
-    // do que a que calhar estar no topo. Essa fica por arrumar.
-    var defaultTile = ledTiles.find(function (t) { return t.default; }) || ledTiles[0];
+    // AGORA NENHUMA CABINE VEM ESCOLHIDA, TAMBÉM AQUI.
+    //
+    // A lista do Sinal & Data Rate era a última excepção: não tinha
+    // "Personalizado…" nenhum, por isso sem escolha o browser escolhia a
+    // primeira à mesma, e o código decidia que fosse a da casa. Ficou
+    // comentada como "por arrumar" durante três versões -- era o último
+    // sobrevivente dos valores auto de arranque, e dizia "tiles/porta" de uma
+    // cabine que ninguém tinha escolhido.
+    //
+    // Aqui a opção vazia não se chama "Personalizado…", porque isto não é uma
+    // lista de medidas à medida: é uma cabine de REFERÊNCIA, só para converter
+    // píxeis em tiles. Sem ela a conta faz-se na mesma, só em píxeis -- e o
+    // calcSinal() já trata desse caso por inteiro (refTile null → refTilePx 0
+    // → tilesPerPort null → a nota "máx. N tiles/porta" simplesmente não sai).
     var tileOrder = stockFirstIndices(ledTiles);
+    // O último `true` é o skipMarketTag: sem ele o addOption carimbava
+    // "(mercado)" no fim desta opção, que não é equipamento nenhum.
+    addOption(sgLedTileSel, "", "Sem cabine de referência — contar só em píxeis", true, undefined, false, true);
     [ledModelSel, projLedModelSel, sgLedTileSel].forEach(function (sel) {
-      var escolhePorOmissao = (sel === sgLedTileSel);
       tileOrder.forEach(function (i) {
         var t = ledTiles[i];
-        addOption(sel, String(i), t.modelo + " — " + t.label,
-          escolhePorOmissao && t === defaultTile, undefined, !t.mercado);
+        addOption(sel, String(i), t.modelo + " — " + t.label, false, undefined, !t.mercado);
       });
     });
     // AQUI TAMBÉM NÃO. Estas sete linhas escreviam as medidas da cabine da casa
