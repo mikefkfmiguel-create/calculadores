@@ -23,24 +23,15 @@ com um erro de API.
 Estes três passos precisam da conta Cloudflare, por isso são para fazer no
 teu PC. Depois disto, nunca mais.
 
-### 1. Os ids das KV — três feitos, **falta a `USO`**
+### 1. ~~Os ids das KV~~ — feito
 
-> **A `USO` é nova (contagem de utilização, v3.91) e ainda não existe na
-> conta.** Enquanto o id no `wrangler.toml` for o de exemplo, a publicação
-> **pára no primeiro passo e diz-o** — de propósito: um Worker publicado com
-> o id errado aceita a contagem e deita-a fora calado, que é pior do que não
-> publicar. Para a criar, uma vez:
->
-> ```bash
-> cd worker
-> npx wrangler kv namespace create USO
-> ```
->
-> Ele imprime um id; cola-o no `wrangler.toml`, no lugar de
-> `cola-aqui-o-id-do-namespace-USO`, e faz commit. A publicação seguinte já
-> passa.
+As **quatro** existem na conta e os ids estão no `wrangler.toml`. A `USO` (a
+da contagem de utilização) foi criada a 15/09/2026, no PowerShell, com
+`npx.cmd wrangler kv namespace create USO` — o `.cmd` porque a política de
+execução do Windows não deixa correr o `npx.ps1`, e é a forma que passa sem
+ter de mexer na política da máquina.
 
-Os outros três namespaces já existiam na conta, e os ids estão no `wrangler.toml`.
+Os outros três namespaces já existiam, e os ids estão no mesmo sítio.
 Não são segredos — são identificadores, o mesmo que aparece no URL do painel
 — e é por isso que vivem no repositório: quem publica passou a ser o GitHub,
 e o GitHub só sabe o que estiver neste ficheiro.

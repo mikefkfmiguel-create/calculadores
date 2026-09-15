@@ -53,14 +53,13 @@ id = "1879971c649b474d93c9fd68d8f0d0d2"
 # do projeto. Ver contarUso() e resumoDeUso() em src/index.js, e o
 # PLANO-CONTAGEM.md na raiz do repositório.
 #
-# Este id ainda é o de exemplo: criar o namespace com
-#   npx wrangler kv namespace create USO
-# e colar aqui o id que ele imprime. Enquanto estiver assim, a publicação
-# pára no primeiro passo e diz-o — em vez de publicar um Worker que aceita a
-# contagem e a deita fora calado.
+# Criada a 15/09/2026 com `wrangler kv namespace create USO`. Como as outras
+# três, o id não é segredo — é o mesmo identificador que aparece no URL do
+# painel — e vive aqui porque quem publica é o GitHub, e o GitHub só sabe o
+# que estiver neste ficheiro.
 [[kv_namespaces]]
 binding = "USO"
-id = "cola-aqui-o-id-do-namespace-USO"
+id = "2608fc37e61b4e2f80119675962affcf"
 
 # A chave da Anthropic NUNCA vai aqui nem em nenhum ficheiro do repositório —
 # define-se como secret depois do primeiro deploy:
