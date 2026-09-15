@@ -126,3 +126,31 @@ isto cobre.
 E a última barreira não é esta: vale a pena ver no painel da Anthropic se dá
 para pôr um tecto de gasto na conta ou na área de trabalho onde a chave vive.
 Essa não depende de código nenhum.
+
+## O painel do movimento (um link para consultar)
+
+`https://calculadores-assistente.avkvideoshare.workers.dev/uso/painel?t=<TOKEN_USO>`
+
+Abre no telemóvel e mostra aparelhos distintos por app, o movimento por dia e
+as abas mais abertas. Períodos de 7, 30 ou 90 dias.
+
+**Precisa de um segredo próprio**, uma vez:
+
+```bash
+npx.cmd wrangler secret put TOKEN_USO
+```
+
+**Porque é que não usa o `ADMIN_TOKEN`:** um browser não manda cabeçalhos ao
+abrir um link, por isso o token tem de ir no endereço — e um endereço fica no
+histórico, nos favoritos e em qualquer sítio para onde seja reencaminhado. O
+`ADMIN_TOKEN` abre também o `/registos`, que guarda **o texto dos pedidos
+reais** ao Assistente: briefings de clientes. Essa chave não pode andar num
+link. O `TOKEN_USO` só abre contagens — se escapar, o que escapa é saber
+quantas pessoas abriram uma calculadora.
+
+Sem `TOKEN_USO` definido a página não se desenrasca com o `ADMIN_TOKEN`: diz o
+comando que falta. O `/uso/resumo` (JSON, cabeçalho `Authorization`, para
+scripts e para o balanço semanal) continua como estava, com o `ADMIN_TOKEN`.
+
+A conta vive num sítio só (`contasDeUso()`), usada pelos dois — para o JSON e a
+página nunca discordarem.
