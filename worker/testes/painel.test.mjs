@@ -151,3 +151,31 @@ test("um nome de app estranho não consegue injectar HTML", async () => {
   assert.ok(!html.includes("<img src=x"), "tem de sair escapado");
   assert.match(html, /&lt;img/);
 });
+
+test("o painel mostra o gasto do Assistente de hoje", async () => {
+  // Montou-se um tecto e não havia como ver se andávamos perto dele.
+  const env = ambiente({ LIMITE_IA_POR_DIA: "200" });
+  const hoje = new Date().toISOString().slice(0, 10);
+  env.USO.dados.set("lim:dia:" + hoje, "47");
+
+  const html = await (await painel(env, "?t=" + encodeURIComponent(SEGREDO_DO_PAINEL))).text();
+  assert.match(html, />47</);
+  assert.match(html, /47 de <b>200<\/b>/);
+});
+
+test("no tecto, o painel diz que o Assistente está travado", async () => {
+  const env = ambiente({ LIMITE_IA_POR_DIA: "10" });
+  env.USO.dados.set("lim:dia:" + new Date().toISOString().slice(0, 10), "10");
+  const html = await (await painel(env, "?t=" + encodeURIComponent(SEGREDO_DO_PAINEL))).text();
+  assert.match(html, /Tecto atingido/);
+});
+
+test("os contadores da trava não entram na contagem de aparelhos", async () => {
+  // Vivem na mesma KV, com prefixo "lim:". Se algum dia forem parar à conta
+  // dos aparelhos, o número do painel passa a mentir.
+  const env = ambiente();
+  env.USO.dados.set("lim:dia:" + new Date().toISOString().slice(0, 10), "99");
+  env.USO.dados.set("lim:ip:" + new Date().toISOString().slice(0, 10) + ":1.2.3.4", "99");
+  const html = await (await painel(env, "?t=" + encodeURIComponent(SEGREDO_DO_PAINEL))).text();
+  assert.match(html, /<b>0<\/b><span>ainda nada<\/span>/);
+});

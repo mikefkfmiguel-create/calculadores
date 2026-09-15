@@ -610,12 +610,29 @@ async function painelDeUso(request, env) {
   });
 
   if (!env.TOKEN_USO) {
+    // As duas maneiras, e a do painel primeiro DE PROPÓSITO: isto vai ser lido
+    // num telemóvel (é o que este endereço é), e mandar alguém a um terminal
+    // que não tem à mão é dizer-lhe para voltar mais tarde.
     return pagina(molduraDoPainel("Falta o token de leitura", `
       <p>Este painel precisa de um segredo próprio, separado do que abre os
-      registos do Assistente. No teu computador, uma vez:</p>
+      registos do Assistente. Escolhe uma palavra-passe longa (uma frase
+      serve) e mete-a no Worker de uma destas duas maneiras.</p>
+
+      <h2>No painel da Cloudflare — dá pelo telemóvel</h2>
+      <p><b>Workers &amp; Pages</b> → <b>calculadores-assistente</b> →
+      <b>Settings</b> → <b>Variables and Secrets</b> → <b>Add</b>.</p>
+      <p>No tipo, escolhe <b>Secret</b> — <b>não</b> "Text". Um "Text" é
+      apagado na publicação seguinte, porque essas variáveis vêm do
+      <code>wrangler.toml</code>; um Secret fica.</p>
+      <p>Nome: <code>TOKEN_USO</code>. Valor: a tua palavra-passe. Grava.</p>
+
+      <h2>Ou no computador</h2>
       <pre>npx.cmd wrangler secret put TOKEN_USO</pre>
-      <p>Escreve uma palavra-passe longa quando ele pedir, e guarda-a. Depois o
-      endereço deste painel passa a ser
+      <p>Ele pára e escreve <code>Enter a secret value:</code> — é aí que
+      escreves a palavra, e Enter.</p>
+
+      <p class="nota">De qualquer das formas, <b>guarda a palavra</b>: depois de
+      gravada não há como a voltar a ver. O endereço deste painel passa a ser
       <code>/uso/painel?t=<em>essa-palavra</em></code>.</p>`), 503);
   }
   if (url.searchParams.get("t") !== env.TOKEN_USO) {
@@ -631,6 +648,28 @@ async function painelDeUso(request, env) {
   const dias = diasPedidos(url);
   const c = await contasDeUso(env, dias, true);
   const t = encodeURIComponent(env.TOKEN_USO);
+
+  // O GASTO DE HOJE. Montou-se um tecto na rota da IA e não havia maneira
+  // nenhuma de ver se andávamos perto dele -- só se descobria ao bater com a
+  // cabeça, que é o defeito nº 4 do BALANCO.md (a app sabe e cala-se). Os
+  // contadores já existiam na KV; faltava alguém mostrá-los.
+  const hojeIso = new Date().toISOString().slice(0, 10);
+  const gastoHoje = await contadorDe(env, "lim:dia:" + hojeIso);
+  const tectoDia = limiteDe(env, "LIMITE_IA_POR_DIA", 200);
+  const pctGasto = Math.min(100, Math.round((gastoHoje / tectoDia) * 100));
+  // Amarelo a partir de 3/4, vermelho no tecto: a cor diz antes de se ler o
+  // número, que é o que interessa a quem passa o olho.
+  const corGasto = gastoHoje >= tectoDia ? "#E06A5B" : (pctGasto >= 75 ? "#E3A550" : "#5AA0DE");
+  const blocoGasto = `
+    <h2>Assistente, hoje <span class="leve">· o que custa dinheiro</span></h2>
+    <div class="linha">
+      <span class="rot">pedidos</span>
+      <span class="barra"><i style="width:${pctGasto}%;background:${corGasto}"></i></span>
+      <span class="num">${gastoHoje}</span>
+    </div>
+    <p class="nota">${gastoHoje >= tectoDia
+      ? `<b>Tecto atingido.</b> O Assistente responde "limite de pedidos de hoje" até à meia-noite. Sobe o <code>LIMITE_IA_POR_DIA</code> no Worker se isto for a sério.`
+      : `${gastoHoje} de <b>${tectoDia}</b> pedidos do tecto diário. É a trava que garante que o pior dia possível tem um preço conhecido — só conta o Assistente, porque só ele chama a IA.`}</p>`;
 
   const apps = Object.keys(c.aparelhos).sort();
   const totalAparelhos = apps.reduce((s, a) => s + c.aparelhos[a], 0);
@@ -675,6 +714,7 @@ async function painelDeUso(request, env) {
     <h2>Abas abertas</h2>
     <div class="grafico">${linhasAbas}</div>
     <p class="nota">Contam-se <b>aberturas por aparelho e por dia</b>, não visitas: abrir a mesma aba cinco vezes num dia conta uma.</p>
+    ${blocoGasto}
     <p class="rodape">Só de leitura. Sem nomes, sem IP, sem nada do que é escrito nos campos.</p>`));
 }
 
