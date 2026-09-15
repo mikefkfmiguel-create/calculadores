@@ -22,6 +22,24 @@ ALLOWED_ORIGINS = "https://mikefkfmiguel-create.github.io"
 # em src/index.js).
 FEEDBACK_PARA_EMAIL = "avkvideoshare@gmail.com"
 
+# TRAVA DE GASTO DA IA. Só para a rota do Assistente, que é a única que fala
+# com a Anthropic e custa dinheiro — a rota /uso (contagem de visitas) não
+# leva trava nenhuma, porque não chama API nenhuma.
+#
+# O endereço deste Worker está publicado no index.html que o GitHub Pages
+# serve, e o ALLOWED_ORIGINS acima NÃO impede um script: o Origin é um
+# cabeçalho do pedido e um curl escreve lá o que quiser. Já o IP é escrito
+# pela Cloudflare, e nesse não se mente.
+#
+# Por IP: trava o abuso casual. Largo de propósito — toda a gente no mesmo
+# escritório sai com o mesmo endereço e para o Worker são uma pessoa só.
+# Por dia: é ESTA que protege a factura. Aconteça o que acontecer, o pior dia
+# possível tem um preço conhecido.
+#
+# Mudar aqui e voltar a publicar chega; não é preciso mexer em código.
+LIMITE_IA_POR_IP = "30"
+LIMITE_IA_POR_DIA = "200"
+
 # Guarda os projetos partilhados pelo botão "🔗 Link para ver" do Preview,
 # por 1 dia, e depois apaga-os sozinho (expirationTtl, no código).
 #
