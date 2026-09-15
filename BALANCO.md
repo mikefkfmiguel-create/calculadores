@@ -185,7 +185,7 @@ caminho já estava preparado: o `ledPixels` fica no `0` com que nasce, a lista
 de processadores de LED só corre com `ledPixels > 0`, e o resumo já escrevia
 "(por preencher)".
 
-### 4.3 O inglês está **partido** nos ecrãs novos — o pior dos que ficam
+### 4.3 O inglês está **partido** nos ecrãs novos ✅ *resolvido na v3.90*
 
 O motor de tradução é substituição de frases: percorre o texto visível e troca
 cada trecho em PT que reconhece. Os ecrãs novos — o menu (v3.83), a barra de
@@ -209,6 +209,14 @@ cobre a app toda. O que falhou foi só o que nasceu nos últimos três dias.
 **O defeito de fundo não é a falta de tradução — é não haver nada que avise.**
 Um ecrã novo nasce meio traduzido e ninguém dá por isso até alguém carregar em
 EN.
+
+**Resolvido na v3.90**, e nas duas pontas: os ecrãs novos foram traduzidos, e
+o `scripts/verificar-traducao.mjs` passou a apanhar o próximo. A dívida velha
+(288 trechos, sobretudo Dome e Assistente) está escrita por extenso em
+`scripts/traducao-por-fazer.json`, para a verificação falhar só no que é novo —
+uma verificação que grita 319 não trava publicação nenhuma. **Ponto cego
+conhecido:** uma palavra portuguesa solta e sem acento passa-lhe ao lado
+("Sincronizar" e "Guardar" foram apanhados a olho, não pela rede).
 
 ### 4.4 O Assistente nunca foi traduzido
 
@@ -298,9 +306,11 @@ com testes.
 
 1. ~~**`NaN x NaN`** e **a lista do Sinal & Data Rate**~~ — feitos na v3.89, e
    com eles a cabine inventada da 4.2-bis, que só apareceu ao medir.
-2. **O inglês dos ecrãs novos** — é o defeito mais feio que está no ar, e
-   aparece a quem carregar em EN. Levar também uma forma de o detetar.
-3. **O botão de versão no Preview** — o mesmo remédio de ontem, do outro lado.
-4. **Os testes das funções de cálculo** — o investimento que muda a rede.
+2. ~~**O inglês dos ecrãs novos**~~ — feito na v3.90, com a verificação
+   incluída. Fica a dívida velha, contada em `traducao-por-fazer.json`.
+3. **O botão de versão no Preview** — o mesmo remédio da v3.88, do outro lado.
+4. **Os testes das funções de cálculo** — o investimento que muda a rede. O
+   `verificar-traducao.mjs` é o primeiro passo nesta direcção: é a primeira
+   verificação automática que este projeto tem.
 5. **O Assistente e o i18n do Preview** — maiores, e podem esperar pela
-   decisão sobre a versão de venda.
+   decisão sobre a versão de venda. O Dome, com 121 trechos, é o maior bloco.

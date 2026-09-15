@@ -14,6 +14,69 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 15 de setembro — o inglês dos ecrãs novos, e uma rede para o próximo (v3.90)
+
+> *"Faz as duas"* — reparar o que está partido **e** deixar uma verificação.
+
+**Não era falta de tradução, era tradução a meio.** O motor troca frases que
+reconhece; uma frase que ele não reconhece não fica só em português, porque as
+entradas de palavra inteira que já cá estavam — "Distância"→"Distance",
+"Largura"→"Width", "Todas"→"All" — batem dentro dela na mesma, com as
+fronteiras de palavra todas certas. Em EN o menu dizia, à letra:
+
+> *"A que **distance** o projetor faz o ecrã que queres"*
+> *"**All** as abas, o projeto e a sincronização com o 3D"*
+
+Meio traduzido é pior do que por traduzir: um é um defeito, o outro parece a
+app avariada.
+
+**Traduzido:** o ecrã de boas-vindas inteiro, a barra do exemplo, a barra da
+versão nova com os quatro avisos que a acompanham, os `title` do cabeçalho, e
+as duas linhas novas da v3.89. Mais os botões **"🔄 Sincronizar"** e
+**"💾 Guardar"**, que estavam em português desde sempre.
+
+**A rede — `scripts/verificar-traducao.mjs`.** Passa a app a EN e varre o DOM
+à procura de texto que ainda pareça português, atributos incluídos
+(`placeholder`, `title`, `aria-label`). Não filtra pelo que está visível, de
+propósito: apanha as abas fechadas na mesma passagem, sem ninguém lá clicar. A
+varredura em si vive no `i18n.js` (`window.i18nPorTraduzir`), porque é lá que
+está o motor que sabe o que já traduziu.
+
+**A linha de base é o que a torna utilizável.** À primeira passagem havia **319
+trechos** — a maioria dívida velha (Dome 121, Assistente 70). Uma verificação
+que grita 319 não trava publicação nenhuma: ignora-se. Por isso o que já estava
+por traduzir ficou escrito por extenso em `scripts/traducao-por-fazer.json`
+(288 trechos, depois dos 31 desta versão), e a verificação **falha só no que é
+novo**. A dívida fica contada e à vista, em vez de invisível.
+
+**Provado, não afirmado:** acrescentei uma frase portuguesa nova ao menu, corri
+a verificação, e ela apanhou-a (`menu — 1`) com código de saída 1; revertida,
+volta a 0.
+
+### O que quase saiu daqui, e era pior do que o defeito
+
+Para traduzir o `Um <code>.calculadores.json</code> guardado antes` do menu —
+que o `<code>` parte em dois nós — pus `"Um": "A"` no `DICT_EXACT_EN`, que só
+troca nós inteiros. Em EN funcionava. **Mas o dicionário inverso passa a ter
+`"A"→"Um"`, e esta app escreve a unidade de amperes como um nó de texto que é
+exactamente `A`** (`<small>A</small>`).
+
+Ida e volta PT→EN→PT, medido antes de publicar:
+
+> `93,60Um (31,20A/fase)`
+
+Um valor eléctrico corrompido pelo tradutor. A entrada saiu, e a frase do menu
+passou a **"Um ficheiro guardado antes (`.calculadores.json`)"** — uma frase
+inteira num nó só, que se traduz sem regra nenhuma perigosa. O `DICT_EXACT_EN`
+leva agora um comentário a dizer porque é que aquilo não pode lá voltar.
+
+**O ponto cego, que ficou escrito no script:** a varredura reconhece português
+por acentos e por palavras que não existem em inglês. Uma palavra portuguesa
+**solta e sem acento** passa-lhe ao lado — "Sincronizar" e "Guardar" não foram
+apanhados por ela, foram apanhados a olhar para o ecrã em EN. Isto apanha
+frases, que é onde nascem os ecrãs novos; um botão de uma palavra continua a
+precisar de olhos.
+
 ## 15 de setembro — três sítios onde a app dizia um número que não sabia (v3.89)
 
 Saíram do `BALANCO.md`, escrito nesta manhã. Dois eram conhecidos; o terceiro
