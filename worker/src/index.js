@@ -718,8 +718,14 @@ function molduraDoPainel(titulo, corpo) {
   .nota { color:#93A0AB; font-size:12.5px; margin:12px 0 0; }
   .vazio { color:#5C6B77; font-size:13px; margin:0; }
   .rodape { color:#5C6B77; font-size:12px; margin-top:30px; padding-top:14px; border-top:1px solid #242E37; }
-  pre { background:#161D24; padding:12px; border-radius:8px; overflow-x:auto; font-size:12.5px; }
-  code { background:#161D24; padding:2px 5px; border-radius:4px; font-size:12.5px; }
+  /* O comando QUEBRA a linha em vez de correr para fora do ecrã. Apanhado no
+     telemóvel, com a página a mostrar "npx.cmd wrangler secret put TOKEN_" e
+     o resto cortado no bordo: uma página que existe para dizer o que falta
+     fazer, e que escondia metade da instrução. */
+  pre { background:#161D24; padding:12px; border-radius:8px; font-size:12.5px;
+        white-space:pre-wrap; overflow-wrap:anywhere; }
+  code { background:#161D24; padding:2px 5px; border-radius:4px; font-size:12.5px;
+         overflow-wrap:anywhere; }
   b { font-weight:600; }
 </style></head><body><div class="folha">
 <h1>${escapar(titulo)}</h1>
