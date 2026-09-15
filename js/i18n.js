@@ -910,6 +910,28 @@
     "Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga": "Tap to check for a new version and force the update — for when the app installed on your phone gets stuck on an old one",
     " — todos os direitos reservados": " — all rights reserved",
 
+    // "O que esta app conta" — a secção da Ajuda que explica a contagem de
+    // utilização (v3.91). Apanhada pela verificação de tradução assim que
+    // nasceu, que foi exactamente para isto que ela se fez.
+    "O que esta app conta": "What this app counts",
+    "Para se saber se vale a pena continuar a melhorá-la, a app conta ": "So we know whether it's worth going on improving it, the app counts ",
+    "quantos aparelhos a usam": "how many devices use it",
+    "que abas são abertas": "which tabs get opened",
+    ". Uma vez por dia, no máximo.": ". Once a day, at most.",
+    "O que sai daqui:": "What leaves this device:",
+    "um número aleatório gerado à primeira vez neste aparelho (não é um nome nem um email — é esta cópia da app), a versão, e os nomes das abas que abriste.": "a random number generated the first time on this device (not a name, not an email — it's this copy of the app), the version, and the names of the tabs you opened.",
+    "O que nunca sai daqui:": "What never leaves this device:",
+    "nada do que escreves. Nenhuma medida, nenhum nome de projeto, nenhum cliente, nenhum ficheiro, nenhuma foto. Sem IP, sem localização, sem browser. Isto sabe ": "nothing you type. No measurement, no project name, no client, no file, no photo. No IP, no location, no browser. This knows ",
+    // "quantos" e "quem" NÃO entram aqui — ver DICT_EXACT_EN.
+    "— e nem sequer chega a saber a que horas, porque a data é a do servidor.": "— and it doesn't even get to know what time, because the date is the server's.",
+    "Sem rede não há contagem nenhuma nesse dia, e a app funciona na mesma — que é o que interessa num pavilhão.": "With no connection there's no counting that day, and the app works just the same — which is what matters in a venue.",
+    "Contar a utilização desta app": "Count usage of this app",
+    "Esquecer o número deste aparelho": "Forget this device's number",
+    "Apaga o número deste aparelho e gera outro da próxima vez — a app passa a contar como uma instalação nova": "Deletes this device's number and makes a new one next time — the app starts counting as a fresh install",
+    "Contagem ligada.": "Counting on.",
+    "Contagem desligada — não sai mais nada daqui.": "Counting off — nothing else leaves this device.",
+    "Número esquecido. A app passa a contar como nova.": "Number forgotten. The app now counts as new.",
+
     // Sinal & Data Rate e aba Projeto (v3.89)
     "Sem cabine de referência — contar só em píxeis": "No reference cabinet — count in pixels only",
     " escolhe uma cabine": " choose a cabinet",
@@ -923,6 +945,16 @@
   var DICT_EXACT_EN = {
     "e": "and",
     "ou": "or",
+    // A frase da Ajuda "Isto sabe <em>quantos</em>, nunca <em>quem</em>" põe
+    // estas duas palavras sozinhas num nó. Tentei-as primeiro no dicionário
+    // de substring, e a verificação apanhou-me à segunda passagem: o
+    // "quantos" entrava dentro de frases ainda por traduzir e produzia
+    // "how many píxeis se perdem no fisheye" e "how many projectors, onde os
+    // pendurar". Ou seja, criei em dez minutos exactamente o defeito que esta
+    // verificação nasceu para apanhar — e ela apanhou-o, que era o ponto.
+    "quantos": "how many",
+    "quem": "who",
+
     // NÃO PÔR AQUI "Um": "A".
     //
     // Parecia o sítio certo para o "Um <code>.calculadores.json</code>

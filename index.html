@@ -43,7 +43,7 @@
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v3.90</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v3.91</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2713,6 +2713,16 @@
         <li>Todos os valores são para conferência antes de enviar ao cliente — a app não substitui medir no local.</li>
       </ul>
     </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>O que esta app conta</h2>
+      <p>Para se saber se vale a pena continuar a melhorá-la, a app conta <strong>quantos aparelhos a usam</strong> e <strong>que abas são abertas</strong>. Uma vez por dia, no máximo.</p>
+      <p><strong>O que sai daqui:</strong> um número aleatório gerado à primeira vez neste aparelho (não é um nome nem um email — é esta cópia da app), a versão, e os nomes das abas que abriste.</p>
+      <p><strong>O que nunca sai daqui:</strong> nada do que escreves. Nenhuma medida, nenhum nome de projeto, nenhum cliente, nenhum ficheiro, nenhuma foto. Sem IP, sem localização, sem browser. Isto sabe <em>quantos</em>, nunca <em>quem</em> — e nem sequer chega a saber a que horas, porque a data é a do servidor.</p>
+      <p class="hint">Sem rede não há contagem nenhuma nesse dia, e a app funciona na mesma — que é o que interessa num pavilhão.</p>
+      <label class="addproject" style="margin-top:10px;"><input type="checkbox" id="uso-ligado" checked>Contar a utilização desta app</label>
+      <button type="button" class="copy" id="uso-esquecer" style="margin-top:10px;" title="Apaga o número deste aparelho e gera outro da próxima vez — a app passa a contar como uma instalação nova">Esquecer o número deste aparelho</button>
+    </div>
   </section>
 
   <footer>
@@ -3206,6 +3216,7 @@
       // quem já lá escreveu alguma coisa manda, e ninguém lhe mexe.
       if (typeof porExemploNaAba === "function" &&
           ABAS_COM_EXEMPLO.indexOf(tab.dataset.mode) >= 0) porExemploNaAba(tab.dataset.mode);
+      if (typeof usoAbaAberta === "function") usoAbaAberta(tab.dataset.mode);
     });
   });
   var tabsCurrentEl = document.getElementById("tabs-current");
@@ -7586,6 +7597,10 @@
   function mostrarMenu(mostrar) {
     document.body.classList.toggle("no-menu", !mostrar);
     if (mostrar) window.scrollTo(0, 0);
+    // O menu conta como sítio visitado: sem isto, quem abre a app, olha para
+    // o menu e fecha nunca aparecia em contagem nenhuma -- e essa é
+    // precisamente uma das coisas que interessa saber.
+    if (mostrar && typeof usoAbaAberta === "function") usoAbaAberta("menu");
   }
 
   (function ligarMenu() {
@@ -10120,6 +10135,153 @@
     });
 
     calcGfx();
+  }());
+
+  // ------------------------------------------------------------------
+  // CONTAR QUANTOS, NUNCA QUEM
+  //
+  // O GitHub Pages não dá registos nenhuns, por isso até aqui não havia
+  // maneira de saber se esta app é usada por três pessoas ou por trinta -- e
+  // é a adivinhar que se decidia o que polir a seguir. Além do "quantos", a
+  // pergunta concreta é QUE ABAS: o Dome tem 121 trechos por traduzir, o
+  // maior bloco que resta, e se ninguém o abre isso não se traduz.
+  //
+  // O QUE SAI DAQUI: um número aleatório gerado à primeira vez (não é uma
+  // pessoa, é esta cópia instalada da app), a versão, e os nomes das abas
+  // abertas. Mais nada. Nem uma medida, nem um nome de projeto, nem um
+  // ficheiro, nem sequer a hora -- a data é a do relógio do Worker.
+  //
+  // E DIZ-SE QUE SE ESTÁ A CONTAR, na aba Ajuda, com um interruptor que
+  // desliga mesmo. Não é delicadeza: esta app anda a prometer que "nada sai
+  // do telemóvel", e isto passa a ser uma meia-verdade. Uma app que promete
+  // uma coisa e faz outra em silêncio é o defeito que ela passa a vida a
+  // corrigir, desta vez virado contra quem confia nela.
+  // ------------------------------------------------------------------
+  var USO_KEY = "calculadores-uso-v1";
+  // O endereço é o da AVK e é SEMPRE este -- de propósito não se lê o campo
+  // "Endereço do Worker" da aba Assistente, que é editável: quem o apontar a
+  // um Worker de testes não deve mandar a contagem para lá.
+  var USO_URL = "https://calculadores-assistente.avkvideoshare.workers.dev/uso";
+
+  function usoLer() {
+    var vazio = { id: "", abas: [], ultimoEnvio: "", ligado: true };
+    try {
+      var bruto = localStorage.getItem(USO_KEY);
+      if (!bruto) return vazio;
+      var o = JSON.parse(bruto);
+      return {
+        id: typeof o.id === "string" ? o.id : "",
+        abas: Array.isArray(o.abas) ? o.abas : [],
+        ultimoEnvio: typeof o.ultimoEnvio === "string" ? o.ultimoEnvio : "",
+        // A ausência lê-se como LIGADO, que é o estado de quem nunca mexeu.
+        ligado: o.ligado !== false
+      };
+    } catch (e) { return vazio; }
+  }
+  function usoGravar(o) {
+    try { localStorage.setItem(USO_KEY, JSON.stringify(o)); } catch (e) {}
+  }
+  function usoNumeroNovo() {
+    try {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    } catch (e) {}
+    // Sem randomUUID (browsers antigos, ou fora de HTTPS) não se inventa um
+    // número fraco: fica sem id, e sem id não se conta. Menos contagem é
+    // melhor do que uma contagem que finge ser o que não é.
+    return "";
+  }
+
+  function usoLigada() { return usoLer().ligado; }
+
+  // Chamada a cada aba aberta. Só acumula -- quem envia é a usoEnviar().
+  function usoAbaAberta(modo) {
+    if (!modo) return;
+    var o = usoLer();
+    if (!o.ligado) return;
+    if (o.abas.indexOf(modo) === -1) { o.abas.push(modo); usoGravar(o); }
+    usoEnviar();
+  }
+
+  function usoEnviar() {
+    var o = usoLer();
+    if (!o.ligado) return;
+    var hoje = new Date().toISOString().slice(0, 10);
+    if (o.ultimoEnvio === hoje) return;          // uma vez por dia, chega
+    if (!o.id) {
+      o.id = usoNumeroNovo();
+      if (!o.id) return;
+      usoGravar(o);
+    }
+    var v = document.getElementById("app-versao");
+    var corpo = JSON.stringify({
+      app: "calculadores",
+      id: o.id,
+      versao: v ? v.textContent.trim() : "",
+      abas: o.abas.slice(0, 20)
+    });
+    // `keepalive` para o pedido sobreviver a quem fecha o separador logo a
+    // seguir. Sem `await` em lado nenhum, e a falha é silenciosa de
+    // propósito: num pavilhão sem wifi -- que é onde esta app mais serve --
+    // isto falha todos os dias, e não pode estorvar nada. As abas ficam
+    // acumuladas para a próxima vez que houver rede.
+    try {
+      fetch(USO_URL, {
+        method: "POST",
+        keepalive: true,
+        headers: { "Content-Type": "application/json" },
+        body: corpo
+      }).then(function (r) {
+        if (!r || !r.ok) return;
+        var d = usoLer();
+        d.ultimoEnvio = hoje;
+        d.abas = [];        // o que foi enviado não se repete amanhã
+        usoGravar(d);
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  // O ARRANQUE NO MENU TAMBÉM CONTA -- mas não já.
+  //
+  // O PLANO-CONTAGEM.md dizia "nunca ao arrancar", com duas razões: não pesar
+  // no arranque, e não contar quem abriu e fechou. Só que a app abre NO MENU
+  // e o `mostrarMenu(true)` só corre quando alguém volta lá -- ou seja, quem
+  // abria a app, olhava para o menu e fechava não aparecia em contagem
+  // nenhuma. Medido, à primeira passagem do teste: zero envios ao abrir.
+  //
+  // Cinco segundos servem as duas razões da regra sem ficar com o defeito:
+  // não pesa no arranque (o pedido sai muito depois do primeiro desenho) e um
+  // toque enganado, fechado logo a seguir, continua a não contar.
+  (function contarOArranqueNoMenu() {
+    if (document.body.classList.contains("no-menu")) return;
+    var o = usoLer();
+    if (!o.ligado) return;
+    if (o.abas.indexOf("menu") === -1) { o.abas.push("menu"); usoGravar(o); }
+    setTimeout(usoEnviar, 5000);
+  }());
+
+  (function ligarInterruptorDeUso() {
+    var cb = document.getElementById("uso-ligado");
+    var btEsquecer = document.getElementById("uso-esquecer");
+    if (cb) {
+      cb.checked = usoLigada();
+      cb.addEventListener("change", function () {
+        var o = usoLer();
+        o.ligado = cb.checked;
+        if (!cb.checked) { o.abas = []; }   // desligar apaga o que estava por enviar
+        usoGravar(o);
+        showToast(cb.checked ? "Contagem ligada." : "Contagem desligada — não sai mais nada daqui.");
+      });
+    }
+    if (btEsquecer) {
+      btEsquecer.addEventListener("click", function () {
+        var o = usoLer();
+        o.id = "";
+        o.ultimoEnvio = "";
+        o.abas = [];
+        usoGravar(o);
+        showToast("Número esquecido. A app passa a contar como nova.");
+      });
+    }
   }());
 
   // ------------------------------------------------------------------

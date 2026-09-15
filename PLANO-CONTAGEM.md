@@ -18,6 +18,37 @@ Neste momento essa decisão tomava-se a adivinhar.
 
 ---
 
+> ## ⚠️ CORRECÇÃO, escrita ao executar o plano (15/09)
+>
+> **As duas premissas da secção seguinte estavam erradas.** Ficam escritas
+> como estavam, porque o que se aprendeu com elas interessa mais do que a
+> vergonha de as ter escrito.
+>
+> **A premissa 1 estava errada.** O endereço do Worker **não** é escrito à mão:
+> há um `DEFAULT_WORKER_URL` no código (`index.html:10529`) que pré-preenche o
+> campo em todos os aparelhos. Li o `placeholder` do `<input>` e concluí dali
+> que era a pessoa a escrevê-lo, sem ler o JS que o preenche — uma leitura
+> pela rama, do género que este projeto passa a vida a apanhar.
+>
+> **A premissa 2 estava errada, e ao contrário do que interessa.** O endereço
+> do Worker **já está publicado**: está no `index.html` que o GitHub Pages
+> serve a toda a gente, e também no `DEPLOY.md` e no `SKILL.md`. Não há nada
+> para proteger por o esconder — já não está escondido.
+>
+> **O que isto muda:** o Worker à parte deixou de ter razão de ser. A contagem
+> entrou no Worker que já existe, como mais uma rota (`/uso`), com a KV `USO`
+> ao lado das outras três. Menos infraestrutura, um só deploy, e reaproveita
+> o `ALLOWED_ORIGINS` e o `ADMIN_TOKEN` que já lá estavam.
+>
+> **O que NÃO muda, e ficou pior do que eu julgava:** a parte da premissa 2
+> sobre o `Origin` mantém-se inteira — é um cabeçalho de pedido, um `curl`
+> forja-o numa linha. Só que agora, sabendo que o endereço já é público, a
+> conclusão é outra e mais séria: **qualquer pessoa que abra o código da
+> página pode chamar a rota da IA e gastar a conta da Anthropic.** As únicas
+> defesas são limites de tamanho POR PEDIDO, que não limitam o NÚMERO de
+> pedidos. Isto não é da contagem e não se corrigiu aqui — está reportado à
+> parte.
+
 ## O que o levantamento mostrou, e que muda o desenho
 
 ### 1. O endereço do Worker é escrito à mão, em cada aparelho
@@ -62,10 +93,15 @@ lista (*"o silêncio"*), desta vez virado contra quem confia nela.
 
 ---
 
-## Fase A — o Worker da contagem
+## Fase A — a contagem no Worker
 
-Novo Worker `calculadores-uso`, ao lado do que já existe (`worker/` passa a ter
-um irmão, `worker-uso/`, com o seu `wrangler.toml` e a sua KV `USO`).
+> **Feito na v3.91, mas não como está escrito aqui em baixo.** Pela correcção
+> no topo: não há Worker novo nenhum. A contagem é mais uma rota do Worker que
+> já existe, com a KV `USO` ao lado das outras três. O resto desta secção — as
+> rotas, o formato da chave, a validação, o token — ficou como está descrito.
+
+~~Novo Worker `calculadores-uso`, ao lado do que já existe~~ (`worker/` ganha
+uma KV `USO` e duas rotas).
 
 **`POST /uso`** — o que a app manda:
 
@@ -141,14 +177,19 @@ falta-lhe o número.
 
 ## Ficheiros
 
-- `worker-uso/` — novo: `wrangler.toml`, `src/index.js`, `package.json`
-- `.github/workflows/deploy-worker.yml` — um segundo *job*, com o mesmo
-  desenho do primeiro (as verificações antes de gastar tempo, o `npm ci`, o
-  resumo no fim)
-- `calculadores/index.html` — a identidade, o acumulador de abas, o envio, a
-  linha na Ajuda e o interruptor
-- `preview/js/app.js` — o mesmo, do outro lado
+- `worker/src/index.js` — `contarUso()`, `resumoDeUso()` e as duas rotas
+- `worker/wrangler.toml` — a KV `USO` (o id fica por colar até alguém a criar)
+- `worker/testes/uso.test.mjs` — **os primeiros testes automáticos deste
+  projeto**. Nasceram aqui porque este código não se pode experimentar no
+  browser como o resto: só se saberia se funciona depois de publicado, e
+  publicado já é tarde. Um KV falso resolve isso sem conta nenhuma na nuvem.
+- `.github/workflows/deploy-worker.yml` — a mensagem do guarda passa a nomear
+  a KV nova
+- `index.html` — a identidade, o acumulador de abas, o envio, a linha na
+  Ajuda e o interruptor
+- `preview/js/app.js` — o mesmo, do outro lado *(por fazer)*
 - `BALANCO.md` — a frase *"nada sai do telemóvel"* passa a ter uma nota
+  *(por fazer)*
 
 ## Verificação
 

@@ -295,6 +295,11 @@ com testes.
 - **Abre sem rede.** Offline-first a sério, dos dois lados.
 - **Nada sai do telemóvel.** Sem contas, sem servidor, sem dados a viajar —
   menos o Assistente, e esse é opt-in e passa por um proxy que não guarda nada.
+  **Nota, desde a v3.91:** passou a sair uma coisa, e é justo dizê-lo aqui —
+  uma vez por dia, um número aleatório desta instalação, a versão e os nomes
+  das abas abertas, para se saber quantos aparelhos usam isto. Nada do que se
+  escreve nos campos, nenhum projeto, nenhum cliente, sem IP. Está explicado
+  na aba Ajuda, com um interruptor que desliga mesmo.
 - **Os comentários explicam o *porquê*, não o *quê*.** Boa parte deste balanço
   saiu de os ler. É o que faz o código sobreviver a quem o escreveu.
 - **A app diz o que fez.** Toasts, barras, avisos — a cura do defeito 3.4 virou
