@@ -134,11 +134,16 @@ Essa não depende de código nenhum.
 Abre no telemóvel e mostra aparelhos distintos por app, o movimento por dia e
 as abas mais abertas. Períodos de 7, 30 ou 90 dias.
 
-**Precisa de um segredo próprio**, uma vez:
+**Precisa de um segredo próprio**, uma vez — e dá pelas duas vias:
 
-```bash
-npx.cmd wrangler secret put TOKEN_USO
-```
+- **No painel da Cloudflare** (dá pelo telemóvel): *Workers & Pages →
+  calculadores-assistente → Settings → Variables and Secrets → Add*. No tipo,
+  **Secret** e não "Text" — um "Text" é apagado na publicação seguinte, porque
+  essas variáveis vêm do `wrangler.toml`; um Secret fica. Nome `TOKEN_USO`.
+- **Ou no computador:** `npx.cmd wrangler secret put TOKEN_USO`
+
+De qualquer das formas, guarda a palavra: depois de gravada não há como a
+voltar a ver. A própria página diz isto tudo enquanto o segredo não existir.
 
 **Porque é que não usa o `ADMIN_TOKEN`:** um browser não manda cabeçalhos ao
 abrir um link, por isso o token tem de ir no endereço — e um endereço fica no
