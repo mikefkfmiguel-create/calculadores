@@ -838,6 +838,84 @@
   };
   Object.keys(SUMMARY_EN).forEach(function (k) { DICT_EN[k] = SUMMARY_EN[k]; });
 
+  // ---- O que nasceu nas v3.83-3.89 e nunca entrou aqui ----
+  //
+  // O ecrã de boas-vindas, a barra do exemplo, a barra da versão nova e os
+  // title do cabeçalho. Em EN o menu chegou a dizer, à letra, "A que distance
+  // o projetor faz o ecrã que queres" e "All as abas, o projeto e a
+  // sincronização com o 3D" -- porque as entradas de palavra inteira que já
+  // cá estavam ("Distância"→"Distance", "Largura"→"Width", "Todas"→"All")
+  // batem dentro de uma frase portuguesa na mesma, com as fronteiras todas
+  // certas. Meio traduzido é pior do que por traduzir: um é um defeito, o
+  // outro parece a app avariada.
+  var NOVOS_EN = {
+    // Menu de boas-vindas
+    "Por onde queres começar?": "Where do you want to start?",
+    "Continuar": "Continue",
+    "Ainda não há nada guardado aqui. A app grava sozinha os ": "Nothing saved here yet. The app automatically keeps your last ",
+    " últimos projetos, para nada se perder.": " projects, so nothing gets lost.",
+    "Uma conta rápida": "A quick calculation",
+    "Calcular resoluções": "Calculate resolutions",
+    "Píxeis, tamanho e pitch de um ecrã LED — e os atalhos para blend e grafismo": "Pixels, size and pitch of an LED screen — plus the shortcuts to blending and graphics",
+    "Calcular distâncias": "Calculate distances",
+    "A que distância o projetor faz o ecrã que queres, e que lente serve": "How far back the projector makes the screen you want, and which lens fits",
+    "Calcular visualização": "Calculate viewing",
+    "Se a plateia vê bem dali, e que tamanho de ecrã é preciso": "Whether the audience can see it from there, and what screen size it takes",
+    "Ver medidas de TV/ecrã STD": "TV / standard screen sizes",
+    "Largura, altura, resolução e a que distância se vê bem": "Width, height, resolution, and the distance it reads well from",
+    "Começar": "Start",
+    "Abrir a calculadora completa": "Open the full calculator",
+    "Todas as abas, o projeto e a sincronização com o 3D": "Every tab, the project, and syncing with the 3D view",
+    "Ver em 3D": "View in 3D",
+    "Abre o Preview — monta a sala, ou traz o que já fizeste": "Opens the Preview — build the room, or bring in what you already did",
+    "📂 Abrir um ficheiro de projeto": "📂 Open a project file",
+    // A frase foi mudada no HTML para não nascer partida a meio pelo <code>:
+    // assim é uma frase inteira, e não um "Um" solto que só se podia traduzir
+    // com uma regra que estragava a unidade de amperes. Ver DICT_EXACT_EN.
+    "Um ficheiro guardado antes (": "A file saved earlier (",
+    "🗑 Limpar tudo": "🗑 Clear everything",
+    "Repõe as calculadoras e apaga as zonas guardadas": "Resets the calculators and deletes the saved zones",
+
+    // Barra do exemplo (v3.87). Vem partida em três nós por causa do <strong>.
+    "Os números a azul são ": "The numbers in blue are ",
+    "um exemplo": "an example",
+    ". Nada está calculado — muda o que for teu, ou escolhe:": ". Nothing has been calculated — change what's yours, or choose:",
+    "Calcular com estes": "Calculate with these",
+    "Começar em branco": "Start blank",
+
+    // Barra da versão nova (v3.88) e os avisos que a acompanham. Estes
+    // textos nascem em JS, por isso só existem no DOM depois de aparecerem --
+    // quem os traduz é o MutationObserver.
+    "Há uma versão nova publicada.": "A new version has been published.",
+    "Toca em Atualizar para a ires buscar.": "Tap Update to go and get it.",
+    "A versão nova já está descarregada.": "The new version is already downloaded.",
+    "Guarda o que tens aberto primeiro — atualizar recarrega a app.": "Save what you have open first — updating reloads the app.",
+    "Guarda o que tens aberto e toca em Atualizar.": "Save what you have open, then tap Update.",
+    "Atualizar": "Update",
+    "A procurar versão nova…": "Checking for a new version…",
+    "Sem resposta da rede — não dá para confirmar agora.": "No answer from the network — can't check right now.",
+    "Já estás na versão mais recente": "You're on the latest version",
+    "Estás a correr a versão publicada, direto da rede.": "You're running the published version, straight from the network.",
+
+    // Cabeçalho e rodapé. Estes dois botões estavam em português desde sempre
+    // e não foi a verificação que os apanhou -- foi olhar para o ecrã. Ver a
+    // nota sobre o ponto cego em scripts/verificar-traducao.mjs.
+    "🔄 Sincronizar": "🔄 Sync",
+    "💾 Guardar": "💾 Save",
+    "Voltar ao menu — os últimos projetos e por onde começar": "Back to the menu — recent projects and where to start",
+    "Ver o projeto montado numa sala, em 3D": "See the project set up in a room, in 3D",
+    "Vai buscar já a sala e o tamanho de ecrã que o Preview tiver guardados — sem esperar pelo aviso automático": "Fetches the room and screen size the Preview has saved — without waiting for the automatic update",
+    "Sincronização automática com o Preview 3D — desligada, nada passa sozinho entre as duas apps; os botões manuais continuam a funcionar": "Automatic sync with the 3D Preview — off, nothing travels between the two apps on its own; the manual buttons still work",
+    "Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois": "Save project — writes a file with everything in the calculators, to reopen later",
+    "Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga": "Tap to check for a new version and force the update — for when the app installed on your phone gets stuck on an old one",
+    " — todos os direitos reservados": " — all rights reserved",
+
+    // Sinal & Data Rate e aba Projeto (v3.89)
+    "Sem cabine de referência — contar só em píxeis": "No reference cabinet — count in pixels only",
+    " escolhe uma cabine": " choose a cabinet",
+  };
+  Object.keys(NOVOS_EN).forEach(function (k) { DICT_EN[k] = NOVOS_EN[k]; });
+
   // Palavras curtas/ambíguas de mais para entrar no dicionário de substring
   // acima (ex: "e" e "ou" aparecem dentro de imensas outras palavras) — só
   // traduzem quando são o conteúdo INTEIRO de um nó de texto isolado (ex:
@@ -845,6 +923,16 @@
   var DICT_EXACT_EN = {
     "e": "and",
     "ou": "or",
+    // NÃO PÔR AQUI "Um": "A".
+    //
+    // Parecia o sítio certo para o "Um <code>.calculadores.json</code>
+    // guardado antes" do menu, que o <code> parte em dois nós. Medido antes
+    // de publicar: em EN o nó "Um" fica "A" como se queria, mas o dicionário
+    // inverso passa a ter "A"→"Um" -- e esta app escreve a unidade de
+    // amperes como um nó de texto que é exactamente "A"
+    // (`<small>A</small>`). Ida e volta PT→EN→PT e a aba Projeto passava a
+    // dizer "93,60Um (31,20A/fase)": um valor eléctrico corrompido pelo
+    // tradutor. O menu resolveu-se a mudar a frase para não nascer partida.
   };
   var dictExactRev = {};
   Object.keys(DICT_EXACT_EN).forEach(function (k) { dictExactRev[DICT_EXACT_EN[k]] = k; });
@@ -1027,6 +1115,90 @@
   } else {
     init();
   }
+
+  // ---- A REDE: O QUE FICOU POR TRADUZIR ----
+  //
+  // Este motor troca as frases que reconhece. Uma frase que ele NÃO reconhece
+  // não fica só em português -- fica, muitas vezes, MEIO traduzida, porque as
+  // entradas de palavra inteira ("Distância"→"Distance", "Largura"→"Width",
+  // "Todas"→"All") batem dentro dela na mesma, com as fronteiras de palavra
+  // todas certas. O ecrã de boas-vindas nasceu assim e ninguém deu por isso
+  // durante três versões: em EN dizia, a sério, "A que distance o projetor
+  // faz o ecrã que queres" e "All as abas, o projeto e a sincronização".
+  //
+  // O defeito de fundo não era faltarem entradas no dicionário -- é não haver
+  // nada que avise. Um ecrã novo nasce meio traduzido e só se sabe quando
+  // alguém carregar em EN à frente de um cliente.
+  //
+  // Isto varre o DOM à procura de texto que ainda pareça português, e é de
+  // propósito que não filtra pelo que está visível: assim apanha as abas
+  // fechadas na mesma passagem, sem ninguém ter de lá clicar. Os atributos
+  // (placeholder, title, aria-label) também contam -- também se leem.
+  //
+  // Não incomoda ninguém em produção: devolve a lista a quem a pedir, e o
+  // scripts/verificar-traducao.mjs chama-a para falhar quando aparece algo
+  // novo por traduzir.
+  // Um acento latino resolve a maioria dos casos sozinho. A lista de palavras
+  // é a rede para as frases sem acento nenhum -- e só entram aqui palavras que
+  // NÃO existem em inglês. "no", "do", "serve", "a", "as" e "e" pareciam boas
+  // candidatas e são exactamente as que davam falsos positivos em frases
+  // inglesas já traduzidas ("no hunting for the link", "what you do").
+  var PISTAS_PT = new RegExp(
+    "[ãõçáéíóúâêôàÃÕÇÁÉÍÓÚÂÊÔÀ]" +
+    "|(^|[^A-Za-zÀ-ÖØ-öø-ÿ])(de|da|dos|das|para|com|que|uma|num|numa|pelo|pela|entre|sobre|" +
+    "quando|onde|ainda|cada|ser|ter|tem|tens|mais|menos|sem|aqui|assim|depois|antes|muda|" +
+    "escolhe|queres|apenas|todas|todos|isto|isso|este|esta|esse|essa|seu|sua|quem|qual|" +
+    "mesmo|pode|deve|fica|faz|vai|dele|dela|nada|cabe|leva|dar|dás|usa|meter|pôr)" +
+    "([^A-Za-zÀ-ÖØ-öø-ÿ]|$)", "i"
+  );
+
+  function porTraduzir(root) {
+    var achados = [];
+    var base = root || document.body;
+    var visto = {};
+    // Dizer só "isto ficou em português" não chega para ninguém trabalhar --
+    // são 300 trechos num ficheiro de 11 mil linhas. A zona (a aba, o menu,
+    // o cabeçalho) é o que torna a lista utilizável.
+    function zonaDe(el) {
+      if (!el || !el.closest) return "?";
+      var painel = el.closest(".panel[data-mode]");
+      if (painel) return painel.getAttribute("data-mode");
+      if (el.closest("#menu")) return "menu";
+      if (el.closest("#update-banner")) return "barra-versao";
+      if (el.closest("[id^='exemplo-']")) return "barra-exemplo";
+      if (el.closest("#install-banner")) return "barra-instalar";
+      if (el.closest(".tabs-wrap")) return "abas";
+      return "geral";
+    }
+    function juntar(texto, el, onde) {
+      var t = String(texto == null ? "" : texto).trim();
+      // Abaixo de quatro letras não há frase nenhuma para julgar, e números
+      // soltos ("16 x 9") não são de língua nenhuma.
+      if (t.length < 4) return;
+      if (!/[A-Za-zÀ-ÖØ-öø-ÿ]{2}/.test(t)) return;
+      if (!PISTAS_PT.test(t)) return;
+      var chave = onde + " " + t;
+      if (visto[chave]) return;
+      visto[chave] = true;
+      achados.push({ zona: zonaDe(el), onde: onde, texto: t });
+    }
+    var walker = document.createTreeWalker(base, NodeFilter.SHOW_TEXT, null);
+    var n;
+    while ((n = walker.nextNode())) {
+      if (shouldSkip(n.parentElement)) continue;
+      juntar(n.nodeValue, n.parentElement, "texto");
+    }
+    if (base.querySelectorAll) {
+      base.querySelectorAll(I18N_ATTR_SELECTOR).forEach(function (el) {
+        if (shouldSkip(el)) return;
+        I18N_ATTRS.forEach(function (attr) {
+          if (el.hasAttribute(attr)) juntar(el.getAttribute(attr), el, attr);
+        });
+      });
+    }
+    return achados;
+  }
+  window.i18nPorTraduzir = porTraduzir;
 
   window.i18nSetLang = setLang;
   // Para textos que nunca passam pelo DOM (ex: confirm() nativo) e por

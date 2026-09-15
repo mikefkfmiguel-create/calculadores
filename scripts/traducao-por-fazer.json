@@ -1,0 +1,1442 @@
+[
+  {
+    "zona": "ajuda",
+    "onde": "texto",
+    "texto": "— lista de TVs/monitores da empresa com diagonal, resolução (quando confirmada) e distance de visualização ideal; \"Add to project\" junta o resumo à ficha técnica, e serve também de atalho para preencher DSM/delay na aba Project."
+  },
+  {
+    "zona": "ajuda",
+    "onde": "texto",
+    "texto": "— projeção em cúpula: que resolução angular é que o sistema dá ao olho, quantos píxeis se perdem no fisheye e no blending, e quanta luz chega à superfície. Diz também que dome master encomendar (tamanhos normalizados IMERSA)."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "— plateia quadrada calculada com uma densidade real de ocupação (norma IBC, ajustada conforme o texto diga"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": ",\n              onde se vê o projeto montado. Aqui traz-se o resultado: as duas apps partilham\n              o mesmo sítio de arrumação do browser, por isso não há nada para copiar à mão."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": ": apontas na imagem uma coisa de medida conhecida (uma porta, um tile, uma marca no chão), dizes quanto mede, e a app dá escala ao resto. Com câmara no aparelho, dá também para"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": ": com as duas linhas cruzadas é fácil agarrar a pega errada e estragar a escala sem dar por isso."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": ". A régua é aproximada e só vale para coisas no mesmo plano da referência, com a câmara mais ou menos de frente — serve para uma ordem de grandeza, não para cortar estrutura."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": ". Para replicar um evento fotografado numa sala nova, escreve as dimensões reais dessa sala no texto ao lado — o dimensionamento sai sempre daí."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "\"Apply à calculadora\" já usa o 1º (o mais próximo, com prioridade para equipamento próprio) — escolhe outro aqui se preferires."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "), nunca uma medida a sério. Confirma sempre a disposição real antes de aplicar."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "= algo de medida conhecida (escreve-a abaixo)."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "= o que queres medir. Aproximado, e só no mesmo plano da referência."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "🔒 Travar a referência — só a linha laranja se mexe"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "3 modelos mais próximos deste pitch"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "a partir da imagem — para medir, usa a régua aqui em baixo."
+  },
+  {
+    "zona": "assistente",
+    "onde": "title",
+    "texto": "Apaga o texto, o documento e os requisitos extraídos desta análise"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Apply à calculadora"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "As medidas da sala vivem no"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Auditório — plateia sobe"
+  },
+  {
+    "zona": "assistente",
+    "onde": "placeholder",
+    "texto": "Cola aqui o email, briefing ou descrição do projeto…"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Cola aqui o texto de um pedido/briefing, ou carrega um PDF do projeto ou uma foto/render de um evento (PNG ou JPEG). Um modelo de IA lê o documento e tenta extrair as medidas, o tipo de ecrã e outros requisitos."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Como isto funciona, e onde falha"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Conceito de sala"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Configuração do assistente"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "da referência e com a câmara mais ou menos de frente. Uma perspetiva forte, ou medir uma coisa muito mais à frente/atrás do que a referência, dá erros grandes — a foto continua a ser uma foto. Serve para uma ordem de grandeza, não para cortar estrutura."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "de pé"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "de ponta a ponta de algo cuja medida saibas — uma porta (2,00 m de altura é o normal), um tile de LED, uma marca no chão."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Depois de acertares a azul,"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Diagonal (projeção)"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Distância à lente (projeção)"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "do que vais medir: uma referência ao alto para medir uma altura, ao comprido para medir uma largura. Numa foto com perspetiva o nº de píxeis por metro não é igual nas duas direções, e misturá-las é o erro mais caro aqui — a app avisa quando isso acontece."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Endereço do Worker"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Escolhe a referência"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Escreve essa medida real."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Estimativa a partir da distance/largura da plateia (linha acima) e das mesmas regras SMPTE (ângulo) e AVIXA (legibilidade) já usadas na aba Viewing Distance — confirma sempre com a disposição real do espaço."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Guardado só neste dispositivo (localStorage) — nunca é enviado para o repositório nem para outro sítio."
+  },
+  {
+    "zona": "assistente",
+    "onde": "placeholder",
+    "texto": "https://calculadores-assistente.<subdomínio>.workers.dev"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Isto dá só o tamanho — a escolha da tecnologia (LED, projeção, TV) é a seguir, na aba respetiva: os botões acima aplicam o tamanho escolhido a LED Screen/Projection Distance; para TVs, usa o tamanho como referência e escolhe o modelo diretamente na aba TVs (o catálogo é de unidades discretas, não de tamanho contínuo). Se a sugestão for de mais do que 1 ecrã, repete a configuração para cada um."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "LED brightness mínimo (LED)"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Linha laranja — dá"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "na mesma direção"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "não mede"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Nº de ecrãs (ângulo confortável, SMPTE)"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "no mesmo plano"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "no texto (ex: \"evento para 300 pessoas\"), a sugestão de tamanho aparece marcada como"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Numa foto, a IA só identifica o que vê (ex: \"é um ecrã LED\", \"parece um videowall curvo\") —"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "número de pessoas"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "nunca mede tamanhos a partir da imagem"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "os valores antes de os aplicares — a IA pode falhar a leitura ou interpretar mal um documento ambíguo, e os campos ficam editáveis precisamente para corrigires antes de \"Apply\"."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Pavilhão — chão plano"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Pé-direito"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Pinça para ampliar; arrasta fora das pegas para passear a foto."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Pouco detalhe, vídeo (AVIXA ×8)"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Precisa de um"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "próprio configurado (ver \"Configuração do assistente\" abaixo) — sem isso não há para onde enviar o pedido."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "régua"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Régua na foto — dar escala à imagem"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Requisitos extraídos"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Revê e confirma sempre"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Se precisares mesmo de tirar uma medida da foto, há a"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Sem sala nenhuma indicada mas com um"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Size a aplicar nos botões abaixo (escolhe conforme o conteúdo)"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Só é fiável para coisas"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "sobre o que queres medir."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Sugestão de dimensionamento (a partir da distance/largura da plateia acima):"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Tipo de ecrã"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "tirar a foto ali mesmo"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Uma foto não tem escala: 100 píxeis podem ser 10 cm ou 10 m. Aqui dás-lhe uma, apontando uma coisa de medida conhecida."
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Uma foto/render ajuda a identificar o tipo de ecrã/montagem. A IA"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Use como largura da sala"
+  },
+  {
+    "zona": "assistente",
+    "onde": "texto",
+    "texto": "Use como pé-direito"
+  },
+  {
+    "zona": "assistente",
+    "onde": "title",
+    "texto": "Voltar à foto inteira"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "— fatia de 7,64 m a 4,00 m · shift vertical +50%."
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "2 lentes servem, marcadas com ✓ na lista aqui em baixo: Christie Ultra Short, Epson ELPLU03 (9–12k lm)"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "A lente de cada projetor"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "A mesma para todos os projectors do blend — precisa dela para \"Ver no Preview 3D\"."
+  },
+  {
+    "zona": "blend",
+    "onde": "title",
+    "texto": "Abre o Preview 3D com todos os projectors do blend montados na sala"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Brand da lente"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Com esta lente, o projetor fica a"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Da base do ecrã ao eixo da lente. Negativo se a máquina ficar abaixo da base (chão a descer, plateia em anfiteatro). É daqui que sai o shift vertical que a montagem obriga."
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "de 71 — Christie Ultra Short, Epson ELPLU03 (9–12k lm)"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Distância"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Em arco, a acompanhar o ecrã"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Em arco, todas as máquinas ficam à mesma distance da superfície e servem-se todas da mesma lente."
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Em frontal as máquinas ficam do lado da plateia. Em retro ficam atrás do ecrã, a imagem inverte na horizontal, e ninguém na sala tapa o feixe."
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Escolhe a lente que tens para saber a que distance ela cobre a fatia de cada projetor."
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Fatia de cada projetor"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Height da lente acima da base do ecrã"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Lenses que servem"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Máquina a máquina, na truss"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Onde ficam as máquinas, de ponta a ponta. Uma truss larga põe as das pontas a olhar para a sua fatia de esguelha, e o feixe passa-lhes muito para lá — a tabela por máquina, mais abaixo, diz quanto. Estreitá-la desperdiça menos luz."
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Onde ficam os projectors"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Precisas de uma lente 0,52:1"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Rácio"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Rácio necessário"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Retroprojeção (máquinas atrás do pano)"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Shift vertical necessário"
+  },
+  {
+    "zona": "blend",
+    "onde": "texto",
+    "texto": "Width da truss"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "— 23,8 MP no círculo"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "— 23,8 MP úteis de 49,8 MP instalados"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "— a cúpula tem aí 11,91 m de diâmetro; 12 % da superfície fica por baixo, sem imagem (altura de montagem por definir)"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "— cada píxel mede 3,4 mm na cúpula, como um LED de pitch 3,4"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "— numa cúpula de tela translúcida ou numa geodésica com estrutura por fora, os projectors ficam do lado de fora da casca. Em branco, meio metro por dentro da base."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "— o tamanho com que o píxel"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": ", e é esse o alvo."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": ", e não o tamanho dele na parede."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": ", e nenhum folheto o diz: o círculo tem de caber no"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": ", não do corpo. O catálogo não tem dimensões de projectors, por isso este número é teu."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": ", não em \"4K\". O tamanho da cúpula não muda a resolução percebida — o ângulo que um píxel ocupa no olho é o mesmo seja a cúpula de 6 ou de 20 m. O olho resolve até cerca de"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": ", não uma recomendação: nenhum arranjo real aproveita 100% dos píxeis."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": ": 27,1 m², 12 % da superfície (a faixa vermelha no 3D)."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": ": quantos projectors, onde os pendurar, e uma lente do catálogo que dê o rácio que cada fatia pede. Diz também o que ficou de fora e porquê."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": ". A única referência publicada é um tecto: as superfícies de cúpula têm refletividade baixa, \"tipicamente não mais de 50%\", para a luz de um lado não lavar a imagem do outro. Pede o valor ao fabricante da cúpula, ou mede. Numa cúpula de malha, a razão furos/cheio é o botão do ganho."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": ". Pela geometria das faixas: 1 ao centro com fisheye, 2 num anel sem zénite, 3 com zénite, 5 num anel duplo."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "). Mais lúmenes servem para poder ter a superfície mais escura — e é a superfície escura que dá contraste. Sem o ganho da tua superfície medido ou fornecido, esta calculadora"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "A altura de montagem define a base da imagem."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "A colocação diz onde se pendura; a resolução sai de"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "A cúpula"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "A cúpula e a resolução"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "A lente: a conta é ao contrário."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "A resolução mede-se em arcmin por píxel"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Abaixo dos 0,72 m não há imagem"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Acima dele, quem decide é a cobertura — a lente e a altura de montagem."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Alvo de resolução (o grão da imagem)"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Anel à volta + um no zénite"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Anel duplo + um no zénite"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Ângulo de tiro (acima da horizontal)"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Ângulo de tiro: 13° (auto — ao meio da fatia)."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Ao centro, com fisheye"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Aproveitamento dos píxeis"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Area da superfície"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "aritmético — os píxeis que a cúpula pede a dividir pelos que o projetor tem —, e as configurações que as fontes nomeiam: um só ao centro até cerca de 10 m (Loch Ness); 1 ao centro ou 3, 6, 10 em cove (Cosm); 2 a 50 projectors em cúpulas de 2 a 55 m (VIOSO). Acima desse chão quem decide é a"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Base da imagem"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "chão"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Colocação — onde ficam montados"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Colocação e resolução são coisas diferentes."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Com estas medidas, esta montagem e este projetor, a app procura a combinação"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "começa a 0,72"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Cumpre o alvo: 1,96 arcmin/px contra os 3,0 pedidos. É a folga certa."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "da lente"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "da lente, não para a encomendar."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "De bordo a bordo por cima do pólo. É isto que fixa a resolução, não o nº de projectors."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "de distance — o rácio de tiro tem de andar por"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "de largura a"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Deixa 3: é onde o olho deixa de separar píxeis, na literatura de fulldome. Quanto é que isto dá na tua montagem — e quantos mm de pitch são — está na leitura"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "deste modelo — os 10,2 MP que a cúpula pede a dividir pelos 8,3 MP que o projetor tem. É um"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Diâmetro na base"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Distância do centro ao projetor."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Do chão ao projetor. Define a base da imagem: abaixo desta altura não há imagem."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Do ponto de montagem à lente. A distance de tiro conta-se"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "do projetor, por isso um 4096×2160 só dá 2160 de dome master. Truncar recupera píxeis mas corta cúpula — a calculadora diz quanto."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "do repositório."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "DOME — 12,0 m de diâmetro, meia-esfera (raio da esfera 6,00 m)\nArea da superfície: 226,2 m²\n\nProjectors: 6 × Epson EB-PQ2220B, 3840×2160 (declared — pixel-shift) @ 20 000 lm\nColocados: Anel à volta + um no zénite, altura de montagem por definir\nNota do projetor: 4K via pixel-shift; native panel 1920×1080\nImagens a atravessar o pólo: 3\nSobreposição de blending: 15 %\n\nDome master eficaz: 5508 px de diâmetro (23,8 MP no círculo)\nResolution angular: 1,96 arcmin/px (30,6 px/grau) — alvo 3,0 arcmin/px\nEm linguagem de LED: cada píxel mede 3,4 mm na superfície da cúpula (é como olhar para um LED desse pitch)\nAproveitamento: 48 % (23,8 MP úteis de 49,8 MP instalados)\nDome master a encomendar: 8192 × 8192 px (acima da tabela IMERSA, que acaba em \"4096 ou mais\")\n\nLuz: 120 000 lm totais, 531 lx na superfície\nLuminância: não estimada — falta o ganho da superfície (a referência publicada é um tecto, “não mais de 50%”).\n\nNota: numa cúpula a luz de um lado reflete-se e lava a imagem do outro. As superfícies\ntêm refletividade baixa por isso mesmo — mais lúmenes servem para poder ter a superfície\nmais escura, e é a superfície escura que dá contraste."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "É a ordem da lente, não uma encomenda"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Em branco de propósito —"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Em vez de estimar cobertura a partir de uma lente — o que sobre uma calota não sai de um throw ratio —, a aba calcula o rácio"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Fisheye truncado (usar o lado longo, cortando cúpula)"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Fontes e contas em detalhe: ver a secção \"Calculator de dome\" no"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Ganho (refletividade) da superfície"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Height da cúpula"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Height de montagem dos projectors"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Iluminância"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "imagem(ns), que é o que está aí."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Imagens a atravessar o pólo"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "imagens a atravessar o pólo."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "lente(s) que cobrem esse rácio — ex.: Christie High Contrast, Christie Roadster 1,16–1,49 curto ajustável, Christie Short Standard."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Lúmenes per projector"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Lúmenes totais"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Luminância"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "lx na superfície"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "m do chão"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "mais barata que cumpre o alvo"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Mais lúmenes não servem para ter mais luz."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Menor = mais fino."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Mínimo absoluto para o alvo de 3,0 arcmin/px: 2 projectors"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "não estima a luz"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Não há fórmula publicada. O que a aba dá é um"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "não há valor por omissão honesto"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "não mais de 50%"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "necessário"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "No catálogo há"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Nº de projectors"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Numa cúpula a luz de um lado reflete-se e lava a imagem do outro, por isso as superfícies têm refletividade baixa (a fonte indica"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "O pixel-shift declara mais píxeis do que o painel tem."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "para cobrir a fatia de cada projetor e confronta-o com o catálogo. A geometria é exacta sobre os pontos da fatia; a aproximação é uma só, e é esta: um quadro retangular sobre uma calota não é um retângulo, e um projetor de cove atira muito fora de eixo. Serve para saber a"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Para cobrir a fatia de um projetor do anel —"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Para o alvo de 3,0 arcmin/px com este projetor seriam"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "PARA-CONTINUAR.md"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Pela geometria da colocação escolhida, um meridiano atravessa"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "pelo caminho, e"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "pitch do LED traduzido em ângulo"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Píxeis por grau"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Pode ser maior do que o raio da cúpula"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Preenche lúmenes e resolução do catálogo."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Profundidade até à lente"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Projector de referência"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "px — acima da tabela IMERSA, que acaba em \"4096 ou mais\""
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "px de diâmetro"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "quantas imagens atravessam o pólo"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Quanto o projetor aponta para cima. Em branco, aponta ao meio da fatia dele. Muda a distance de tiro, logo muda a lente que precisas."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Quanto se perde ao sobrepor as imagens. O 3D desenha esta sobreposição."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "quantos píxeis é que se perdem"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "que resolução é que isto dá"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Rácio máx."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Rácio mín."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Radius da esfera"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Radius de montagem (do centro)"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Recupera píxeis usando a largura toda do quadro, mas corta cúpula."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Sem a profundidade até à lente, mede-se do ponto de montagem — escreve-a acima para a distance ficar certa."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Sem o ganho da superfície não se estima luminância — seria inventar. A única referência publicada é um tecto (\"não mais de 50%\"), e o valor real depende da cúpula que tens: pede-o ao fabricante, ou mede. Os lux acima já dizem o que chega à superfície, e esses não dependem do ganho."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Só onde se montam. Não mexe na resolução."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Sobreposição de blending"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Sugerir a best combinação"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Todos em anel à volta da cúpula"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Um arcmin é 1/60 de grau: é o"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Um dome geodésico de evento é muitas vezes mais (ou menos) do que meia-esfera. A área muda com isso, e a área manda na luz."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Um fisheye desperdiça metade dos píxeis"
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Um projetor de cove aponta para cima e para o lado oposto — não põe imagem abaixo do seu próprio plano horizontal. A faixa que fica por baixo não leva imagem, e o 3D desenha-a a vermelho. Baixar a montagem cobre mais cúpula; subir cobre menos e pede lente mais longa."
+  },
+  {
+    "zona": "dome",
+    "onde": "texto",
+    "texto": "Uma cúpula não se dimensiona como um ecrã plano, e há três perguntas a responder:"
+  },
+  {
+    "zona": "led",
+    "onde": "texto",
+    "texto": "Absen NT 2.6 — 500×500×80mm, 192×192px, 7,5kg, 0,75A (172,5W@230V, série NT V2), 1000 nits"
+  },
+  {
+    "zona": "led",
+    "onde": "texto",
+    "texto": "e no 3D. O tamanho, a resolução e o pitch são de cada ecrã e não mudam. O sítio de cada um é só um ponto de partida: arrastam-se no 3D como qualquer zona. Para ecrãs"
+  },
+  {
+    "zona": "led",
+    "onde": "texto",
+    "texto": "É outra coisa que procuras?"
+  },
+  {
+    "zona": "led",
+    "onde": "texto",
+    "texto": "Ecrãs iguais a este"
+  },
+  {
+    "zona": "led",
+    "onde": "texto",
+    "texto": "Genérico P3.9 500×500 — 500×500mm, 128×128px, 7,5kg, ≈0,6A (market)"
+  },
+  {
+    "zona": "led",
+    "onde": "texto",
+    "texto": "LED screen: NaN x NaN tiles (NaN x NaN mm each, — tiles)\nTotal resolution: — x — px  —  aspect ratio —\nPhysical size: — x — m  (— m²)\nPixel pitch: — mm\nViewing distance: — – — m (min. – max.)\nTotal weight: — kg  —  Amps (máx.): — A total, — A per phase (three-phase)"
+  },
+  {
+    "zona": "led",
+    "onde": "texto",
+    "texto": "Multiplica o nº de tiles, o peso e a amperagem — o que se carrega e o que se alimenta — e põe os ecrãs na sala, em fila, no"
+  },
+  {
+    "zona": "led",
+    "onde": "texto",
+    "texto": "Resolution de um blend de projectors"
+  },
+  {
+    "zona": "led",
+    "onde": "texto",
+    "texto": "uns dos outros, usa o"
+  },
+  {
+    "zona": "lentes",
+    "onde": "texto",
+    "texto": "— 4,00 m de ecrã a 10,00 m."
+  },
+  {
+    "zona": "lentes",
+    "onde": "texto",
+    "texto": "11 lentes servem, marcadas com ✓ na lista aqui em baixo: Barco RLM-W8 RLD zoom (2), Barco FLD+ Long, Christie Zoom 2,1–3,4, …"
+  },
+  {
+    "zona": "lentes",
+    "onde": "texto",
+    "texto": "Precisas de uma lente 2,50:1"
+  },
+  {
+    "zona": "lentes",
+    "onde": "texto",
+    "texto": "Roadster 1,16–1,49 curto ajustável"
+  },
+  {
+    "zona": "lentes",
+    "onde": "texto",
+    "texto": "Roadster 1,4–1,8 ajustável"
+  },
+  {
+    "zona": "mediaserver",
+    "onde": "texto",
+    "texto": "Watchout 7 (PC próprio, placa AMD Radeon Pro W6800)"
+  },
+  {
+    "zona": "projecao",
+    "onde": "texto",
+    "texto": ", mostra a distance mínima e máxima onde funciona."
+  },
+  {
+    "zona": "projecao",
+    "onde": "title",
+    "texto": "Abre o Preview 3D com este projetor montado na sala"
+  },
+  {
+    "zona": "projecao",
+    "onde": "texto",
+    "texto": "Christie Roadster 1,16–1,49 curto ajustável (1,16–1,49)"
+  },
+  {
+    "zona": "projecao",
+    "onde": "texto",
+    "texto": "Christie Roadster 1,4–1,8 ajustável (1,40–1,80)"
+  },
+  {
+    "zona": "projecao",
+    "onde": "texto",
+    "texto": "Nenhuma lente na base cobre este throw ratio."
+  },
+  {
+    "zona": "projecao",
+    "onde": "texto",
+    "texto": "Shift da lente"
+  },
+  {
+    "zona": "projecao",
+    "onde": "texto",
+    "texto": "Use esta lente"
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "— repõe"
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": ", na secção \"Também no projeto\"."
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "↙ Trazer da Multi-Zone Screen"
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "↙ Trazer das TVs"
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "Brand \"Add to project\" no resumo de Projection Distance, LED Screen ou Blending para preencher automaticamente os campos correspondentes abaixo — não precisas de copiar nada à mão, e o relatório do projeto não repete o que essa calculadora já mostra. As restantes — TVs, Viewing Distance, Signal & Data Rate e Media Server (sem \"tipo de ecrã\" próprio aqui) — aparecem nesta lista"
+  },
+  {
+    "zona": "projeto",
+    "onde": "title",
+    "texto": "Conta as zonas tipo TV (delay)/Projection (delay) já criadas na aba Multi-Zone Screen. Se essas zonas vieram da aba TVs, traz também o modelo e a resolução."
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "e no fim do relatório do projeto"
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "Esta aba junta a ficha técnica, mas o que chega ao Preview é o que estiver com"
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "marcado numa calculadora — LED Screen, TVs, Projection Distance, Blending, Dome ou Multi-Zone Screen. Sem isso o 3D fica vazio e o nome do projeto também não segue, porque não há carga onde ele viaje."
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "Marcar o ecrã LED para o 3D"
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "Nada marcado para o 3D."
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "No fim, usa"
+  },
+  {
+    "zona": "projeto",
+    "onde": "title",
+    "texto": "Repõe TODAS as calculadoras (incluindo zonas do Multi-Zone Screen e o Project Assistant) ao estado inicial"
+  },
+  {
+    "zona": "projeto",
+    "onde": "texto",
+    "texto": "todas"
+  },
+  {
+    "zona": "projeto",
+    "onde": "title",
+    "texto": "Traz o modelo, a quantidade e a resolução directamente da aba TVs — para quando os delays ainda não passaram pela Multi-Zone Screen"
+  },
+  {
+    "zona": "projeto",
+    "onde": "title",
+    "texto": "Use the contagem de DSM já configurada na aba Multi-Zone Screen (o mesmo DSM que vai e volta do Preview), para não escrever o número outra vez"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "1× (16 portas, 10 333 328 px/unidade) — usar 13 de 16 portas (80%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "1× (16 portas, 35 380 000 px/unidade) — usar 4 de 16 portas (23%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "1× (16 portas, 8 800 000 px/unidade) — usar 13 de 16 portas (94%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "1× (16 portas, 9 000 000 px/unidade) — usar 4 de 16 portas (92%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "1× (20 portas, 12 916 660 px/unidade) — usar 13 de 20 portas (64%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "1× (20 portas, 9 000 000 px/unidade) — usar 13 de 20 portas (92%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "2× (10 portas, 6 458 330 px/unidade) — usar 13 de 20 portas (64%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "3× (6 portas, 3 874 998 px/unidade) — usar 13 de 18 portas (71%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "4× (4 portas, 2 583 332 px/unidade) — usar 13 de 16 portas (80%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "7× (2 portas, 1 291 666 px/unidade) — usar 13 de 14 portas (92%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "7× (4 portas, 1 300 000 px/unidade) — usar 13 de 28 portas (91%)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "HDMI 2.0 ou DisplayPort 1.2 (até 600MHz)"
+  },
+  {
+    "zona": "sinal",
+    "onde": "texto",
+    "texto": "SIGNAL & DATA RATE\nResolution: 3840×2160px @ 60Hz, 8-bit, RGB/YCbCr 4:4:4\nTotal pixels: 8 294 400 px\nData rate: 11,94 Gbit/s\nPixel clock (CVT-RB2): 522,6 MHz\nMinimum recommended connection: HDMI 2.0 ou DisplayPort 1.2 (até 600MHz)\n\nSwitchers escolhidos:\n  none chosen\n\nProcesso de LED escolhido:\n  none chosen"
+  },
+  {
+    "zona": "tv",
+    "onde": "texto",
+    "texto": "Nº de TVs deste modelo — para grelhas/videowalls ou ecrãs delay repetidos. Só entra no resumo, não afeta o cálculo de tamanho/distance acima (esse é sempre por unidade)."
+  },
+  {
+    "zona": "visualizacao",
+    "onde": "texto",
+    "texto": "Ângulo até ao centro do ecrã"
+  },
+  {
+    "zona": "visualizacao",
+    "onde": "texto",
+    "texto": "Ângulo lateral (lugares mais afastados)"
+  },
+  {
+    "zona": "visualizacao",
+    "onde": "texto",
+    "texto": "Cada ecrã cobre a sua secção da plateia (largura acima ÷ nº de ecrãs) — sobe o número até o ângulo abaixo ficar confortável."
+  },
+  {
+    "zona": "visualizacao",
+    "onde": "texto",
+    "texto": "ecrã(s)"
+  },
+  {
+    "zona": "visualizacao",
+    "onde": "texto",
+    "texto": "Led Tv 55\" Samsung Série 7026 — 55\""
+  },
+  {
+    "zona": "visualizacao",
+    "onde": "texto",
+    "texto": "Monitor LG HD IPS de 27\" MP400 — 27\""
+  },
+  {
+    "zona": "visualizacao",
+    "onde": "texto",
+    "texto": "Número de ecrãs (lado a lado)"
+  },
+  {
+    "zona": "visualizacao",
+    "onde": "texto",
+    "texto": "Só para verificar o ângulo lateral dos lugares mais afastados do centro (assume o ecrã centrado na parede/palco, e esta largura medida à distance acima). Deixa em branco se não te importa isso ou não tens essa medida."
+  },
+  {
+    "zona": "visualizacao",
+    "onde": "texto",
+    "texto": "Standard: SMPTE EG-18-1994 — acima de 30° a pessoa tem de rodar visivelmente a cabeça/corpo para o ecrã; a partir dos 35° a maioria já sente desconforto."
+  },
+  {
+    "zona": "visualizacao",
+    "onde": "texto",
+    "texto": "Width da plateia (opcional)"
+  },
+  {
+    "zona": "zonas",
+    "onde": "texto",
+    "texto": "= vertical, em metros) usa o centro de cada zona: um ecrã sozinho no meio fica em X=0/Y=0. O diagrama é desenhado à escala e calcula a dimensão total do conjunto já com os gaps entre zonas contemplados. Zonas novas posicionam-se sozinhas ao lado da última e o conjunto é recentrado de imediato, para não ficar tudo a fugir para a direita; a posição continua sempre editável à mão — ou arrasta a zona diretamente no desenho para a mover, usando"
+  },
+  {
+    "zona": "zonas",
+    "onde": "texto",
+    "texto": "Diagonal (um monitor real vende-se assim, não por largura × altura)"
+  },
+  {
+    "zona": "zonas",
+    "onde": "texto",
+    "texto": "DSM (monitor de confiança no palco)"
+  },
+  {
+    "zona": "zonas",
+    "onde": "texto",
+    "texto": "Escreve a diagonal e a largura/altura calculam-se sozinhas (ecrã 16:9 — o formato de qualquer monitor de confiança à venda hoje). Só mexe na largura/altura diretamente se for mesmo um caso fora do 16:9."
+  },
+  {
+    "zona": "zonas",
+    "onde": "texto",
+    "texto": "Monitores de confiança/preview no palco — não são uma zona de ecrã LED nem entram nas contas do conjunto acima; é só uma quantidade e um tamanho guardados uma vez para o projeto todo, que seguem para o Preview (\"View in 3D\")."
+  },
+  {
+    "zona": "zonas",
+    "onde": "texto",
+    "texto": "para movimento fino. O desenho mostra só o nome de cada zona; o tamanho e os limites em metros ficam na coluna de detalhes ao lado. A lista de cards ordena-se sozinha pela posição (mais à esquerda primeiro) para ser mais fácil encontrar o card certo. Clicar numa zona no desenho (sem arrastar) ou na coluna de detalhes salta logo para o card dela na lista e abre o popup de edição. The popup can be dragged by its title — handy for moving it aside to see the drawing underneath while you edit."
+  },
+  {
+    "zona": "zonas",
+    "onde": "texto",
+    "texto": "Saídas de delay (TV/projeção)"
+  }
+]
