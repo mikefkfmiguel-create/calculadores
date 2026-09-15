@@ -48,6 +48,20 @@ id = "c7177499debf474c91436cb927d11ffe"
 binding = "FEEDBACK"
 id = "1879971c649b474d93c9fd68d8f0d0d2"
 
+# Contagem de utilização: uma linha por aparelho e por dia, 90 dias, com um
+# número aleatório de instalação e as abas abertas — nunca quem, nunca nada
+# do projeto. Ver contarUso() e resumoDeUso() em src/index.js, e o
+# PLANO-CONTAGEM.md na raiz do repositório.
+#
+# Este id ainda é o de exemplo: criar o namespace com
+#   npx wrangler kv namespace create USO
+# e colar aqui o id que ele imprime. Enquanto estiver assim, a publicação
+# pára no primeiro passo e diz-o — em vez de publicar um Worker que aceita a
+# contagem e a deita fora calado.
+[[kv_namespaces]]
+binding = "USO"
+id = "cola-aqui-o-id-do-namespace-USO"
+
 # A chave da Anthropic NUNCA vai aqui nem em nenhum ficheiro do repositório —
 # define-se como secret depois do primeiro deploy:
 #   wrangler secret put ANTHROPIC_API_KEY

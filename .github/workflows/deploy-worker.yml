@@ -66,7 +66,9 @@ jobs:
           # pior do que não publicar.
           if grep -q "cola-aqui-o-id" wrangler.toml; then
             echo "::error::O wrangler.toml ainda tem os ids de exemplo das KV ('cola-aqui-o-id')."
-            echo "::error::Corre 'npx wrangler kv namespace list' e põe lá os ids reais de PARTILHAS, REGISTOS e FEEDBACK."
+            echo "::error::Corre 'npx wrangler kv namespace list' e põe lá os ids reais de PARTILHAS, REGISTOS, FEEDBACK e USO."
+            echo "::error::Se a que falta for a USO (contagem de utilização, nova), cria-a primeiro:"
+            echo "::error::  npx wrangler kv namespace create USO"
             falhou=1
           fi
 

@@ -14,6 +14,66 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 15 de setembro — contar quantos, nunca quem (v3.91)
+
+Executa o `PLANO-CONTAGEM.md`. **Duas premissas desse plano estavam erradas**,
+e a correcção está escrita no topo dele — em resumo: o endereço do Worker
+**não** é escrito à mão (há um `DEFAULT_WORKER_URL` no código, que eu não li
+antes de concluir o contrário) e **já está publicado** no `index.html` que o
+GitHub Pages serve. Portanto não há Worker novo nenhum: a contagem entrou no
+que já existe, como mais uma rota. Menos infraestrutura do que o planeado.
+
+**O que sai da app:** uma vez por dia, no máximo — um UUID gerado à primeira
+vez (não é uma pessoa, é esta cópia instalada), a versão, e os nomes das abas
+abertas desde o último envio. Mais nada. A data é a do relógio do Worker, por
+isso um telemóvel com a data trocada não estraga a contagem de ninguém.
+
+**E diz-se, na Ajuda**, com um interruptor que desliga mesmo e um botão para
+esquecer o número. Não é delicadeza: o `BALANCO.md` promete que "nada sai do
+telemóvel", e isto passa a ser uma meia-verdade — e uma app que promete uma
+coisa e faz outra em silêncio é o defeito nº 4 da própria lista.
+
+**A regra do plano que não sobreviveu ao contacto, e porquê.** O plano dizia
+*"nunca ao arrancar"*. Só que a app **abre no menu**, e o `mostrarMenu(true)`
+só corre quando alguém volta lá — medido à primeira passagem do teste: **zero
+envios ao abrir a app**. Quem abria, olhava para o menu e fechava não aparecia
+em contagem nenhuma, que é precisamente uma das coisas que interessa saber.
+Cinco segundos de atraso servem as duas razões da regra original (não pesar no
+arranque, não contar um toque enganado) sem ficar com o defeito.
+
+**O 400 em vez do 204 calado.** O plano dizia para descartar em silêncio o que
+não encaixasse. Mudei de ideias a escrever: se o formato do pedido tiver um
+erro, a contagem fica a zero e nada diz porquê — o "silêncio" outra vez, agora
+virado para dentro. O 400 leva a razão e não revela nada (o que está lá já
+está no código da app, que é público).
+
+### Os primeiros testes automáticos deste projeto
+
+`worker/testes/uso.test.mjs`, nove testes, com um KV falso. Correm com
+
+```bash
+node --test "worker/testes/*.test.mjs"
+```
+
+Nasceram aqui e não antes por uma razão concreta: este código **não se pode
+experimentar no browser** como o resto da app — só se saberia se funciona
+depois de publicado, e publicado já é tarde. É também o primeiro passo na
+direcção que a secção 5 do `BALANCO.md` aponta.
+
+**Medido no Chromium**, com o endpoint interceptado: o menu conta ao arrancar
+(um envio, UUID válido, `abas: ["menu"]`); três abas no mesmo dia continuam a
+dar **um** envio e ficam acumuladas para o dia seguinte; o interruptor
+desligado não deixa sair nada e limpa o que estava por enviar; esquecer o
+número apaga-o; sem rede as abas ficam guardadas e a calculadora responde na
+mesma. Zero erros de consola.
+
+### Falta, e precisa do mike
+
+A KV `USO` ainda não existe na conta Cloudflare. **Até ela ser criada, a
+publicação do Worker pára no primeiro passo e diz porquê** — de propósito: um
+Worker publicado com o id de exemplo aceita a contagem e deita-a fora calado.
+Ver o `worker/DEPLOY.md`, ponto 1.
+
 ## 15 de setembro — o inglês dos ecrãs novos, e uma rede para o próximo (v3.90)
 
 > *"Faz as duas"* — reparar o que está partido **e** deixar uma verificação.

@@ -285,6 +285,182 @@ async function listarRegistos(request, env) {
   });
 }
 
+// ------------------------------------------------------ contagem de uso
+//
+// PORQUÊ: o GitHub Pages não dá registos nenhuns, por isso até aqui não havia
+// maneira de saber se a app é usada por três pessoas ou por trinta -- e é a
+// adivinhar que se decidia o que polir a seguir. A pergunta concreta que isto
+// responde, além de "quantos": QUE ABAS é que são abertas. O Dome tem 121
+// trechos por traduzir, o maior bloco que resta; se ninguém abre o Dome, isso
+// não se traduz.
+//
+// A REGRA, e não é negociável: conta-se QUANTOS, nunca QUEM. O `id` é um
+// número aleatório gerado pela própria app à primeira vez -- não é uma
+// pessoa, é uma cópia instalada da app, e quem limpar os dados do browser
+// passa a contar como nova. Não se guarda IP, nem país, nem browser, nem nada
+// escrito nos campos: um projeto é do cliente de quem o está a fazer.
+//
+// A data vem do relógio DESTE Worker e não do aparelho -- um telemóvel com a
+// data trocada não estraga a contagem de ninguém.
+const USO_VALIDADE_SEGUNDOS = 90 * 24 * 60 * 60; // 90 dias
+const USO_APPS = ["calculadores", "preview"];
+// Lista FECHADA: o Worker nunca guarda um nome de aba que não conheça. Sem
+// isto, um pedido forjado podia encher o KV com o que lhe apetecesse.
+const USO_ABAS = [
+  "menu", "assistente", "projecao", "blend", "dome", "visualizacao", "tv",
+  "led", "zonas", "sinal", "mediaserver", "projeto", "lentes", "grafismo", "ajuda",
+];
+const USO_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const USO_VERSAO_RE = /^v[0-9][0-9.]{0,10}$/;
+
+function respostaUso(corpo, status, origin) {
+  return new Response(JSON.stringify(corpo), {
+    status: status,
+    headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+  });
+}
+
+/**
+ * POST /uso — a app diz "estou a ser usada", uma vez por dia no máximo.
+ *
+ * Um pedido malformado leva 400 com a razão, e NÃO um 204 calado, ao
+ * contrário do que o PLANO-CONTAGEM.md dizia. Mudou-se de ideias a escrever
+ * isto, e por uma razão que esta app já aprendeu à sua custa: se o formato do
+ * pedido tiver um erro, a contagem fica a zero e nada diz porquê -- é o
+ * defeito do "silêncio" outra vez, agora virado para dentro. O 400 não revela
+ * nada a ninguém (o que está aqui já está no código da app, que é público) e
+ * aparece na consola de quem estiver a mexer.
+ */
+async function contarUso(request, env, origin) {
+  if (!env.USO) return respostaUso({ error: "Worker sem armazenamento de uso (KV USO)." }, 500, origin);
+
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return respostaUso({ error: "JSON em falta ou mal formado." }, 400, origin);
+  }
+
+  const app = USO_APPS.includes(body && body.app) ? body.app : "";
+  if (!app) return respostaUso({ error: "Campo 'app' desconhecido." }, 400, origin);
+
+  const id = typeof body.id === "string" && USO_UUID_RE.test(body.id) ? body.id.toLowerCase() : "";
+  if (!id) return respostaUso({ error: "Campo 'id' tem de ser um UUID." }, 400, origin);
+
+  const versao = typeof body.versao === "string" && USO_VERSAO_RE.test(body.versao) ? body.versao : "";
+
+  // Abas: no máximo 20, só as conhecidas, sem repetições.
+  const abas = [];
+  if (Array.isArray(body.abas)) {
+    for (const a of body.abas.slice(0, 20)) {
+      if (USO_ABAS.includes(a) && !abas.includes(a)) abas.push(a);
+    }
+  }
+
+  // A chave carrega o dia, a app e o id -- de propósito: contar aparelhos
+  // distintos passa a ser só listar nomes de chaves, sem ler valor nenhum.
+  const dia = new Date().toISOString().slice(0, 10);
+  const chave = "d:" + dia + ":" + app + ":" + id;
+
+  // Juntar às abas que já tinham chegado hoje deste mesmo aparelho, em vez de
+  // as substituir: quem abre a app de manhã e à tarde não perde a manhã.
+  let jaHoje = [];
+  try {
+    const bruto = await env.USO.get(chave);
+    if (bruto) {
+      const anterior = JSON.parse(bruto);
+      if (Array.isArray(anterior.a)) jaHoje = anterior.a;
+    }
+  } catch (e) {
+    jaHoje = [];
+  }
+  for (const a of jaHoje) if (!abas.includes(a) && USO_ABAS.includes(a)) abas.push(a);
+
+  await env.USO.put(chave, JSON.stringify({ v: versao, a: abas }), {
+    expirationTtl: USO_VALIDADE_SEGUNDOS,
+  });
+
+  return respostaUso({ ok: true }, 200, origin);
+}
+
+/**
+ * GET /uso/resumo?dias=7[&abas=1] — protegido pelo mesmo ADMIN_TOKEN do
+ * /registos. Contar aparelhos lê só NOMES de chaves; as abas custam uma
+ * leitura por chave, por isso só saem se forem pedidas.
+ */
+async function resumoDeUso(request, env) {
+  const auth = request.headers.get("Authorization") || "";
+  if (!env.ADMIN_TOKEN || auth !== "Bearer " + env.ADMIN_TOKEN) {
+    return new Response(JSON.stringify({ error: "Não autorizado." }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  if (!env.USO) {
+    return new Response(JSON.stringify({ error: "Worker sem armazenamento de uso (KV USO)." }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const url = new URL(request.url);
+  let dias = parseInt(url.searchParams.get("dias") || "7", 10);
+  if (!isFinite(dias) || dias < 1) dias = 7;
+  if (dias > 90) dias = 90;
+  const comAbas = url.searchParams.get("abas") === "1";
+
+  const hoje = new Date();
+  const porApp = {};
+  const abasContadas = {};
+  const porDia = {};
+
+  for (let i = 0; i < dias; i++) {
+    const d = new Date(hoje.getTime() - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    let cursor;
+    do {
+      // Uma listagem por dia, com prefixo — muito mais barato do que varrer
+      // tudo e filtrar. O cursor existe porque o KV devolve 1000 de cada vez.
+      const pagina = await env.USO.list({ prefix: "d:" + d + ":", limit: 1000, cursor: cursor });
+      for (const k of pagina.keys) {
+        const partes = k.name.split(":");
+        const app = partes[2] || "?";
+        const id = partes[3] || "";
+        if (!porApp[app]) porApp[app] = new Set();
+        porApp[app].add(id);
+        if (!porDia[d]) porDia[d] = new Set();
+        porDia[d].add(app + ":" + id);
+        if (comAbas) {
+          try {
+            const bruto = await env.USO.get(k.name);
+            const v = bruto ? JSON.parse(bruto) : null;
+            if (v && Array.isArray(v.a)) {
+              for (const a of v.a) abasContadas[a] = (abasContadas[a] || 0) + 1;
+            }
+          } catch (e) {
+            // uma linha ilegível não pode derrubar o resumo todo
+          }
+        }
+      }
+      cursor = pagina.list_complete ? null : pagina.cursor;
+    } while (cursor);
+  }
+
+  const aparelhos = {};
+  for (const app of Object.keys(porApp)) aparelhos[app] = porApp[app].size;
+  const diario = {};
+  for (const d of Object.keys(porDia).sort()) diario[d] = porDia[d].size;
+
+  return new Response(
+    JSON.stringify({
+      dias: dias,
+      aparelhos: aparelhos,
+      porDia: diario,
+      abas: comAbas ? abasContadas : undefined,
+    }),
+    { status: 200, headers: { "Content-Type": "application/json" } }
+  );
+}
+
 // -------------------------------------------- exemplos parecidos (memória)
 //
 // Pedido direto: "deve ir guardando os projetos criados como referência para
@@ -465,6 +641,18 @@ export default {
       return listarRegistos(request, env);
     }
 
+    // Idem para o resumo de utilização: é para ser lido de fora do browser,
+    // com o mesmo token, por isso também fica antes do bloqueio de origem.
+    if (url.pathname === "/uso/resumo") {
+      if (request.method !== "GET") {
+        return new Response(JSON.stringify({ error: "Método não suportado." }), {
+          status: 405,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return resumoDeUso(request, env);
+    }
+
     const allowedOrigins = (env.ALLOWED_ORIGINS || "")
       .split(",")
       .map((s) => s.trim())
@@ -487,6 +675,19 @@ export default {
     // raiz "/" (ver mais abaixo). Vivem aqui em cima para não se misturarem
     // com os limites e validações do texto/PDF/imagem, que não lhes dizem
     // respeito nenhum.
+    // A contagem vem do browser, por isso passa pelo mesmo crivo de origem
+    // que o resto. Fica aqui em cima, antes das rotas que validam textos,
+    // PDFs e imagens — não tem nada que ver com elas.
+    if (url.pathname === "/uso") {
+      if (request.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Método não suportado." }), {
+          status: 405,
+          headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+        });
+      }
+      return contarUso(request, env, origin);
+    }
+
     if (url.pathname === "/partilha") {
       if (request.method !== "POST") {
         return new Response(JSON.stringify({ error: "Método não suportado." }), {
