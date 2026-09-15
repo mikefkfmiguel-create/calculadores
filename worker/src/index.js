@@ -484,31 +484,18 @@ async function contarUso(request, env, origin) {
 }
 
 /**
- * GET /uso/resumo?dias=7[&abas=1] — protegido pelo mesmo ADMIN_TOKEN do
- * /registos. Contar aparelhos lê só NOMES de chaves; as abas custam uma
- * leitura por chave, por isso só saem se forem pedidas.
+ * A CONTA, num sítio só.
+ *
+ * Serve o /uso/resumo (JSON, para scripts e para o balanço semanal) E o
+ * /uso/painel (a página que se abre no telemóvel). Estar aqui e não duplicada
+ * é o que garante que os dois nunca discordam -- que é o defeito que esta casa
+ * anda a corrigir desde o primeiro dia.
+ *
+ * Contar aparelhos lê só NOMES de chaves (a chave carrega o dia, a app e o
+ * id); as abas custam uma leitura por chave, por isso só saem se forem
+ * pedidas.
  */
-async function resumoDeUso(request, env) {
-  const auth = request.headers.get("Authorization") || "";
-  if (!env.ADMIN_TOKEN || auth !== "Bearer " + env.ADMIN_TOKEN) {
-    return new Response(JSON.stringify({ error: "Não autorizado." }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-  if (!env.USO) {
-    return new Response(JSON.stringify({ error: "Worker sem armazenamento de uso (KV USO)." }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const url = new URL(request.url);
-  let dias = parseInt(url.searchParams.get("dias") || "7", 10);
-  if (!isFinite(dias) || dias < 1) dias = 7;
-  if (dias > 90) dias = 90;
-  const comAbas = url.searchParams.get("abas") === "1";
-
+async function contasDeUso(env, dias, comAbas) {
   const hoje = new Date();
   const porApp = {};
   const abasContadas = {};
@@ -549,16 +536,196 @@ async function resumoDeUso(request, env) {
   for (const app of Object.keys(porApp)) aparelhos[app] = porApp[app].size;
   const diario = {};
   for (const d of Object.keys(porDia).sort()) diario[d] = porDia[d].size;
+  return { dias: dias, aparelhos: aparelhos, porDia: diario, abas: comAbas ? abasContadas : undefined };
+}
 
-  return new Response(
-    JSON.stringify({
-      dias: dias,
-      aparelhos: aparelhos,
-      porDia: diario,
-      abas: comAbas ? abasContadas : undefined,
-    }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
+function diasPedidos(url) {
+  let dias = parseInt(url.searchParams.get("dias") || "7", 10);
+  if (!isFinite(dias) || dias < 1) dias = 7;
+  if (dias > 90) dias = 90;
+  return dias;
+}
+
+/**
+ * GET /uso/resumo?dias=7[&abas=1] — JSON, protegido pelo mesmo ADMIN_TOKEN do
+ * /registos, no cabeçalho. Para scripts e para o balanço semanal.
+ */
+async function resumoDeUso(request, env) {
+  const auth = request.headers.get("Authorization") || "";
+  if (!env.ADMIN_TOKEN || auth !== "Bearer " + env.ADMIN_TOKEN) {
+    return new Response(JSON.stringify({ error: "Não autorizado." }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  if (!env.USO) {
+    return new Response(JSON.stringify({ error: "Worker sem armazenamento de uso (KV USO)." }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  const url = new URL(request.url);
+  const contas = await contasDeUso(env, diasPedidos(url), url.searchParams.get("abas") === "1");
+  return new Response(JSON.stringify(contas), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+/**
+ * GET /uso/painel?t=<TOKEN_USO>[&dias=30] — a mesma conta, numa página que se
+ * abre no telemóvel.
+ *
+ * PORQUE É QUE O TOKEN VAI NO ENDEREÇO, E PORQUE É QUE NÃO É O ADMIN_TOKEN.
+ *
+ * Um browser não manda cabeçalhos quando se abre um link, por isso o
+ * /uso/resumo (que pede `Authorization: Bearer`) não serve para isto. A
+ * alternativa é o token no endereço -- e aí ele fica no histórico, nos
+ * favoritos, e em qualquer sítio para onde o link seja reencaminhado.
+ *
+ * Por isso este NÃO aceita o ADMIN_TOKEN: esse abre também o /registos, que
+ * guarda o TEXTO DOS PEDIDOS REAIS -- briefings de clientes. Um link no
+ * telemóvel nunca pode carregar essa chave.
+ *
+ * O TOKEN_USO é um segredo à parte e só abre isto: contagens de aparelhos e
+ * de abas. Se algum dia escapar, o que escapa é saber quantas pessoas abriram
+ * uma calculadora -- não um projeto de ninguém.
+ *
+ * Sem TOKEN_USO definido, a página não se desenrasca com o ADMIN_TOKEN: diz o
+ * comando que falta correr. Uma porta que se abre sozinha por conveniência é
+ * pior do que uma porta fechada que explica como se abre.
+ */
+async function painelDeUso(request, env) {
+  const url = new URL(request.url);
+  const pagina = (corpo, status) => new Response(corpo, {
+    status: status || 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      // Nunca indexado, nem guardado por um intermediário: o endereço leva um
+      // segredo lá dentro.
+      "X-Robots-Tag": "noindex, nofollow",
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer",
+    },
+  });
+
+  if (!env.TOKEN_USO) {
+    return pagina(molduraDoPainel("Falta o token de leitura", `
+      <p>Este painel precisa de um segredo próprio, separado do que abre os
+      registos do Assistente. No teu computador, uma vez:</p>
+      <pre>npx.cmd wrangler secret put TOKEN_USO</pre>
+      <p>Escreve uma palavra-passe longa quando ele pedir, e guarda-a. Depois o
+      endereço deste painel passa a ser
+      <code>/uso/painel?t=<em>essa-palavra</em></code>.</p>`), 503);
+  }
+  if (url.searchParams.get("t") !== env.TOKEN_USO) {
+    return pagina(molduraDoPainel("Não autorizado", `
+      <p>Falta o <code>?t=</code> no endereço, ou não bate certo.</p>`), 401);
+  }
+  if (!env.USO) {
+    return pagina(molduraDoPainel("Sem armazenamento", `
+      <p>O Worker está publicado sem a KV <code>USO</code>, por isso não há
+      contagem nenhuma guardada. Ver o <code>worker/DEPLOY.md</code>.</p>`), 500);
+  }
+
+  const dias = diasPedidos(url);
+  const c = await contasDeUso(env, dias, true);
+  const t = encodeURIComponent(env.TOKEN_USO);
+
+  const apps = Object.keys(c.aparelhos).sort();
+  const totalAparelhos = apps.reduce((s, a) => s + c.aparelhos[a], 0);
+  const cartoes = apps.length
+    ? apps.map((a) => `<div class="cartao"><b>${c.aparelhos[a]}</b><span>${escapar(a)}</span></div>`).join("")
+    : `<div class="cartao"><b>0</b><span>ainda nada</span></div>`;
+
+  const diasComDados = Object.keys(c.porDia).sort();
+  const maiorDia = diasComDados.reduce((m, d) => Math.max(m, c.porDia[d]), 0) || 1;
+  const linhasDias = diasComDados.length
+    ? diasComDados.reverse().map((d) => `
+        <div class="linha">
+          <span class="rot">${escapar(d)}</span>
+          <span class="barra"><i style="width:${Math.round((c.porDia[d] / maiorDia) * 100)}%"></i></span>
+          <span class="num">${c.porDia[d]}</span>
+        </div>`).join("")
+    : `<p class="vazio">Nenhum dia com utilização neste período.</p>`;
+
+  const abas = Object.keys(c.abas || {}).sort((a, b) => c.abas[b] - c.abas[a]);
+  const maiorAba = abas.length ? c.abas[abas[0]] : 1;
+  const linhasAbas = abas.length
+    ? abas.map((a) => `
+        <div class="linha">
+          <span class="rot">${escapar(a)}</span>
+          <span class="barra"><i style="width:${Math.round((c.abas[a] / maiorAba) * 100)}%"></i></span>
+          <span class="num">${c.abas[a]}</span>
+        </div>`).join("")
+    : `<p class="vazio">Nenhuma aba registada ainda.</p>`;
+
+  const periodos = [7, 30, 90].map((n) =>
+    `<a class="periodo${n === dias ? " activo" : ""}" href="?t=${t}&dias=${n}">${n} dias</a>`).join("");
+
+  return pagina(molduraDoPainel("Movimento", `
+    <p class="periodos">${periodos}</p>
+    <h2>Aparelhos distintos <span class="leve">· ${dias} dias</span></h2>
+    <div class="cartoes">${cartoes}</div>
+    <p class="nota">${totalAparelhos === 0
+      ? "Ainda não chegou nada. Uma app só conta a partir do momento em que apanha a versão com a contagem, e manda no máximo uma vez por dia."
+      : "Cada número é uma <b>cópia instalada</b> da app, não uma pessoa: quem limpar os dados do browser passa a contar como nova, e quem usa telemóvel e PC conta duas vezes."}</p>
+    <h2>Por dia</h2>
+    <div class="grafico">${linhasDias}</div>
+    <h2>Abas abertas</h2>
+    <div class="grafico">${linhasAbas}</div>
+    <p class="nota">Contam-se <b>aberturas por aparelho e por dia</b>, não visitas: abrir a mesma aba cinco vezes num dia conta uma.</p>
+    <p class="rodape">Só de leitura. Sem nomes, sem IP, sem nada do que é escrito nos campos.</p>`));
+}
+
+function escapar(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/** A moldura da página. Sem tipos de letra de fora nem scripts: abre depressa
+ *  num telemóvel com má rede, que é onde isto vai ser visto. */
+function molduraDoPainel(titulo, corpo) {
+  return `<!doctype html><html lang="pt"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>${escapar(titulo)} — Mike Apps</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; padding:22px 18px 40px; background:#0E1418; color:#E6ECF1;
+         font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  .folha { max-width:560px; margin:0 auto; }
+  h1 { font-size:21px; margin:0 0 2px; letter-spacing:-.01em; }
+  .sub { color:#93A0AB; font-size:13px; margin:0 0 20px; }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.09em; color:#93A0AB;
+       margin:26px 0 10px; font-weight:600; }
+  .leve { text-transform:none; letter-spacing:0; color:#5C6B77; font-weight:400; }
+  .periodos { display:flex; gap:8px; margin:0 0 4px; }
+  .periodo { flex:1; text-align:center; padding:8px 0; border:1px solid #242E37; border-radius:8px;
+             color:#93A0AB; text-decoration:none; font-size:13px; }
+  .periodo.activo { border-color:#5AA0DE; color:#5AA0DE; }
+  .cartoes { display:flex; gap:10px; flex-wrap:wrap; }
+  .cartao { flex:1; min-width:120px; border:1px solid #242E37; border-radius:10px; padding:14px; }
+  .cartao b { display:block; font-size:30px; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .cartao span { display:block; color:#93A0AB; font-size:12.5px; margin-top:2px; }
+  .grafico { display:flex; flex-direction:column; gap:6px; }
+  .linha { display:flex; align-items:center; gap:10px; }
+  .rot { width:92px; flex:none; color:#93A0AB; font-size:12.5px;
+         font-variant-numeric:tabular-nums; overflow:hidden; text-overflow:ellipsis; }
+  .barra { flex:1; height:9px; background:#161D24; border-radius:5px; overflow:hidden; }
+  .barra i { display:block; height:100%; background:#5AA0DE; }
+  .num { width:34px; text-align:right; font-variant-numeric:tabular-nums; font-size:13px; }
+  .nota { color:#93A0AB; font-size:12.5px; margin:12px 0 0; }
+  .vazio { color:#5C6B77; font-size:13px; margin:0; }
+  .rodape { color:#5C6B77; font-size:12px; margin-top:30px; padding-top:14px; border-top:1px solid #242E37; }
+  pre { background:#161D24; padding:12px; border-radius:8px; overflow-x:auto; font-size:12.5px; }
+  code { background:#161D24; padding:2px 5px; border-radius:4px; font-size:12.5px; }
+  b { font-weight:600; }
+</style></head><body><div class="folha">
+<h1>${escapar(titulo)}</h1>
+<p class="sub">Mike Apps · quantos usam, nunca quem</p>
+${corpo}
+</div></body></html>`;
 }
 
 // -------------------------------------------- exemplos parecidos (memória)
@@ -751,6 +918,16 @@ export default {
         });
       }
       return resumoDeUso(request, env);
+    }
+
+    // E o painel, que é para ser ABERTO num browser — por isso também antes do
+    // crivo de origem: quem escreve um endereço na barra não manda Origin
+    // nenhum, e o crivo recusaria a própria pessoa a quem isto se destina.
+    if (url.pathname === "/uso/painel") {
+      if (request.method !== "GET") {
+        return new Response("Método não suportado.", { status: 405 });
+      }
+      return painelDeUso(request, env);
     }
 
     const allowedOrigins = (env.ALLOWED_ORIGINS || "")
