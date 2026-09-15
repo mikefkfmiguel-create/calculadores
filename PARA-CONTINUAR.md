@@ -14,6 +14,49 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 15 de setembro — três sítios onde a app dizia um número que não sabia (v3.89)
+
+Saíram do `BALANCO.md`, escrito nesta manhã. Dois eram conhecidos; o terceiro
+apareceu ao medir a correcção do primeiro, e era o pior dos três.
+
+**`Nº de tiles` mostrava `NaN x NaN`.** Era a **única** linha de resultado
+daquele bloco que concatenava números crus. As oito à volta passam por
+`fmt()`/`fmtInt()`, e esses **já devolvem `—` para um valor não-finito**. A
+guarda existia desde sempre; faltava a esta linha usá-la.
+
+**O Sinal & Data Rate escolhia a cabine da casa por ti.** Era a última lista
+sem opção vazia, por isso o browser escolhia a primeira à mesma e o código
+decidia que fosse a da casa. Ficou comentada como "por arrumar" durante três
+versões. A opção nova não se chama "Personalizado…" — chama-se **"Sem cabine
+de referência — contar só em píxeis"**, porque é isso que ela faz: a conta do
+processador faz-se na mesma, só sem a nota dos tiles/porta. O `calcSinal()` já
+tratava desse caso por inteiro.
+
+**E o que apareceu a meio: a aba Projeto inventava uma cabine.**
+`parseInt("custom")` dá `NaN`, e a linha era
+`LED_TILES_DATA[isNaN(tileIdx) ? 0 : tileIdx]` — ou seja, com
+"Personalizado…" (o que a app mostra à entrada desde a v3.85) calculava tudo a
+partir da **primeira cabine do catálogo**. Medido a frio: pitch 3,91 mm,
+2048 × 1152 px, **864,0 kg**, **82,08 A**. Os números da YESTECH MG6S, que
+ninguém escolheu — e o resumo copiado nomeava-a por extenso, por isso ia parar
+ao PDF.
+
+Peso e amperagem não são um engano como os outros: são o que decide se a
+estrutura aguenta e se o quadro chega.
+
+Sem cabine escolhida, tudo a `—` e o resumo vazio. **Não foi preciso mexer em
+mais nada:** o `ledPixels` fica no `0` com que nasce, a lista de processadores
+de LED só corre com `ledPixels > 0`, e o resumo já escrevia "(por preencher)".
+Só o `projLastRes` precisou de ser limpo à mão — vive fora da função e ficava
+a comparar o aviso do Sinal com uma resolução que já não existia.
+
+**Medido nas duas direcções**, que é o que interessa numa mudança destas: sem
+cabine → tudo `—`; escolher uma → 16 × 9 (144), 3072 × 1728 px, 2,60 mm,
+907,2 kg, 93,60 A; apagar as medidas → `—` no nº de tiles, com o pitch a
+manter-se (é propriedade da cabine, não do tamanho); voltar a "Personalizado…"
+→ limpa outra vez. Resumo copiado sem nome de cabine nenhum. Zero erros de
+consola.
+
 ## 14 de setembro — a versão nova tem de se ver, e de se poder forçar (v3.88)
 
 > *"Abre no browser, não sobrepôs a APP já instalada."*
