@@ -67,12 +67,21 @@ desligado não deixa sair nada e limpa o que estava por enviar; esquecer o
 número apaga-o; sem rede as abas ficam guardadas e a calculadora responde na
 mesma. Zero erros de consola.
 
-### Falta, e precisa do mike
+### A KV `USO` — feita no mesmo dia
 
-A KV `USO` ainda não existe na conta Cloudflare. **Até ela ser criada, a
-publicação do Worker pára no primeiro passo e diz porquê** — de propósito: um
-Worker publicado com o id de exemplo aceita a contagem e deita-a fora calado.
-Ver o `worker/DEPLOY.md`, ponto 1.
+Criada no PowerShell do mike, com `npx.cmd wrangler kv namespace create USO`.
+Duas coisas a reter para a próxima vez que alguém tiver de correr o wrangler
+no Windows:
+
+- **O `npx` puro não corre na PowerShell** — é um `.ps1`, e a política de
+  execução da máquina bloqueia-o (`running scripts is disabled on this
+  system`). O **`npx.cmd`** passa, e não obriga a mexer na política.
+- **Criar a KV não precisa de terminal nenhum**: dá-se pelo painel da
+  Cloudflare, em *Storage & Databases → KV*, que é o caminho mais curto para
+  quem não vive na linha de comandos.
+
+Com o id colado no `wrangler.toml`, a publicação do Worker destrava e o
+GitHub trata do resto.
 
 ## 15 de setembro — o inglês dos ecrãs novos, e uma rede para o próximo (v3.90)
 
