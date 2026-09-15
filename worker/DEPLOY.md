@@ -99,3 +99,30 @@ setembro, na primeira publicação por CI: `200`, 5,1 s, com `larguraM: 6`,
   mistura com pôr o deploy automático de pé.
 - Dois merges seguidos não se atropelam: o segundo espera pelo primeiro
   (`concurrency` no workflow).
+
+## A trava de gasto da IA
+
+O endereço deste Worker está publicado no `index.html` que o GitHub Pages
+serve. O `ALLOWED_ORIGINS` **não** impede um script: o `Origin` é um cabeçalho
+do pedido, e um `curl` escreve lá o que quiser. Os limites de tamanho que já
+existiam limitam o que cada chamada custa, não **quantas** chamadas se fazem.
+
+Duas travas, ambas só na rota do Assistente (a `/uso`, da contagem de visitas,
+não fala com a Anthropic e não leva trava nenhuma):
+
+| Variável | Omissão | Para que serve |
+|---|---|---|
+| `LIMITE_IA_POR_IP` | 30 | Trava o abuso casual. Largo de propósito — o escritório inteiro sai com o mesmo endereço. |
+| `LIMITE_IA_POR_DIA` | 200 | **É esta que protege a factura.** O pior dia possível tem um preço conhecido. |
+
+Mudam-se no `[vars]` do `wrangler.toml` e volta a publicar-se — sem mexer em
+código. O IP vem do cabeçalho que a **Cloudflare** escreve, e nesse não se
+mente, ao contrário do `Origin`.
+
+**Sem KV configurada a trava não trava**, de propósito: um Worker mal
+configurado deixar de responder ao Assistente seria pior do que o risco que
+isto cobre.
+
+E a última barreira não é esta: vale a pena ver no painel da Anthropic se dá
+para pôr um tecto de gasto na conta ou na área de trabalho onde a chave vive.
+Essa não depende de código nenhum.

@@ -285,6 +285,106 @@ async function listarRegistos(request, env) {
   });
 }
 
+// ------------------------------------------------- trava de gasto da IA
+//
+// PORQUÊ: o endereço deste Worker está escrito no index.html que o GitHub
+// Pages serve a toda a gente -- quem abrir o código-fonte da página vê-o. E a
+// defesa que cá estava, o ALLOWED_ORIGINS, NÃO chega para isto: o `Origin` é
+// um cabeçalho do pedido, um browser preenche-o honestamente e não deixa
+// mexer nele, mas um `curl` escreve lá o que lhe apetecer numa linha. O
+// comentário do wrangler.toml dizia que aquilo bloqueava pedidos diretos, e
+// era optimismo.
+//
+// Os limites que já existiam são de TAMANHO por pedido (20 000 caracteres,
+// 10 MB de PDF). Limitam o que cada chamada custa, não QUANTAS chamadas se
+// fazem -- mil pedidos pequenos passavam todos, e cada um gasta da conta da
+// Anthropic.
+//
+// ISTO É SÓ PARA A ROTA DA IA. A rota /uso (contagem de visitas) não fala com
+// a Anthropic nem custa nada por chamada: escreve uma linha na KV e acabou.
+// Não leva trava nenhuma.
+//
+// DUAS TRAVAS, e a segunda é a que interessa:
+//
+//   1. POR ENDEREÇO (IP), por dia -- trava o abuso casual. O IP vem do
+//      cabeçalho que a CLOUDFLARE escreve, a partir da ligação de rede: ao
+//      contrário do Origin, quem chama não tem como mentir nele.
+//   2. TOTAL DO DIA, de toda a gente somada -- é esta que protege a factura.
+//      Aconteça o que acontecer (abuso, um erro que ponha a app a chamar em
+//      ciclo), o pior dia possível tem um preço conhecido.
+//
+// O QUE ISTO NÃO RESOLVE, e é preciso estar escrito: quem tiver muitos
+// endereços contorna a primeira -- é uma lomba, não um cadeado. E do lado de
+// dentro há a tensão oposta: toda a gente no escritório da AVK sai com o
+// MESMO endereço, e para o Worker são uma pessoa só. Por isso o limite por IP
+// é largo; a trava a sério é a do total.
+//
+// Os contadores vivem na KV USO (prefixo "lim:"), e não numa KV nova, por uma
+// razão prática: criar um namespace obriga alguém a ir ao wrangler ou ao
+// painel. O resumoDeUso() lista por prefixo "d:", por isso nunca os vê.
+//
+// RIGOR DA CONTAGEM: o KV é eventualmente consistente, e ler-somar-escrever
+// pode perder uma contagem quando dois pedidos chegam ao mesmo tempo. Para um
+// tecto de gasto isso chega -- é um travão com folga, não um livro de contas.
+const LIM_VALIDADE_SEGUNDOS = 2 * 24 * 60 * 60;
+
+function limiteDe(env, nome, porOmissao) {
+  const n = parseInt(env[nome], 10);
+  return (isFinite(n) && n > 0) ? n : porOmissao;
+}
+
+async function contadorDe(env, chave) {
+  try {
+    const n = parseInt(await env.USO.get(chave), 10);
+    return isFinite(n) ? n : 0;
+  } catch (e) { return 0; }
+}
+
+/**
+ * Corre ANTES de chamar a Anthropic. Devolve uma Response quando o pedido
+ * tem de ser travado, ou null quando pode seguir.
+ *
+ * Sem KV configurada NÃO trava: um Worker mal configurado deixar de responder
+ * ao Assistente seria pior do que o risco que isto cobre -- e o risco
+ * continua reportado no /uso/resumo, que diz logo que não há armazenamento.
+ */
+async function travaDeGasto(request, env) {
+  if (!env.USO) return null;
+
+  const dia = new Date().toISOString().slice(0, 10);
+  const ip = request.headers.get("CF-Connecting-IP") || "sem-ip";
+  const chaveIp = "lim:ip:" + dia + ":" + ip;
+  const chaveDia = "lim:dia:" + dia;
+
+  const [doIp, doDia] = await Promise.all([contadorDe(env, chaveIp), contadorDe(env, chaveDia)]);
+  const limiteIp = limiteDe(env, "LIMITE_IA_POR_IP", 30);
+  const limiteDia = limiteDe(env, "LIMITE_IA_POR_DIA", 200);
+
+  // A mensagem diz o que aconteceu e o que fazer, por palavras -- a app
+  // mostra-a tal e qual ("Erro: ..."), e um 429 seco não ajudava ninguém.
+  if (doDia >= limiteDia) {
+    return new Response(JSON.stringify({
+      error: "O Assistente atingiu o limite de pedidos de hoje (" + limiteDia +
+             "). Volta amanhã, ou sobe o LIMITE_IA_POR_DIA no Worker."
+    }), { status: 429, headers: { "Content-Type": "application/json" } });
+  }
+  if (doIp >= limiteIp) {
+    return new Response(JSON.stringify({
+      error: "Já foram feitos " + limiteIp + " pedidos ao Assistente hoje a partir desta ligação. " +
+             "Volta amanhã, ou sobe o LIMITE_IA_POR_IP no Worker."
+    }), { status: 429, headers: { "Content-Type": "application/json" } });
+  }
+
+  // Só se conta o que vai mesmo gastar dinheiro: a soma acontece aqui, à
+  // beira da chamada à Anthropic, e não à entrada do Worker. Um pedido
+  // malformado, que nunca chega à API, não consome a quota de ninguém.
+  await Promise.all([
+    env.USO.put(chaveIp, String(doIp + 1), { expirationTtl: LIM_VALIDADE_SEGUNDOS }),
+    env.USO.put(chaveDia, String(doDia + 1), { expirationTtl: LIM_VALIDADE_SEGUNDOS }),
+  ]);
+  return null;
+}
+
 // ------------------------------------------------------ contagem de uso
 //
 // PORQUÊ: o GitHub Pages não dá registos nenhuns, por isso até aqui não havia
@@ -815,6 +915,16 @@ export default {
         (text || "(sem texto adicional — ler o documento/imagem em anexo)") +
         "\n\nExtrai os requisitos deste projeto de AV usando a ferramenta fornecida. Se um valor não estiver explícito no texto/documento/imagem, usa null — nunca adivinhes uma especificação técnica. Em pontosPorConfirmar, não repitas como 'aviso' cada campo que ficou null — só usa esse campo para contradições ou ambiguidades reais no texto; na maioria dos casos deve ficar vazio. Atenção especial a tipoEcra: só preenches 'led', 'projecao', 'blend' ou 'misto' se o texto pedir essa tecnologia explicitamente OU se uma imagem em anexo mostrar claramente essa tecnologia (ex: foto óbvia de um ledwall ou de uma projeção) — um pedido de sugestão sem tecnologia indicada nem imagem que a mostre (ex: 'que ecrã devo usar?', 'quantos ecrãs preciso?') fica sempre 'desconhecido'; não escolhas a tecnologia 'mais provável' para o caso. Atenção especial a dimensoes: nunca uses medidas de sala/palco/espaço como se fossem do ecrã — se só houver medidas do local e um pedido de sugestão (ex: 'que ecrã devo usar?'), deixa dimensoes a null. Já em local.distanciaVisualizacaoM e local.larguraPlateiaM, quando não houver valor dado à parte mas o texto descrever as dimensões da sala/espaço, USA a profundidade e a largura da sala como estimativa dessa distância e dessa largura (respetivamente) — não deixes esses dois campos a null só por a sala não ter uma 'plateia' descrita à parte. Quando fizeres essa estimativa a partir das dimensões da sala (em vez de um valor dado diretamente para a plateia/distância), acrescenta um único item curto a pontosPorConfirmar a dizer isso (ex: 'Distância e largura da plateia estimadas a partir das dimensões da sala — confirma a disposição real do público'). Já local.salaLarguraM e local.salaProfundidadeM são OUTRA coisa: só se preenchem quando o texto der a largura/profundidade do PRÓPRIO ESPAÇO diretamente (ex: 'sala de 24 por 18 metros') — nunca como estimativa a partir de outra coisa, e nunca copiados de larguraPlateiaM/distanciaVisualizacaoM (mesmo quando esses dois foram estimados a partir da sala, como no caso acima). Ficam null sempre que o texto não disser as medidas da sala em si. REGRA CRÍTICA para imagens: uma fotografia ou render NUNCA tem escala fiável — não estimes nem inventes nenhuma medida (dimensoes, distâncias, pixel pitch, nits) a partir do que vês numa imagem, mesmo que pareça óbvio a olho; usa a imagem só para identificar o tipo de tecnologia/formato visível (e nota isso em resumo, ex: 'A imagem mostra um ecrã LED em formato ecrã largo, sem escala visível'). Todas as medidas continuam a vir exclusivamente do texto (ex: as dimensões da sala nova onde o utilizador quer replicar o que a imagem mostra). Se houver exemplos de pedidos anteriores acima, e um deles mostrar um padrão claro de como preencher um caso parecido a este (ex: que campos costumam ficar null nesse tipo de pedido, ou que esse tipo de ambiguidade normalmente não precisa de entrar em pontosPorConfirmar), segue o mesmo padrão — sem nunca copiar um valor técnico em concreto desses exemplos.",
     });
+
+    // A última coisa antes de gastar dinheiro. Ver travaDeGasto() lá em cima
+    // para o porquê de estar aqui e não à entrada do Worker.
+    const travado = await travaDeGasto(request, env);
+    if (travado) {
+      return new Response(travado.body, {
+        status: travado.status,
+        headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+      });
+    }
 
     let anthropicRes;
     try {
