@@ -43,7 +43,7 @@
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v3.91</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v3.92</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -8736,6 +8736,13 @@
     var CINEMA_CD_M2 = 48;   // DCI/SMPTE ST 431-1, branco de referência (14 fL)
     var FL_POR_CD_M2 = 3.426;
 
+    // A ficha da última cúpula calculada — título, pares e nota. É a MESMA
+    // coisa que o resumo em texto mostra (ver onde ela é montada, mais abaixo):
+    // o texto sai dela, não ao lado dela. É isto que a ponte leva ao 3D, para
+    // o relatório de montagem de lá poder imprimir os números desta aba sem
+    // os recalcular. Null enquanto a geometria não fechar.
+    var domeFicha = null;
+
     var el = {};
     ["diam", "forma", "altura", "altura-wrap", "ganho", "colocacao", "qtd", "atravessa", "alt-mont",
      "qtd-sugestao", "atravessa-sugestao", "resmode-field", "res-nota", "prof", "angulo",
@@ -9117,7 +9124,13 @@
       return {
         dMaster: dMaster, ppd: dMaster / 180,
         arcmin: dMaster > 0 ? 10800 / dMaster : Infinity,
-        pxUteis: pxUteis
+        pxUteis: pxUteis,
+        // QUANTO É QUE UM TRUNCADO COBRE NA VERTICAL. Sai daqui porque é aqui
+        // que o lado curto e o lado longo existem -- e era precisamente esse o
+        // defeito: dois sítios lá fora usavam "curto/longo" como se fossem
+        // globais, e marcar "Fisheye truncado" atirava um ReferenceError que
+        // matava o resto do cálculo (o resumo e a ponte para o 3D incluídos).
+        coberturaVertical: truncado ? 180 * (curto / longo) : 180
       };
     }
 
@@ -9313,6 +9326,9 @@
         el["atravessa-sugestao"].innerHTML = "";
         el["qtd-sugestao"].innerHTML = (g && g.D > 0) ? sugestaoDeQuantos(g.D) : "";
         el.sum.textContent = "";
+        // Sem geometria não há ficha. Deixá-la com a da cúpula anterior era
+        // mandar ao 3D números de um projeto que já não existe.
+        domeFicha = null;
         renderProjectItems();
         return;
       }
@@ -9541,7 +9557,7 @@
       // coberturas publicadas de fisheyes truncados reais (180x101° num
       // 1920x1080, 180x112° num 2560x1600, 180x135° num 1400x1050).
       if (truncado) {
-        var vert = 180 * (curto / longo);
+        var vert = contas.coberturaVertical;
         el["out-cobertura"].style.display = "block";
         el["out-cobertura"].innerHTML = "Truncado: cobre <strong>180° × " + fmt(vert, 0) +
           "°</strong> em vez de 180° × 180°. Perde-se a faixa junto ao horizonte à frente e atrás — " +
@@ -9581,54 +9597,124 @@
       var colocacaoTexto = el.colocacao.options[el.colocacao.selectedIndex].textContent;
       var projEscolhido = domeProjetorEscolhido();
       var nomeProjetor = projEscolhido ? projEscolhido.modelo : null;
-      el.sum.textContent =
-        "DOME — " + fmt(g.D, 1) + " m de diâmetro, " +
+
+      /**
+       * A FICHA DA CÚPULA — uma conta, duas leituras.
+       *
+       * Este resumo era uma parede de concatenações, e o 3D não conseguia
+       * levar nada dele: o relatório de montagem do Preview mostrava o
+       * diâmetro e a altura e mais nada, enquanto o dome master, a resolução
+       * angular, o aproveitamento e a luz ficavam deste lado. Pedido: *"leva
+       * tudo dos dois para ser completo — a calculadora dá os materiais e
+       * alguns cálculos, o desenho mostra como, com outros"*.
+       *
+       * A saída passa a ser uma LISTA DE PARES, e o texto que aqui se lê é
+       * montado a partir dela. O Preview recebe os mesmos pares e imprime-os
+       * tal e qual -- não recalcula nada, que é a regra da casa. Se um dia
+       * alguém mudar uma linha, muda nos dois sítios ao mesmo tempo, porque é
+       * a mesma linha.
+       *
+       * Cada grupo é um bloco separado por uma linha em branco, como sempre
+       * foi. O scripts/verificar-ficha-dome.mjs compara este texto caracter a
+       * caracter com o de antes desta mudança, e confirma que cada par da
+       * ficha aparece nele.
+       */
+      var titulo = "DOME — " + fmt(g.D, 1) + " m de diâmetro, " +
         (g.meiaEsfera ? "meia-esfera" : "calota de " + fmt(g.h, 1) + " m de altura") +
-        " (raio da esfera " + fmt(g.R, 2) + " m)\n" +
-        "Área da superfície: " + fmt(g.area, 1) + " m²\n" +
-        "\n" +
-        "Projetores: " + qtd + " × " + (nomeProjetor ? nomeProjetor + ", " : "") + fmtInt(pxH) + "×" + fmtInt(pxV) +
-        (projEscolhido && projEscolhido.resolucaoNativa
-          ? (domeResMode === "native" ? " (nativo)" : " (declarado — pixel-shift)") : "") +
-        (lumens > 0 ? " @ " + fmtInt(lumens) + " lm" : "") + "\n" +
-        "Colocados: " + colocacaoTexto +
-        (parseFloat(el["alt-mont"].value) > 0 ? ", a " + fmt(parseFloat(el["alt-mont"].value), 2) + " m do chão" : ", altura de montagem por definir") + "\n" +
-        (projEscolhido && projEscolhido.resolucaoNota ? "Nota do projetor: " + projEscolhido.resolucaoNota + "\n" : "") +
-        (domeLenteEscolhida()
-          ? "Lente: " + domeLenteEscolhida().marca + " " + domeLenteEscolhida().modelo +
-            " (" + fmt(domeLenteEscolhida().min, 2) + "-" + fmt(domeLenteEscolhida().max, 2) + ":1)\n"
-          : "") +
-        "Imagens a atravessar o pólo: " + atravessa + "\n" +
-        "Sobreposição de blending: " + fmt(blend * 100, 0) + " %" + (truncado ? "\nFisheye truncado: cobre 180° × " + fmt(180 * (curto / longo), 0) + "°" : "") + "\n" +
-        "\n" +
-        "Dome master eficaz: " + fmtInt(dMaster) + " px de diâmetro (" + fmt(pxUteis / 1e6, 1) + (truncado ? " MP a chegar à cúpula" : " MP no círculo") + ")\n" +
-        "Resolução angular: " + fmt(arcmin, 2) + " arcmin/px (" + fmt(ppd, 1) + " px/grau) — alvo " + fmt(alvo, 1) + " arcmin/px\n" +
-        "Em linguagem de LED: cada píxel mede " + fmt(Math.PI * g.R / dMaster * 1000, 1) +
-          " mm na superfície da cúpula (é como olhar para um LED desse pitch)\n" +
-        "Aproveitamento: " + (impossivel ? "IMPOSSÍVEL" : fmt(aprov * 100, 0) + " %") +
-          " (" + fmt(pxUteis / 1e6, 1) + " MP úteis de " + fmt(pxInstalados / 1e6, 1) + " MP instalados)" +
-          (impossivel ? " — o dome master pedido tem mais píxeis do que os projetores dão" : "") + "\n" +
-        "Dome master a encomendar: " + (imersa ? fmtInt(imersa) + " × " + fmtInt(imersa) + " px (normalizado IMERSA)" : "8192 × 8192 px (acima da tabela IMERSA, que acaba em \"4096 ou mais\")") + "\n" +
-        "\n" +
-        (lmTotal > 0
-          ? "Luz: " + fmtInt(lmTotal) + " lm totais, " + fmtInt(lmTotal / g.area) + " lx na superfície\n" +
-            (ganho > 0
-              ? "Luminância: " + fmt(lmTotal / g.area * ganho / Math.PI, 1) + " cd/m² (" + fmt(lmTotal / g.area * ganho / Math.PI / FL_POR_CD_M2, 1) + " fL) com ganho " + fmt(ganho, 2) + "\n" +
-                "Referência de cinema, para comparar: 48 cd/m² (DCI/SMPTE). Não é norma de dome.\n"
-              : "Luminância: não estimada — falta o ganho da superfície (a referência publicada é um tecto, “não mais de 50%”).\n")
-          : "Luz: falta os lúmenes do projetor.\n") +
-        "\n" +
-        "Nota: numa cúpula a luz de um lado reflete-se e lava a imagem do outro. As superfícies\n" +
+        " (raio da esfera " + fmt(g.R, 2) + " m)";
+
+      var grupoLuz = [];
+      if (lmTotal > 0) {
+        grupoLuz.push(["Luz", fmtInt(lmTotal) + " lm totais, " + fmtInt(lmTotal / g.area) + " lx na superfície"]);
+        if (ganho > 0) {
+          grupoLuz.push(["Luminância", fmt(lmTotal / g.area * ganho / Math.PI, 1) + " cd/m² (" +
+            fmt(lmTotal / g.area * ganho / Math.PI / FL_POR_CD_M2, 1) + " fL) com ganho " + fmt(ganho, 2)]);
+          grupoLuz.push(["Referência de cinema, para comparar", "48 cd/m² (DCI/SMPTE). Não é norma de dome."]);
+        } else {
+          grupoLuz.push(["Luminância", "não estimada — falta o ganho da superfície (a referência publicada é um tecto, “não mais de 50%”)."]);
+        }
+      } else {
+        grupoLuz.push(["Luz", "falta os lúmenes do projetor."]);
+      }
+
+      var grupoMaquinas = [
+        ["Projetores", qtd + " × " + (nomeProjetor ? nomeProjetor + ", " : "") + fmtInt(pxH) + "×" + fmtInt(pxV) +
+          (projEscolhido && projEscolhido.resolucaoNativa
+            ? (domeResMode === "native" ? " (nativo)" : " (declarado — pixel-shift)") : "") +
+          (lumens > 0 ? " @ " + fmtInt(lumens) + " lm" : "")],
+        ["Colocados", colocacaoTexto +
+          (parseFloat(el["alt-mont"].value) > 0
+            ? ", a " + fmt(parseFloat(el["alt-mont"].value), 2) + " m do chão"
+            : ", altura de montagem por definir")]
+      ];
+      if (projEscolhido && projEscolhido.resolucaoNota) {
+        grupoMaquinas.push(["Nota do projetor", projEscolhido.resolucaoNota]);
+      }
+      if (domeLenteEscolhida()) {
+        grupoMaquinas.push(["Lente", domeLenteEscolhida().marca + " " + domeLenteEscolhida().modelo +
+          " (" + fmt(domeLenteEscolhida().min, 2) + "-" + fmt(domeLenteEscolhida().max, 2) + ":1)"]);
+      }
+      grupoMaquinas.push(["Imagens a atravessar o pólo", String(atravessa)]);
+      grupoMaquinas.push(["Sobreposição de blending", fmt(blend * 100, 0) + " %"]);
+      if (truncado) {
+        grupoMaquinas.push(["Fisheye truncado", "cobre 180° × " + fmt(contas.coberturaVertical, 0) + "°"]);
+      }
+
+      var grupos = [
+        [["Área da superfície", fmt(g.area, 1) + " m²"]],
+        grupoMaquinas,
+        [
+          ["Dome master eficaz", fmtInt(dMaster) + " px de diâmetro (" + fmt(pxUteis / 1e6, 1) +
+            (truncado ? " MP a chegar à cúpula" : " MP no círculo") + ")"],
+          ["Resolução angular", fmt(arcmin, 2) + " arcmin/px (" + fmt(ppd, 1) + " px/grau) — alvo " + fmt(alvo, 1) + " arcmin/px"],
+          ["Em linguagem de LED", "cada píxel mede " + fmt(Math.PI * g.R / dMaster * 1000, 1) +
+            " mm na superfície da cúpula (é como olhar para um LED desse pitch)"],
+          ["Aproveitamento", (impossivel ? "IMPOSSÍVEL" : fmt(aprov * 100, 0) + " %") +
+            " (" + fmt(pxUteis / 1e6, 1) + " MP úteis de " + fmt(pxInstalados / 1e6, 1) + " MP instalados)" +
+            (impossivel ? " — o dome master pedido tem mais píxeis do que os projetores dão" : "")],
+          ["Dome master a encomendar", imersa
+            ? fmtInt(imersa) + " × " + fmtInt(imersa) + " px (normalizado IMERSA)"
+            : "8192 × 8192 px (acima da tabela IMERSA, que acaba em \"4096 ou mais\")"]
+        ],
+        grupoLuz
+      ];
+
+      var nota = "Nota: numa cúpula a luz de um lado reflete-se e lava a imagem do outro. As superfícies\n" +
         "têm refletividade baixa por isso mesmo — mais lúmenes servem para poder ter a superfície\n" +
         "mais escura, e é a superfície escura que dá contraste.";
+
+      // O que o 3D vai buscar. Guardado inteiro, com o título à cabeça: quem o
+      // imprime não tem de saber de que cúpula se trata.
+      domeFicha = { titulo: titulo, pares: [], nota: nota };
+      grupos.forEach(function (grupo) {
+        grupo.forEach(function (par) { domeFicha.pares.push(par); });
+      });
+
+      el.sum.textContent = titulo + "\n" +
+        grupos.map(function (grupo) {
+          return grupo.map(function (par) { return par[0] + ": " + par[1]; }).join("\n");
+        }).join("\n\n") + "\n\n" + nota;
 
       renderProjectItems();
     }
 
-    // O que o Preview 3D precisa de saber para desenhar a cúpula: as
-    // medidas, e mais nada. Projetores, lúmenes e dome masters não lhe
-    // servem para desenhar -- e o Preview não ganha catálogos nem contas,
-    // que é regra da casa.
+    // A ficha desta cúpula, para quem a quiser ler de fora (o teste, e a
+    // ponte aqui em baixo). Devolve sempre uma lista de pares, ou null.
+    window.lzDomeFicha = function () {
+      return domeFicha ? domeFicha.pares.slice() : null;
+    };
+
+    // O que o Preview 3D precisa de saber para DESENHAR a cúpula: as medidas,
+    // e mais nada. Projetores, lúmenes e dome masters não lhe servem para
+    // desenhar -- e o Preview não ganha catálogos nem contas, que é regra da
+    // casa.
+    //
+    // O que vai a mais desde a v3.92 é a FICHA, e não contradiz a regra: são
+    // linhas já escritas aqui, que o 3D imprime no relatório de montagem tal
+    // e qual. Ele não calcula nada com elas nem as usa para desenhar -- leva-as
+    // como leva o nome do modelo, que já ia. Pedido: *"leva tudo dos dois para
+    // ser completo -- a calculadora dá os materiais e alguns cálculos, o
+    // desenho mostra como, com outros"*.
     //
     // Só devolve algo com "Adicionar ao projeto" marcado, que é a mesma
     // regra de todo o resto: marcado = está no projeto = está no 3D.
@@ -9640,6 +9726,9 @@
         diametro: Math.round(g.D * 100) / 100,
         altura: Math.round(g.h * 100) / 100,
         raioEsfera: Math.round(g.R * 100) / 100,
+        // A ficha desta aba, já escrita, para o relatório de montagem do 3D.
+        // Só texto — nada aqui serve para desenhar seja o que for.
+        ficha: domeFicha ? { titulo: domeFicha.titulo, pares: domeFicha.pares.slice(), nota: domeFicha.nota } : null,
         // Quantos e ONDE, para o 3D poder desenhar. A colocação é só
         // colocação: quantas imagens atravessam o pólo é conta de resolução
         // e não serve para desenhar nada (ver a separação dos dois campos
