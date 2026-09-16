@@ -724,6 +724,18 @@
     "grupo Global Espanha": "Global Espanha group",
     "no lote": "in the batch",
     "módulos": "modules",
+    // ---- Ecrã LED: o aviso do pitch, e a foto do assistente ----
+    // Frases partidas nos sítios onde a app mete números: o motor troca
+    // trechos, e um trecho com um número lá dentro nunca bate certo duas vezes.
+    "Pitch horizontal (": "Horizontal pitch (",
+    " mm) e vertical (": " mm) and vertical (",
+    " mm) não coincidem — confirma os valores do módulo.": " mm) don\u2019t match \u2014 check the module values.",
+    "Pitch assimétrico: ": "Asymmetric pitch: ",
+    " mm na horizontal e ": " mm horizontally and ",
+    " mm na vertical. É assim que este painel é feito — as tiras vão mais afastadas na vertical, e é isso que o deixa transparente. Não é um valor mal metido.":
+      " mm vertically. That\u2019s how this panel is built \u2014 the strips sit further apart vertically, and that is what makes it transparent. It is not a mistyped value.",
+    "Foto reduzida: ": "Photo reduced: ",
+    " px, que é o que o modelo lê). A analisar…": " px, which is what the model reads). Analysing\u2026",
     "módulo": "module",
     "totem publicitário, não é marca": "advertising totem, not a brand",
     "transp.": "transp.",
