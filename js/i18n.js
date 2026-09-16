@@ -724,6 +724,11 @@
     "grupo Global Espanha": "Global Espanha group",
     "no lote": "in the batch",
     "módulos": "modules",
+    // ---- Limpar tudo (as duas apps) ----
+    "Deixa as duas apps vazias — calculadoras, zonas, DSM, histórico e o Preview 3D":
+      "Leaves both apps empty \u2014 calculators, zones, DSM, history and the 3D Preview",
+    "Deixa as DUAS apps vazias: todas as calculadoras, as zonas do Ecrã Complexo, o DSM, a cúpula, as TVs, o histórico e o Preview 3D. Ficam só o idioma, a sincronização e a contagem de uso.":
+      "Leaves BOTH apps empty: every calculator, the Multi-Zone Screen zones, the DSM, the dome, the TVs, the history and the 3D Preview. Only the language, the sync setting and usage counting stay.",
     // ---- Ecrã LED: o aviso do pitch, e a foto do assistente ----
     // Frases partidas nos sítios onde a app mete números: o motor troca
     // trechos, e um trecho com um número lá dentro nunca bate certo duas vezes.
