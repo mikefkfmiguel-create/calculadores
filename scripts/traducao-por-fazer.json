@@ -1266,11 +1266,6 @@
   },
   {
     "zona": "projeto",
-    "onde": "title",
-    "texto": "Repõe TODAS as calculadoras (incluindo zonas do Multi-Zone Screen e o Project Assistant) ao estado inicial"
-  },
-  {
-    "zona": "projeto",
     "onde": "texto",
     "texto": "todas"
   },
