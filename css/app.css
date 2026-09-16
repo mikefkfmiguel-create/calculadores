@@ -1503,6 +1503,13 @@
     padding: 8px 10px;
     margin-top: 10px;
   }
+  /* A mesma caixa, a dizer uma coisa que não é problema nenhum. Um facto do
+     painel pintado de vermelho lê-se como defeito, e foi isso que aconteceu
+     com o pitch assimétrico do transparente. */
+  .warn.calmo {
+    color: var(--ink-soft);
+    background: var(--cyan-100);
+  }
   .crosslink {
     font-size: 13px;
     color: var(--ink-soft);
