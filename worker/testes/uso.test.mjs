@@ -168,3 +168,17 @@ test("sem KV configurada, diz-o em vez de fingir que contou", async () => {
   const { error } = await r.json();
   assert.match(error, /KV USO/);
 });
+
+test("os momentos do Preview passam — são eles que dizem se saiu alguma coisa", async () => {
+  // A lista de abas é FECHADA, e um nome que não esteja lá é deitado fora em
+  // silêncio. Quando o Preview passou a contar (v3.53) precisou de dois nomes
+  // que os Calculadores não têm: sem este teste, a app mandava-os, o Worker
+  // ignorava-os, e a coluna aparecia vazia sem nada a dizer porquê.
+  const env = ambiente();
+  await pedidoUso(
+    { app: "preview", id: UM_ID, versao: "v3.53", abas: ["projeto", "blend", "exportar", "partilhar"] },
+    env
+  );
+  const guardado = JSON.parse([...env.USO.dados.values()][0]);
+  assert.deepEqual(guardado.a, ["projeto", "blend", "exportar", "partilhar"]);
+});

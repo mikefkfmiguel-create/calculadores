@@ -409,6 +409,16 @@ const USO_APPS = ["calculadores", "preview"];
 const USO_ABAS = [
   "menu", "assistente", "projecao", "blend", "dome", "visualizacao", "tv",
   "led", "zonas", "sinal", "mediaserver", "projeto", "lentes", "grafismo", "ajuda",
+  // O PREVIEW NÃO TEM ABAS, tem momentos. São estes dois que dizem se a app
+  // chegou a PRODUZIR alguma coisa, que é a pergunta que "que aba abriste"
+  // responde do lado dos Calculadores. Os outros nomes que ele manda
+  // ("projeto", "dome", "blend") já cá estavam e querem dizer o mesmo: o
+  // tipo de trabalho que estava em cima da mesa.
+  //
+  // Têm de existir AQUI antes de a app os começar a mandar: um nome
+  // desconhecido não dá erro nenhum, é deitado fora em silêncio -- e uma
+  // contagem a zero sem nada a dizer porquê é o defeito de sempre.
+  "exportar", "partilhar",
 ];
 const USO_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const USO_VERSAO_RE = /^v[0-9][0-9.]{0,10}$/;
