@@ -43,7 +43,7 @@
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.02</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.03</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -4558,14 +4558,15 @@
     }
 
     var area = totalWm * totalHm;
+    // Os dois eixos, e mais nenhum: a média dos dois era o "5,86 mm" que não
+    // existe em painel nenhum. Quem escreve o número é o pitchTexto (utils.js).
     var pitchX = mw / rx, pitchY = mh / ry;
-    var pitchAvg = (pitchX + pitchY) / 2;
 
     document.getElementById("l-out-px").innerHTML = fmtInt(totalPx) + "<small>px</small>";
     document.getElementById("l-out-py").innerHTML = fmtInt(totalPy) + "<small>px</small>";
     document.getElementById("l-out-size").innerHTML = fmt(totalWm,2) + " x " + fmt(totalHm,2) + "<small>m</small>";
     document.getElementById("l-out-area").innerHTML = fmt(area,2) + "<small>m²</small>";
-    document.getElementById("l-out-pitch").innerHTML = fmt(pitchAvg,2) + "<small>mm</small>";
+    document.getElementById("l-out-pitch").innerHTML = pitchTexto(pitchX, pitchY) + "<small>mm</small>";
     document.getElementById("l-out-ratio").textContent = describeRatio(totalPx, totalPy);
     document.getElementById("l-out-nits").innerHTML = nitsRangeText ? nitsRangeText + "<small>nits</small>" : (isNaN(nits) ? "—" : fmtInt(nits) + "<small>nits</small>");
 
@@ -4640,7 +4641,7 @@
     // alguém ter escolhido seja o que for.
     if (!isFinite(pitchX) || !isFinite(pitchY)) {
       warnEl.style.display = "none";
-    } else if (Math.abs(pitchX - pitchY) <= 0.01) {
+    } else if (pitchIguais(pitchX, pitchY)) {
       warnEl.style.display = "none";
     } else if (assimetricoDeProposito) {
       // Calar não servia: quem olha para a tabela vê dois pitches diferentes e
@@ -4673,7 +4674,7 @@
       (halfNoteText ? halfNoteText + "\n" : "") +
       "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px  —  formato " + describeRatio(totalPx, totalPy) + "\n" +
       "Tamanho físico: " + fmt(totalWm,2) + " x " + fmt(totalHm,2) + " m  (" + fmt(area,2) + " m²)\n" +
-      "Pixel pitch: " + fmt(pitchAvg,2) + " mm\n" +
+      "Pixel pitch: " + pitchTexto(pitchX, pitchY) + " mm\n" +
       (isNaN(nits) ? "" : "Brilho: " + (nitsRangeText || fmtInt(nits)) + " nits\n") +
       curveSummaryText +
       "Distância de visualização: " + fmt(dmin,1) + " – " + fmt(dmax,1) + " m (mín. – máx.)\n" +
@@ -6406,7 +6407,9 @@
       }
       var totalPx = mx * tile.rx, totalPy = my * tile.ry;
       var totalWm = (mx * tile.mw) / 1000, totalHm = (my * tile.mh) / 1000;
-      var pitchAvg = ((tile.mw / tile.rx) + (tile.mh / tile.ry)) / 2;
+      // Os dois eixos em separado, e não a média: é o mesmo painel da aba LED
+      // e tem de dizer o mesmo número (ver pitchTexto, em utils.js).
+      var pitchX = tile.mw / tile.rx, pitchY = tile.mh / tile.ry;
       var numTiles = mx * my;
       var weightTotal = tile.weight == null ? null : tile.weight * numTiles;
       var ampTotal = tile.amp == null ? null : tile.amp * numTiles;
@@ -6422,7 +6425,7 @@
         : "—";
       document.getElementById("proj-out-res").innerHTML = fmtInt(totalPx) + " x " + fmtInt(totalPy) + "<small>px</small>";
       document.getElementById("proj-out-size").innerHTML = fmt(totalWm, 2) + " x " + fmt(totalHm, 2) + "<small>m</small>";
-      document.getElementById("proj-out-pitch").innerHTML = fmt(pitchAvg, 2) + "<small>mm</small>";
+      document.getElementById("proj-out-pitch").innerHTML = pitchTexto(pitchX, pitchY) + "<small>mm</small>";
       document.getElementById("proj-out-weight").innerHTML = weightTotal == null ? "—" : fmt(weightTotal, 1) + "<small>kg</small>";
       document.getElementById("proj-out-amp").innerHTML = ampTotal == null ? "—" : fmt(ampTotal, 2) + "<small>A</small> (" + fmt(ampPhase, 2) + "<small>A/fase</small>)";
       var areaTotal = totalWm * totalHm;
@@ -6450,7 +6453,7 @@
         boxesLine +
         "Resolução total: " + fmtInt(totalPx) + " x " + fmtInt(totalPy) + " px\n" +
         "Tamanho real: " + fmt(totalWm, 2) + " x " + fmt(totalHm, 2) + " m\n" +
-        "Pixel pitch: " + fmt(pitchAvg, 2) + " mm\n" +
+        "Pixel pitch: " + pitchTexto(pitchX, pitchY) + " mm\n" +
         "Peso total: " + (weightTotal == null ? "não conhecido" : fmt(weightTotal, 1) + " kg") + "\n" +
         "Amp total (máx.): " + (ampTotal == null ? "não conhecido" : fmt(ampTotal, 2) + " A  —  " + fmt(ampPhase, 2) + " A por fase (trifásica)") + "\n" +
         "Área total (uso interno): " + fmt(areaTotal, 2) + " m²";
