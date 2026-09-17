@@ -2708,6 +2708,55 @@
     if (typeof calcProjeto === "function") calcProjeto();
   }
 
+  /**
+   * "ADICIONAR AO PROJETO", DAS DUAS JANELAS.
+   *
+   * Pedido a construir um conjunto de dez zonas na janela solta: *"e agora
+   * como adiciono ao projeto daqui?"*. Não havia como. A caixa existia só na
+   * aba Ecrã Complexo da calculadora (z-addproject), e quem trabalhasse na
+   * janela solta tinha de saltar para a outra para a marcar -- se soubesse que
+   * ela lá estava.
+   *
+   * As duas páginas partilham localStorage, por isso a decisão vive numa chave
+   * e as duas caixas são a mesma caixa. Mesmo padrão do interruptor do LED
+   * (calculadores-led-noprojeto-v1), que já existia por esta razão.
+   *
+   * A caixa de cada página tem o seu id: z-addproject na calculadora (onde ela
+   * já vivia e já dispara o syncZonesToProject), lz-addproject na janela
+   * solta. Procura-se a que existir.
+   */
+  var LZ_NOPROJETO_KEY = "calculadores-zonas-noprojeto-v1";
+  function lzCaixaDoProjeto() {
+    return document.getElementById("z-addproject") || document.getElementById("lz-addproject");
+  }
+  function lzGuardarNoProjeto() {
+    var caixa = lzCaixaDoProjeto();
+    if (!caixa) return;
+    try { localStorage.setItem(LZ_NOPROJETO_KEY, caixa.checked ? "1" : "0"); } catch (e) {}
+  }
+  function lzLigarCaixaDoProjeto() {
+    var caixa = lzCaixaDoProjeto();
+    if (!caixa) return;
+    caixa.addEventListener("change", lzGuardarNoProjeto);
+    window.addEventListener("storage", function (e) {
+      if (e.key !== LZ_NOPROJETO_KEY || e.newValue == null) return;
+      var querido = e.newValue === "1";
+      if (caixa.checked === querido) return;
+      caixa.checked = querido;
+      // Dispara o `change` da própria página: na calculadora é ele que chama o
+      // syncZonesToProject() e recalcula o projeto. Repetir essa lógica aqui
+      // era pô-la em dois sítios -- e este ficheiro corre nas duas páginas,
+      // onde só uma delas tem projeto.
+      caixa.dispatchEvent(new Event("change", { bubbles: true }));
+      if (typeof showToast === "function") {
+        showToast(querido
+          ? "Estas zonas passaram a ir para o projeto (marcado na outra janela)."
+          : "Estas zonas deixaram de ir para o projeto (desmarcado na outra janela).");
+      }
+    });
+  }
+
   // Ligado aqui, e não em cada página: a aba dos Calculadores e a janela solta
   // usam este mesmo ficheiro, e uma delas ia esquecer-se.
   lzOuvirOutraJanela();
+  lzLigarCaixaDoProjeto();
