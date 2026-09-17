@@ -74,6 +74,54 @@
   function lzLeftZona(z) { return z.posX - z.w / 2; }
   function lzTopZona(z) { return z.posY - z.h / 2; }
 
+  /**
+   * AS FOLGAS ENTRE ECRÃS.
+   *
+   * Pedido a olhar para um conjunto de quatro: *"aqui dava jeito saber o
+   * tamanho dos gaps visualmente entre ecrãs"*. O número já existia na soma
+   * ("Dimensão do conjunto (com gaps)"), mas para saber quanto media CADA um
+   * era preciso ir aos limites X de cada zona na coluna ao lado e fazer a
+   * subtração de cabeça — com quatro zonas são três subtrações, em cima de um
+   * cliente.
+   *
+   * Mede-se só entre zonas que se CRUZAM NA VERTICAL: duas zonas em filas
+   * diferentes não têm folga entre si, têm outra coisa qualquer, e escrever um
+   * número ali era inventar uma medida que ninguém pode confirmar com a fita.
+   *
+   * Fica aqui, e não dentro do desenho, porque o desenho e o texto que se
+   * copia têm de dizer o MESMO número — é a regra da casa, e é o defeito que
+   * já custou caro nesta app mais do que uma vez.
+   */
+  function lzFolgasEntreZonas(zonas) {
+    var folgas = [];
+    var ordenadas = zonas.slice().sort(function (a, b) { return lzLeftZona(a) - lzLeftZona(b); });
+    ordenadas.forEach(function (z, i) {
+      var esq = lzLeftZona(z), topo = lzTopZona(z), baixo = topo + z.h;
+      var vizinho = null, borda = -Infinity;
+      for (var k = 0; k < i; k++) {
+        var p = ordenadas[k];
+        var pTopo = lzTopZona(p), pBaixo = pTopo + p.h;
+        if (Math.min(baixo, pBaixo) - Math.max(topo, pTopo) <= 0) continue;   // filas diferentes
+        var pDir = lzLeftZona(p) + p.w;
+        // O vizinho é o que está mais à direita de todos os que ficam ATRÁS:
+        // com três tiras seguidas, a folga da terceira é para a segunda, não
+        // para a primeira.
+        if (pDir > borda) { borda = pDir; vizinho = p; }
+      }
+      if (!vizinho) return;
+      var medida = esq - borda;
+      // Encostados não têm nada a dizer, e meio milímetro de arredondamento
+      // não é uma folga -- escrever "0,00 m" era ruído com ar de medida.
+      if (Math.abs(medida) < 0.005) return;
+      var cTopo = Math.max(topo, lzTopZona(vizinho)), cBaixo = Math.min(baixo, lzTopZona(vizinho) + vizinho.h);
+      folgas.push({
+        de: vizinho.name, para: z.name, medida: medida,
+        x0: Math.min(borda, esq), x1: Math.max(borda, esq), y: (cTopo + cBaixo) / 2
+      });
+    });
+    return folgas;
+  }
+
   // X/Y são o centro da zona. A zona nova nasce à direita da caixa total
   // existente, mas logo a seguir o conjunto todo é recentrado para o zero
   // continuar a ser o centro visual.
@@ -1804,6 +1852,36 @@
       }
     });
 
+    var folgas = lzFolgasEntreZonas(valid);
+
+    // Uma sobreposição NÃO é uma folga negativa escrita a medo: é outra coisa,
+    // e quem monta tem de a ver como problema. Por isso muda de cor e de
+    // palavra, em vez de aparecer como "-0,12 m" no meio das outras.
+    var corAviso = style.getPropertyValue("--danger-600").trim() || "#C0392B";
+    var paper = style.getPropertyValue("--paper").trim() || "#0E1418";
+    folgas.forEach(function (g) {
+      var x0 = g.x0 - minX + padSide, x1 = g.x1 - minX + padSide, y = g.y - minY + padTop;
+      var sobrepoe = g.medida < 0;
+      var cor = sobrepoe ? corAviso : rose;
+      var t = sobrepoe ? "sobrepõe " + fmt(-g.medida, 2) + " m" : fmt(g.medida, 2) + " m";
+      var tw = t.length * fontSize * 0.56;
+      var tique = fontSize * 0.5;
+      // Linha de cota com tiques nas pontas, como numa folha de desenho.
+      parts.push('<path d="M' + x0 + ' ' + (y - tique) + 'V' + (y + tique) +
+        'M' + x0 + ' ' + y + 'H' + x1 +
+        'M' + x1 + ' ' + (y - tique) + 'V' + (y + tique) +
+        '" stroke="' + cor + '" stroke-width="' + strokeW + '" fill="none"/>');
+      // O texto leva uma placa por baixo: uma folga estreita tem o número mais
+      // largo do que ela, e sem isto ele ficava por cima do ecrã do lado, na
+      // cor dele, ilegível.
+      var cx = (x0 + x1) / 2, ty = y - tique - fontSize * 0.45;
+      parts.push('<rect x="' + (cx - tw / 2 - fontSize * 0.2) + '" y="' + (ty - fontSize * 0.85) +
+        '" width="' + (tw + fontSize * 0.4) + '" height="' + (fontSize * 1.15) +
+        '" fill="' + paper + '" fill-opacity="0.88" rx="' + (fontSize * 0.2) + '"/>');
+      parts.push('<text x="' + cx + '" y="' + ty + '" font-size="' + (fontSize * 0.85) +
+        '" fill="' + cor + '" text-anchor="middle">' + escapeXml(t) + '</text>');
+    });
+
     // Legenda de rodapé com o tamanho total do conjunto — dá para ver de
     // imediato sem ter de olhar para os cartões de resultado ao lado.
     var captionText = "Conjunto: " + fmt(totalW, 2) + "×" + fmt(totalH, 2) + "m" +
@@ -2539,6 +2617,17 @@
     }).join("\n") + (hiddenCount ? "\n\n(" + hiddenCount + " zona(s) escondida(s), fora destas contas)" : "") + "\n\nTOTAL: " + (zonasLed.length ? fmtInt(totalTiles) + " tiles, " + fmtInt(totalPixels) + " px (" + fmt(totalPixels/1e6,2) + " MP, soma dos píxeis nativos das zonas LED)" : "sem zonas LED") + ", " + fmt(totalArea,2) + " m² (soma das zonas), " + (pesoDesconhecido ? "peso e amps não conhecidos" : fmt(totalWeight,1) + " kg, " + fmt(totalAmp,2) + " A máx. (" + fmt(totalAmp/3,2) + " A/fase)" + notaPesoParcial) +
       (zonasDelay.length ? "\nSaídas de delay (cada uma com a sua resolução, fora do canvas do LED): " + zonasDelay.length + " — " + textoDelay : "") +
       (bbox ? "\nDimensão do conjunto (com gaps): " + fmt(bbox.w,2) + " x " + fmt(bbox.h,2) + " m" : "") +
+      // As MESMAS folgas que o desenho mostra, para quem copia este texto para
+      // uma folha não ter de as ir medir outra vez.
+      (function () {
+        var g = lzFolgasEntreZonas(visibleZones);
+        if (!g.length) return "";
+        return "\nFolgas entre ecrãs: " + g.map(function (x) {
+          return x.de + " → " + x.para + ": " + (x.medida < 0
+            ? "SOBREPÕEM " + fmt(-x.medida, 2) + " m"
+            : fmt(x.medida, 2) + " m");
+        }).join(" · ");
+      })() +
       (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, zona mais alta") + ")" : "") : "") +
       (pm ? "\nResolução final do canvas (sem gaps): " + canvasResNoGapsText + " — usada para o sinal/processo: " + (lzCanvasMode === "nogaps" ? "sem gaps" : "com gaps") : "");
 
