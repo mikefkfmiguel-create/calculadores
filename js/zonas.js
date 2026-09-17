@@ -966,7 +966,12 @@
           ? AVIXA_CONTENT[vAvixaContentKey].mult
           : std.max;
         standard = { basis: std.basis, min: std.min, max: maxResolvido,
-          label: typeof viewRuleDescription === "function" ? viewRuleDescription() : null };
+          label: typeof viewRuleDescription === "function" ? viewRuleDescription() : null,
+          // Quanto do ecrã é que a conta usa: "16-9" ou "total". Vai no
+          // payload para o conforto do 3D obedecer ao mesmo interruptor --
+          // foi metade do pedido. Sem isto, o Preview continuava a decidir
+          // sozinho se dividia o ecrã, e as duas apps voltavam a discordar.
+          area: (typeof vAreaKey !== "undefined") ? vAreaKey : null };
       }
     }
 
