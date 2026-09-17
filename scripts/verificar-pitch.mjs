@@ -13,10 +13,19 @@
  * email ou uma ficha técnica. O aviso ao lado já dizia a verdade, mas quem
  * copia o resumo leva o número, não o aviso.
  *
- * Este teste anda por três sítios porque o mesmo painel aparece em três, e o
- * defeito de sempre é dizerem coisas diferentes: a aba LED, a aba Projeto, e
- * o texto que se copia de cada uma. E confirma o principal — que num painel
- * normal nada disto muda nada.
+ * Este teste anda por vários sítios porque o mesmo número aparece em vários,
+ * e o defeito de sempre é dizerem coisas diferentes: a aba LED, a aba
+ * Projeto, a aba Blending, e o texto que se copia de cada uma. E confirma o
+ * principal — que num painel normal nada disto muda nada.
+ *
+ * A aba Blending leva o mesmo tratamento mas com a RÉGUA DELA. Ali o "pixel
+ * size" não é a ficha de um painel: sai de uma divisão entre os metros e os
+ * píxeis de uma imagem projetada, onde uns décimos de diferença são o normal
+ * de qualquer conta com casas decimais. A pergunta não é "são iguais?" mas
+ * "a imagem está esticada?", e a resposta é a que o aviso já dava: mais de
+ * 5%. Aplicar-lhe a régua do painel (0,01 mm) punha a app a escrever dois
+ * valores sem aviso nenhum a explicá-los — o mesmo desencontro, ao contrário.
+ * Por isso o caso que este teste mais guarda ali é o que NÃO pode mudar.
  *
  *   node scripts/verificar-pitch.mjs
  */
@@ -173,6 +182,77 @@ conferir(regra.quaseIguais === "3,91",
 conferir(regra.vazio === "—", "com os campos vazios não inventa um número");
 conferir(regra.tolerancia,
   "e a tolerância é a mesma do aviso, para os dois nunca poderem discordar");
+
+// ---- 5. A aba Blending, com a régua DELA ---------------------------------
+//
+// Aqui o "pixel size" não é a ficha de um painel: sai de uma divisão entre os
+// metros e os píxeis de uma imagem projetada, onde uns décimos de diferença
+// são o normal de qualquer conta com casas decimais. A pergunta não é "são
+// iguais?" mas "a imagem está esticada?", e a resposta é a que o aviso já
+// dava: mais de 5%.
+//
+// Por isso este bloco mede sobretudo O CASO QUE NÃO PODE MUDAR -- uma
+// divergência pequena, sem aviso, tem de continuar a mostrar um número só.
+// Aplicar aqui a régua do painel (0,01 mm) punha a app a escrever dois
+// valores em silêncio, sem aviso nenhum a explicá-los: o mesmo desencontro,
+// ao contrário.
+console.log("\n== a aba Blending ==");
+const noBlending = (largura, altura) => pagina.evaluate(async ([w, h]) => {
+  document.querySelector('.tabs .tab[data-mode="blend"]').click();
+  await new Promise((r) => setTimeout(r, 250));
+  const por = (id, v) => { const el = document.getElementById(id);
+    el.value = String(v); el.dispatchEvent(new Event("input", { bubbles: true })); };
+  por("b-w", w); por("b-h", h);
+  await new Promise((r) => setTimeout(r, 700));
+  const aviso = document.getElementById("b-warn");
+  return {
+    noEcra: (document.getElementById("b-out-pitch") || {}).textContent || "",
+    aviso: aviso && aviso.style.display !== "none" ? aviso.textContent : "",
+    resumo: (document.getElementById("b-sum") || {}).textContent || ""
+  };
+}, [largura, altura]);
+
+const normalBlend = await noBlending(12.9, 4.3);
+console.log("   16:9-ish (12,9 × 4,3 m): " + normalBlend.noEcra +
+  (normalBlend.aviso ? "  [com aviso]" : "  [sem aviso]"));
+const temDoisNumeros = (t) => /×/.test(t);
+conferir(!(temDoisNumeros(normalBlend.noEcra) && !/esticada/.test(normalBlend.aviso)),
+  "sem aviso de imagem esticada, o número é UM só — o ecrã e o aviso não se contradizem");
+
+// E agora uma proporção mal metida de propósito: altura a mais para a
+// resolução que sai. Aí o aviso aparece, e os dois números com ele.
+const esticado = await noBlending(12.9, 8.6);
+console.log("   esticado (12,9 × 8,6 m):  " + esticado.noEcra +
+  (esticado.aviso ? "  [com aviso]" : "  [sem aviso]"));
+if (/esticada/.test(esticado.aviso)) {
+  conferir(temDoisNumeros(esticado.noEcra),
+    "com a imagem esticada, mostra os dois: " + esticado.noEcra);
+  conferir(/mm na horizontal/.test(esticado.aviso),
+    "e o aviso diz quanto fica cada um, em vez de só dizer que não bate");
+  const linhaBlend = (esticado.resumo.split("\n").find((l) => /^Pixel size:/.test(l)) || "");
+  console.log("   no resumo: " + linhaBlend);
+  conferir(temDoisNumeros(linhaBlend),
+    "e o texto que se copia leva os dois — é o que vai para a ficha da obra");
+} else {
+  console.log("   (esta configuração não dispara o aviso; fica só a verificação de cima)");
+}
+
+// ---- 6. As duas réguas são MESMO diferentes ------------------------------
+console.log("\n== cada aba com a sua régua ==");
+const reguas = await pagina.evaluate(() => ({
+  // 2,60 vs 2,64 mm: 1,5% -- num painel seriam dois pitches, numa imagem
+  // projetada é arredondamento e não se diz nada.
+  painel: pitchTexto(2.60, 2.64),
+  imagem: pitchTexto(2.60, 2.64, pitchImagemIguais(2.60, 2.64)),
+  imagemEsticada: pitchTexto(2.60, 3.40, pitchImagemIguais(2.60, 3.40))
+}));
+console.log("   " + JSON.stringify(reguas));
+conferir(reguas.painel === "2,60 × 2,64",
+  "na ficha de um painel, 2,60 e 2,64 são dois pitches diferentes");
+conferir(reguas.imagem === "2,60",
+  "na imagem projetada, os mesmos 2,60 e 2,64 são a mesma coisa (1,5% é arredondamento)");
+conferir(reguas.imagemEsticada === "2,60 × 3,40",
+  "mas 2,60 contra 3,40 já é imagem esticada, e diz-se");
 
 conferir(erros.length === 0, erros.length ? "erro de JavaScript: " + erros[0] : "sem erros de JavaScript");
 

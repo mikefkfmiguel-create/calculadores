@@ -43,7 +43,7 @@
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.03</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.04</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -5751,7 +5751,11 @@
 
     var pitchMmH = (effWm * 1000) / totalPxH;
     var pitchMmV = (hm * 1000) / totalPxV;
-    var pitchAvg = (pitchMmH + pitchMmV) / 2;
+    // Uma só resposta a "a imagem está esticada?", que serve o número E o
+    // aviso lá em baixo. Eram duas contas separadas a olhar para o mesmo, e é
+    // assim que um diz uma coisa e o outro diz outra. A média desapareceu:
+    // com os dois eixos a divergir, ela não é o tamanho de píxel nenhum.
+    var pitchBate = pitchImagemIguais(pitchMmH, pitchMmV);
 
     var pctTotal = overlapTotalH / totalPxH;
     var pctProj = oh / hpx;
@@ -5763,7 +5767,7 @@
     document.getElementById("b-out-pctproj").textContent = fmt(pctProj * 100, 1) + "%";
     document.getElementById("b-out-area").innerHTML = fmt(area, 2) + "<small>m²</small>";
     document.getElementById("b-out-ratio").textContent = describeRatio(effWm * 1000, hm * 1000);
-    document.getElementById("b-out-pitch").innerHTML = fmt(pitchAvg, 2) + "<small>mm</small>";
+    document.getElementById("b-out-pitch").innerHTML = pitchTexto(pitchMmH, pitchMmV, pitchBate) + "<small>mm</small>";
 
     // O ecrã curvo já vai para o 3D (v3.62): as fatias são iguais ao longo do
     // arco e a distância é a mesma para todos, o que quer dizer projetores num
@@ -5792,8 +5796,8 @@
     }
 
     var warnMsgs = [];
-    if (Math.abs(pitchMmH - pitchMmV) / pitchAvg > 0.05) {
-      warnMsgs.push("A proporção física (" + fmt(effWm,2) + " x " + fmt(hm,2) + " m) não bate certo com a resolução resultante — a imagem pode ficar esticada. Confirma largura/altura ou o overlap vertical.");
+    if (!pitchBate) {
+      warnMsgs.push("A proporção física (" + fmt(effWm,2) + " x " + fmt(hm,2) + " m) não bate certo com a resolução resultante — a imagem pode ficar esticada: o píxel fica " + fmt(pitchMmH,2) + " mm na horizontal e " + fmt(pitchMmV,2) + " mm na vertical. Confirma largura/altura ou o overlap vertical.");
     }
     // O aviso do overlap é para quem DECIDIU o número de máquinas. No modo
     // automático sem overlap forçado quem decide é a app, e ela já sobe o
@@ -5836,7 +5840,7 @@
       "Resolução combinada: " + fmtInt(totalPxH) + " x " + fmtInt(totalPxV) + " px  —  overlap " + fmt(pctTotal*100,1) + "% do total (" + fmt(pctProj*100,1) + "% por projetor)\n" +
       "Ecrã físico: " + fmt(effWm,2) + " x " + fmt(hm,2) + " m  (" + fmt(area,2) + " m²)  —  formato " + describeRatio(effWm*1000, hm*1000) + "\n" +
       curveSummaryText +
-      "Pixel size: " + fmt(pitchAvg,2) + " mm\n" +
+      "Pixel size: " + pitchTexto(pitchMmH, pitchMmV, pitchBate) + " mm\n" +
       "Luminosidade: " + nProj + " projetores x " + fmtInt(lumensEach) + " lm (100%) = " + fmtInt(lumensEach*nProj) + " lm  —  a 80%: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(luxTotal) + " lux no ecrã";
 
     // O que o botão "Ver no Preview 3D" precisa -- a mesma grelha que o
