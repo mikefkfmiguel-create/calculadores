@@ -33,14 +33,39 @@ function pitchIguais(pitchX, pitchY) {
   return Math.abs(pitchX - pitchY) <= PITCH_IGUAIS_ATE_MM;
 }
 
+// E A REGRA NÃO É A MESMA NAS DUAS ABAS -- de propósito.
+//
+// Na aba LED comparam-se dois números da FICHA de um painel: ou o fabricante
+// diz o mesmo nos dois eixos ou não diz, e meio centésimo de milímetro é
+// arredondamento. Na aba Blending o "pixel size" é outra coisa: sai de uma
+// divisão entre os metros e os píxeis de uma imagem projetada, onde uns
+// décimos de diferença são o normal de qualquer conta com casas decimais. A
+// pergunta ali não é "são iguais?", é "a imagem está esticada?" -- e a
+// resposta é a mesma que o aviso já dava: mais de 5% de diferença.
+//
+// Usar a régua do LED aqui punha o número a mostrar dois valores em casos
+// onde o aviso não aparece, que é o desencontro que isto veio corrigir. Por
+// isso cada aba traz a sua régua e o pitchTexto só trata de escrever.
+var PITCH_IMAGEM_DIVERGE_ACIMA_DE = 0.05;
+
+function pitchImagemIguais(pitchH, pitchV) {
+  var media = (pitchH + pitchV) / 2;
+  if (!isFinite(media) || media === 0) return true;
+  return Math.abs(pitchH - pitchV) / media <= PITCH_IMAGEM_DIVERGE_ACIMA_DE;
+}
+
 /**
  * O pitch como se escreve: "3,91" quando os dois eixos são o mesmo,
  * "3,91 × 7,81" quando não são. Sem unidade -- quem chama põe o "mm" como
  * lhe der jeito (com <small> no ecrã, à letra no texto que se copia).
+ *
+ * O `saoIguais` deixa quem chama trazer a sua régua (ver acima). Em falta,
+ * vale a do painel, que é o caso mais comum.
  */
-function pitchTexto(pitchX, pitchY) {
+function pitchTexto(pitchX, pitchY, saoIguais) {
   if (!isFinite(pitchX) || !isFinite(pitchY)) return "—";
-  if (pitchIguais(pitchX, pitchY)) return fmt(pitchX, 2);
+  var iguais = (saoIguais === undefined) ? pitchIguais(pitchX, pitchY) : !!saoIguais;
+  if (iguais) return fmt(pitchX, 2);
   return fmt(pitchX, 2) + " × " + fmt(pitchY, 2);
 }
 // Muitos processadores de vídeo/media servers exigem uma resolução final
