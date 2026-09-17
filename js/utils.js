@@ -10,6 +10,39 @@ function fmtInt(n) {
   if (!isFinite(n)) return "—";
   return Math.round(n).toLocaleString("pt-PT");
 }
+
+// UM PITCH QUE NÃO EXISTE NO PAINEL NÃO SE ESCREVE.
+//
+// A app mostrava sempre a MÉDIA dos dois eixos. Num painel normal isso não
+// se nota (os dois são iguais, a média é o mesmo número). Mas o Traulux
+// transparente é 3,91 mm na horizontal e 7,81 mm na vertical -- de propósito,
+// é isso que o deixa transparente -- e a app escrevia "Pixel pitch: 5,86 mm".
+// Um valor que não está na ficha do fabricante nem se mede em lado nenhum
+// daquele painel, com ar de especificação, pronto a ser copiado para um email
+// ou uma ficha técnica.
+//
+// O aviso de divergência já existia ao lado a dizer a verdade -- mas quem
+// copia o resumo leva o número, não o aviso.
+//
+// A tolerância é a MESMA que o aviso usa, e está aqui para não poderem
+// discordar: o dia em que o aviso disser "assimétrico" e o número continuar a
+// ser um só é o dia em que isto volta.
+var PITCH_IGUAIS_ATE_MM = 0.01;
+
+function pitchIguais(pitchX, pitchY) {
+  return Math.abs(pitchX - pitchY) <= PITCH_IGUAIS_ATE_MM;
+}
+
+/**
+ * O pitch como se escreve: "3,91" quando os dois eixos são o mesmo,
+ * "3,91 × 7,81" quando não são. Sem unidade -- quem chama põe o "mm" como
+ * lhe der jeito (com <small> no ecrã, à letra no texto que se copia).
+ */
+function pitchTexto(pitchX, pitchY) {
+  if (!isFinite(pitchX) || !isFinite(pitchY)) return "—";
+  if (pitchIguais(pitchX, pitchY)) return fmt(pitchX, 2);
+  return fmt(pitchX, 2) + " × " + fmt(pitchY, 2);
+}
 // Muitos processadores de vídeo/media servers exigem uma resolução final
 // par (nunca ímpar) — arredonda sempre para cima ao par seguinte (1→2,
 // 5399→5400, 5400→5400).
