@@ -90,6 +90,26 @@ const CASOS = [
     nome: "três tiras seguidas — cada uma mede à anterior, não à primeira",
     zonas: [z("t1", 2, 4, -3.0, 0), z("t2", 2, 4, 0, 0), z("t3", 2, 4, 3.0, 0)],
     espera: [2.0, 2.0]
+  },
+  {
+    // ISTO É O CASO QUE IMPORTA. Fotografia de seis tiras com 5 cm entre elas:
+    // *"vês o problema das etiquetas"*. As cotas ficavam todas na mesma linha,
+    // umas por cima das outras, e uma aparecia cortada -- "sobrepõe 0", sem o
+    // número. Uma medida que não se lê inteira é pior do que medida nenhuma.
+    //
+    // Uma folga de 0,05 m tem 5 cm de largura no desenho e o texto precisa de
+    // uns 80: não há arranjo em que cinco destas caibam lado a lado. Por isso
+    // este caso mede a LEGIBILIDADE, não só os números.
+    nome: "seis tiras a 0,05 m — as cotas não se podem tapar",
+    zonas: (function () {
+      var zs = [z("slides esq", 12, 6, -8.0, 0)];
+      var x = -0.1 - 2.5 * 1.05;
+      for (var i = 1; i <= 6; i++) { zs.push(z("tira " + i, 2, 8, x, 0)); x += 1.05; }
+      zs.push(z("slides dir", 12, 6, 8.0, 0));
+      zs.push(z("delay", 4, 4, 11.5, 0));
+      return zs;
+    })(),
+    espera: [1.78, 0.05, 0.05, 0.05, 0.05, 0.05, 1.97, -0.5]
   }
 ];
 
@@ -121,9 +141,17 @@ for (const caso of CASOS) {
 
   const visto = await pagina.evaluate(() => {
     const svg = document.getElementById("lz-diagram") || document.querySelector("#lz-diagram-wrap svg");
+    const eCota = (t) => /^-?[\d,]+ m$|^sobrepõe /.test(t);
+    const todos = svg ? [...svg.querySelectorAll("text")] : [];
+    const caixa = (t) => { const b = t.getBBox();
+      return { t: t.textContent, x0: b.x, y0: b.y, x1: b.x + b.width, y1: b.y + b.height }; };
     return {
-      noDesenho: svg ? [...svg.querySelectorAll("text")].map((t) => t.textContent)
-        .filter((t) => /^-?[\d,]+ m$|^sobrepõe /.test(t)) : [],
+      noDesenho: todos.map((t) => t.textContent).filter(eCota),
+      // As cotas e TODAS as outras legendas do desenho (os nomes das zonas),
+      // porque tapar um nome é o mesmo defeito visto do outro lado.
+      caixas: todos.filter((t) => eCota(t.textContent)).map(caixa),
+      outras: todos.filter((t) => !eCota(t.textContent)).map(caixa),
+      janela: (svg.getAttribute("viewBox") || "").split(/\s+/).map(Number),
       resumo: (document.getElementById("lz-sum") || {}).textContent || ""
     };
   });
@@ -150,6 +178,26 @@ for (const caso of CASOS) {
       caso.espera.every((e, i) => Math.abs(noTexto[i] - e) < 0.006);
     conferir(iguais, "o resumo que se copia diz o MESMO que o desenho");
   }
+  // 3. E lê-se? Um número certo escrito por cima de outro não vale nada.
+  if (caso.espera.length) {
+    const cruza = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+    const tapadas = [];
+    visto.caixas.forEach((a, i) => {
+      visto.caixas.slice(i + 1).forEach((b) => { if (cruza(a, b)) tapadas.push(a.t + " × " + b.t); });
+      visto.outras.forEach((b) => { if (cruza(a, b)) tapadas.push(a.t + " × «" + b.t + "»"); });
+    });
+    conferir(!tapadas.length, "nenhuma cota fica por cima de outra legenda" +
+      (tapadas.length ? " — mas " + tapadas.length + " tapa(m)-se: " + tapadas.slice(0, 3).join(", ") : ""));
+
+    // Empilhá-las resolvia a sobreposição e criava a seguinte: saírem pela
+    // borda e ficarem cortadas ("sobrepõe 0", sem o número).
+    const [jx, jy, jw, jh] = visto.janela;
+    const fora = visto.caixas.filter((c) => c.x0 < jx - 0.01 || c.y0 < jy - 0.01 ||
+      c.x1 > jx + jw + 0.01 || c.y1 > jy + jh + 0.01);
+    conferir(!fora.length, "e nenhuma sai do desenho pela borda, cortada a meio" +
+      (fora.length ? " — mas " + fora.map((c) => c.t).join(", ") + " sai(em)" : ""));
+  }
+
   conferir(erros.length === 0, erros.length ? "erro de JavaScript: " + erros[0] : "sem erros de JavaScript");
   await ctx.close();
 }

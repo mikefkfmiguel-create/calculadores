@@ -1859,27 +1859,107 @@
     // palavra, em vez de aparecer como "-0,12 m" no meio das outras.
     var corAviso = style.getPropertyValue("--danger-600").trim() || "#C0392B";
     var paper = style.getPropertyValue("--paper").trim() || "#0E1418";
+    // AS COTAS NÃO SE TAPAM UMAS ÀS OUTRAS.
+    //
+    // Reportado a olhar para seis tiras com 0,05 m entre elas: *"vês o problema
+    // das etiquetas"*. E via-se — as cotas ficavam todas na mesma linha, umas
+    // por cima das outras, e uma delas cortada a meio ("sobrepõe 0", sem o
+    // número). Um número que não se lê inteiro é pior do que número nenhum:
+    // parece uma medida e não é.
+    //
+    // A causa é simples e não tem volta: uma folga de 0,05 m tem 5 cm de largura
+    // no desenho e o texto precisa de uns 80. Por isso não se aperta o texto --
+    // empilha-se, e cada cota leva uma linha fina até à folga de que fala.
+    //
+    // É a mesma receita que as legendas dos NOMES já usavam aqui em cima, e a
+    // mesma que as etiquetas do 3D levaram pela mesma razão.
+    // E não se tapam com as LEGENDAS DOS NOMES, que se arrumam ali em cima com
+    // este mesmo método. Eram dois sistemas a desviar-se cada um do seu lado,
+    // cegos um ao outro: as cotas fugiam umas das outras e iam aterrar em cima
+    // do "tira 4". Por isso a lista de sítios ocupados COMEÇA com as caixas dos
+    // nomes já colocados (placedBoxes, sem os cantos do desenho somados).
+    var alturaDaCota = fontSize * 1.25;
+    var caixasDeCota = placedBoxes.map(function (p) {
+      return { x0: p.x0 + padSide, x1: p.x1 + padSide, y0: p.y0 + padTop, y1: p.y1 + padTop };
+    });
     folgas.forEach(function (g) {
-      var x0 = g.x0 - minX + padSide, x1 = g.x1 - minX + padSide, y = g.y - minY + padTop;
-      var sobrepoe = g.medida < 0;
-      var cor = sobrepoe ? corAviso : rose;
-      var t = sobrepoe ? "sobrepõe " + fmt(-g.medida, 2) + " m" : fmt(g.medida, 2) + " m";
-      var tw = t.length * fontSize * 0.56;
+      g._x0 = g.x0 - minX + padSide;
+      g._x1 = g.x1 - minX + padSide;
+      g._y = g.y - minY + padTop;
+      g._sobrepoe = g.medida < 0;
+      g._t = g._sobrepoe ? "sobrepõe " + fmt(-g.medida, 2) + " m" : fmt(g.medida, 2) + " m";
+      g._tw = g._t.length * fontSize * 0.56 + fontSize * 0.4;
+      g._cx = (g._x0 + g._x1) / 2;
+    });
+    // Da esquerda para a direita: assim uma cota só tem de se desviar das que
+    // já ficaram para trás, e o resultado é estável (o mesmo desenho dá sempre
+    // o mesmo arranjo, em vez de saltar conforme a ordem das zonas).
+    folgas.slice().sort(function (a, b) { return a._cx - b._cx; }).forEach(function (g) {
+      var tique = fontSize * 0.5;
+      var nivel = 0;
+      while (nivel < 8) {
+        var ty = g._y - tique - fontSize * 0.45 - nivel * alturaDaCota;
+        var caixa = { x0: g._cx - g._tw / 2, x1: g._cx + g._tw / 2,
+                      y0: ty - fontSize * 0.85, y1: ty + fontSize * 0.3 };
+        var choca = caixasDeCota.some(function (c) {
+          return caixa.x0 < c.x1 && c.x0 < caixa.x1 && caixa.y0 < c.y1 && c.y0 < caixa.y1;
+        });
+        if (!choca) { g._ty = ty; caixasDeCota.push(caixa); return; }
+        nivel++;
+      }
+      // Oito andares sem lugar é um desenho onde nenhuma cota se lia -- nesse
+      // caso a última fica onde calha, em vez de desaparecer sem explicação.
+      g._ty = g._y - tique - fontSize * 0.45 - 7 * alturaDaCota;
+    });
+
+    // E O DESENHO CRESCE PARA AS RECEBER.
+    //
+    // Empilhar resolvia a sobreposição e criava a seguinte: as cotas dos andares
+    // de cima saíam pela borda do viewBox e ficavam cortadas -- que é o mesmo
+    // defeito com outra roupa (um número que não se lê inteiro). A margem de
+    // cima é calculada para as legendas dos nomes e não sabe destas.
+    //
+    // Em vez de as apertar cá para dentro, abre-se a janela: mexer só na origem
+    // e no tamanho do viewBox não desloca NADA do que já está desenhado, só
+    // deixa aparecer o espaço que faltava.
+    var margem = fontSize * 0.3;
+    var maisAcima = 0, maisAEsquerda = 0, maisADireita = vbW;
+    caixasDeCota.forEach(function (c) {
+      if (c.y0 - margem < maisAcima) maisAcima = c.y0 - margem;
+      if (c.x0 - margem < maisAEsquerda) maisAEsquerda = c.x0 - margem;
+      if (c.x1 + margem > maisADireita) maisADireita = c.x1 + margem;
+    });
+    if (maisAcima < 0 || maisAEsquerda < 0 || maisADireita > vbW) {
+      svg.setAttribute("viewBox", maisAEsquerda + " " + maisAcima + " " +
+        (maisADireita - maisAEsquerda) + " " + (vbH - maisAcima));
+    }
+
+    folgas.forEach(function (g) {
+      var cor = g._sobrepoe ? corAviso : rose;
       var tique = fontSize * 0.5;
       // Linha de cota com tiques nas pontas, como numa folha de desenho.
-      parts.push('<path d="M' + x0 + ' ' + (y - tique) + 'V' + (y + tique) +
-        'M' + x0 + ' ' + y + 'H' + x1 +
-        'M' + x1 + ' ' + (y - tique) + 'V' + (y + tique) +
+      parts.push('<path d="M' + g._x0 + ' ' + (g._y - tique) + 'V' + (g._y + tique) +
+        'M' + g._x0 + ' ' + g._y + 'H' + g._x1 +
+        'M' + g._x1 + ' ' + (g._y - tique) + 'V' + (g._y + tique) +
         '" stroke="' + cor + '" stroke-width="' + strokeW + '" fill="none"/>');
+      // A linha fina que liga o número à folga de que ele fala. Sem ela, uma
+      // cota empilhada três andares acima podia ser de qualquer uma das folgas
+      // ao lado -- e adivinhar qual é qual foi exactamente a queixa que deu
+      // origem às etiquetas com nome no 3D.
+      var topoDaCota = g._ty + fontSize * 0.3;
+      if (topoDaCota < g._y - tique - fontSize * 0.1) {
+        parts.push('<path d="M' + g._cx + ' ' + (g._y - tique) + 'V' + topoDaCota +
+          '" stroke="' + cor + '" stroke-width="' + (strokeW * 0.6) +
+          '" stroke-dasharray="' + (strokeW * 2) + ' ' + (strokeW * 2) + '" fill="none"/>');
+      }
       // O texto leva uma placa por baixo: uma folga estreita tem o número mais
       // largo do que ela, e sem isto ele ficava por cima do ecrã do lado, na
       // cor dele, ilegível.
-      var cx = (x0 + x1) / 2, ty = y - tique - fontSize * 0.45;
-      parts.push('<rect x="' + (cx - tw / 2 - fontSize * 0.2) + '" y="' + (ty - fontSize * 0.85) +
-        '" width="' + (tw + fontSize * 0.4) + '" height="' + (fontSize * 1.15) +
-        '" fill="' + paper + '" fill-opacity="0.88" rx="' + (fontSize * 0.2) + '"/>');
-      parts.push('<text x="' + cx + '" y="' + ty + '" font-size="' + (fontSize * 0.85) +
-        '" fill="' + cor + '" text-anchor="middle">' + escapeXml(t) + '</text>');
+      parts.push('<rect x="' + (g._cx - g._tw / 2) + '" y="' + (g._ty - fontSize * 0.85) +
+        '" width="' + g._tw + '" height="' + (fontSize * 1.15) +
+        '" fill="' + paper + '" fill-opacity="0.92" rx="' + (fontSize * 0.2) + '"/>');
+      parts.push('<text x="' + g._cx + '" y="' + g._ty + '" font-size="' + (fontSize * 0.85) +
+        '" fill="' + cor + '" text-anchor="middle">' + escapeXml(g._t) + '</text>');
     });
 
     // Legenda de rodapé com o tamanho total do conjunto — dá para ver de
