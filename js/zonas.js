@@ -2343,7 +2343,17 @@
       return opts;
     });
   }
+  // ENQUANTO SE RECEBE, NÃO SE ESCREVE.
+  //
+  // Sem isto há perda de dados a sério, e foi medida: a janela A acrescenta a
+  // zona 1, a B recebe-a e regrava-a, esse eco chega a A -- que entretanto já
+  // ia na zona 2 -- e A apaga a zona 2 para ficar igual ao eco. Desaparecia
+  // trabalho acabado de escrever, em silêncio, por a app estar a falar
+  // sozinha. Quem recebe é um espelho: mostra, e cala-se.
+  var lzAReceberDeOutraJanela = false;
+
   function lzSaveToStorage() {
+    if (lzAReceberDeOutraJanela) return;
     try {
       var data = lzSerializeZones();
       if (data.length) localStorage.setItem(LZ_STORAGE_KEY, JSON.stringify(data));
@@ -2358,6 +2368,62 @@
     try { data = JSON.parse(raw); } catch (e) { return; }
     if (!Array.isArray(data) || !data.length) return;
     data.forEach(function (opts) { lzAddZone(opts.name, opts, false); });
+  }
+
+  /**
+   * AS DUAS JANELAS SÃO A MESMA LISTA.
+   *
+   * Reportado a trabalhar com as duas abertas: *"como adiciono ao projeto
+   * daqui, que não está a desenhar dentro da calculadora no complexo"*. E
+   * estava certo: a página solta (ecra-complexo.html) e a aba Ecrã Complexo
+   * dos Calculadores GUARDAM na mesma chave — nada se perdia — mas a janela
+   * que não fez a mudança nunca ia lá buscar. Quem construísse o conjunto na
+   * janela solta via a calculadora do lado vazia, sem nada que o explicasse,
+   * e tinha de recarregar para as zonas aparecerem.
+   *
+   * O `storage` só dispara nas OUTRAS janelas, nunca na que escreveu — que é
+   * exactamente quem precisa de ser avisado.
+   */
+  function lzOuvirOutraJanela() {
+    window.addEventListener("storage", function (e) {
+      if (e.key !== LZ_STORAGE_KEY) return;
+      // Só re-lê se o que chegou for DIFERENTE do que esta janela já tem.
+      // Sem esta guarda, cada re-leitura voltava a gravar, a gravação
+      // acordava a outra janela, e as duas empurravam-se uma à outra sem fim.
+      var aqui;
+      try { aqui = JSON.stringify(lzSerializeZones()); } catch (err) { return; }
+      if ((e.newValue || "") === aqui) return;
+      lzAReceberDeOutraJanela = true;
+      try {
+        lzList.innerHTML = "";
+        // Sem valor nenhum quer dizer que a outra janela limpou as zonas, e
+        // limpar é uma decisão tão válida como acrescentar: fica igual a ela.
+        if (e.newValue) {
+          var data;
+          try { data = JSON.parse(e.newValue); } catch (err) { data = null; }
+          if (Array.isArray(data)) data.forEach(function (opts) { lzAddZone(opts.name, opts, false); });
+        }
+        calcLedZones();
+      } finally {
+        // No `finally` de propósito: se o re-desenho rebentar a meio, a trava
+        // tem de cair na mesma — senão esta janela ficava para sempre sem
+        // gravar nada, e isso não se via até se perder um projeto.
+        lzAReceberDeOutraJanela = false;
+      }
+      // NUNCA EM SILÊNCIO. Esta app abre limpa de propósito — foi pedido
+      // assim, para nada da sessão anterior voltar sozinho. Zonas que
+      // aparecem do nada seriam exactamente isso outra vez, e não se
+      // distinguiriam de um defeito. Isto é diferente (é uma edição a
+      // acontecer AGORA na outra janela), e por isso diz-se que aconteceu.
+      if (typeof showToast === "function") {
+        var quantas = lzList.querySelectorAll(".card").length;
+        // Partido nos sítios onde leva o número: o motor de tradução troca
+        // trechos, e um trecho com um número lá dentro nunca bate certo.
+        showToast(quantas
+          ? "As zonas mudaram na outra janela — esta lista acompanhou (" + quantas + " zonas)."
+          : "A outra janela limpou as zonas — esta lista acompanhou.");
+      }
+    });
   }
 
   function calcLedZones() {
@@ -2641,3 +2707,7 @@
     lzSaveToStorage();
     if (typeof calcProjeto === "function") calcProjeto();
   }
+
+  // Ligado aqui, e não em cada página: a aba dos Calculadores e a janela solta
+  // usam este mesmo ficheiro, e uma delas ia esquecer-se.
+  lzOuvirOutraJanela();

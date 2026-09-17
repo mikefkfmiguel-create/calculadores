@@ -724,6 +724,11 @@
     "grupo Global Espanha": "Global Espanha group",
     "no lote": "in the batch",
     "módulos": "modules",
+    // ---- As duas janelas do Ecrã Complexo ----
+    "As zonas mudaram na outra janela — esta lista acompanhou (": "The zones changed in the other window \u2014 this list followed (",
+    " zonas).": " zones).",
+    "A outra janela limpou as zonas — esta lista acompanhou.":
+      "The other window cleared the zones \u2014 this list followed.",
     // ---- Limpar tudo (as duas apps) ----
     "Deixa as duas apps vazias — calculadoras, zonas, DSM, histórico e o Preview 3D":
       "Leaves both apps empty \u2014 calculators, zones, DSM, history and the 3D Preview",
