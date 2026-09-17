@@ -2133,23 +2133,45 @@
   // Preenchido pelo bloco abaixo — permite ao importador do Preview repor os
   // DSM sem duplicar a leitura/escrita destes três campos.
   var lzAplicarDsm = function () {};
+  // O DSM guardado só volta quando alguém o pedir — ver lzRestoreFromStorage().
+  var lzRestaurarDsm = function () {};
   (function () {
     var nEl = document.getElementById("lz-dsm-n");
     var wEl = document.getElementById("lz-dsm-w");
     var hEl = document.getElementById("lz-dsm-h");
     var polEl = document.getElementById("lz-dsm-pol");
     if (!nEl || !wEl || !hEl) return;
-    try {
-      var raw = localStorage.getItem(LZ_DSM_KEY);
-      if (raw) {
+    // O DSM NÃO SE REPÕE SOZINHO AO ARRANCAR.
+    //
+    // Reportado a olhar para um projeto onde nunca tinha sido posto nenhum:
+    // *"Dsm???"*. E a causa não era conta nenhuma -- era um desencontro de
+    // regras dentro da própria app. A calculadora abre limpa de propósito
+    // (não chama lzRestoreFromStorage(), para nenhum valor de arranque se
+    // confundir com o do projeto que se vai fazer), mas este bloco lia a sua
+    // chave à parte SEM passar por essa porta. As zonas abriam vazias e o DSM
+    // abria com o do dia anterior -- e à primeira ida ao 3D lá ia ele junto.
+    //
+    // O texto da própria aba já dizia o que devia ser: "guardados uma vez
+    // para o PROJETO todo". Estava guardado para a app toda.
+    //
+    // Agora a leitura vive aqui dentro e só corre quando a página a pede.
+    // Quem a pede é o ecra-complexo.html, que é a bancada de trabalho e
+    // repõe também as zonas: arranjar o arranque da calculadora não pode
+    // passar a limpar a mesa a quem está a meio de um conjunto ali.
+    lzRestaurarDsm = function () {
+      try {
+        var raw = localStorage.getItem(LZ_DSM_KEY);
+        if (!raw) return;
         var data = JSON.parse(raw);
-        if (data && typeof data === "object") {
-          if (data.n != null) lzDsmN = parseInt(data.n, 10) || 0;
-          if (data.w != null) lzDsmW = parseFloat(data.w) || 0.6;
-          if (data.h != null) lzDsmH = parseFloat(data.h) || 0.4;
-        }
-      }
-    } catch (e) {}
+        if (!data || typeof data !== "object") return;
+        if (data.n != null) lzDsmN = parseInt(data.n, 10) || 0;
+        if (data.w != null) lzDsmW = parseFloat(data.w) || 0.6;
+        if (data.h != null) lzDsmH = parseFloat(data.h) || 0.4;
+        nEl.value = lzDsmN;
+        wEl.value = lzDsmW;
+        hEl.value = lzDsmH;
+      } catch (e) {}
+    };
     nEl.value = lzDsmN;
     wEl.value = lzDsmW;
     hEl.value = lzDsmH;
@@ -2441,6 +2463,11 @@
     } catch (e) {}
   }
   function lzRestoreFromStorage() {
+    // O DSM vem PRIMEIRO, e fora dos "return" que se seguem: uma bancada onde
+    // só foram postos monitores de palco, sem zona nenhuma guardada, saía
+    // daqui pela porta do `if (!raw) return` e perdia-os. A porta é a mesma
+    // para as duas coisas -- quem a abre quer o que lá deixou, todo.
+    lzRestaurarDsm();
     var raw;
     try { raw = localStorage.getItem(LZ_STORAGE_KEY); } catch (e) { return; }
     if (!raw) return;
