@@ -1,10 +1,11 @@
-const CACHE = "calculadores-v383";
+const CACHE = "calculadores-v384";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./ecra-complexo.html",
   "./manifest.json",
   "./css/app.css",
+  "./js/recado-de-erro.js",
   "./js/limpeza.js",
   "./js/utils.js",
   "./js/zonas.js",
