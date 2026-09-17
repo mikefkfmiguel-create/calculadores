@@ -125,6 +125,45 @@ const naApp3 = await nomes(app);
 console.log("   app: " + JSON.stringify(naApp3));
 conferir(naApp3.length === 0, "limpar numa janela limpa a outra");
 
+// ---- 4. "Adicionar ao projeto" das duas janelas --------------------------
+//
+// Pedido: *"e agora como adiciono ao projeto daqui?"*. A caixa existia só na
+// calculadora, e quem trabalhasse na janela solta tinha de saltar para a outra
+// -- se soubesse que ela lá estava.
+console.log("\n== adicionar ao projeto ==");
+await solta.evaluate((zs) => {
+  document.getElementById("lz-list").innerHTML = "";
+  zs.forEach((x) => window.lzAddZone(x.name, x, false));
+}, [z("wings", 8, 2, -20), z("tira 1", 2, 10, 0)]);
+await solta.waitForTimeout(1500);
+
+const temCaixa = await solta.evaluate(() => !!document.getElementById("lz-addproject"));
+conferir(temCaixa, "a janela solta tem uma caixa «Adicionar ao projeto»");
+
+await solta.evaluate(() => {
+  const c = document.getElementById("lz-addproject");
+  c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true }));
+});
+await solta.waitForTimeout(1500);
+
+const naCalculadora = await app.evaluate(() => ({
+  zAddProject: (document.getElementById("z-addproject") || {}).checked,
+  usaZonas: (document.getElementById("proj-led-usezones") || {}).checked,
+  tipo: (document.querySelector("#proj-type-seg .seg-btn.active") || {}).dataset || {}
+}));
+console.log("   na calculadora: " + JSON.stringify(naCalculadora));
+conferir(naCalculadora.zAddProject === true, "marcar na janela solta marca a caixa da calculadora");
+conferir(naCalculadora.usaZonas === true, "e o projeto passa MESMO a usar o total das zonas");
+
+// E desmarcar no sentido contrário.
+await app.evaluate(() => {
+  const c = document.getElementById("z-addproject");
+  c.checked = false; c.dispatchEvent(new Event("change", { bubbles: true }));
+});
+await app.waitForTimeout(1500);
+const naSolta4 = await solta.evaluate(() => (document.getElementById("lz-addproject") || {}).checked);
+conferir(naSolta4 === false, "desmarcar na calculadora desmarca na janela solta");
+
 conferir(erros.length === 0, erros.length ? "erro de JavaScript: " + erros[0] : "sem erros de JavaScript");
 
 await browser.close();

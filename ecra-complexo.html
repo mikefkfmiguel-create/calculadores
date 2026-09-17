@@ -128,6 +128,15 @@
         <div class="summary-head">
           <span class="k">Resumo por zona</span>
           <div class="summary-actions">
+            <!-- A MESMA CAIXA DA ABA Ecrã Complexo, aqui.
+                 Pedido a construir um conjunto de dez zonas nesta janela:
+                 *"e agora como adiciono ao projeto daqui?"*. Não havia como —
+                 o único botão com "projeto" no nome era o "+ Adicionar zona",
+                 e era preciso saltar para a outra janela para marcar a caixa
+                 que existia lá. As duas partilham localStorage, por isso esta
+                 marca a de lá, e a de lá marca esta. -->
+            <label class="addproject" title="Leva estas zonas para o projeto — é a mesma caixa da aba Ecrã Complexo na calculadora, e as duas acompanham-se">
+              <input type="checkbox" id="lz-addproject">Adicionar ao projeto</label>
             <button class="copy" data-target="lz-sum">Copiar resumo</button>
           </div>
         </div>

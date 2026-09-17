@@ -725,6 +725,12 @@
     "no lote": "in the batch",
     "módulos": "modules",
     // ---- As duas janelas do Ecrã Complexo ----
+    "Estas zonas passaram a ir para o projeto (marcado na outra janela).":
+      "These zones now go to the project (ticked in the other window).",
+    "Estas zonas deixaram de ir para o projeto (desmarcado na outra janela).":
+      "These zones no longer go to the project (unticked in the other window).",
+    "Leva estas zonas para o projeto — é a mesma caixa da aba Ecrã Complexo na calculadora, e as duas acompanham-se":
+      "Takes these zones into the project \u2014 it is the same box as the Multi-Zone Screen tab in the calculator, and the two follow each other",
     "As zonas mudaram na outra janela — esta lista acompanhou (": "The zones changed in the other window \u2014 this list followed (",
     " zonas).": " zones).",
     "A outra janela limpou as zonas — esta lista acompanhou.":
