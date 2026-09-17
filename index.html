@@ -43,7 +43,7 @@
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.04</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.05</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -735,6 +735,14 @@
             <option value="avixa">Conteúdo com texto/dados para ler — apresentações, sinalética (AVIXA 4-6-8)</option>
           </select>
           <div class="hint">Escolhe consoante o tipo de evento e o que o público precisa de ver com nitidez — não precisas de saber os nomes dos standards.</div>
+        </div>
+        <div class="field">
+          <label for="v-area">A conta usa quanto do ecrã?</label>
+          <select id="v-area" class="plain">
+            <option value="16-9" selected>Só a janela 16/9 — o conteúdo entra num pip (o mais comum)</option>
+            <option value="total">Área total do ecrã — a imagem ocupa tudo, de ponta a ponta</option>
+          </select>
+          <div class="hint" id="v-area-nota">Num ecrã muito mais largo do que 16:9 (um 20 × 5, um blend comprido), a imagem quase nunca ocupa a largura toda: vai num pip. Contar com os 20 m dava uma distância que ninguém usa. Num ecrã normal — 16:9, 16:10, 4:3 — isto não muda nada.</div>
         </div>
         <div class="field" id="v-avixa-content-field" style="display:none;">
           <label for="v-avixa-content">Quanto detalhe o público precisa de ler?</label>
@@ -2736,6 +2744,7 @@
 <script src="js/recado-de-erro.js"></script>
 <script src="js/limpeza.js"></script>
 <script src="js/ficheiros.js"></script>
+<script src="js/visualizacao.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/zonas.js"></script>
 <script src="js/i18n.js"></script>
@@ -2782,11 +2791,27 @@
   };
   var vStandardKey = "width-thx";
   var vAvixaContentKey = "basic";
+  // "Área total" ou "só a janela 16/9" — ver js/visualizacao.js, que é o mesmo
+  // ficheiro dos dois lados. A conta da distância e o conforto no 3D passam a
+  // usar a MESMA resposta, em vez de cada app ter a sua.
+  var vAreaKey = window.mikeappsVisualizacao
+    ? window.mikeappsVisualizacao.MODO_POR_OMISSAO : "16-9";
+
+  /** A largura que a conta usa: a do ecrã, ou a de uma fatia de 16:9. */
+  function viewWidthEfetiva(w, h) {
+    if (!window.mikeappsVisualizacao) return w;
+    return window.mikeappsVisualizacao.larguraDeConta(w, h, vAreaKey);
+  }
 
   function viewingDistanceRange(w, h) {
     var std = VIEW_STANDARDS[vStandardKey];
     if (std.basis === "width") {
-      return { min: w * std.min, max: w * std.max };
+      // A ALTURA NÃO ENTRA AQUI POR ACASO. A fatia de 16:9 tem a altura toda
+      // do ecrã (a divisão é só horizontal), por isso é só a largura que muda
+      // de modo -- e os standards por altura (o AVIXA, o que serve para ler
+      // texto) dão o mesmo nos dois, de propósito.
+      var wc = viewWidthEfetiva(w, h);
+      return { min: wc * std.min, max: wc * std.max };
     }
     var mult = AVIXA_CONTENT[vAvixaContentKey].mult;
     return { min: h * std.min, max: h * mult };
@@ -4070,6 +4095,23 @@
     calcLed();
     calcTV();
   });
+  // O switch da área. Recalcula as mesmas três abas que o standard recalcula
+  // -- é a mesma pergunta -- e volta a escrever o payload, para o conforto no
+  // 3D mudar com ele: foi metade do pedido ("medir o conforto de visualização
+  // também com essa regra aplicada consoante o seletor indicar").
+  var vAreaSel = document.getElementById("v-area");
+  if (vAreaSel) {
+    vAreaSel.addEventListener("change", function () {
+      vAreaKey = vAreaSel.value;
+      calcVisualizacao();
+      calcLed();
+      calcTV();
+      if (typeof lzForcarParaPreview === "function" &&
+          typeof syncAutoLigada === "function" && syncAutoLigada()) {
+        try { lzForcarParaPreview(); } catch (e) {}
+      }
+    });
+  }
 
   // Último cálculo de ângulo/nº de ecrãs da Distância de Visualização —
   // usado só para incluir esta info no resumo do projeto (v-sum) sem
@@ -4124,13 +4166,22 @@
     var range = viewingDistanceRange(w, h);
     document.getElementById("v-out-dmin").innerHTML = fmt(range.min, 2) + "<small>m</small>";
     document.getElementById("v-out-dmax").innerHTML = fmt(range.max, 2) + "<small>m</small>";
-    document.getElementById("v-rule-note").textContent = "Regra: " + viewRuleDescription();
+    // Que janela é que a conta usou. Sem isto, o switch mudava os números e
+    // não havia como saber porquê -- a app a decidir em silêncio, que é o
+    // defeito que estas duas apps andam a tirar de cima.
+    var recorte = window.mikeappsVisualizacao
+      ? window.mikeappsVisualizacao.notaDeRecorte(w, h, vAreaKey, function (v) { return fmt(v, 2); })
+      : "";
+    document.getElementById("v-rule-note").textContent =
+      "Regra: " + viewRuleDescription() + (recorte ? " · " + recorte : "");
 
     var vSumLines = [
       "Ecrã: " + label + " — " + fmt(w,2) + " x " + fmt(h,2) + " m",
       "Standard: " + viewRuleDescription(),
-      "Distância de visualização ideal: " + fmt(range.min,2) + " – " + fmt(range.max,2) + " m",
     ];
+    if (recorte) vSumLines.push(recorte);
+    vSumLines.push(
+      "Distância de visualização ideal: " + fmt(range.min,2) + " – " + fmt(range.max,2) + " m");
 
     var avail = val("v-avail");
     var ideal = idealScreenForDistance(avail, r);
