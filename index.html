@@ -43,7 +43,7 @@
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.00</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.01</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2044,7 +2044,7 @@
                   <button class="copy" data-target="proj-sum">Copiar relatório</button>
                   <button class="copy" id="proj-save">Guardar projeto</button>
                   <button class="copy" id="proj-open">Abrir projeto…</button>
-                  <input type="file" id="proj-open-file" accept="application/json,.json" style="display:none;">
+                  <input type="file" id="proj-open-file" accept=".cal,.pvw,.json,application/json" style="display:none;">
                   <button class="copy" id="proj-clear" title="Deixa as DUAS apps vazias: todas as calculadoras, as zonas do Ecrã Complexo, o DSM, a cúpula, as TVs, o histórico e o Preview 3D. Ficam só o idioma, a sincronização e a contagem de uso.">Limpar tudo</button>
                 </div>
               </div>
@@ -2735,6 +2735,7 @@
 
 <script src="js/recado-de-erro.js"></script>
 <script src="js/limpeza.js"></script>
+<script src="js/ficheiros.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/zonas.js"></script>
 <script src="js/i18n.js"></script>
@@ -7712,7 +7713,13 @@
       return code < 768 || code > 879;
     }).join("");
     var slug = stripped.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "projeto";
-    saveOrShareFile(slug + ".calculadores.json",
+    // O nome traz a extensão desta app (.cal) -- ver js/ficheiros.js. O
+    // conteúdo continua a ser JSON, e o tipo do Blob também: é isso que
+    // mantém a partilha do telemóvel a funcionar.
+    var nomeFicheiro = window.mikeappsFicheiros
+      ? window.mikeappsFicheiros.nomeDoFicheiro("calculadores", nome)
+      : slug + ".calculadores.json";
+    saveOrShareFile(nomeFicheiro,
       JSON.stringify(estadoDoProjeto(), null, 2), "application/json;charset=utf-8");
   });
 
@@ -7847,7 +7854,15 @@
     reader.onload = function () {
       var state;
       try { state = JSON.parse(reader.result); } catch (err) { showToast("Ficheiro inválido."); return; }
-      if (!state || state._app !== "calculadores-projeto") { showToast("Este ficheiro não é um projeto guardado desta app."); return; }
+      // Recusar não chega: tem de dizer de ONDE é. "Não é desta app" manda
+      // adivinhar outra vez, que é o problema que as extensões vieram tirar.
+      if (!state || state._app !== "calculadores-projeto") {
+        showToast(window.mikeappsFicheiros
+          ? window.mikeappsFicheiros.recadoDeFicheiroErrado(state, "calculadores")
+          : "Este ficheiro não é um projeto guardado desta app.");
+        e.target.value = "";
+        return;
+      }
       applyProjState(state);
       e.target.value = "";
     };
