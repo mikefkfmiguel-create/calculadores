@@ -92,6 +92,36 @@
    * copia têm de dizer o MESMO número — é a regra da casa, e é o defeito que
    * já custou caro nesta app mais do que uma vez.
    */
+  /**
+   * O FUNDO ENTRE DUAS ZONAS -- o que este desenho não sabe mostrar.
+   *
+   * Este diagrama é a folha do conjunto: largura e altura, que é o que vira
+   * canvas de píxeis. Não tem terceira dimensão. Mas as zonas que voltam do
+   * Preview 3D trazem, cada uma, o sítio onde ficaram NA SALA (`preview3d`:
+   * ↔, fundo, altura, rodar) -- e duas zonas que aqui se sobrepõem podem estar
+   * a metros uma da outra, uma à frente da outra.
+   *
+   * Reportado a olhar para as duas apps lado a lado, com nove zonas montadas no
+   * 3D e o diagrama a dizer "sobrepõe 0,50 m" três vezes: *"vê o que falta"*.
+   * Faltava isto -- e faltava nos dois sentidos: o número do fundo não se via
+   * em lado nenhum desta app, e a palavra "sobrepõe" dizia colisão onde não
+   * havia nenhuma.
+   *
+   * Devolve a diferença de fundo em metros, ou 0 quando não há informação do
+   * 3D (que é o caso de um projeto que nunca lá foi).
+   */
+  function lzFundoEntre(a, b) {
+    var pa = a && a.preview3d, pb = b && b.preview3d;
+    if (!pa && !pb) return 0;
+    var za = pa ? (parseFloat(pa.dz) || 0) : 0;
+    var zb = pb ? (parseFloat(pb.dz) || 0) : 0;
+    return Math.abs(za - zb);
+  }
+  // Abaixo disto são a mesma parede: 20 cm é menos do que a espessura de um
+  // ecrã com estrutura, e chamar-lhe "a fundos diferentes" era desculpar uma
+  // colisão a sério.
+  var LZ_FUNDO_QUE_SEPARA = 0.2;
+
   function lzFolgasEntreZonas(zonas) {
     var folgas = [];
     var ordenadas = zonas.slice().sort(function (a, b) { return lzLeftZona(a) - lzLeftZona(b); });
@@ -116,7 +146,11 @@
       var cTopo = Math.max(topo, lzTopZona(vizinho)), cBaixo = Math.min(baixo, lzTopZona(vizinho) + vizinho.h);
       folgas.push({
         de: vizinho.name, para: z.name, medida: medida,
-        x0: Math.min(borda, esq), x1: Math.max(borda, esq), y: (cTopo + cBaixo) / 2
+        x0: Math.min(borda, esq), x1: Math.max(borda, esq), y: (cTopo + cBaixo) / 2,
+        // Quanto é que as duas estão afastadas EM FUNDO na sala. Ver
+        // lzFundoEntre(): é o que distingue duas zonas que se chocam de duas
+        // que passam uma à frente da outra.
+        fundo: lzFundoEntre(vizinho, z)
       });
     });
     return folgas;
@@ -1891,8 +1925,18 @@
       g._x0 = g.x0 - minX + padSide;
       g._x1 = g.x1 - minX + padSide;
       g._y = g.y - minY + padTop;
-      g._sobrepoe = g.medida < 0;
-      g._t = g._sobrepoe ? "sobrepõe " + fmt(-g.medida, 2) + " m" : fmt(g.medida, 2) + " m";
+      // SOBREPOR NA FOLHA NÃO É CHOCAR NA SALA.
+      //
+      // Duas zonas que se cruzam aqui, mas que o 3D pôs a fundos diferentes,
+      // passam uma à frente da outra -- e dizer-lhes "sobrepõe" é dar um alarme
+      // a quem montou aquilo de propósito. Continua a escrever-se a medida
+      // (no canvas de píxeis a sobreposição é real e conta), mas com a palavra
+      // certa e sem a cor de perigo. Ver lzFundoEntre().
+      g._sobrepoe = g.medida < 0 && !(g.fundo > LZ_FUNDO_QUE_SEPARA);
+      g._cruza = g.medida < 0 && g.fundo > LZ_FUNDO_QUE_SEPARA;
+      g._t = g._cruza
+        ? "cruza " + fmt(-g.medida, 2) + " m · " + fmt(g.fundo, 2) + " m de fundo"
+        : (g._sobrepoe ? "sobrepõe " + fmt(-g.medida, 2) + " m" : fmt(g.medida, 2) + " m");
       g._tw = g._t.length * fontSize * 0.56 + fontSize * 0.4;
       g._cx = (g._x0 + g._x1) / 2;
     });
@@ -1990,6 +2034,22 @@
       var left = lzLeftZona(z), top = lzTopZona(z);
       var meta = fmt(z.w, 2) + "×" + fmt(z.h, 2) + "m — " + lzTextoRes(z) + " — centro X:" + fmt(z.posX, 2) + " Y:" + fmt(z.posY, 2) +
         "m — limites X:" + fmt(left, 2) + "→" + fmt(left + z.w, 2) + ", Y:" + fmt(top, 2) + "→" + fmt(top + z.h, 2) + "m";
+      // ONDE ELA FICOU NA SALA, quando veio do 3D.
+      //
+      // Estes números atravessam a ponte desde sempre (`preview3d`) e não se
+      // viam aqui em lado nenhum: quem arrumou nove zonas no 3D voltava a esta
+      // folha e encontrava só a planta chata, sem o fundo nem a rotação que
+      // tinha acabado de dar a cada uma. Só se escreve o que foi mexido -- uma
+      // zona encostada à parede e direita não tem nada a acrescentar.
+      var p3 = z.preview3d;
+      if (p3) {
+        var noEspaco = [];
+        if (Math.abs(parseFloat(p3.dz) || 0) >= 0.01) noEspaco.push("fundo " + fmt(parseFloat(p3.dz), 2) + " m");
+        if (Math.abs(parseFloat(p3.dy) || 0) >= 0.01) noEspaco.push("altura " + fmt(parseFloat(p3.dy), 2) + " m");
+        if (Math.abs(parseFloat(p3.dx) || 0) >= 0.01) noEspaco.push("↔ " + fmt(parseFloat(p3.dx), 2) + " m");
+        if (Math.abs(parseFloat(p3.rot) || 0) >= 0.5) noEspaco.push("rodada " + fmt(parseFloat(p3.rot), 0) + "°");
+        if (noEspaco.length) meta += " — no 3D: " + noEspaco.join(", ");
+      }
       return '<div class="lz-detail-row" data-zone-id="' + escapeXml(z.id || "") + '">' +
         '<span class="lz-detail-dot" style="background:' + lzZoneColor(z, colorMap, zones) + ';"></span>' +
         '<div><div class="lz-detail-name">' + escapeXml(z.name) + '</div><div class="lz-detail-meta">' + escapeXml(meta) + '</div></div>' +
