@@ -1934,8 +1934,14 @@
       // certa e sem a cor de perigo. Ver lzFundoEntre().
       g._sobrepoe = g.medida < 0 && !(g.fundo > LZ_FUNDO_QUE_SEPARA);
       g._cruza = g.medida < 0 && g.fundo > LZ_FUNDO_QUE_SEPARA;
+      // "cruza 0,50 m" e mais nada. A primeira versão escrevia também o fundo
+      // ("· 3,60 m de fundo") e ficava com o dobro do comprimento -- numa
+      // janela estreita, com seis ou sete cotas, uma etiqueta comprida é uma
+      // etiqueta que empurra as outras para cima ou sai pela borda. O número do
+      // fundo não se perde: está ao lado, na linha de cada zona, que é onde se
+      // vai buscar o resto dos números dela.
       g._t = g._cruza
-        ? "cruza " + fmt(-g.medida, 2) + " m · " + fmt(g.fundo, 2) + " m de fundo"
+        ? "cruza " + fmt(-g.medida, 2) + " m"
         : (g._sobrepoe ? "sobrepõe " + fmt(-g.medida, 2) + " m" : fmt(g.medida, 2) + " m");
       g._tw = g._t.length * fontSize * 0.56 + fontSize * 0.4;
       g._cx = (g._x0 + g._x1) / 2;
@@ -1958,7 +1964,12 @@
       }
       // Oito andares sem lugar é um desenho onde nenhuma cota se lia -- nesse
       // caso a última fica onde calha, em vez de desaparecer sem explicação.
+      // A caixa entra na lista à mesma: é por esta lista que o viewBox cresce
+      // logo a seguir, e uma cota que não entrasse ficava cortada na borda --
+      // que é o defeito que a arrumação existe para evitar.
       g._ty = g._y - tique - fontSize * 0.45 - 7 * alturaDaCota;
+      caixasDeCota.push({ x0: g._cx - g._tw / 2, x1: g._cx + g._tw / 2,
+                          y0: g._ty - fontSize * 0.85, y1: g._ty + fontSize * 0.3 });
     });
 
     // E O DESENHO CRESCE PARA AS RECEBER.
@@ -2024,7 +2035,13 @@
     legend.innerHTML = groupNames.map(function (key) {
       return '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + colorMap[key] + '; opacity:0.75; margin-right:5px; vertical-align:-1px;"></span>' + escapeXml(key) + '</span>';
     }).join("") +
-      '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + rose + '; opacity:0.3; border:1px dashed ' + rose + '; margin-right:5px; vertical-align:-1px;"></span>gap (sem LED)</span>';
+      '<span><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:' + rose + '; opacity:0.3; border:1px dashed ' + rose + '; margin-right:5px; vertical-align:-1px;"></span>gap (sem LED)</span>' +
+      // A palavra explica-se aqui, uma vez, e só quando existe no desenho --
+      // em vez de cada etiqueta carregar a explicação às costas.
+      (folgas.some(function (g) { return g._cruza; })
+        ? '<span><b>cruza</b> = sobrepõem-se nesta folha (e no canvas de píxeis), mas na sala ' +
+          'estão a fundos diferentes — o fundo de cada uma está ao lado</span>'
+        : "");
 
     // Coluna de detalhes ao lado do desenho — ordenada como a lista (mais à
     // esquerda primeiro), com a informação toda que antes ia na legenda do
