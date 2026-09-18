@@ -43,7 +43,7 @@
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.08</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.09</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -7632,6 +7632,38 @@
     if (painel) painel.addEventListener(ev, armarHistorico, true);
   });
 
+  // ------------------------------------- perguntar antes de fechar
+  //
+  // Pedido: *"perguntar se quero guardar ao fechar, por segurança"*.
+  //
+  // O que o browser deixa fazer é dizer que HÁ coisas por guardar; a caixa é
+  // dele ("sair do site?") e o texto também. Não há maneira de lá pôr
+  // "guardar/não guardar", e prometer um botão que não existe seria pior.
+  //
+  // E só se pergunta quando há mesmo o que perder -- com a app acabada de
+  // abrir, ou logo a seguir a gravar, não há. Uma pergunta ao fechar uma
+  // janela onde não se mexeu é uma pergunta que se aprende a despachar sem
+  // ler, e depois despacha-se também a que interessava.
+  var porGuardar = false;
+  ["input", "change"].forEach(function (ev) {
+    document.addEventListener(ev, function (e) {
+      var alvo = e.target;
+      if (!alvo || !alvo.closest) return;
+      // Só o que é projeto. Mudar de idioma ou ligar a sincronização não é
+      // trabalho por guardar.
+      if (alvo.closest("#menu-entrada, .topbar, header")) return;
+      porGuardar = true;
+    }, true);
+  });
+  window.addEventListener("beforeunload", function (e) {
+    if (!porGuardar) return;
+    e.preventDefault();
+    // Ignorado pelos browsers de hoje, mas alguns ainda o exigem para a caixa
+    // aparecer.
+    e.returnValue = "";
+    return "";
+  });
+
   // ─────────────────────────────────────────────────── o exemplo na aba
   //
   // Pedido, depois de as abas passarem a abrir vazias: *"põe o exemplo nos
@@ -7800,6 +7832,8 @@
   }
 
   document.getElementById("proj-save").addEventListener("click", function () {
+    // Foi para ficheiro: deixou de haver o que perder ao fechar.
+    porGuardar = false;
     var nome = document.getElementById("proj-nome").value.trim() || "projeto";
     var stripped = Array.from(nome.normalize("NFD")).filter(function (ch) {
       var code = ch.codePointAt(0);
@@ -7958,19 +7992,33 @@
     reader.onload = function () {
       var state;
       try { state = JSON.parse(reader.result); } catch (err) { showToast("Ficheiro inválido."); return; }
+      if (!aplicarProjetoDeFicheiro(state)) { e.target.value = ""; return; }
+      e.target.value = "";
+    };
+    reader.readAsText(file);
+  });
+
+  /**
+   * UM PROJETO QUE VEM DE FORA -- do botão, ou do sistema.
+   *
+   * A mesma porta para os dois caminhos, de propósito: um ficheiro escolhido à
+   * mão e um ficheiro aberto com duplo clique não podem ter dois caminhos que
+   * possam vir a divergir. Devolve true quando aplicou.
+   */
+  function aplicarProjetoDeFicheiro(state) {
       // Recusar não chega: tem de dizer de ONDE é. "Não é desta app" manda
       // adivinhar outra vez, que é o problema que as extensões vieram tirar.
       if (!state || state._app !== "calculadores-projeto") {
         showToast(window.mikeappsFicheiros
           ? window.mikeappsFicheiros.recadoDeFicheiroErrado(state, "calculadores")
           : "Este ficheiro não é um projeto guardado desta app.");
-        e.target.value = "";
-        return;
+        return false;
       }
       // E se rebentar a meio, diz-se. Um projeto meio aplicado com a app calada
       // é pior do que um que não abre: trabalha-se por cima dele sem saber.
       try {
         applyProjState(state);
+        porGuardar = false;   // o que está no ecrã É o ficheiro
       } catch (err) {
         var recado = (err && err.message) ? err.message : String(err);
         showToast("Abri o ficheiro mas não consegui aplicá-lo todo: " + recado);
@@ -7979,10 +8027,36 @@
             (err && err.stack ? "\n" + String(err.stack).split("\n").slice(0, 3).join("\n") : ""));
         }
       }
-      e.target.value = "";
-    };
-    reader.readAsText(file);
-  });
+      return true;
+  }
+
+  // ------------------------------- abrir um .cal com duplo clique nele
+  //
+  // Pedido: *"os projetos guardados terem ícone da app"*. O ícone e o duplo
+  // clique são a mesma coisa vista de dois lados: o sistema só põe o ícone de
+  // uma app num ficheiro quando essa app o declara como SEU -- e quem o
+  // declara é o manifest (`file_handlers`, com o .cal e os ícones), o que só
+  // vale para a app INSTALADA.
+  //
+  // Declarar não chega: o ficheiro chega pela fila de arranque (launchQueue),
+  // não pelo botão. Sem ninguém a consumi-la, o duplo clique abria a app
+  // vazia -- pior do que não ter ícone nenhum.
+  if (window.launchQueue && "setConsumer" in window.launchQueue) {
+    window.launchQueue.setConsumer(function (params) {
+      if (!params || !params.files || !params.files.length) return;
+      params.files[0].getFile().then(function (ficheiro) {
+        return ficheiro.text().then(function (texto) {
+          var state;
+          try { state = JSON.parse(texto); }
+          catch (err) { showToast("Ficheiro inválido."); return; }
+          if (aplicarProjetoDeFicheiro(state)) showToast("Aberto: " + ficheiro.name);
+        });
+      }).catch(function (err) {
+        showToast("Não consegui ler esse ficheiro" +
+          ((err && err.message) ? " (" + err.message + ")" : "") + ".");
+      });
+    });
+  }
 
   // A marca que vai colada a qualquer resumo que saia desta app -- pedido
   // direto: "vais ter de marcar o copy em todas as abas disto pois está a
