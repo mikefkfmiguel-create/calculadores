@@ -100,7 +100,8 @@ const importar = (fundoDaSegunda) => pagina.evaluate(async (fundo) => {
     cotas: svg ? [...svg.querySelectorAll("text")].map((t) => t.textContent.trim()) : [],
     vermelhas: svg ? [...svg.querySelectorAll("text")].filter((t) =>
       /sobrepõe/.test(t.textContent)).length : 0,
-    detalhes: detalhes ? detalhes.textContent.replace(/\s+/g, " ") : ""
+    detalhes: detalhes ? detalhes.textContent.replace(/\s+/g, " ") : "",
+    legenda: (document.getElementById("lz-diagram-legend") || {}).textContent || ""
   };
 }, fundoDaSegunda);
 
@@ -119,10 +120,17 @@ conferir(mesmaParede.cotas.some((t) => /sobrepõe 0,50 m/.test(t)),
 console.log("\n== a segunda empurrada 9,60 m para o fundo, no 3D ==");
 const comFundo = await importar(9.6);
 console.log("   cotas: " + JSON.stringify(comFundo.cotas.filter((t) => /m$|m ·/.test(t))));
-conferir(comFundo.cotas.some((t) => /cruza 0,50 m/.test(t)),
+conferir(comFundo.cotas.some((t) => /^cruza 0,50 m$/.test(t)),
   "passa a dizer CRUZA — na sala uma está à frente da outra");
-conferir(comFundo.cotas.some((t) => /9,60 m de fundo/.test(t)),
-  "e diz QUANTO fundo há entre elas, que é o número que faltava");
+// A etiqueta fica CURTA de propósito: a primeira versão levava também o fundo
+// ("· 9,60 m de fundo") e ficava com o dobro do comprimento. Numa janela
+// estreita, com seis ou sete cotas, uma etiqueta comprida empurra as outras
+// para cima ou sai pela borda -- o mesmo defeito das etiquetas que já foi
+// corrigido uma vez. O fundo lê-se na linha da zona, ao lado.
+conferir(!comFundo.cotas.some((t) => /cruza .* de fundo/.test(t)),
+  "e a etiqueta fica curta — numa janela estreita é ela que tem de caber");
+conferir(/cruza/.test(comFundo.legenda) && /fundos diferentes/.test(comFundo.legenda),
+  "a palavra explica-se na legenda, uma vez, em vez de em cada etiqueta");
 conferir(!comFundo.cotas.some((t) => /sobrepõe/.test(t)),
   "e já não dá o alarme de colisão a quem montou aquilo de propósito");
 
