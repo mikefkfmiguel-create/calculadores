@@ -150,9 +150,16 @@
     registar("Promessa recusada sem ninguém a apanhar: " + msg + pilha);
   });
 
-  // Porta de serviço, para os testes poderem perguntar sem ler o ecrã.
+  // Porta de serviço, para os testes poderem perguntar sem ler o ecrã -- e
+  // para a app poder contar aqui uma falha que ELA apanhou.
+  //
+  // Um erro apanhado num try/catch nunca chega ao window.onerror: fica no
+  // catch e morre lá. É esse o caso em que a app sabe o que correu mal e
+  // continua a poder mostrá-lo a quem está a usá-la -- e a pô-lo no detalhe
+  // que se copia numa mensagem, que é com o que isto se arranja.
   window.recadoDeErro = {
     ocorrencias: function () { return ocorrencias.slice(); },
-    detalhe: detalheCompleto
+    detalhe: detalheCompleto,
+    contar: function (linha) { registar(String(linha)); }
   };
 })();

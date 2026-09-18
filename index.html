@@ -43,7 +43,7 @@
     <button type="button" class="mark topbtn" id="btGuardarProjetoTopo"
             title="Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois">💾 Guardar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.05</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.06</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -7539,16 +7539,55 @@
     historicoAEspera = setTimeout(guardarNoHistorico, 4000);
   }
 
+  /**
+   * ABRIR UM DO HISTÓRICO -- E NUNCA CALADO.
+   *
+   * Reportado assim: *"a calculadora ao abrir um projeto crasha em silêncio"*.
+   * Havia aqui um `return` sem uma palavra: entrada em falta ou sem estado, e
+   * o toque no projeto não fazia rigorosamente nada. Do lado de quem carrega,
+   * uma app que não responde ao toque está avariada -- e não há como saber que
+   * o problema é a entrada e não o dedo.
+   *
+   * Agora há três respostas possíveis e nenhuma é o silêncio: abre, ou diz que
+   * aquela entrada já não tem o projeto lá dentro, ou diz o que rebentou a
+   * meio. Repor um projeto toca em muita coisa (zonas, TVs, cúpula), e se uma
+   * delas estoirar o que fica no ecrã é meio projeto -- isso tem de se saber,
+   * senão trabalha-se por cima de um estado a que falta metade.
+   */
   function abrirDoHistorico(i) {
     var entrada = lerHistorico()[i];
-    if (!entrada || !entrada.estado) return;
+    if (!entrada || !entrada.estado) {
+      escreverHistorico("Esta entrada do histórico já não tem o projeto lá dentro — " +
+        "o navegador pode tê-la cortado por falta de espaço. Abre-o pelo ficheiro guardado, se o tiveres.");
+      return;
+    }
+    try {
+      aplicarUmDoHistorico(entrada);
+    } catch (err) {
+      var recado = (err && err.message) ? err.message : String(err);
+      escreverHistorico("Não consegui abrir \"" + (entrada.nome || "esse projeto") +
+        "\" até ao fim: " + recado + ". O que está no ecrã pode estar incompleto.");
+      if (window.recadoDeErro && window.recadoDeErro.contar) {
+        window.recadoDeErro.contar("Abrir do histórico falhou: " + recado +
+          (err && err.stack ? "\n" + String(err.stack).split("\n").slice(0, 3).join("\n") : ""));
+      }
+      return;
+    }
+    escreverHistorico("Aberto: " + (entrada.nome || carimboDeData(entrada.quando)));
+    // Escolher um projeto é uma resposta ao "por onde queres começar?" -- fica
+    // mal continuar a perguntar depois de alguém ter respondido.
+    if (typeof mostrarMenu === "function") mostrarMenu(false);
+  }
+
+  /** O trabalho de repor uma entrada. Separado para poder falhar em voz alta. */
+  function aplicarUmDoHistorico(entrada) {
     applyProjState(entrada.estado);
     // E as três que vivem fora do estado do projeto. Repõem-se pelas funções
     // que já existem, escrevendo primeiro a chave que cada uma lê -- é a
     // memória daquela aba, e repor um projeto é mesmo pô-la como estava.
     if (Array.isArray(entrada.zonas) && typeof lzAddZone === "function") {
       lzList.innerHTML = "";
-      entrada.zonas.forEach(function (z) { lzAddZone(z.name, z); });
+      entrada.zonas.forEach(function (z) { if (z) lzAddZone(z.name, z); });
     }
     if (entrada.abaTV) {
       try { localStorage.setItem(TV_ABA_KEY, JSON.stringify(entrada.abaTV)); } catch (e) {}
@@ -7561,10 +7600,6 @@
       document.getElementById("l-addproject").checked = !!entrada.ledNoProjeto;
       guardarLedNoProjeto();
     }
-    escreverHistorico("Aberto: " + (entrada.nome || carimboDeData(entrada.quando)));
-    // Escolher um projeto é uma resposta ao "por onde queres começar?" -- fica
-    // mal continuar a perguntar depois de alguém ter respondido.
-    if (typeof mostrarMenu === "function") mostrarMenu(false);
   }
 
   function escreverHistorico(recado) {
@@ -7909,6 +7944,17 @@
     var file = e.target.files[0];
     if (!file) return;
     var reader = new FileReader();
+    // SEM ISTO, UM FICHEIRO QUE NÃO SE LÊ NÃO DIZ NADA.
+    //
+    // Só havia onload. Um ficheiro que o browser não consegue ler -- vindo da
+    // nuvem e sem rede, movido entretanto, sem permissão -- entrava aqui,
+    // falhava, e a app ficava exactamente como estava: nem projeto, nem aviso.
+    // No telemóvel, em cima de um cliente, isso é "a app crashou".
+    reader.onerror = function () {
+      var porque = (reader.error && reader.error.message) ? " (" + reader.error.message + ")" : "";
+      showToast("Não consegui ler esse ficheiro" + porque + ". Se ele está na nuvem, descarrega-o primeiro.");
+      e.target.value = "";
+    };
     reader.onload = function () {
       var state;
       try { state = JSON.parse(reader.result); } catch (err) { showToast("Ficheiro inválido."); return; }
@@ -7921,7 +7967,18 @@
         e.target.value = "";
         return;
       }
-      applyProjState(state);
+      // E se rebentar a meio, diz-se. Um projeto meio aplicado com a app calada
+      // é pior do que um que não abre: trabalha-se por cima dele sem saber.
+      try {
+        applyProjState(state);
+      } catch (err) {
+        var recado = (err && err.message) ? err.message : String(err);
+        showToast("Abri o ficheiro mas não consegui aplicá-lo todo: " + recado);
+        if (window.recadoDeErro && window.recadoDeErro.contar) {
+          window.recadoDeErro.contar("Abrir projeto de ficheiro falhou: " + recado +
+            (err && err.stack ? "\n" + String(err.stack).split("\n").slice(0, 3).join("\n") : ""));
+        }
+      }
       e.target.value = "";
     };
     reader.readAsText(file);
