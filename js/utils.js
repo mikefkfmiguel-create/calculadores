@@ -337,6 +337,19 @@ window.addEventListener("storage", function (e) {
   });
 })();
 
+// O BOTÃO DE INSTALAR, nas páginas que o tenham.
+//
+// Fica aqui, ao pé do interruptor da sincronização, pela mesma razão: as duas
+// páginas desta app (index e ecrã complexo) partilham este ficheiro, e assim
+// basta terem o botão no cabeçalho. Quem faz o trabalho é js/instalar.js --
+// aqui só se liga o botão ao recado.
+(function () {
+  if (!window.mikeappsInstalar) return;
+  window.mikeappsInstalar.ligarBotao("btInstalar", function (recado) {
+    if (recado) showToast(recado);
+  });
+})();
+
 // Notificação leve para avisos simples (substitui alert() nativo). Requer
 // um elemento #app-toast na página.
 var appToastTimer = null;
