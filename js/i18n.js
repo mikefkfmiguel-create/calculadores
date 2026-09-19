@@ -946,6 +946,7 @@
     "Sincronização automática com o Preview 3D — desligada, nada passa sozinho entre as duas apps; os botões manuais continuam a funcionar": "Automatic sync with the 3D Preview — off, nothing travels between the two apps on its own; the manual buttons still work",
     "Guardar projeto — grava um ficheiro com tudo o que está nas calculadoras, para reabrir depois": "Save project — writes a file with everything in the calculators, to reopen later",
     "Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga": "Tap to check for a new version and force the update — for when the app installed on your phone gets stuck on an old one",
+    "Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser": "Install this app on your computer or phone — it gets its own icon and opens without the browser bar",
     " — todos os direitos reservados": " — all rights reserved",
 
     // "O que esta app conta" — a secção da Ajuda que explica a contagem de
