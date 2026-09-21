@@ -7,6 +7,13 @@
 Par: **Preview 3D v3.79** (`63f3f73` no repositório `preview`). As duas apps
 falam uma com a outra — dar uma como estável sem a outra não quer dizer nada.
 
+> **Defeito conhecido nesta versão, corrigido na v4.11 (21 de setembro).**
+> Abrir um projeto guardado com **várias zonas** abria uma caixa "Editar zona"
+> por cada uma, modais e empilhadas — fechava-se uma e aparecia a seguinte, e
+> a app ficava trancada. Reportado com um ficheiro de sete ecrãs: *"está a dar
+> erro ao abrir, fica travada a app"*. Quem estiver na v4.10 deve passar à
+> v4.11; esta linha sai daqui quando ele der uma versão nova como estável.
+
 ## O que "estável" quer dizer aqui
 
 Que é **este** o ponto a que se volta se alguma coisa partir daqui para a
