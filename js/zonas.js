@@ -221,6 +221,15 @@
   // todos os sítios que abrem este popup.
   function lzOpenZoneDialog(dialog) {
     if (!dialog) return;
+    // Nunca duas ao mesmo tempo. Uma `<dialog>` modal tapa a página inteira,
+    // por isso duas empilhadas são a app travada -- fecha-se a de cima e
+    // aparece a de baixo. Fecha-se aqui com `close()` directo e não com o
+    // lzFecharZoneDialog, de propósito: aquele marca "acabou de fechar", que
+    // é a trava do botão "+ Ecrã", e isto não é um fecho de quem estava a
+    // trabalhar -- é arrumar o que ficou para trás.
+    document.querySelectorAll(".lz-details-dialog[open]").forEach(function (outra) {
+      if (outra !== dialog) { try { outra.close(); } catch (e) {} }
+    });
     dialog.style.position = "";
     dialog.style.left = "";
     dialog.style.top = "";
@@ -437,8 +446,19 @@
     return "z" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   }
 
+  // `startOpen` abre o editor da zona acabada de criar. É o que se quer no
+  // "+ Ecrã" à mão, e é o que NUNCA se quer a repor um projeto.
+  //
+  // Era ao contrário: quem não dissesse nada levava com o editor aberto. Dos
+  // onze sítios que chamam isto, nove diziam `false` de propósito e dois
+  // esqueceram-se -- os dois que repõem um projeto. Um ficheiro com sete zonas
+  // abria sete caixas modais empilhadas, e a app ficava travada: fechava-se
+  // uma e aparecia a seguinte. Reportado assim: *"está a dar erro ao abrir,
+  // fica travada a app"*.
+  //
+  // Por isso o silêncio passou a ser o que não faz nada. Um argumento
+  // esquecido volta a acontecer; o que não pode é custar a app.
   function lzAddZone(name, opts, startOpen) {
-    if (startOpen == null) startOpen = true;
     lzNextId++;
     var id = (opts && opts.zid) || lzNovoZid();
     var defaultPos = lzNextDefaultPos();
@@ -1366,7 +1386,7 @@
     btn.addEventListener("click", function () {
       if (lzTemPopupAberto() || Date.now() - lzPopupFechadoEm < 400) return;
       lzPushUndo();
-      lzAddZone();
+      lzAddZone(null, null, true);   // à mão: aqui sim, o editor abre-se
       lzRecentrarZonas();
       calcLedZones();
     });

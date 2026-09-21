@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.10</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.11</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -7593,7 +7593,8 @@
     // memória daquela aba, e repor um projeto é mesmo pô-la como estava.
     if (Array.isArray(entrada.zonas) && typeof lzAddZone === "function") {
       lzList.innerHTML = "";
-      entrada.zonas.forEach(function (z) { if (z) lzAddZone(z.name, z); });
+      // `false` pela mesma razão do caminho do ficheiro: repor não é acrescentar.
+      entrada.zonas.forEach(function (z) { if (z) lzAddZone(z.name, z, false); });
     }
     if (entrada.abaTV) {
       try { localStorage.setItem(TV_ABA_KEY, JSON.stringify(entrada.abaTV)); } catch (e) {}
@@ -7877,7 +7878,10 @@
     document.getElementById("proj-led-usezones").checked = !!state.ledUseZones;
     if (state.ledUseZones && Array.isArray(state.ledZones) && state.ledZones.length) {
       lzList.innerHTML = "";
-      state.ledZones.forEach(function (opts) { lzAddZone(opts.name, opts); });
+      // O `false` é o que impede sete caixas "Editar zona" abertas em cima
+      // umas das outras. Repor um projeto NUNCA é o mesmo que carregar em
+      // "+ Ecrã": ninguém quer o editor de cada zona à frente ao abrir.
+      state.ledZones.forEach(function (opts) { lzAddZone(opts.name, opts, false); });
     }
 
     document.getElementById("proj-proj-model").value = modelNameToIdx(PROJECTORS_DATA, state.projModelName);
