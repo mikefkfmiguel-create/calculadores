@@ -291,6 +291,30 @@ for (const L of linhas) {
     if (aM2 < 0.5 || aM2 > 12)
       defeito("consumo", t.amp + " A num módulo de " + m2.toFixed(2) + " m² = " + aM2.toFixed(2) + " A/m²");
   }
+
+  // 5b. QUANDO A NOTA CITA UM kg/m² DO FABRICANTE, o campo tem de bater com
+  //     ele. Isto apanha a confusão de unidades — o peso por metro quadrado
+  //     copiado para um campo que é por MÓDULO — que é invisível às faixas
+  //     largas acima: os 15 kg/m² do Traulux transparente ficaram anos a
+  //     passar por 15 kg de módulo, e num cabinet de meio metro quadrado isso
+  //     é o dobro do peso real. Reportado por ele: "acho que está a dar o
+  //     dobro, pois o peso é por metro quadrado" — e a ficha do fabricante,
+  //     que já estava citada em `fonte`, dava-lhe razão.
+  //
+  //     Não tem opinião sobre painéis: só confere a entrada contra o número
+  //     que a própria entrada diz ter ido buscar. Quem documentar um kg/m² no
+  //     futuro leva a mesma protecção de graça.
+  if (m2 > 0 && t && t.weight > 0 && t.nota) {
+    const citado = t.nota.match(/(\d+(?:[.,]\d+)?)\s*kg\/m²/);
+    if (citado) {
+      const alvo = parseFloat(citado[1].replace(",", "."));
+      const real = t.weight / m2;
+      if (Math.abs(real - alvo) > 0.05 * alvo)
+        defeito("peso", "a nota cita " + citado[1] + " kg/m² do fabricante, mas " + t.weight +
+          " kg num módulo de " + m2.toFixed(2) + " m² dá " + real.toFixed(1) + " kg/m²" +
+          " (o valor por módulo seria " + (alvo * m2).toFixed(2) + " kg)");
+    }
+  }
   if (t && t.nitsMin != null && t.nitsMax != null && t.nitsMin > t.nitsMax)
     defeito("nits", "mínimo " + t.nitsMin + " maior que o máximo " + t.nitsMax);
 
