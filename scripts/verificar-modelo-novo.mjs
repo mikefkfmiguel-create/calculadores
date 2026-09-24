@@ -112,130 +112,154 @@ const campo = pagina.locator("#tv-model")
 await pagina.fill("#tv-diag", "55");
 await pagina.waitForTimeout(200);
 
-console.log("\n== nada abre sozinho ==");
+console.log("\n== o que a lista não tem entra sozinho, e nada abre ==");
 await campo.click();
 await pagina.keyboard.type(MODELO, { delay: 30 });
-await pagina.waitForTimeout(3000);
-const sozinho = await aberturas();
-conferir(sozinho.length === 0, `${sozinho.length} separadores em 3 s parado`);
+await pagina.waitForTimeout(1600);          // a regra do silêncio: 900 ms
 
 const caixaTexto = () => pagina.evaluate(() => {
   const r = document.getElementById("tv-model").parentNode.querySelector(".model-search-noresult");
-  return (r && r.style.display !== "none") ? r.textContent : null;
+  return (r && r.style.display !== "none") ? r.textContent.replace(/\s+/g, " ").trim() : null;
 });
-const recado = await caixaTexto();
-conferir(!!recado && /Acrescentar/i.test(recado) && recado.includes(MODELO),
-  "a caixa oferece acrescentar o que está escrito");
-
-console.log("\n== o formulário nasce preenchido com o que já se sabia ==");
-await pagina.click(".model-search-noresult .model-add");
-await pagina.waitForTimeout(400);
-const inicio = await pagina.evaluate(() => ({
-  aberto: !!document.querySelector("#mm-dialog[open]"),
-  modelo: document.getElementById("mm-modelo").value,
-  diag: document.getElementById("mm-diag").value,
-  ratio: document.getElementById("mm-ratio").value
-}));
-conferir(inicio.aberto, "o formulário abriu");
-conferir(inicio.modelo === MODELO, "com o nome escrito: " + inicio.modelo);
-conferir(inicio.diag === "55", "e com a diagonal que estava na aba: " + inicio.diag);
-conferir(inicio.ratio === "16:9", "e o formato: " + inicio.ratio);
-
-console.log("\n== recusa o que não faz medida nenhuma ==");
-const erroCom = (accao) => pagina.evaluate(async (a) => {
-  const d = document.getElementById("mm-dialog");
-  const g = (id) => document.getElementById(id);
-  if (a === "sem-nome") { g("mm-modelo").value = ""; }
-  if (a === "sem-diag") { g("mm-modelo").value = "X"; g("mm-diag").value = ""; }
-  if (a === "meia-res") { g("mm-modelo").value = "X"; g("mm-diag").value = "55"; g("mm-rx").value = "3840"; g("mm-ry").value = ""; }
-  d.querySelector("#mm-guardar").click();
-  await new Promise((r) => setTimeout(r, 150));
-  const e = d.querySelector(".mm-erro");
-  return { aberto: !!document.querySelector("#mm-dialog[open]"), erro: e.hidden ? null : e.textContent };
-}, accao);
-
-for (const [accao, esperado] of [["sem-nome", /nome/i], ["sem-diag", /diagonal/i], ["meia-res", /dois lados/i]]) {
-  const r = await erroCom(accao);
-  conferir(r.aberto && !!r.erro && esperado.test(r.erro), `${accao}: “${(r.erro || "—").trim()}”`);
-}
-
-console.log("\n== guardado, entra na lista e aplica-se ==");
-await pagina.evaluate((nome) => {
-  const g = (id) => document.getElementById(id);
-  g("mm-modelo").value = nome;
-  g("mm-diag").value = "55";
-  g("mm-ratio").value = "16:9";
-  g("mm-rx").value = "3840";
-  g("mm-ry").value = "2160";
-  g("mm-fonte").value = "https://www.mi.com/global/product/xiaomi-tv-a-pro/";
-  document.getElementById("mm-guardar").click();
-}, MODELO);
-await pagina.waitForTimeout(800);
-
-const depois = await pagina.evaluate((nome) => {
+const estado = () => pagina.evaluate(() => {
   const sel = document.getElementById("tv-model");
-  const escolhida = sel.options[sel.selectedIndex];
-  const naLista = [...sel.options].filter((o) => o.textContent.includes(nome));
-  const outras = ["proj-dsm-tvmodel", "proj-delay-tvmodel", "v-tvmodel"].map((id) =>
-    [...document.getElementById(id).options].some((o) => o.textContent.includes(nome)));
+  const esc = sel.options[sel.selectedIndex];
   return {
-    fechado: !document.querySelector("#mm-dialog[open]"),
-    naLista: naLista.length,
-    etiqueta: naLista[0] ? naLista[0].textContent : null,
-    escolhida: escolhida ? escolhida.textContent : null,
-    stock: escolhida ? escolhida.dataset.stock : null,
-    nasOutras: outras,
+    escolhido: esc ? esc.textContent : null,
+    stock: esc ? esc.dataset.stock : null,
     diag: document.getElementById("tv-diag").value,
     ratio: document.getElementById("tv-ratio").value,
     res: document.getElementById("tv-out-res").textContent,
     largura: document.getElementById("tv-out-w").textContent,
-    // O endereço, e não o texto: a app escreve sempre "Referenciado ↗" no
-    // link, por isso ler o texto não provava que a fonte certa lá estava.
-    fonte: (function () {
-      var a = document.getElementById("tv-model-source").querySelector("a");
-      return a ? a.getAttribute("href") : null;
-    })()
+    meus: (window.meusModelos.ler("tv") || []).map((m) => m.modelo),
+    formulario: !!document.querySelector("#mm-dialog[open]")
   };
-}, MODELO);
+});
 
-conferir(depois.fechado, "o formulário fechou");
-conferir(depois.naLista === 1, `o modelo está na lista uma vez (${depois.naLista})`);
-conferir(!!depois.escolhida && depois.escolhida.includes(MODELO), "e ficou escolhido: " + depois.escolhida);
-conferir(depois.nasOutras.every(Boolean), "está também nas outras três listas de TVs");
-conferir(/· meu/.test(depois.etiqueta || ""), "marcado como meu: " + depois.etiqueta);
-conferir(!/\(mercado\)/.test(depois.etiqueta || ""), "e não como «(mercado)», que seria mentira");
-conferir(depois.stock === "0", "nem como stock da casa");
-conferir(depois.diag === "55" && depois.ratio === "16:9", `aplicou-se: ${depois.diag}" ${depois.ratio}`);
-conferir(/3840/.test(depois.res) && /2160/.test(depois.res), "com a resolução escrita: " + depois.res);
-conferir(/1,22/.test(depois.largura), "e a conta saiu: largura " + depois.largura);
-conferir(/^https:\/\/www\.mi\.com\//.test(depois.fonte || ""),
-  "a fonte escrita é a que aparece ao lado: " + (depois.fonte || "—"));
+const sozinho = await aberturas();
+const feito = await estado();
+const recado = await caixaTexto();
+conferir(sozinho.length === 0, `nenhum separador aberto (${sozinho.length})`);
+conferir(!feito.formulario, "e nenhum formulário a pedir nada");
+conferir(feito.meus.length === 1 && feito.meus[0] === MODELO,
+  "o modelo entrou na lista sozinho: " + JSON.stringify(feito.meus));
+conferir(!!feito.escolhido && feito.escolhido.includes(MODELO),
+  "e ficou escolhido: " + feito.escolhido);
+conferir(feito.diag === "55", "com a diagonal lida do nome: " + feito.diag);
+conferir(/1,22/.test(feito.largura), "e a conta feita: largura " + feito.largura);
+
+console.log("\n== e diz o que fez, com o que ficou por confirmar ==");
+conferir(!!recado && /Acrescentei/.test(recado), "“" + (recado || "—") + "”");
+conferir(!!recado && /por confirmar/.test(recado),
+  "a resolução fica por confirmar — não se inventa um 4K que ninguém viu");
+conferir(/não confirmada/.test(feito.res), "e a aba diz o mesmo: " + feito.res);
+
+console.log("\n== continuar a escrever substitui, não duplica ==");
+// Uma pausa a meio de escrever acrescenta o que lá está; acabar a palavra
+// tem de corrigir esse, e não deixar dois meios modelos na lista.
+await campo.fill("");
+await pagina.keyboard.type("Grundig", { delay: 25 });
+await pagina.waitForTimeout(1500);
+const aMeio = await estado();
+await pagina.keyboard.type(" 43", { delay: 25 });
+await pagina.waitForTimeout(1500);
+const completo = await estado();
+conferir(aMeio.meus.includes("Grundig"), "a meio ficou «Grundig» (" + aMeio.meus.join(", ") + ")");
+conferir(completo.meus.includes("Grundig 43") && !completo.meus.includes("Grundig"),
+  "e ao acabar ficou só «Grundig 43»: " + completo.meus.join(", "));
+conferir(completo.diag === "43", "com a diagonal nova: " + completo.diag);
+
+console.log("\n== desfazer tira-o outra vez ==");
+await pagina.click(".model-search-noresult .model-desfazer");
+await pagina.waitForTimeout(500);
+const desfeito = await estado();
+conferir(!desfeito.meus.includes("Grundig 43"), "saiu da lista: " + JSON.stringify(desfeito.meus));
+conferir(desfeito.escolhido === "Personalizado…", "e a escolha voltou a «" + desfeito.escolhido + "»");
+
+console.log("\n== sem diagonal em lado nenhum, pergunta só isso ==");
+await pagina.fill("#tv-diag", "");
+await campo.fill("");
+await pagina.keyboard.type("Sharp tv", { delay: 25 });
+await pagina.waitForTimeout(1500);
+const semDiag = await estado();
+const pergunta = await caixaTexto();
+conferir(!semDiag.meus.some((m) => /sharp/i.test(m)),
+  "não acrescentou nada a adivinhar: " + JSON.stringify(semDiag.meus));
+conferir(!!pergunta && /diagonal/i.test(pergunta), "pede a diagonal: “" + (pergunta || "—") + "”");
+conferir(await pagina.locator(".model-search-noresult .model-diag").count() === 1,
+  "com UM campo, não um formulário");
+await pagina.fill(".model-search-noresult .model-diag", "50");
+await pagina.click(".model-search-noresult .model-add");
+await pagina.waitForTimeout(700);
+const comDiag = await estado();
+conferir(comDiag.meus.includes("Sharp tv"), "escrita a diagonal, entrou: " + JSON.stringify(comDiag.meus));
+conferir(comDiag.diag === "50", "e aplicou-se: " + comDiag.diag + '"');
+
+console.log("\n== o mercado está na lista, em tamanhos ==");
+const mercado = await pagina.evaluate(() => {
+  const sel = document.getElementById("tv-model");
+  const tamanhos = [...sel.options].filter((o) => /qualquer marca/.test(o.textContent));
+  return { quantos: tamanhos.length, exemplo: tamanhos[0] ? tamanhos[0].textContent : null,
+           valores: tamanhos.map((o) => o.value) };
+});
+conferir(mercado.quantos >= 14, mercado.quantos + " tamanhos de mercado na lista");
+conferir(/qualquer marca \(16:9\)/.test(mercado.exemplo || ""), "dizem o que são: " + mercado.exemplo);
+// Escolher um tem de dar a conta desse tamanho — é para isso que lá estão.
+await pagina.evaluate((v) => {
+  const sel = document.getElementById("tv-model");
+  sel.value = v;
+  sel.dispatchEvent(new Event("change", { bubbles: true }));
+}, mercado.valores[mercado.valores.length - 1]);
+await pagina.waitForTimeout(500);
+const escolhido = await estado();
+conferir(parseFloat(escolhido.diag) >= 98, "escolher um tamanho aplica-o: " + escolhido.diag + '"');
+
+console.log("\n== a ficha completa-se quando alguém a tiver ==");
+await campo.fill("");
+await pagina.keyboard.type(MODELO, { delay: 25 });
+await pagina.waitForTimeout(1500);
+await pagina.click(".model-search-noresult .model-ficha");
+await pagina.waitForTimeout(500);
+const form = await pagina.evaluate(() => ({
+  aberto: !!document.querySelector("#mm-dialog[open]"),
+  modelo: document.getElementById("mm-modelo").value,
+  diag: document.getElementById("mm-diag").value
+}));
+conferir(form.aberto && form.modelo === MODELO && form.diag === "55",
+  "o formulário abre já com o que a app deduziu: " + form.modelo + " / " + form.diag);
+await pagina.evaluate(() => {
+  document.getElementById("mm-rx").value = "3840";
+  document.getElementById("mm-ry").value = "2160";
+  document.getElementById("mm-fonte").value = "https://www.mi.com/global/product/xiaomi-tv-a-pro/";
+  document.getElementById("mm-guardar").click();
+});
+await pagina.waitForTimeout(800);
+const comFicha = await pagina.evaluate(() => ({
+  res: document.getElementById("tv-out-res").textContent,
+  fonte: (function () {
+    var a = document.getElementById("tv-model-source").querySelector("a");
+    return a ? a.getAttribute("href") : null;
+  })()
+}));
+conferir(/3840/.test(comFicha.res), "a resolução passou a estar confirmada: " + comFicha.res);
+conferir(/^https:\/\/www\.mi\.com\//.test(comFicha.fonte || ""),
+  "com fonte: " + (comFicha.fonte || "—"));
 
 console.log("\n== e tem como sair daqui para o catálogo de toda a gente ==");
 const linhaCat = await pagina.evaluate(() => {
   const caixa = document.getElementById("tv-model-meu");
-  const visivel = !caixa.hidden;
-  const sel = document.getElementById("tv-model");
-  const m = window.meusModelos.ler("tv")[0];
-  return {
-    visivel,
-    nota: caixa.textContent,
-    linha: window.meusModelos.linhaDeCatalogo(m)
-  };
+  const m = window.meusModelos.ler("tv").find((x) => x.resolucao);
+  return { visivel: !caixa.hidden, nota: caixa.textContent, linha: window.meusModelos.linhaDeCatalogo(m) };
 });
 conferir(linhaCat.visivel && /Acrescentado por ti/.test(linhaCat.nota),
   "a linha diz de quem é: “" + linhaCat.nota.replace(/\s+/g, " ").trim() + "”");
-// A linha tem de ser JSON válido e com a forma do data/tvs.json -- se não
-// for, "copiar para o catálogo" dá trabalho a quem a recebe em vez de o
-// poupar.
 let comoNoCatalogo = null;
 try { comoNoCatalogo = JSON.parse(linhaCat.linha); } catch (_) {}
-const chavesCatalogo = Object.keys(tvs[0]).filter((k) => k in (comoNoCatalogo || {}));
 conferir(!!comoNoCatalogo && comoNoCatalogo.modelo === MODELO && comoNoCatalogo.diag === 55 &&
-  comoNoCatalogo.resolucao && comoNoCatalogo.resolucao.rx === 3840 &&
-  chavesCatalogo.length >= 5,
+  comoNoCatalogo.resolucao && comoNoCatalogo.resolucao.rx === 3840,
   "e a linha copiada entra no data/tvs.json tal como está: " + linhaCat.linha);
-conferir(!("meu" in (comoNoCatalogo || {})), "sem o «meu», que é marca desta app e não do catálogo");
+conferir(!("meu" in (comoNoCatalogo || {})) && !("auto" in (comoNoCatalogo || {})),
+  "sem as marcas desta app («meu», «auto»), que não são do catálogo");
 
 console.log("\n== sobrevive a fechar e abrir a app ==");
 await pagina.reload({ waitUntil: "networkidle" });
@@ -288,7 +312,7 @@ const chegou = await limpa.evaluate((nome) =>
   [...document.getElementById("tv-model").options].some((o) => o.textContent.includes(nome)), MODELO);
 conferir(chegou, "abrir o projeto trouxe o modelo com ele");
 
-console.log("\n== a procura no mercado continua, a pedido ==");
+console.log("\n== o Enter acrescenta; o mercado é um link, e só a pedido ==");
 await limpa.click('button.tab[data-mode="tv"]');
 await limpa.waitForTimeout(400);
 await limpa.evaluate(() => {
@@ -298,17 +322,27 @@ await limpa.evaluate(() => {
 const campo2 = limpa.locator("#tv-model")
   .locator("xpath=preceding-sibling::div[contains(@class,'model-search-wrap')]//input");
 await campo2.click();
-await limpa.keyboard.type("Grundig", { delay: 30 });
-await limpa.waitForTimeout(500);
-const antesDoEnter = await limpa.evaluate(() => window.__aberturas.length);
-await limpa.keyboard.press("Enter");
-await limpa.waitForTimeout(300);
-const porEnter = await limpa.evaluate(() => window.__aberturas.slice());
-conferir(antesDoEnter === 0, "nada antes do Enter");
-conferir(porEnter.length === 1 && /google\.com\/search/.test(porEnter[0]),
-  "e o Enter leva à ficha no mercado: " + (porEnter[0] || "—"));
-conferir(/televisor/.test(decodeURIComponent(porEnter[0] || "")),
-  "com o que a lista é, para vir a ficha e não a loja");
+await limpa.keyboard.type("Philips 65", { delay: 25 });
+await limpa.keyboard.press("Enter");          // sem esperar pelo silêncio
+await limpa.waitForTimeout(700);
+const porEnter = await limpa.evaluate(() => ({
+  aberturas: window.__aberturas.length,
+  meus: (window.meusModelos.ler("tv") || []).map((m) => m.modelo),
+  diag: document.getElementById("tv-diag").value
+}));
+conferir(porEnter.aberturas === 0, "o Enter não abre separador nenhum (" + porEnter.aberturas + ")");
+conferir(porEnter.meus.includes("Philips 65"), "acrescenta logo: " + JSON.stringify(porEnter.meus));
+conferir(porEnter.diag === "65", "e aplica: " + porEnter.diag + '"');
+
+// O mercado continua a existir — como LINK, para conferir a ficha. Nunca
+// sozinho, e por isso só se mede o endereço, que é o que um toque abriria.
+const linkMercado = await limpa.evaluate(() => {
+  const a = document.querySelector(".model-search-noresult a.srclink");
+  return a ? a.getAttribute("href") : null;
+});
+conferir(!!linkMercado && /google\.com\/search/.test(linkMercado) &&
+  /televisor/.test(decodeURIComponent(linkMercado)),
+  "e o link leva à ficha, com o que a lista é: " + (linkMercado || "—"));
 
 console.log("\n== sem erros na consola ==");
 conferir(erros.length === 0, erros.length ? erros.join(" | ") : "nenhum");

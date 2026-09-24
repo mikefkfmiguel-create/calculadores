@@ -269,87 +269,226 @@ function lzAttachModelSearch(select) {
   select.parentNode.insertBefore(noResult, select.nextSibling);
 
   var noResultUrl = null;
+  // O que foi acrescentado SOZINHO para o texto que está escrito agora. Sem
+  // isto, a caixa desaparecia no instante seguinte a acrescentar -- o modelo
+  // passa a estar na lista, a lista passa a ter resultados, e o recado que
+  // diz o que aconteceu ia-se embora com ele.
+  var autoFeito = null;
+  // `autoFeito` fala do TEXTO QUE ESTÁ ESCRITO AGORA, e por isso morre a cada
+  // tecla. `ultimoAuto` é outra coisa: o que a app acrescentou nesta corrida
+  // de escrita, que tem de sobreviver às teclas -- é ele que diz o que há a
+  // substituir quando "Grundig" vira "Grundig 43". Sem os dois separados,
+  // ficavam dois meios modelos na lista (medido).
+  var ultimoAuto = null;
+  var relogioAuto = null;
+  // Escolher um modelo à mão limpa o campo da pesquisa (não faz sentido
+  // continuar a filtrar o que já se escolheu). Mas quando é a APP a escolher
+  // o que acabou de acrescentar, limpar o campo levava com ele o recado que
+  // diz o que foi feito -- e o Desfazer com ele.
+  var aEscolherSozinho = false;
+  function escolherNaLista(modelo) {
+    if (!select._modelSearchEscolher) return;
+    aEscolherSozinho = true;
+    try { select._modelSearchEscolher(modelo); } finally { aEscolherSozinho = false; }
+  }
+
+  function tipoDeAcrescento() {
+    return (select.dataset.acrescentar && window.meusModelos &&
+            window.meusModelos.acrescentarAutomatico) ? select.dataset.acrescentar : null;
+  }
+  function sugestoesDaAba(tipo) {
+    return window.sugestoesParaModeloNovo ? window.sugestoesParaModeloNovo(tipo) : null;
+  }
+  function desarmarAuto() {
+    if (relogioAuto) { clearTimeout(relogioAuto); relogioAuto = null; }
+  }
+
+  /**
+   * ACRESCENTA SOZINHO, passado o silêncio.
+   *
+   * O silêncio (900 ms) é a mesma ideia de sempre: quem escreve "Xiaomi 55"
+   * passa por "X", "Xi", "Xia"... e acrescentar a cada tecla enchia a lista
+   * de lixo. Enquanto se continua a escrever, o que já tinha sido
+   * acrescentado é SUBSTITUÍDO, não duplicado -- "Xiaomi" vira "Xiaomi 55"
+   * e fica um só.
+   */
+  function armarAuto() {
+    desarmarAuto();
+    var tipo = tipoDeAcrescento();
+    if (!tipo) return;
+    var raw = input.value.trim();
+    if (raw.length < 3) return;
+    relogioAuto = setTimeout(function () {
+      relogioAuto = null;
+      if (input.value.trim() !== raw) return;
+      acrescentarSozinho(raw, tipo);
+    }, 900);
+  }
+
+  function acrescentarSozinho(raw, tipo) {
+    var anterior = ultimoAuto;
+    var novo = window.meusModelos.acrescentarAutomatico(tipo, raw, sugestoesDaAba(tipo));
+    if (!novo) { autoFeito = null; applyFilter(); return; }   // falta a diagonal
+    // Substituir o que foi acrescentado há duas letras atrás, e não deixar os
+    // dois: só quando o novo é a continuação do anterior, porque aí é a mesma
+    // TV a ser escrita. Se a pessoa apagou tudo e escreveu outra coisa, são
+    // duas.
+    if (anterior && anterior.modelo !== novo.modelo &&
+        normalizeSearch(raw).indexOf(normalizeSearch(anterior.texto)) === 0) {
+      window.meusModelos.remover(tipo, anterior.modelo);
+    }
+    autoFeito = { modelo: novo.modelo, texto: raw, dados: novo };
+    ultimoAuto = autoFeito;
+    escolherNaLista(novo);
+    applyFilter();
+  }
+
+  function desfazerAuto() {
+    var tipo = tipoDeAcrescento();
+    if (!tipo || !autoFeito) return;
+    window.meusModelos.remover(tipo, autoFeito.modelo);
+    autoFeito = null;
+    ultimoAuto = null;
+    if (select._modelSearchRecarregar) select._modelSearchRecarregar();
+    select.value = "custom";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    applyFilter();
+  }
+
+  function aspas(t) { return "«" + escapeXml(t) + "»"; }
 
   function applyFilter() {
     var raw = input.value.trim();
     var termos = searchTerms(raw);
+    var tipo = tipoDeAcrescento();
     var anyVisible = false;
     Array.prototype.forEach.call(select.options, function (opt) {
       var match = !termos.length || matchesSearch(opt.textContent, termos);
       opt.hidden = !match;
       if (match) anyVisible = true;
     });
+
+    var query = encodeURIComponent(consultaDeMercado(raw, select.dataset.mercado || ""));
+    noResultUrl = raw ? "https://www.google.com/search?q=" + query : null;
+    var linkMercado = '<a class="srclink" href="' + noResultUrl +
+      '" target="_blank" rel="noopener">conferir a ficha no mercado ↗</a>';
+
+    // ---- 1. ACABEI DE ACRESCENTAR ISTO -------------------------------
+    //
+    // Tem de vir antes do "não há nada": depois de acrescentar, a lista TEM
+    // o modelo, e sem este caso a caixa fechava-se calada, sem dizer o que
+    // fez nem deixar desfazer.
+    if (autoFeito && autoFeito.texto === raw) {
+      var d = autoFeito.dados;
+      noResult.innerHTML =
+        '<p class="mm-feito">Acrescentei ' + aspas(escapeXml(d.modelo)) + ' à lista ' +
+        '<span class="hint">— ' + escapeXml(String(d.diag)) + '"' +
+        (d.diagDe === "aba" ? " (a diagonal que estava na aba)" : "") +
+        ", " + escapeXml(d.ratio) + ", resolução por confirmar</span></p>" +
+        '<div class="model-add-linha">' +
+        '<button type="button" class="copy model-desfazer">Desfazer</button>' +
+        '<button type="button" class="copy model-ficha">Completar a ficha</button>' +
+        linkMercado + "</div>";
+      noResult.querySelector(".model-desfazer").addEventListener("click", desfazerAuto);
+      noResult.querySelector(".model-ficha").addEventListener("click", function () {
+        window.pedirModeloNovo(tipo, d.modelo, function (m) {
+          autoFeito = { modelo: m.modelo, texto: raw, dados: m };
+          escolherNaLista(m);
+          applyFilter();
+        }, d);
+      });
+      noResult.style.display = "block";
+      return;
+    }
+
+    // ---- 2. NÃO HÁ NADA NA LISTA -------------------------------------
     if (!anyVisible && termos.length) {
-      var query = encodeURIComponent(consultaDeMercado(raw, select.dataset.mercado || ""));
-      noResultUrl = "https://www.google.com/search?q=" + query;
       // QUAL É A PALAVRA QUE NÃO EXISTE. "Não encontrei nada" deixa a pessoa
       // sem saber se a app está avariada, se escreveu mal, ou se a casa
-      // simplesmente não tem aquilo. Dizer «nada com "xiaomi"» responde à
-      // pergunta toda: a lista não tem essa marca, e daí o que se pode fazer.
+      // simplesmente não tem aquilo.
       var semNada = termos.filter(function (t) {
         return !Array.prototype.some.call(select.options, function (o) {
           return matchesSearch(o.textContent, [t]);
         });
       });
-      var aspas = function (t) { return "«" + escapeXml(t) + "»"; };
       var porque = semNada.length
         ? "Nada na lista com " + semNada.map(aspas).join(" nem ")
         : (termos.length > 1
             ? "Cada palavra existe, mas nenhum modelo as junta todas"
             : "Não encontrei nada na lista");
 
-      // O QUE SE PODE FAZER, por esta ordem: acrescentar à lista (resolve o
-      // trabalho), e procurar a ficha no mercado (ajuda a preencher). A
-      // procura já não sai sozinha -- ver a nota no topo deste ficheiro.
-      var podeAcrescentar = !!(select.dataset.acrescentar && window.pedirModeloNovo);
-      var botao = podeAcrescentar
-        ? '<button type="button" class="copy model-add">+ Acrescentar ' +
-          aspas(escapeXml(raw)) + ' à lista</button>'
-        : "";
+      // Falta a diagonal? É a única coisa que a app não consegue deduzir
+      // sozinha, e por isso é a única que ainda se pergunta -- um campo, não
+      // um formulário.
+      var faltaDiagonal = !!tipo &&
+        window.meusModelos.diagonalNoTexto(raw) == null &&
+        !(parseFloat((sugestoesDaAba(tipo) || {}).diag) > 0);
+
       noResult.innerHTML = porque +
-        ' — <a class="srclink" href="' + noResultUrl + '" target="_blank" rel="noopener">' +
-        'procurar a ficha no mercado ↗</a> <span class="hint">(ou Enter)</span>' +
-        (podeAcrescentar
-          ? '<div class="model-add-linha">' + botao +
-            '<span class="hint">fica na tua lista e vai dentro do projeto</span></div>'
-          : "");
-      if (podeAcrescentar) {
-        noResult.querySelector(".model-add").addEventListener("click", function () {
-          var tipo = select.dataset.acrescentar;
-          var sugestoes = window.sugestoesParaModeloNovo
-            ? window.sugestoesParaModeloNovo(tipo) : null;
-          window.pedirModeloNovo(tipo, raw, function (novo) {
-            // Quem acrescentou acabou de dizer qual é o modelo: a pesquisa
-            // já não serve para nada, e o campo limpo mostra a lista inteira
-            // com o modelo novo lá dentro, escolhido.
-            input.value = "";
-            applyFilter();
-            if (select._modelSearchEscolher) select._modelSearchEscolher(novo);
-          }, sugestoes);
+        (faltaDiagonal
+          ? '<p class="mm-falta">Escreve a diagonal e acrescento ' + aspas(escapeXml(raw)) +
+            ' à lista:</p><div class="model-add-linha">' +
+            '<div class="inputgroup mm-falta-campo"><input type="number" class="model-diag" ' +
+            'inputmode="decimal" min="1" step="0.5" placeholder="55"><span class="unit">polegadas</span></div>' +
+            '<button type="button" class="copy model-add">Acrescentar</button>' + linkMercado + "</div>"
+          : (tipo
+              ? ' <span class="hint">— acrescento-a sozinho num instante…</span>'
+              : ' — ' + linkMercado + ' <span class="hint">(ou Enter)</span>'));
+
+      if (faltaDiagonal) {
+        var campoDiag = noResult.querySelector(".model-diag");
+        var acrescentarComDiagonal = function () {
+          var v = parseFloat(campoDiag.value);
+          if (!(v > 0)) { campoDiag.focus(); return; }
+          var m = window.meusModelos.acrescentarAutomatico(tipo, raw, { diag: v, ratio: (sugestoesDaAba(tipo) || {}).ratio });
+          if (!m) return;
+          autoFeito = { modelo: m.modelo, texto: raw, dados: m };
+          ultimoAuto = autoFeito;
+          escolherNaLista(m);
+          applyFilter();
+        };
+        noResult.querySelector(".model-add").addEventListener("click", acrescentarComDiagonal);
+        campoDiag.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") { e.preventDefault(); acrescentarComDiagonal(); }
         });
       }
       noResult.style.display = "block";
-    } else {
-      noResultUrl = null;
-      noResult.style.display = "none";
+      return;
     }
+
+    // ---- 3. há resultados, e não há nada a dizer ---------------------
+    noResult.style.display = "none";
   }
   select._modelSearchRefresh = applyFilter;
 
-  input.addEventListener("input", applyFilter);
-  // Enter leva a procura ao mercado quando não há nada na lista — não é
-  // preciso ir com o dedo até ao link. É sempre a pessoa a pedir: esta app
-  // não abre separadores sozinha.
+  input.addEventListener("input", function () {
+    // Mexer no texto larga o que tinha sido acrescentado para o texto
+    // anterior: o recado falava desse, e esse já não é o que está escrito.
+    if (autoFeito && autoFeito.texto !== input.value.trim()) autoFeito = null;
+    // Campo vazio = corrida acabada. O que vier a seguir é outra peça, e não
+    // a continuação desta.
+    if (!input.value.trim()) ultimoAuto = null;
+    applyFilter();
+    armarAuto();
+  });
+  // Enter não espera pelo silêncio: quem carrega já acabou de escrever.
   input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && noResultUrl) {
-      e.preventDefault();
-      window.open(noResultUrl, "_blank", "noopener");
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    desarmarAuto();
+    var tipo = tipoDeAcrescento();
+    var raw = input.value.trim();
+    if (tipo && raw.length >= 3 && !(autoFeito && autoFeito.texto === raw)) {
+      acrescentarSozinho(raw, tipo);
     }
   });
+  // Sair do campo não deixa nada a meio: o que estava armado acontece.
+  input.addEventListener("blur", desarmarAuto);
   // No telemóvel, a tecla do teclado passa a ser a lupa em vez do "↵".
   input.setAttribute("enterkeyhint", "search");
   select.addEventListener("change", function () {
-    if (input.value) { input.value = ""; applyFilter(); }
+    if (aEscolherSozinho) return;
+    if (input.value) { input.value = ""; autoFeito = null; ultimoAuto = null; applyFilter(); }
   });
 }
 

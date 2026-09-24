@@ -2,15 +2,25 @@
  * OS MODELOS QUE A LISTA NÃO TINHA.
  *
  * Pedido: *"a pesquisa auto não será para popups mas sim para adicionar a
- * lista se não existir"*. E está certo: um separador do Google que abre
- * sozinho resolve a curiosidade e não resolve o trabalho — no fim daquilo a
- * lista continua sem a TV, e na montagem seguinte volta tudo ao mesmo.
+ * lista se não existir"*. E, logo a seguir: *"devia procurar para adicionar e
+ * não pedir para ser eu a introduzir o que pode ser errado (…) apenas
+ * acrescenta automaticamente, tornando-se inteligente e autónomo"*.
  *
- * A REGRA DA CASA MANDA AQUI: *"nunca inventar dados técnicos — só valores
- * reais, com fonte"*. Por isso a app não vai buscar a ficha a lado nenhum
- * nem a adivinha. Abre um formulário, e quem escreve os números é a pessoa
- * que tem o equipamento à frente ou a ficha do fabricante aberta ao lado. O
- * campo da fonte existe para isso, e vai com o modelo para todo o lado.
+ * O QUE UMA TV PRECISA, e o que a app pode mesmo saber sozinha:
+ *
+ * A conta de uma TV sai de DUAS coisas — diagonal e formato. Mais nada. As 88
+ * TVs do inventário são todas 16:9, e a largura de um ecrã de 55" é a mesma
+ * quer a marca seja Samsung, LG ou Xiaomi: é geometria, não é ficha técnica.
+ * Por isso, quando o que se escreve traz um número ("Xiaomi 55"), ou quando a
+ * diagonal já está escrita na aba, a app tem tudo o que precisa e acrescenta
+ * o modelo SOZINHA — sem formulário, sem separador, sem perguntar nada.
+ *
+ * O QUE ELA NÃO PODE SABER é a resolução daquele modelo. Um 55" tanto pode
+ * ser 4K como Full HD, e a REGRA DA CASA é clara: *"nunca inventar dados
+ * técnicos — só valores reais, com fonte"*. Assumir 4K porque "hoje em dia é
+ * quase sempre" é exactamente o género de número que acaba numa folha de
+ * produção sem ninguém o ter conferido. Fica "não confirmada", e quem souber
+ * escreve-a (é a mesma caixa, agora só para o que falta).
  *
  * ONDE ISTO VIVE, e porque não é o `data/tvs.json`:
  *
@@ -56,6 +66,60 @@
       ]
     }
   };
+
+  /**
+   * A DIAGONAL QUE ESTÁ ESCRITA NO NOME, se lá estiver.
+   *
+   * "Xiaomi 55" → 55. 'Xiaomi TV A Pro 55"' → 55. Mas um número colado a
+   * letras NÃO conta: o "TU55DU7105K" da Samsung tem 55 lá dentro e não é a
+   * diagonal de nada — é a referência. Só se aceita um número SOLTO, e
+   * dentro do que existe como ecrã (7" a 130").
+   */
+  function diagonalNoTexto(texto) {
+    var achados = String(texto || "").match(/(?:^|[\s(\[])(\d{1,3}(?:[.,]\d)?)\s*(?:"|''|pol|polegadas|inch)?(?=$|[\s)\]"',])/gi);
+    if (!achados) return null;
+    for (var i = achados.length - 1; i >= 0; i--) {   // o último, que é onde o tamanho costuma vir
+      var n = parseFloat(achados[i].replace(/[^\d.,]/g, "").replace(",", "."));
+      if (n >= 7 && n <= 130) return n;
+    }
+    return null;
+  }
+
+  /**
+   * ACRESCENTAR SOZINHO, quando há com que.
+   *
+   * Devolve o modelo acrescentado, ou `null` quando falta a diagonal — e aí
+   * quem pergunta é o formulário, com UM campo, em vez de sete.
+   *
+   * A resolução fica sempre por confirmar: ver a nota no topo. `auto: true`
+   * marca-o como deduzido e não escrito à mão, para a app o poder dizer e
+   * para o "Copiar para o catálogo" não o mandar como se fosse ficha.
+   */
+  function acrescentarAutomatico(tipo, texto, sugestoes) {
+    if (tipo !== "tv") return null;
+    var nome = String(texto || "").trim();
+    if (!nome) return null;
+    var s = sugestoes || {};
+    var diag = diagonalNoTexto(nome);
+    var deOnde = "nome";
+    if (diag == null) {
+      var daAba = parseFloat(s.diag);
+      if (daAba > 0) { diag = daAba; deOnde = "aba"; }
+    }
+    if (diag == null) return null;
+    return acrescentar(tipo, {
+      modelo: nome,
+      diag: diag,
+      ratio: s.ratio || "16:9",
+      resolucao: null,
+      touchscreen: false,
+      fonte: null,
+      meu: true,
+      auto: true,
+      diagDe: deOnde,
+      acrescentadoEm: new Date().toISOString().slice(0, 10)
+    });
+  }
 
   function ler(tipo) {
     try {
@@ -242,7 +306,8 @@
 
   window.meusModelos = {
     ler: ler, acrescentar: acrescentar, remover: remover,
-    importar: importar, linhaDeCatalogo: linhaDeCatalogo
+    importar: importar, linhaDeCatalogo: linhaDeCatalogo,
+    diagonalNoTexto: diagonalNoTexto, acrescentarAutomatico: acrescentarAutomatico
   };
   window.pedirModeloNovo = pedirModeloNovo;
 })();

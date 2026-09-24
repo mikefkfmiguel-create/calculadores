@@ -116,10 +116,19 @@ const procurar = (texto) => pagina.evaluate(async (t) => {
   };
 }, texto);
 
-const totalNaLista = await pagina.evaluate(() =>
-  [...document.getElementById("tv-model").options].filter((o) => o.value !== "custom").length);
-console.log("\n   a lista tem " + totalNaLista + " modelos (catálogo: " + tvs.length + ")");
-conferir(totalNaLista === tvs.length, "a lista traz o catálogo todo");
+const contagem = await pagina.evaluate(() => {
+  const opts = [...document.getElementById("tv-model").options].filter((o) => o.value !== "custom");
+  const tamanhos = opts.filter((o) => /qualquer marca/.test(o.textContent)).length;
+  return { total: opts.length, tamanhos: tamanhos };
+});
+const totalNaLista = contagem.total;
+console.log("\n   a lista tem " + totalNaLista + " entradas: " + tvs.length +
+  " do inventário + " + contagem.tamanhos + " tamanhos de mercado");
+// Desde a v4.17 a lista não é só o inventário — leva também os tamanhos de
+// mercado, que são geometria e não fichas. O inventário tem de lá estar
+// INTEIRO na mesma: é isso que esta conta guarda.
+conferir(totalNaLista === tvs.length + contagem.tamanhos && contagem.tamanhos > 0,
+  "a lista traz o catálogo todo, mais os tamanhos de mercado");
 
 console.log("\n== a ordem das palavras deixou de contar ==");
 for (const consulta of ["samsung 55", "55 samsung", "samsung uhd", "lg 86 4k", "traulux 75", "touchscreen"]) {

@@ -953,7 +953,17 @@
   .model-search-noresult .model-add-linha {
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 7px;
   }
-  .model-search-noresult .model-add { min-height: 32px; }
+  .model-search-noresult .model-add,
+  .model-search-noresult .model-desfazer,
+  .model-search-noresult .model-ficha { min-height: 32px; }
+  /* O que a app ACABOU DE FAZER sozinha. Verde como o "· meu" da lista: é a
+     mesma coisa a falar, e quem acrescenta sozinho tem de se ver a fazê-lo. */
+  .model-search-noresult .mm-feito {
+    margin: 0 0 2px; font-size: 12.5px; color: #0F8A6A; font-weight: 600;
+  }
+  .model-search-noresult .mm-feito .hint { font-weight: 400; }
+  .model-search-noresult .mm-falta { margin: 6px 0 0; font-size: 12.5px; }
+  .model-search-noresult .mm-falta-campo { max-width: 190px; }
 
   /* A linha de um modelo acrescentado: o que é dele, e os dois botões que
      só a ele dizem respeito. */
