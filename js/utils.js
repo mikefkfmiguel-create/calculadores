@@ -182,6 +182,42 @@ function escapeXml(s) {
 function normalizeSearch(s) {
   return (s || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
+
+/**
+ * PESQUISA POR PALAVRAS, n\u00e3o por peda\u00e7o de texto.
+ *
+ * Reportado com uma fotografia do campo dos modelos: *"n\u00e3o encontra"*. Nesse
+ * caso era verdade \u2014 a AVK n\u00e3o tem Xiaomi nenhum, e o link para o mercado \u00e9
+ * exactamente a sa\u00edda certa. Mas ao medir a lista a s\u00e9rio apareceu um defeito
+ * maior, que escondia equipamento que a casa TEM:
+ *
+ *     "samsung 55"     \u2192  1 resultado com o antigo,  13 com este
+ *     "55 samsung"     \u2192  0                          13
+ *     "samsung uhd"    \u2192  0                           8
+ *     "lg 86 4k"       \u2192  0                           4
+ *     "traulux 75"     \u2192  0                           1
+ *
+ * A etiqueta de cada op\u00e7\u00e3o \u00e9 `Led TV 55" 4K Samsung TU55DU7105K \u2014 55"`: quem
+ * escreve a marca antes do tamanho, ou a marca antes da tecnologia, escrevia
+ * palavras que EST\u00c3O todas l\u00e1 e n\u00e3o recebia nada. Procurar o texto escrito
+ * inteiro dentro da etiqueta obriga a adivinhar a ordem por que o invent\u00e1rio
+ * foi escrito \u2014 e ningu\u00e9m a sabe de cor.
+ *
+ * Agora cada palavra \u00e9 procurada por si: aparecem as op\u00e7\u00f5es onde TODAS est\u00e3o,
+ * seja qual for a ordem. Continua a ser filtragem do que j\u00e1 est\u00e1 na lista \u2014
+ * nada vem de fora, e a lista continua a ser o invent\u00e1rio.
+ */
+function matchesSearch(texto, termos) {
+  var alvo = normalizeSearch(texto);
+  for (var i = 0; i < termos.length; i++) {
+    if (alvo.indexOf(termos[i]) === -1) return false;
+  }
+  return true;
+}
+
+function searchTerms(raw) {
+  return normalizeSearch(raw).split(/\s+/).filter(function (t) { return t !== ""; });
+}
 // Campo de pesquisa por cima de um select de modelo — filtra as opções ao
 // escrever (sem trazer nada de fora para a app). Sem nenhuma opção a
 // corresponder, mostra um link para pesquisar o termo no Google numa nova
@@ -208,17 +244,32 @@ function lzAttachModelSearch(select) {
   var noResultUrl = null;
   function applyFilter() {
     var raw = input.value.trim();
-    var q = normalizeSearch(raw);
+    var termos = searchTerms(raw);
     var anyVisible = false;
     Array.prototype.forEach.call(select.options, function (opt) {
-      var match = !q || normalizeSearch(opt.textContent).indexOf(q) !== -1;
+      var match = !termos.length || matchesSearch(opt.textContent, termos);
       opt.hidden = !match;
       if (match) anyVisible = true;
     });
-    if (!anyVisible && q) {
+    if (!anyVisible && termos.length) {
       var query = encodeURIComponent(raw + " ficha técnica");
       noResultUrl = "https://www.google.com/search?q=" + query;
-      noResult.innerHTML = 'Não encontrei nada na lista — <a class="srclink" href="' + noResultUrl + '" target="_blank" rel="noopener">procurar "' + escapeXml(raw) + '" no mercado ↗</a> <span class="hint">(ou Enter)</span>';
+      // QUAL É A PALAVRA QUE NÃO EXISTE. "Não encontrei nada" deixa a pessoa
+      // sem saber se a app está avariada, se escreveu mal, ou se a casa
+      // simplesmente não tem aquilo. Dizer «nada com "xiaomi"» responde à
+      // pergunta toda: a lista não tem essa marca, e o link é a saída.
+      var semNada = termos.filter(function (t) {
+        return !Array.prototype.some.call(select.options, function (o) {
+          return matchesSearch(o.textContent, [t]);
+        });
+      });
+      var aspas = function (t) { return "«" + escapeXml(t) + "»"; };
+      var porque = semNada.length
+        ? "Nada na lista com " + semNada.map(aspas).join(" nem ")
+        : (termos.length > 1
+            ? "Cada palavra existe, mas nenhum modelo as junta todas"
+            : "Não encontrei nada na lista");
+      noResult.innerHTML = porque + ' — <a class="srclink" href="' + noResultUrl + '" target="_blank" rel="noopener">procurar "' + escapeXml(raw) + '" no mercado ↗</a> <span class="hint">(ou Enter)</span>';
       noResult.style.display = "block";
     } else {
       noResultUrl = null;
