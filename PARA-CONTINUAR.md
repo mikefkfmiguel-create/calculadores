@@ -14,6 +14,56 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 24 de setembro — a procura na web, com a fonte a servir de prova (v4.18)
+
+> *"a coisa é simples: se escrever «xiripiti» no campo da marca e a lista
+> devolver «não encontrado», dispara procura na web/mercado para adicionar
+> automaticamente"*.
+
+Terceira vez que este pedido voltou, e desta vez com razão de sobra: a v4.17
+deduzia a geometria mas continuava sem saber a **resolução** de um modelo que
+não está no inventário. Agora procura mesmo.
+
+**Como se faz isto sem quebrar a regra da casa.** A objecção de sempre era
+que o que um modelo de linguagem "sabe" não é uma fonte. A ferramenta de
+**web search** resolve-a: ela devolve as páginas que abriu, e o Worker guarda
+a lista. A partir daí o crivo é verificável, não é uma promessa:
+
+1. a pesquisa corre a sério, do lado da Anthropic;
+2. a resposta tem de trazer o endereço de onde tirou os números;
+3. **e esse endereço tem de estar entre os que a pesquisa devolveu.** Um
+   endereço escrito de cabeça não passa — e este é o caso perigoso, porque
+   números inventados com uma fonte plausível parecem bem;
+4. falhando o crivo, a rota responde "não encontrei" e a app cai na geometria
+   da v4.17. Nunca sai um número sem página que o sustente.
+
+Mais: diagonal entre 7" e 130", rácio de uma lista fechada, resolução só com
+os dois lados. Tudo em `worker/src/index.js` (`/modelo`), com **a mesma trava
+de gasto** do Assistente — as duas rotas partilham o contador do dia.
+
+**Do lado da app:** a web é o **primeiro** caminho, nunca o único. Ao fim dos
+900 ms de silêncio pergunta-se à web (a caixa di-lo: *"A procurar «xiripiti»
+na web…"*); se responder, entra a ficha inteira e o recado diz *"encontrado
+em xiripiti.com"*, com o link; se não responder — sem rede, Worker em baixo,
+modelo que ninguém publica — entra a geometria e o recado diz **porquê**:
+*"resolução por confirmar (a web não deu: não encontrei)"*. Oito segundos de
+paciência e desiste. O mesmo texto não é perguntado duas vezes na mesma
+sessão: cada procura custa dinheiro.
+
+**Em obra sem rede nada disto responde** — e é exactamente por isso que a
+geometria da v4.17 continua lá por baixo. Está medido no teste: com o browser
+offline, "Telefunken 43" entra à mesma, com 43" lidos do nome.
+
+Testes: `worker/testes/modelo.test.mjs` (10, nenhum gasta um cêntimo — a
+chamada à Anthropic é interceptada), com o caso central a ser *"uma fonte que
+a pesquisa nunca devolveu é recusada"*; e no `verificar-modelo-novo.mjs` os
+três caminhos da app (web encontra / web não encontra / sem rede), com a
+procura interceptada pelo Playwright.
+
+**Nota de custo, para quando a factura aparecer:** cada procura é uma chamada
+à API mais as pesquisas, faturadas à parte. `LIMITE_IA_POR_IP` (30) e
+`LIMITE_IA_POR_DIA` (200) são partilhados com o Assistente.
+
 ## 24 de setembro — a lista acrescenta-se sozinha, e deixa de ser só a AVK (v4.17)
 
 > *"devia procurar para adicionar e não pedir para ser eu a introduzir o que

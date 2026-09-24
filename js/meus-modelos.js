@@ -121,6 +121,89 @@
     });
   }
 
+  /**
+   * PROCURAR NA WEB, e só aceitar o que vier com fonte.
+   *
+   * *"se escrever «xiripiti» no campo da marca e a lista devolver «não
+   * encontrado», dispara procura na web/mercado para adicionar
+   * automaticamente"*.
+   *
+   * Quem procura é o Worker (`/modelo`): uma página estática não pode
+   * pesquisar na web, e a chave de API não pode viver num ficheiro que o
+   * GitHub Pages serve. O crivo que garante que nada é inventado está lá —
+   * a fonte tem de ser uma das páginas que a pesquisa devolveu.
+   *
+   * Aqui só se trata do que fazer quando não dá: sem rede, sem Worker, ou
+   * modelo que ninguém publica, cai-se na geometria que a app já sabe fazer
+   * sozinha (ver acrescentarAutomatico). Em obra sem rede isto nunca
+   * responde, e é por isso que NUNCA é o único caminho.
+   */
+  var URL_WORKER_CHAVE = "calculadores-assistente-worker-url";
+  var URL_WORKER_OMISSAO = "https://calculadores-assistente.avkvideoshare.workers.dev";
+
+  function enderecoDoWorker() {
+    var guardado = null;
+    try { guardado = localStorage.getItem(URL_WORKER_CHAVE); } catch (_) {}
+    return (guardado || URL_WORKER_OMISSAO).replace(/\/+$/, "");
+  }
+
+  // O QUE JÁ SE PERGUNTOU NÃO SE VOLTA A PERGUNTAR. Cada procura é uma
+  // chamada que custa dinheiro e conta para a trava do Worker; escrever,
+  // apagar e voltar a escrever o mesmo é coisa de todos os dias.
+  var jaPerguntado = {};
+
+  function procurarNaWeb(tipo, texto, aoFim) {
+    if (tipo !== "tv" || !navigator.onLine) { aoFim(null, "sem rede"); return; }
+    var chave = tipo + "|" + normalizeSearch(texto);
+    if (Object.prototype.hasOwnProperty.call(jaPerguntado, chave)) {
+      var antes = jaPerguntado[chave];
+      setTimeout(function () { aoFim(antes.ficha, antes.motivo); }, 0);
+      return;
+    }
+    var parou = false;
+    // Oito segundos e desiste: isto corre enquanto alguém espera a olhar
+    // para o campo, e uma app que fica pendurada é pior do que uma app que
+    // diz "não consegui" e faz a conta à mesma.
+    var relogio = setTimeout(function () {
+      if (parou) return;
+      parou = true;
+      aoFim(null, "demorou de mais");
+    }, 8000);
+    fetch(enderecoDoWorker() + "/modelo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q: texto, tipo: tipo })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (parou) return;
+      parou = true;
+      clearTimeout(relogio);
+      var ficha = (d && d.ok && d.modelo) ? d.modelo : null;
+      var motivo = ficha ? null : ((d && d.motivo) || "não encontrei");
+      jaPerguntado[chave] = { ficha: ficha, motivo: motivo };
+      aoFim(ficha, motivo);
+    }).catch(function (e) {
+      if (parou) return;
+      parou = true;
+      clearTimeout(relogio);
+      aoFim(null, e && e.message ? e.message : "falhou");
+    });
+  }
+
+  /** O que a web devolveu, guardado como modelo desta app. */
+  function acrescentarDaWeb(tipo, ficha) {
+    return acrescentar(tipo, {
+      modelo: ficha.modelo,
+      diag: ficha.diag,
+      ratio: ficha.ratio || "16:9",
+      resolucao: ficha.resolucao || null,
+      touchscreen: !!ficha.touchscreen,
+      fonte: ficha.fonte || null,
+      meu: true,
+      daWeb: true,
+      acrescentadoEm: new Date().toISOString().slice(0, 10)
+    });
+  }
+
   function ler(tipo) {
     try {
       var todos = JSON.parse(localStorage.getItem(CHAVE) || "{}");
@@ -307,7 +390,8 @@
   window.meusModelos = {
     ler: ler, acrescentar: acrescentar, remover: remover,
     importar: importar, linhaDeCatalogo: linhaDeCatalogo,
-    diagonalNoTexto: diagonalNoTexto, acrescentarAutomatico: acrescentarAutomatico
+    diagonalNoTexto: diagonalNoTexto, acrescentarAutomatico: acrescentarAutomatico,
+    procurarNaWeb: procurarNaWeb, acrescentarDaWeb: acrescentarDaWeb
   };
   window.pedirModeloNovo = pedirModeloNovo;
 })();

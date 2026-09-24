@@ -96,6 +96,18 @@ await pagina.waitForTimeout(700);
 await pagina.click('button.tab[data-mode="tv"]');
 await pagina.waitForTimeout(500);
 
+// A PROCURA NA WEB é interceptada aqui. Nenhum teste toca no Worker a sério:
+// custaria dinheiro, dependeria da net, e o que interessa medir é o que a
+// app faz com cada resposta possível — não a resposta em si (essa tem os
+// seus testes em worker/testes/modelo.test.mjs).
+let respostaDaWeb = { ok: false, motivo: "não encontrei" };
+let pedidosAWeb = [];
+await ctx.route("**/modelo", async (rota) => {
+  pedidosAWeb.push(JSON.parse(rota.request().postData() || "{}"));
+  await rota.fulfill({ status: 200, contentType: "application/json",
+                       body: JSON.stringify(respostaDaWeb) });
+});
+
 // Contador no lugar do window.open: é a única forma de contar separadores
 // sem os abrir a sério.
 await pagina.evaluate(() => {
@@ -153,6 +165,54 @@ conferir(!!recado && /Acrescentei/.test(recado), "“" + (recado || "—") + "�
 conferir(!!recado && /por confirmar/.test(recado),
   "a resolução fica por confirmar — não se inventa um 4K que ninguém viu");
 conferir(/não confirmada/.test(feito.res), "e a aba diz o mesmo: " + feito.res);
+
+console.log("\n== e foi mesmo procurar na web ==");
+conferir(pedidosAWeb.length >= 1, "a app pediu a procura (" + pedidosAWeb.length + ")");
+conferir(!!pedidosAWeb[0] && pedidosAWeb[0].q === MODELO && pedidosAWeb[0].tipo === "tv",
+  "com o que estava escrito: " + JSON.stringify(pedidosAWeb[0] || null));
+conferir(!!recado && /a web não deu/.test(recado),
+  "e, como a web não deu, diz porquê em vez de calar: “" + (recado || "") + "”");
+
+console.log("\n== quando a web ENCONTRA, entra a ficha inteira ==");
+// O caso que o pedido descreve: escrever uma marca que a lista não tem, e a
+// app trazer a ficha de lá — com a resolução, que é a única coisa que ela
+// não consegue deduzir sozinha.
+respostaDaWeb = { ok: true, modelo: {
+  modelo: "Xiripiti A55", diag: 55, ratio: "16:9",
+  resolucao: { rx: 3840, ry: 2160 }, touchscreen: false,
+  fonte: "https://www.xiripiti.com/tv/a55"
+} };
+await campo.fill("");
+await pagina.keyboard.type("xiripiti", { delay: 25 });
+await pagina.waitForTimeout(1800);
+const daWeb = await estado();
+const recadoWeb = await caixaTexto();
+conferir(daWeb.meus.includes("Xiripiti A55"),
+  "entrou com o nome que o fabricante usa: " + JSON.stringify(daWeb.meus));
+conferir(daWeb.diag === "55", "com a diagonal da ficha: " + daWeb.diag);
+conferir(/3840/.test(daWeb.res), "e a RESOLUÇÃO, que a app não sabia deduzir: " + daWeb.res);
+conferir(!!recadoWeb && /encontrado em xiripiti\.com/.test(recadoWeb),
+  "e diz onde a foi buscar: “" + (recadoWeb || "") + "”");
+const fonteNaAba = await pagina.evaluate(() => {
+  const a = document.getElementById("tv-model-source").querySelector("a");
+  return a ? a.getAttribute("href") : null;
+});
+conferir(/xiripiti\.com/.test(fonteNaAba || ""), "com a fonte agarrada ao modelo: " + fonteNaAba);
+
+console.log("\n== e sem rede continua a fazer a conta ==");
+// Isto é o que garante que a app não fica inútil em obra: a web é o melhor
+// caminho, nunca o único.
+await pagina.context().setOffline(true);
+await campo.fill("");
+await pagina.keyboard.type("Telefunken 43", { delay: 25 });
+await pagina.waitForTimeout(1800);
+const semRede = await estado();
+conferir(semRede.meus.includes("Telefunken 43"),
+  "acrescentou à mesma: " + JSON.stringify(semRede.meus));
+conferir(semRede.diag === "43", "com a diagonal lida do nome: " + semRede.diag);
+conferir(/não confirmada/.test(semRede.res), "e a resolução por confirmar: " + semRede.res);
+await pagina.context().setOffline(false);
+respostaDaWeb = { ok: false, motivo: "não encontrei" };
 
 console.log("\n== continuar a escrever substitui, não duplica ==");
 // Uma pausa a meio de escrever acrescenta o que lá está; acabar a palavra
