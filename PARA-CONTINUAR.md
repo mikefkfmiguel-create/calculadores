@@ -14,6 +14,73 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 24 de setembro — a lista acrescenta-se sozinha, e deixa de ser só a AVK (v4.17)
+
+> *"devia procurar para adicionar e não pedir para ser eu a introduzir o que
+> pode ser errado (…) se não existe na lista dispara procura mas sem abrir
+> popups, apenas acrescenta automaticamente, tornando-se inteligente e
+> autónomo (…) não precisa ficar agarrado a listas do inventário da AVK, será
+> para dar todas as opções de mercado"*.
+
+**A terceira frase é a que resolve as outras duas.** Uma TV só precisa de
+DUAS coisas para a conta: diagonal e formato. As 88 TVs do inventário são
+todas 16:9, e um ecrã de 55" mede o mesmo seja Samsung, LG ou Xiaomi — é
+geometria, não é ficha técnica. Ou seja: "todas as opções de mercado", para
+uma TV, é uma lista curta de tamanhos, e nada disso precisa de ser procurado
+em lado nenhum.
+
+**O que a v4.17 faz:**
+
+1. **Escreve e está feito.** "Xiaomi 55" → a app lê o 55 do nome, acrescenta
+   o modelo, escolhe-o e faz a conta (1,22 × 0,68 m). Sem formulário, sem
+   separador, sem perguntar nada. Passados 900 ms de silêncio — quem escreve
+   "Xiaomi 55" passa por "X", "Xi", "Xia", e acrescentar a cada tecla enchia
+   a lista de lixo.
+2. **Continuar a escrever substitui, não duplica.** Uma pausa a meio
+   acrescenta "Grundig"; acabar a palavra corrige para "Grundig 43" e o
+   primeiro sai. (Precisou de dois estados separados: `autoFeito`, que fala
+   do texto que está escrito agora e morre a cada tecla, e `ultimoAuto`, que
+   é a corrida de escrita e tem de sobreviver. Com um só, ficavam dois meios
+   modelos na lista — medido.)
+3. **Diz o que fez, e o que ficou por saber:** *"Acrescentei «Xiaomi 55» à
+   lista — 55", 16:9, resolução por confirmar"*, com **Desfazer** e
+   **Completar a ficha**.
+4. **Só pergunta o que não consegue deduzir.** Sem número no nome e sem
+   diagonal na aba ("Sharp tv"), pede **um** campo — a diagonal — e não um
+   formulário de sete.
+5. **O mercado entrou na lista**, em 16 tamanhos (19" a 110"), marcados
+   `55" — qualquer marca (16:9)`. Não são modelos nem fichas: são tamanhos, e
+   é só isso que dizem de si.
+
+**O que a app continua a NÃO fazer, e porquê.** A resolução daquele modelo
+não é dedutível — um 55" tanto pode ser 4K como Full HD. Assumir 4K "porque
+hoje em dia é quase sempre" é exactamente o género de número que acaba numa
+folha de produção sem ninguém o ter conferido, e a regra da casa é clara:
+*nunca inventar dados técnicos, só valores reais com fonte*. Fica "não
+confirmada" até alguém a escrever, e o **Completar a ficha** existe para
+isso. A ida à net para buscar a ficha a sério continua por decidir (ver
+abaixo).
+
+`scripts/verificar-modelo-novo.mjs` refeito para este comportamento: nada
+abre, nada pergunta, o modelo entra sozinho com a diagonal lida do nome, a
+substituição a meio da escrita, o Desfazer, o caso sem diagonal, os tamanhos
+de mercado, o Enter a acrescentar sem abrir separador nenhum, e a ficha a
+completar-se depois. **19 verificações verdes.**
+
+### Por decidir: a app ir mesmo à net buscar a ficha
+
+Fica escrito porque é a única parte do pedido que não foi feita. Para saber a
+resolução de um modelo sem a escrever é preciso uma fonte, e uma app estática
+não a tem. As hipóteses, com o que custam:
+
+- **Worker (o do Assistente) a devolver a ficha** — possível, mas o que vem
+  de um modelo de linguagem não é uma fonte: teria de vir com o endereço do
+  fabricante e ficar marcado *"sugerido — por confirmar"* até alguém
+  confirmar. E **não funciona em obra sem rede**, que é onde esta app se usa.
+- **Catálogo de mercado com fichas reais** — trabalho de recolha, e envelhece.
+- **Ficar como está** — a geometria sai sempre, offline, e a resolução só
+  aparece quando alguém a garante.
+
 ## 24 de setembro — acrescentar à lista o que ela não tem (v4.16)
 
 > *"a pesquisa auto não será para popups mas sim para adicionar a lista se

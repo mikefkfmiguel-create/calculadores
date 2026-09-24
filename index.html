@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.16</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.17</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -8538,8 +8538,12 @@
       while (sel.options.length > 1) sel.remove(0);
       ordem.forEach(function (i) {
         var t = TVS_DATA[i];
-        var etiqueta = t.modelo + ' — ' + t.diag + '"' + (t.touchscreen ? " touchscreen" : "") +
-          (t.meu ? " · meu" : "");
+        // Um TAMANHO diz só o que é: repetir 'TV de 55" — 55"' era dizer duas
+        // vezes a mesma coisa e fazer parecer que havia ali uma ficha.
+        var etiqueta = t.tamanho
+          ? t.diag + '" — qualquer marca (' + t.ratio + ")"
+          : t.modelo + ' — ' + t.diag + '"' + (t.touchscreen ? " touchscreen" : "") +
+            (t.meu ? " · meu" : "");
         // `skipMarketTag` nos meus: "(mercado)" seria mentira — não é do
         // mercado nem do inventário, é de quem o acrescentou.
         addOption(sel, String(i), etiqueta, false, i, !t.mercado && !t.meu, !!t.meu);
@@ -8557,6 +8561,27 @@
     });
   }
   var COR_MODELO_MEU = "#0F8A6A";
+
+  /**
+   * O MERCADO, EM TAMANHOS.
+   *
+   * *"não precisa ficar agarrado a listas do inventário da AVK, será para dar
+   * todas as opções de mercado"*. E dá — porque para uma TV "todas as opções
+   * de mercado" é uma lista curta: a conta sai da DIAGONAL e do FORMATO, e as
+   * 88 TVs do inventário são todas 16:9. Um ecrã de 55" mede o mesmo seja
+   * Samsung, LG ou Xiaomi.
+   *
+   * Por isso estas linhas não são modelos nem fichas — são TAMANHOS, e é só
+   * isso que dizem de si ("55" — qualquer marca"). Nada aqui é inventado: é a
+   * mesma geometria que a app já faz com a diagonal escrita à mão, só que
+   * escolhível. As polegadas são as que o retalho vende.
+   */
+  function TAMANHOS_DE_MERCADO_TV() {
+    return [19, 22, 24, 27, 32, 40, 43, 50, 55, 60, 65, 70, 75, 85, 98, 110].map(function (d) {
+      return { modelo: 'TV de ' + d + '"', diag: d, ratio: "16:9", resolucao: null,
+               touchscreen: false, mercado: true, tamanho: true };
+    });
+  }
 
   /**
    * TVS_DATA = o inventário da casa MAIS o que se acrescentou aqui.
@@ -8585,6 +8610,7 @@
     // reescrita da lista -- ouvintes a acumular são fugas em câmara lenta.
     wireStockColor(sel);
     sel.dataset.acrescentar = "tv";
+    sel._modelSearchRecarregar = function () { recarregarTVs(); };
     sel._modelSearchEscolher = function (modelo) {
       // O modelo acabou de ser guardado, mas ainda não está em TVS_DATA --
       // é esta linha que o traz para dentro da app.
@@ -8995,7 +9021,7 @@
     // TVS_DATA, e o que está guardado no browser não pode empurrar os
     // índices do inventário -- um projeto antigo guarda o nome, mas a
     // escolha no ecrã guarda o número.
-    TVS_CATALOGO = tvs;
+    TVS_CATALOGO = tvs.concat(TAMANHOS_DE_MERCADO_TV());
     recarregarTVs();
 
     lenses.sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
