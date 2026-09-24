@@ -31,6 +31,7 @@
     });
     sel.selectedIndex = 0;
     updateSelectStockColor(sel);
+    sel.dataset.mercado = "painel LED";
     lzAttachModelSearch(sel);
   }
 

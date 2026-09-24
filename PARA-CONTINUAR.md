@@ -14,6 +14,58 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 24 de setembro — a regra da procura no mercado (v4.14)
+
+> *"monta uma regra para quando devolve não encontrado disparar uma procura
+> no mercado"*.
+
+O link para o mercado já existia; o que é novo é ele **sair sozinho**. O
+cuidado todo está em não disparar a meio de uma palavra: quem escreve
+"Samsung" passa por "S", "Sa", "Sam", e todos eles não encontram nada. Uma app
+que abre um separador a cada letra é inutilizável.
+
+**A regra, e só dispara com as quatro juntas:**
+
+1. nenhuma opção da lista corresponde;
+2. o escrito tem **≥ 3 caracteres**;
+3. e tem **pelo menos uma letra** — "55" é uma medida, não um modelo (e a
+   lista tem 21 ecrãs com 55, por isso nem recado haveria);
+4. passaram **1,2 s sem escrever**. Não é atraso: é a diferença entre
+   "acabei" e "estou a meio".
+
+Mais três travões: **uma vez por texto** (mudar desarma, voltar ao mesmo não
+repete), **só com o campo em foco** (um separador por cima do que a pessoa
+foi fazer a seguir é um susto), e **desligável na própria caixa**, com a
+escolha guardada e partilhada pelas quatro listas.
+
+**A pergunta leva o que a lista é.** Cada `<select>` diz o que vende
+(`data-mercado`): "televisor", "videoprojetor", "painel LED", "lente de
+videoprojetor". `Xiaomi tv` sozinho traz a loja; `Xiaomi tv televisor ficha
+técnica` traz a ficha.
+
+**O browser pode recusar, e isso diz-se.** Abrir separadores fora de um toque
+é o que os bloqueadores de popups existem para travar, e no telemóvel é mais
+apertado. Medido aqui em Chromium: a mesma abertura por temporizador passou
+numa corrida e foi bloqueada noutra — não é previsível. Por isso o
+`window.open` é chamado **sem** `noopener` (com ele devolve sempre `null` por
+especificação, e não haveria como distinguir "bloqueou" de "abriu"), a
+ligação ao separador novo corta-se logo a seguir (`opener = null`), e quando
+volta `null` o recado passa a dizer *"o browser não deixou abrir sozinho —
+toca"*. O botão fica lá; um toque abre sempre, porque aí é um gesto.
+
+`scripts/verificar-regra-do-mercado.mjs` mede cada condição com o
+`window.open` substituído por um contador — a única forma de contar aberturas
+sem abrir separadores a sério.
+
+**Dois defeitos do meu próprio teste, apanhados a medir:** usei "hitachi" para
+provar que o Enter ainda abre, e a AVK **tem** duas Hitachi — não havia recado
+nenhum, e a verificação media o vazio. O mesmo com "55" para a regra das
+letras (21 modelos) e "panasonic" para o foco (1 modelo). Trocados por marcas
+que a casa não tem (xiaomi, hisense, grundig, sharp) e, sobretudo, cada
+verificação negativa passou a **exigir primeiro o recado**: sem isso, "0
+aberturas" tanto pode ser a regra a portar-se bem como a app a nunca ter
+chegado a considerá-la.
+
 ## 24 de setembro — procurar um modelo pelas palavras, não pela ordem (v4.13)
 
 > *"não encontra"* — com uma fotografia da aba TVs e "Xiaomi tv" escrito no

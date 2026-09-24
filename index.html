@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.13</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.14</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -3400,6 +3400,7 @@
       var ratioText = l.min === l.max ? fmt(l.min, 2) + " fixo" : fmt(l.min, 2) + "–" + fmt(l.max, 2);
       addOption(sel, String(idx), l.marca + " " + l.modelo + " (" + ratioText + ")", false, idx, false, true);
     });
+    sel.dataset.mercado = "lente de videoprojetor";
     lzAttachModelSearch(sel);
     if (sel._modelSearchRefresh) sel._modelSearchRefresh();
   }
@@ -8859,8 +8860,17 @@
       updateSelectStockColor(sel);
     });
 
-    [projModelSel, blendProjModelSel, projProjModelSel, ledModelSel, projLedModelSel,
-     tvModelSel, projDsmTvModelSel, projDelayTvModelSel, vTvModelSel].forEach(lzAttachModelSearch);
+    // O QUE CADA LISTA É, para a pergunta que vai ao mercado sair completa:
+    // "Xiaomi tv televisor ficha técnica" traz a ficha; "Xiaomi tv" sozinho
+    // traz a loja. É só isto que o `data-mercado` faz.
+    [[projModelSel, "videoprojetor"], [blendProjModelSel, "videoprojetor"],
+     [projProjModelSel, "videoprojetor"], [ledModelSel, "painel LED"],
+     [projLedModelSel, "painel LED"], [tvModelSel, "televisor"],
+     [projDsmTvModelSel, "televisor"], [projDelayTvModelSel, "televisor"],
+     [vTvModelSel, "televisor"]].forEach(function (par) {
+      par[0].dataset.mercado = par[1];
+      lzAttachModelSearch(par[0]);
+    });
 
     calcProjecao();
     calcVisualizacao();
@@ -10089,6 +10099,7 @@
       domeAplicarProjetor(domeProjetorEscolhido() || (escolhaGuardada ? null : porOmissao));
       wireStockColor(el.projmodel);
       updateSelectStockColor(el.projmodel);
+      el.projmodel.dataset.mercado = "videoprojetor";
       lzAttachModelSearch(el.projmodel);
       updateSourceHint(el.projmodel, projectors, "dome-projmodel-source", true);
       domeMostrarResmode();
