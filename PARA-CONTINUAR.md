@@ -14,6 +14,49 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 24 de setembro — procurar um modelo pelas palavras, não pela ordem (v4.13)
+
+> *"não encontra"* — com uma fotografia da aba TVs e "Xiaomi tv" escrito no
+> campo dos modelos.
+
+**Nesse caso não havia nada a encontrar.** As 88 TVs do `data/tvs.json` são o
+inventário da AVK e não há Xiaomi nenhuma — o link *"procurar no mercado ↗"* é
+a saída certa, e não se inventa uma ficha para calar a queixa
+(`CLAUDE.md`: nunca inventar dados técnicos).
+
+**Mas ao medir a lista apareceu um defeito maior**, que escondia equipamento
+que a casa TEM. A pesquisa procurava o texto escrito **inteiro** dentro da
+etiqueta da opção, e a etiqueta é `Led TV 55" 4K Samsung TU55DU7105K — 55"`:
+
+| escrito | encontrava | existem |
+|---|---|---|
+| `samsung 55` | 1 | **13** |
+| `55 samsung` | 0 | **13** |
+| `samsung uhd` | 0 | **8** |
+| `lg 86 4k` | 0 | **4** |
+| `traulux 75` | 0 | **1** |
+
+Quem escrevesse a marca antes do tamanho tinha de adivinhar a ordem por que o
+inventário foi escrito — e ninguém a sabe de cor. Agora cada palavra é
+procurada por si: aparece o que as tem **todas**, seja qual for a ordem.
+Continua a ser filtragem do que já está na lista; nada vem de fora.
+
+**E o recado passou a dizer qual é a palavra que falha.** "Não encontrei nada
+na lista" deixa a pessoa sem saber se a app está avariada, se escreveu mal, ou
+se a casa não tem aquilo. Agora:
+
+- `xiaomi tv` → *Nada na lista com «xiaomi»* — a lista não conhece a marca;
+- `samsung xiaomi` → aponta só o «xiaomi», porque o «samsung» existe;
+- `samsung lg` → *Cada palavra existe, mas nenhum modelo as junta todas*.
+
+Vale nas quatro listas que partilham o widget (TVs, projetores, cabines LED,
+processadores) — é uma função só, em `js/utils.js`.
+
+`scripts/verificar-pesquisa-de-modelos.mjs` mede isto contra a app a sério, e
+o número de controlo sai do `data/tvs.json` e não de um número escrito à mão:
+um teste com o "13" lá dentro envelhecia no dia em que a AVK comprasse outra
+TV.
+
 ## 15 de setembro — contar quantos, nunca quem (v3.91)
 
 Executa o `PLANO-CONTAGEM.md`. **Duas premissas desse plano estavam erradas**,
