@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.15</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.16</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2526,7 +2526,10 @@
             <option value="custom">Personalizado…</option>
           </select>
           <div class="srclink-wrap" id="tv-model-source"></div>
-          <div class="hint">Inventário da AVK — escolher preenche a diagonal (e a resolução, quando confirmada) abaixo.</div>
+          <!-- Só aparece com um modelo acrescentado escolhido: o que é dele, e
+               os dois botões que só a ele dizem respeito. -->
+          <div class="modelo-meu" id="tv-model-meu" hidden></div>
+          <div class="hint">Inventário da AVK — escolher preenche a diagonal (e a resolução, quando confirmada) abaixo. O que a lista não tiver, acrescenta-se ao procurar.</div>
         </div>
         <div class="field">
           <label for="tv-diag">Diagonal</label>
@@ -2752,6 +2755,7 @@
 <script src="js/ficheiros.js"></script>
 <script src="js/visualizacao.js"></script>
 <script src="js/utils.js"></script>
+<script src="js/meus-modelos.js"></script>
 <script src="js/zonas.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/calc-widget.js"></script>
@@ -3196,6 +3200,10 @@
   var PROJECTORS_DATA = [];
   var LED_TILES_DATA = [];
   var TVS_DATA = [];
+  // O catálogo da casa, tal como vem do ficheiro. TVS_DATA é ele mais os
+  // modelos acrescentados -- e sem o guardar à parte não havia como refazer
+  // essa soma sem voltar a ler o ficheiro.
+  var TVS_CATALOGO = [];
   var PROCESSORS_DATA = { switchers: [], ledProcessors: [] };
   var BITS_PER_PIXEL = { "8": 24, "10": 48, "12": 48 };
   var USABLE_BPS = 930000000;
@@ -7419,7 +7427,14 @@
       delayCount: fieldVal("proj-delay-count"), delayRes: fieldVal("proj-delay-res"), delayW: fieldVal("proj-delay-w"), delayH: fieldVal("proj-delay-h"),
       refresh: fieldVal("proj-refresh"), colordepth: fieldVal("proj-colordepth"),
       selectedSwitchers: Array.from(selectedSwitcherKeys),
-      selectedLedProcs: Array.from(selectedLedProcKeys)
+      selectedLedProcs: Array.from(selectedLedProcKeys),
+      // OS MODELOS ACRESCENTADOS VIAJAM COM O PROJETO.
+      //
+      // Sem isto, um .cal aberto noutro computador trazia o nome de uma TV
+      // que esse browser não conhece -- e a lista caía em "Personalizado…"
+      // calada, com a medida certa e o modelo perdido. São poucos e pequenos;
+      // o ficheiro passa a bastar-se a si próprio.
+      modelosMeus: window.meusModelos ? { tv: window.meusModelos.ler("tv") } : null
     };
   }
 
@@ -7866,6 +7881,13 @@
   // branco (ledUseZones:false) nunca mexe na lista de zonas, que é
   // independente do projeto.
   function applyProjState(state) {
+    // PRIMEIRO os modelos que o ficheiro traz, e só depois os campos: um
+    // campo que aponta a um modelo ainda não conhecido cai em
+    // "Personalizado…" e o nome perde-se antes de alguém dar por ela.
+    if (state.modelosMeus && window.meusModelos) {
+      var entraram = window.meusModelos.importar("tv", state.modelosMeus.tv);
+      if (entraram && window.recarregarTVs) window.recarregarTVs();
+    }
     setFieldVal("proj-nome", state.nome);
     setFieldVal("proj-data-inicio", state.dataInicio);
     setFieldVal("proj-data-fim", state.dataFim);
@@ -8495,6 +8517,152 @@
   var projDsmTvModelSel = document.getElementById("proj-dsm-tvmodel");
   var projDelayTvModelSel = document.getElementById("proj-delay-tvmodel");
   var vTvModelSel = document.getElementById("v-tvmodel");
+  var SELECTS_TV = [tvModelSel, projDsmTvModelSel, projDelayTvModelSel, vTvModelSel];
+
+  /**
+   * AS QUATRO LISTAS DE TVs, escritas de uma vez.
+   *
+   * Existia como um bloco solto dentro da carga dos dados, e chegava
+   * enquanto o catálogo só vinha de um ficheiro. Deixou de chegar no dia em
+   * que um modelo pode nascer a meio da sessão (*"adicionar a lista se não
+   * existir"*): as quatro listas têm de se poder reescrever a qualquer
+   * momento, e a partir do mesmo sítio — senão ficam a discordar sobre o
+   * que existe.
+   */
+  function preencherSelectsTV(escolher) {
+    var ordem = stockFirstIndices(TVS_DATA);
+    SELECTS_TV.forEach(function (sel) {
+      var antes = sel.value;
+      // Tudo fora menos o "Personalizado…", que é o último e não vem dos
+      // dados -- o addOption() insere sempre antes dele.
+      while (sel.options.length > 1) sel.remove(0);
+      ordem.forEach(function (i) {
+        var t = TVS_DATA[i];
+        var etiqueta = t.modelo + ' — ' + t.diag + '"' + (t.touchscreen ? " touchscreen" : "") +
+          (t.meu ? " · meu" : "");
+        // `skipMarketTag` nos meus: "(mercado)" seria mentira — não é do
+        // mercado nem do inventário, é de quem o acrescentou.
+        addOption(sel, String(i), etiqueta, false, i, !t.mercado && !t.meu, !!t.meu);
+        if (t.meu) {
+          var opt = sel.options[sel.options.length - 2];
+          opt.style.color = COR_MODELO_MEU;
+          opt.style.fontWeight = "600";
+        }
+      });
+      var novoValor = escolher != null ? String(escolher) : antes;
+      if (novoValor != null && [].some.call(sel.options, function (o) { return o.value === novoValor; })) {
+        sel.value = novoValor;
+      }
+      updateSelectStockColor(sel);
+    });
+  }
+  var COR_MODELO_MEU = "#0F8A6A";
+
+  /**
+   * TVS_DATA = o inventário da casa MAIS o que se acrescentou aqui.
+   *
+   * Numa função só, porque isto passou a acontecer em três momentos: ao
+   * carregar os dados, ao acrescentar um modelo, e ao abrir um projeto que
+   * traz modelos que este browser não conhecia. Três cópias desta soma
+   * acabariam a discordar.
+   */
+  function recarregarTVs(escolherModelo) {
+    TVS_DATA = TVS_CATALOGO.concat(window.meusModelos ? window.meusModelos.ler("tv") : []);
+    var idx = null;
+    if (escolherModelo) {
+      var i = TVS_DATA.findIndex(function (t) { return t.modelo === escolherModelo; });
+      if (i >= 0) idx = i;
+    }
+    preencherSelectsTV(idx);
+    return idx;
+  }
+  window.recarregarTVs = recarregarTVs;
+
+  // A caixa da pesquisa passa a saber duas coisas: que esta lista aceita
+  // modelos novos, e o que fazer depois de um entrar.
+  SELECTS_TV.forEach(function (sel) {
+    // A cor do stock segue a escolha; ligada uma vez só, e não a cada
+    // reescrita da lista -- ouvintes a acumular são fugas em câmara lenta.
+    wireStockColor(sel);
+    sel.dataset.acrescentar = "tv";
+    sel._modelSearchEscolher = function (modelo) {
+      // O modelo acabou de ser guardado, mas ainda não está em TVS_DATA --
+      // é esta linha que o traz para dentro da app.
+      var i = recarregarTVs(modelo.modelo);
+      if (i == null) return;
+      sel.value = String(i);
+      updateSelectStockColor(sel);
+      // O "change" é o que enche a diagonal, o formato e a resolução: um
+      // modelo acrescentado e não aplicado deixava a conta como estava.
+      sel.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+  });
+
+  /**
+   * A LINHA DO MODELO QUE É TEU.
+   *
+   * Um modelo acrescentado não é como os do catálogo: pode estar errado (foi
+   * escrito à mão), pode deixar de fazer falta, e pode valer para toda a
+   * gente. Por isso tem aqui as duas coisas que só a ele dizem respeito —
+   * mandá-lo para o catálogo da app, e tirá-lo da lista.
+   *
+   * "Copiar para o catálogo" dá a linha exacta do `data/tvs.json`. Quem a
+   * mandar, entra ela no catálogo com a fonte anotada, e a partir daí é de
+   * toda a gente em vez de ficar num browser só.
+   */
+  function mostrarLinhaDoModeloMeu() {
+    var caixa = document.getElementById("tv-model-meu");
+    if (!caixa) return;
+    var idx = parseInt(tvModelSel.value, 10);
+    var m = !isNaN(idx) ? TVS_DATA[idx] : null;
+    if (!m || !m.meu) { caixa.hidden = true; caixa.innerHTML = ""; return; }
+    // A mesma cor no nome escolhido: o roxo diz "é da casa", este verde diz
+    // "é teu". Sem cor nenhuma, um modelo acrescentado lia-se como do
+    // mercado, que é a única das três coisas que ele não é.
+    tvModelSel.style.color = COR_MODELO_MEU;
+    tvModelSel.style.fontWeight = "600";
+    caixa.hidden = false;
+    caixa.innerHTML =
+      '<span class="modelo-meu-nota">Acrescentado por ti' +
+      (m.acrescentadoEm ? " em " + m.acrescentadoEm : "") +
+      (m.fonte ? "" : " — <b>sem fonte</b>") + "</span>" +
+      '<button type="button" class="copy" id="tv-meu-copiar">Copiar para o catálogo</button>' +
+      '<button type="button" class="copy" id="tv-meu-remover">Remover da lista</button>';
+    document.getElementById("tv-meu-copiar").addEventListener("click", function (e) {
+      var btn = e.currentTarget;
+      var linha = window.meusModelos.linhaDeCatalogo(m);
+      var feito = function () {
+        btn.textContent = "Copiado ✓ — manda-mo";
+        setTimeout(function () { btn.textContent = "Copiar para o catálogo"; }, 2500);
+      };
+      // Fora de HTTPS (ou sem permissão) não há área de transferência: aí
+      // mostra-se a linha para se copiar à mão, em vez de falhar calado.
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(linha).then(feito).catch(function () { window.prompt("Copia esta linha:", linha); });
+      } else {
+        window.prompt("Copia esta linha:", linha);
+      }
+    });
+    document.getElementById("tv-meu-remover").addEventListener("click", function () {
+      window.meusModelos.remover("tv", m.modelo);
+      tvModelSel.value = "custom";
+      recarregarTVs();
+      calcTV();
+    });
+  }
+
+  // O que a app já sabe do ecrã, para não obrigar a escrever duas vezes o
+  // mesmo número. Não é adivinhar a ficha: é o que ESTA pessoa escreveu há
+  // dez segundos nos campos ao lado.
+  window.sugestoesParaModeloNovo = function (tipo) {
+    if (tipo !== "tv") return {};
+    var diag = document.getElementById("tv-diag");
+    var ratio = document.getElementById("tv-ratio");
+    return {
+      diag: diag && diag.value ? diag.value : "",
+      ratio: ratio ? ratio.value : ""
+    };
+  };
 
   tvModelSel.addEventListener("change", function () {
     if (tvModelSel.value === "custom") return;
@@ -8537,6 +8705,7 @@
     var w = h * r;
 
     updateSourceHint(tvModelSel, TVS_DATA, "tv-model-source", true);
+    mostrarLinhaDoModeloMeu();
     document.getElementById("tv-out-w").innerHTML = fmt(w, 2) + "<small>m</small>";
     document.getElementById("tv-out-h").innerHTML = fmt(h, 2) + "<small>m</small>";
 
@@ -8820,15 +8989,14 @@
     // Quem escolhe uma cabine na lista continua a receber as medidas dela, que
     // é o que a escolha quer dizer -- ver o "change" do l-model.
 
-    var tvOrder = stockFirstIndices(tvs);
-    [tvModelSel, projDsmTvModelSel, projDelayTvModelSel, vTvModelSel].forEach(function (sel) {
-      tvOrder.forEach(function (i) {
-        var t = tvs[i];
-        addOption(sel, String(i), t.modelo + ' — ' + t.diag + '"' + (t.touchscreen ? " touchscreen" : ""), false, i, !t.mercado);
-      });
-      wireStockColor(sel);
-      updateSelectStockColor(sel);
-    });
+    // OS MODELOS ACRESCENTADOS ENTRAM AQUI, no fim do catálogo da casa.
+    //
+    // No fim, e não misturados: o `value` de cada opção é o ÍNDICE em
+    // TVS_DATA, e o que está guardado no browser não pode empurrar os
+    // índices do inventário -- um projeto antigo guarda o nome, mas a
+    // escolha no ecrã guarda o número.
+    TVS_CATALOGO = tvs;
+    recarregarTVs();
 
     lenses.sort(function (a, b) { return a.marca.localeCompare(b.marca) || a.min - b.min; });
     LENTES_DATA = lenses;

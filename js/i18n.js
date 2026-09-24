@@ -581,6 +581,7 @@
     "Escolhe um modelo do inventário da AVK para preencher o formato e a diagonal abaixo.": "Choose a model from the AVK inventory to fill in the aspect ratio and diagonal below.",
     "Estes modelos também ficam disponíveis para escolher nos ecrãs DSM/delay da aba Projeto, e como atalho na aba Distância de Visualização.": "These models are also available to choose from on the Project tab's DSM/delay screens, and as a shortcut on the Viewing Distance tab.",
     "Inventário da AVK — escolher preenche a diagonal (e a resolução, quando confirmada) abaixo.": "AVK inventory — choosing one fills in the diagonal (and the resolution, when confirmed) below.",
+    "Inventário da AVK — escolher preenche a diagonal (e a resolução, quando confirmada) abaixo. O que a lista não tiver, acrescenta-se ao procurar.": "AVK inventory — choosing one fills in the diagonal (and the resolution, when confirmed) below. Whatever the list is missing can be added while searching.",
     "Inventário da AVK — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.": "AVK inventory — fills in the resolution when confirmed; if it doesn't have one, adjust it by hand below.",
     "não confirmada": "not confirmed",
 

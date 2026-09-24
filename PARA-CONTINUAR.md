@@ -14,6 +14,61 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 24 de setembro — acrescentar à lista o que ela não tem (v4.16)
+
+> *"a pesquisa auto não será para popups mas sim para adicionar a lista se
+> não existir"*.
+
+**Correcção de rumo, e certa.** As v4.14/v4.15 faziam a procura no mercado
+sair sozinha. Um separador do Google resolve a curiosidade e não resolve o
+trabalho: no fim daquilo a lista continua sem a TV, e na montagem seguinte
+volta tudo ao mesmo. O automatismo saiu inteiro — constantes, relógio,
+interruptor, avisos de estado. Fica o que estava por baixo e continua a
+valer: a pesquisa por palavras (v4.13), o recado a dizer qual é a palavra que
+a lista não conhece, e o link para o mercado **a pedido** (toque ou Enter),
+que agora serve para ir buscar a ficha que enche o formulário.
+
+**A regra da casa manda no desenho todo:** *"nunca inventar dados técnicos —
+só valores reais, com fonte"*. Por isso a app **não** vai buscar a ficha a
+lado nenhum nem a adivinha (era a outra opção em cima da mesa, e foi
+recusada). Abre um formulário, e quem escreve os números é quem tem o
+equipamento à frente.
+
+Escolhido com ele: **formulário preenchido por ti**, a viver **neste
+dispositivo + dentro do projeto**, e **só TVs para já**.
+
+**O que o formulário faz, e o que recusa:**
+
+- nasce com o nome que se escreveu e com a **diagonal e o formato que já
+  estavam na aba** — ninguém escreve o mesmo número duas vezes;
+- recusa sem nome, sem diagonal, e **com meia resolução**: um lado escrito e
+  o outro em branco não é uma resolução, é um engano à espera;
+- a resolução em branco é aceite de propósito — a app diz "não confirmada",
+  que é melhor do que um número inventado;
+- o campo da **fonte** existe para separar uma medida de um palpite, e fica
+  agarrado ao modelo (aparece o "Referenciado ↗" como nos do catálogo).
+
+**Onde vive, e porque não é o `data/tvs.json`:** o catálogo é o inventário da
+AVK e está no repositório — uma app estática não lhe pode escrever, e não
+devia. O que se acrescenta fica no browser, entra nas **quatro** listas de
+TVs marcado como **· meu** (a verde: nem o roxo do stock, nem "(mercado)",
+que seria mentira), e **viaja dentro do `.cal`** — um projeto aberto noutro
+computador traz o modelo com ele em vez de cair em "Personalizado…" calado.
+Na importação não pisa o que já cá estava: quem corrigiu um número à mão não
+o quer desfeito por um ficheiro de ontem.
+
+**E tem saída para toda a gente:** com um modelo teu escolhido, a aba mostra
+*"Acrescentado por ti"* com **Copiar para o catálogo** — dá a linha exacta do
+`data/tvs.json`, sem o `meu`, pronta a entrar aqui com a fonte anotada.
+
+`scripts/verificar-modelo-novo.mjs` substitui o `verificar-regra-do-mercado`
+(que media uma coisa que já não existe): mede que **nada abre sozinho** (três
+segundos parado, zero separadores), o formulário pré-preenchido, as três
+recusas, a entrada nas quatro listas com a marca certa, a conta a sair
+(1,22 m de largura), a fonte, a sobrevivência ao recarregar, a viagem dentro
+do `.cal` **com a prova de que um browser limpo não o conhece antes de o
+abrir**, a linha do catálogo, e o Enter a continuar a levar ao mercado.
+
 ## 24 de setembro — o aviso de que está a procurar (v4.15)
 
 > *"adiciona um aviso de que está a procurar"*.
