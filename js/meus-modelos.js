@@ -95,10 +95,30 @@
    * marca-o como deduzido e não escrito à mão, para a app o poder dizer e
    * para o "Copiar para o catálogo" não o mandar como se fosse ficha.
    */
+  /**
+   * UMA MARCA NÃO É UM MODELO.
+   *
+   * Reportado com uma foto da lista a mostrar «Xiaomi — 55" · meu»: *"e
+   * remover isto"*. E tinha toda a razão — «Xiaomi» é um fabricante, não um
+   * ecrã. Aconteceu porque a app, ao não achar número nenhum no que estava
+   * escrito, ia buscar a diagonal que estava na aba e dava a coisa por
+   * resolvida. Uma pausa a meio de escrever a marca chegava para criar uma
+   * entrada que não serve para nada e fica lá para sempre.
+   *
+   * A regra que separa as duas coisas, e é simples: um modelo tem SEMPRE um
+   * número. Ou o tamanho ("Xiaomi 55"), ou a referência do fabricante
+   * ("Samsung TU55DU7105K", "LG 86UK6500PLA"). Uma palavra sem um único
+   * algarismo é uma marca — e por uma marca não se acrescenta nada, nem se
+   * gasta uma procura na web.
+   */
+  function temNumero(texto) {
+    return /\d/.test(String(texto || ""));
+  }
+
   function acrescentarAutomatico(tipo, texto, sugestoes) {
     if (tipo !== "tv") return null;
     var nome = String(texto || "").trim();
-    if (!nome) return null;
+    if (!nome || !temNumero(nome)) return null;
     var s = sugestoes || {};
     var diag = diagonalNoTexto(nome);
     var deOnde = "nome";
@@ -154,6 +174,8 @@
 
   function procurarNaWeb(tipo, texto, aoFim) {
     if (tipo !== "tv" || !navigator.onLine) { aoFim(null, "sem rede"); return; }
+    // Procurar a ficha técnica de «Xiaomi» não devolve nada e custa dinheiro.
+    if (!temNumero(texto)) { aoFim(null, "falta o modelo"); return; }
     var chave = tipo + "|" + normalizeSearch(texto);
     if (Object.prototype.hasOwnProperty.call(jaPerguntado, chave)) {
       var antes = jaPerguntado[chave];
@@ -387,11 +409,35 @@
     });
   }
 
+  /**
+   * AS MARCAS SOLTAS QUE JÁ FICARAM NA LISTA.
+   *
+   * Uma regra nova não desfaz o que a antiga já escreveu. Isto apaga, à
+   * entrada, só o que a app criou sozinha e não serve para nada: sem número
+   * no nome, marcado como automático, sem resolução e sem fonte. Um modelo
+   * que alguém completou à mão, ou que veio da web, tem sempre uma dessas
+   * coisas — e não é tocado.
+   */
+  function limparMarcasSoltas(tipo) {
+    var lista = ler(tipo);
+    var fica = lista.filter(function (m) {
+      if (!m || !m.auto) return true;            // escrito à mão ou vindo da web
+      if (m.resolucao || m.fonte) return true;   // alguém completou a ficha
+      return temNumero(m.modelo);
+    });
+    if (fica.length !== lista.length) escrever(tipo, fica);
+    return lista.length - fica.length;
+  }
+
+  // À entrada, uma vez. Antes de qualquer lista ser desenhada.
+  try { limparMarcasSoltas("tv"); } catch (_) {}
+
   window.meusModelos = {
     ler: ler, acrescentar: acrescentar, remover: remover,
     importar: importar, linhaDeCatalogo: linhaDeCatalogo,
     diagonalNoTexto: diagonalNoTexto, acrescentarAutomatico: acrescentarAutomatico,
-    procurarNaWeb: procurarNaWeb, acrescentarDaWeb: acrescentarDaWeb
+    procurarNaWeb: procurarNaWeb, acrescentarDaWeb: acrescentarDaWeb,
+    temNumero: temNumero, limparMarcasSoltas: limparMarcasSoltas
   };
   window.pedirModeloNovo = pedirModeloNovo;
 })();

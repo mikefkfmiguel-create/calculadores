@@ -323,6 +323,9 @@ function lzAttachModelSearch(select) {
     if (!tipo) return;
     var raw = input.value.trim();
     if (raw.length < 3) return;
+    // Sem um número no que está escrito não há modelo nenhum para
+    // acrescentar -- nem vale a pena armar o relógio.
+    if (window.meusModelos.temNumero && !window.meusModelos.temNumero(raw)) return;
     relogioAuto = setTimeout(function () {
       relogioAuto = null;
       if (input.value.trim() !== raw) return;
@@ -468,10 +471,14 @@ function lzAttachModelSearch(select) {
             ? "Cada palavra existe, mas nenhum modelo as junta todas"
             : "Não encontrei nada na lista");
 
+      // SÓ UMA MARCA ESCRITA. "Xiaomi" não é um ecrã, e a app deixou de
+      // fingir que era (ver a nota em meus-modelos.js): não acrescenta, não
+      // procura, e diz o que falta -- que é o tamanho ou a referência.
+      var soMarca = !!tipo && !window.meusModelos.temNumero(raw);
       // Falta a diagonal? É a única coisa que a app não consegue deduzir
       // sozinha, e por isso é a única que ainda se pergunta -- um campo, não
       // um formulário.
-      var faltaDiagonal = !!tipo &&
+      var faltaDiagonal = !soMarca && !!tipo &&
         window.meusModelos.diagonalNoTexto(raw) == null &&
         !(parseFloat((sugestoesDaAba(tipo) || {}).diag) > 0);
 
@@ -482,9 +489,16 @@ function lzAttachModelSearch(select) {
             '<div class="inputgroup mm-falta-campo"><input type="number" class="model-diag" ' +
             'inputmode="decimal" min="1" step="0.5" placeholder="55"><span class="unit">polegadas</span></div>' +
             '<button type="button" class="copy model-add">Acrescentar</button>' + linkMercado + "</div>"
-          : (tipo
-              ? ' <span class="hint">— vou procurar na web e acrescentar sozinho…</span>'
-              : ' — ' + linkMercado + ' <span class="hint">(ou Enter)</span>'));
+          : (soMarca
+              // O link para o mercado fica: quem só sabe a marca é
+              // exactamente quem precisa de ir ver que modelos ela tem.
+              ? '<p class="mm-falta">' + aspas(escapeXml(raw)) + ' é uma marca, não um modelo. ' +
+                'Escreve também o tamanho ou a referência — ' +
+                aspas(escapeXml(raw + " 55")) + ' — e trato do resto.</p>' +
+                '<div class="model-add-linha">' + linkMercado + "</div>"
+              : (tipo
+                  ? ' <span class="hint">— vou procurar na web e acrescentar sozinho…</span>'
+                  : ' — ' + linkMercado + ' <span class="hint">(ou Enter)</span>')));
 
       if (faltaDiagonal) {
         var campoDiag = noResult.querySelector(".model-diag");
