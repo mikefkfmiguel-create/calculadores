@@ -14,6 +14,32 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 24 de setembro — o aviso de que está a procurar (v4.15)
+
+> *"adiciona um aviso de que está a procurar"*.
+
+A regra da v4.14 dispara sozinha — e uma coisa que acontece sozinha e em
+silêncio é indistinguível de uma avaria. Um separador que aparece do nada,
+sem nada na app a dizer que foi ela, é exactamente isso. Agora a caixa tem
+uma linha própria a dizer o que se passa:
+
+- **enquanto o relógio conta** (os 1,2 s): *A procurar «Xiaomi tv» no
+  mercado…* com os três pontos a andar, e *(escreve mais para parar)* — o
+  aviso também é o travão: quem o vê sabe que ainda vai a tempo;
+- **depois de abrir**: *Procura aberta num separador novo ↗*, porque no
+  telemóvel, com os olhos no teclado, um separador novo não se vê;
+- **quando o browser recusa**: continua a dizer-se, como na v4.14.
+
+Linha própria e não mais um parêntesis no meio do texto: é a única parte da
+caixa que **muda sozinha**, e o que muda sozinho tem de se ver a mudar. Com o
+aviso à vista, o parêntesis que explica a regra cala-se — o que está a
+acontecer manda sobre o que costuma acontecer.
+
+**O aviso sai sempre que a procura deixa de estar de pé:** escrever mais uma
+letra, largar o campo, escolher um modelo da lista, ou a regra abortar no
+último instante. Um *"vou procurar"* pendurado que nunca procura é pior do
+que aviso nenhum — é uma asserção a mais no teste, e foi de propósito.
+
 ## 24 de setembro — a regra da procura no mercado (v4.14)
 
 > *"monta uma regra para quando devolve não encontrado disparar uma procura

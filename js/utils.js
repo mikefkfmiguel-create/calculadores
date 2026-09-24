@@ -325,9 +325,25 @@ function lzAttachModelSearch(select) {
   var relogioMercado = null;
   var jaDisparado = null;
   var bloqueado = false;
+  // O QUE A CAIXA ESTÁ A FAZER, para se poder dizer: "" (nada), "a-vir" (o
+  // relógio a contar o silêncio antes de disparar) ou "aberto" (já foi).
+  //
+  // Pedido: *"adiciona um aviso de que está a procurar"*. Uma coisa que
+  // acontece sozinha e em silêncio é indistinguível de uma avaria -- e um
+  // separador que aparece do nada, sem nada na app a dizer que foi ela, é
+  // exactamente isso. O aviso também serve de travão: quem o vê a contar
+  // sabe que pode escrever mais uma letra, ou desligar, antes de abrir.
+  var estadoMercado = "";
+
+  function porEstado(novo) {
+    if (estadoMercado === novo) return;
+    estadoMercado = novo;
+    applyFilter();
+  }
 
   function desarmarMercado() {
     if (relogioMercado) { clearTimeout(relogioMercado); relogioMercado = null; }
+    if (estadoMercado === "a-vir") porEstado("");
   }
 
   // O disparo em si. `porGesto` é verdade quando foi um toque ou o Enter —
@@ -336,9 +352,15 @@ function lzAttachModelSearch(select) {
     if (!noResultUrl) return false;
     jaDisparado = input.value.trim();
     var abriu = abrirNoMercado(noResultUrl);
-    if (!abriu && !porGesto) {
+    if (abriu) {
+      // Dizer que foi aberta, e onde: um separador novo não se vê quando se
+      // está a olhar para o teclado do telemóvel.
+      bloqueado = false;
+      porEstado("aberto");
+    } else if (!porGesto) {
       // O browser recusou. Dizer-se, e deixar o botão: um toque abre.
       bloqueado = true;
+      porEstado("");
       applyFilter();
     }
     return abriu;
@@ -346,17 +368,24 @@ function lzAttachModelSearch(select) {
 
   function armarMercado() {
     desarmarMercado();
-    if (!mercadoAutoLigado()) return;
     var raw = input.value.trim();
+    // `noResultUrl` a null quer dizer que a lista TEM o que se procura: aí
+    // não há aviso nenhum a dar, nem procura a armar.
+    if (!mercadoAutoLigado() || !noResultUrl) return;
     if (!vaiAoMercado(raw) || raw === jaDisparado) return;
+    porEstado("a-vir");
     relogioMercado = setTimeout(function () {
       relogioMercado = null;
       // Voltar a confirmar tudo no momento de disparar: em 1,2 s a pessoa
-      // pode ter apagado, escolhido um modelo, ou saído do campo.
-      if (!noResultUrl) return;
-      if (document.activeElement !== input) return;
+      // pode ter apagado, escolhido um modelo, ou saído do campo. Em
+      // qualquer desses casos o aviso tem de SAIR -- um "vou procurar" que
+      // fica pendurado sem nunca procurar é pior do que aviso nenhum.
       var agora = input.value.trim();
-      if (agora !== raw || !vaiAoMercado(agora) || agora === jaDisparado) return;
+      if (!noResultUrl || document.activeElement !== input ||
+          agora !== raw || !vaiAoMercado(agora) || agora === jaDisparado) {
+        porEstado("");
+        return;
+      }
       irAoMercado(false);
     }, MERCADO_ESPERA_MS);
   }
@@ -391,14 +420,29 @@ function lzAttachModelSearch(select) {
       // A REGRA À VISTA, e desligável onde acontece. Um interruptor escondido
       // numas definições, para uma coisa que só aparece aqui, era a pessoa a
       // ter de adivinhar onde se muda o que a incomodou.
+      // Com o aviso do estado à vista, o parêntesis que explica a regra
+      // cala-se: o que está a acontecer manda sobre o que costuma acontecer.
       var aviso = bloqueado
         ? ' <span class="hint">(o browser não deixou abrir sozinho — toca)</span>'
-        : (mercadoAutoLigado()
-            ? ' <span class="hint">(abre sozinho, ou Enter)</span>'
-            : ' <span class="hint">(ou Enter)</span>');
+        : (estadoMercado
+            ? ""
+            : (mercadoAutoLigado()
+                ? ' <span class="hint">(abre sozinho, ou Enter)</span>'
+                : ' <span class="hint">(ou Enter)</span>'));
+      // O AVISO DO QUE ESTÁ A ACONTECER. Uma linha própria, e não mais um
+      // parêntesis no meio do texto: é a única parte desta caixa que MUDA
+      // sozinha, e o que muda sozinho tem de se ver a mudar.
+      var estado = "";
+      if (estadoMercado === "a-vir") {
+        estado = '<p class="mercado-estado a-procurar">A procurar ' +
+          aspas(escapeXml(raw)) + ' no mercado<span class="pontos">…</span>' +
+          '<span class="hint">(escreve mais para parar)</span></p>';
+      } else if (estadoMercado === "aberto") {
+        estado = '<p class="mercado-estado aberta">Procura aberta num separador novo ↗</p>';
+      }
       noResult.innerHTML = porque +
         ' — <a class="srclink" href="' + noResultUrl + '" target="_blank" rel="noopener">procurar "' +
-        escapeXml(raw) + '" no mercado ↗</a>' + aviso +
+        escapeXml(raw) + '" no mercado ↗</a>' + aviso + estado +
         '<label class="mercado-auto"><input type="checkbox" class="mercado-auto-caixa"' +
         (mercadoAutoLigado() ? " checked" : "") + '> abrir sozinha a procura</label>';
       var caixa = noResult.querySelector(".mercado-auto-caixa");
@@ -416,6 +460,7 @@ function lzAttachModelSearch(select) {
     } else {
       noResultUrl = null;
       bloqueado = false;
+      estadoMercado = "";
       desarmarMercado();
       noResult.style.display = "none";
     }
@@ -424,6 +469,9 @@ function lzAttachModelSearch(select) {
 
   input.addEventListener("input", function () {
     bloqueado = false;
+    // Escrever apaga o aviso da procura anterior: ele fala do que está
+    // escrito, e o que está escrito acabou de mudar.
+    estadoMercado = "";
     applyFilter();
     // Cada tecla volta a pôr o relógio a zero: a regra conta o SILÊNCIO,
     // não o tempo desde que se começou a escrever.
