@@ -385,6 +385,170 @@ async function travaDeGasto(request, env) {
   return null;
 }
 
+// --------------------------------------------- a ficha de um modelo
+//
+// *"se escrever «xiripiti» no campo da marca e a lista devolver «não
+// encontrado», dispara procura na web/mercado para adicionar
+// automaticamente"*.
+//
+// PORQUE É QUE ISTO VIVE AQUI e não na app: uma página estática não pode
+// pesquisar na web (não há chave, não há CORS, e uma chave num ficheiro que
+// o GitHub Pages serve é uma chave pública). Aqui já há a chave e já há a
+// trava de gasto, que é a mesma do Assistente.
+//
+// A REGRA DA CASA — *"nunca inventar dados técnicos, só valores reais com
+// fonte"* — é o desenho desta rota, não um aviso no fim:
+//
+//   1. o modelo PROCURA MESMO (web_search corre do lado da Anthropic);
+//   2. a resposta tem de trazer o endereço da página de onde tirou os
+//      números;
+//   3. e essa página tem de estar entre as que a pesquisa devolveu. Um
+//      endereço que o modelo escreveu de cabeça não passa neste crivo —
+//      é a diferença entre uma ficha e um palpite, e é verificável;
+//   4. sem fonte que passe, isto devolve "não encontrei". A app fica com a
+//      geometria que já sabia fazer sozinha, e ninguém escreve um número
+//      inventado numa folha de produção.
+//
+// `web_search_20250305` e não a versão nova: a variante com filtragem
+// dinâmica (`_20260209`) pede um modelo 4.6+, e este Worker corre em Haiku
+// 4.5 por ser o que chega e o que é barato.
+const PESQUISA_WEB = { type: "web_search_20250305", name: "web_search", max_uses: 4 };
+
+const RACIOS_ACEITES = ["16:9", "16:10", "21:9", "4:3", "32:9"];
+
+/** Só os endereços que a pesquisa devolveu mesmo. */
+function fontesDaPesquisa(content) {
+  const urls = [];
+  (content || []).forEach((bloco) => {
+    if (bloco.type !== "web_search_tool_result") return;
+    // Um erro da ferramenta vem como OBJECTO em vez de lista (por exemplo
+    // {error_code:"max_uses_exceeded"}) e não levanta excepção nenhuma --
+    // sem este teste, o .forEach rebentava calado.
+    if (!Array.isArray(bloco.content)) return;
+    bloco.content.forEach((r) => { if (r && r.url) urls.push(r.url); });
+  });
+  return urls;
+}
+
+function mesmoSitio(a, b) {
+  try {
+    const ha = new URL(a).hostname.replace(/^www\./, "");
+    const hb = new URL(b).hostname.replace(/^www\./, "");
+    return ha === hb;
+  } catch (_) { return false; }
+}
+
+function textoDe(content) {
+  return (content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
+}
+
+/** O JSON que vem no meio do texto, sem partir se vier prosa à volta. */
+function jsonDoTexto(texto) {
+  const i = texto.indexOf("{");
+  const f = texto.lastIndexOf("}");
+  if (i < 0 || f <= i) return null;
+  try { return JSON.parse(texto.slice(i, f + 1)); } catch (_) { return null; }
+}
+
+async function fichaDeModelo(request, env, origin, ctx) {
+  const cors = { "Content-Type": "application/json", ...corsHeaders(origin) };
+  if (!env.ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ ok: false, motivo: "Worker sem chave de API." }), { status: 200, headers: cors });
+  }
+  let body;
+  try { body = await request.json(); } catch (_) { body = null; }
+  const q = (body && typeof body.q === "string" ? body.q : "").trim();
+  const tipo = (body && body.tipo) || "tv";
+  if (q.length < 3 || q.length > 120 || tipo !== "tv") {
+    return new Response(JSON.stringify({ ok: false, motivo: "Pedido sem modelo para procurar." }), { status: 200, headers: cors });
+  }
+
+  const travado = await travaDeGasto(request, env);
+  if (travado) return new Response(travado.body, { status: travado.status, headers: cors });
+
+  const instrucoes =
+    "És um assistente de uma app de produção audiovisual. Procura na web a ficha técnica " +
+    "do televisor/monitor que o utilizador nomeia e devolve só o que a ficha disser.\n\n" +
+    "REGRAS, e são absolutas:\n" +
+    "- usa a ferramenta de pesquisa; não respondas de memória;\n" +
+    "- cada número tem de vir de uma página que abriste nesta pesquisa;\n" +
+    "- «fonte» é o endereço dessa página, preferindo a do fabricante;\n" +
+    "- o que não encontrares fica a null. Nunca estimes, nunca arredondes " +
+    "para o valor «habitual», nunca preenchas a resolução por ser o que " +
+    "esses tamanhos costumam ter;\n" +
+    "- se não encontrares o modelo, devolve {\"encontrado\": false}.\n\n" +
+    "Responde SÓ com JSON, sem texto à volta:\n" +
+    '{"encontrado": true, "modelo": "<nome como o fabricante o escreve>", ' +
+    '"diag": <polegadas>, "ratio": "16:9", ' +
+    '"resolucao": {"rx": <px>, "ry": <px>} ou null, ' +
+    '"touchscreen": true|false, "fonte": "<endereço>"}';
+
+  let res;
+  try {
+    res = await fetch(ANTHROPIC_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": ANTHROPIC_VERSION,
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1200,
+        system: instrucoes,
+        tools: [PESQUISA_WEB],
+        messages: [{ role: "user", content: "Ficha técnica de: " + q }],
+      }),
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ ok: false, motivo: "Não consegui chegar à pesquisa: " + e.message }), { status: 200, headers: cors });
+  }
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    return new Response(JSON.stringify({ ok: false, motivo: "A pesquisa devolveu erro (" + res.status + ")." , detalhe: txt.slice(0, 200) }), { status: 200, headers: cors });
+  }
+
+  const data = await res.json();
+  const procurou = fontesDaPesquisa(data.content);
+  const ficha = jsonDoTexto(textoDe(data.content));
+
+  if (!ficha || ficha.encontrado === false) {
+    return new Response(JSON.stringify({ ok: false, motivo: "Não encontrei ficha deste modelo.", procurou: procurou }), { status: 200, headers: cors });
+  }
+
+  // ---- O CRIVO. Nada sai daqui sem passar por isto ------------------
+  const diag = Number(ficha.diag);
+  if (!(diag >= 7 && diag <= 130)) {
+    return new Response(JSON.stringify({ ok: false, motivo: "A diagonal que veio não é de um ecrã (" + ficha.diag + ").", procurou: procurou }), { status: 200, headers: cors });
+  }
+  if (!procurou.length || !ficha.fonte || !procurou.some((u) => mesmoSitio(u, ficha.fonte))) {
+    // O caso que isto apanha: números certos, fonte escrita de cabeça. Sem
+    // página a sustentá-los, não valem mais do que um palpite -- e um
+    // palpite não entra numa ficha de produção.
+    return new Response(JSON.stringify({ ok: false, motivo: "Encontrei números mas sem fonte que os sustente.", procurou: procurou }), { status: 200, headers: cors });
+  }
+  const res_ = ficha.resolucao;
+  const resolucao = (res_ && Number(res_.rx) > 0 && Number(res_.ry) > 0)
+    ? { rx: Math.round(Number(res_.rx)), ry: Math.round(Number(res_.ry)) } : null;
+
+  const modelo = {
+    modelo: String(ficha.modelo || q).slice(0, 120),
+    diag: diag,
+    ratio: RACIOS_ACEITES.indexOf(ficha.ratio) >= 0 ? ficha.ratio : "16:9",
+    resolucao: resolucao,
+    touchscreen: !!ficha.touchscreen,
+    fonte: String(ficha.fonte).slice(0, 300),
+  };
+
+  if (env.REGISTOS && ctx) {
+    const registo = { quando: new Date().toISOString(), procuradoNaWeb: q, devolveu: modelo };
+    ctx.waitUntil(env.REGISTOS.put(registo.quando + "-" + crypto.randomUUID(), JSON.stringify(registo),
+      { expirationTtl: REGISTO_VALIDADE_SEGUNDOS }).catch(() => {}));
+  }
+
+  return new Response(JSON.stringify({ ok: true, modelo: modelo, procurou: procurou }), { status: 200, headers: cors });
+}
+
 // ------------------------------------------------------ contagem de uso
 //
 // PORQUÊ: o GitHub Pages não dá registos nenhuns, por isso até aqui não havia
@@ -1039,6 +1203,16 @@ export default {
       }
       return lerPartilha(url.pathname.slice("/partilha/".length), env, origin);
     }
+    if (url.pathname === "/modelo") {
+      if (request.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Método não suportado." }), {
+          status: 405,
+          headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+        });
+      }
+      return fichaDeModelo(request, env, origin, ctx);
+    }
+
     if (url.pathname === "/feedback") {
       if (request.method !== "POST") {
         return new Response(JSON.stringify({ error: "Método não suportado." }), {

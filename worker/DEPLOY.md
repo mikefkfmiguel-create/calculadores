@@ -100,6 +100,42 @@ setembro, na primeira publicação por CI: `200`, 5,1 s, com `larguraM: 6`,
 - Dois merges seguidos não se atropelam: o segundo espera pelo primeiro
   (`concurrency` no workflow).
 
+## A procura de modelos na web (`/modelo`)
+
+Desde a v4.18 dos Calculadores: quando se escreve um modelo que a lista não
+tem ("xiripiti 55"), a app pede a esta rota que **procure a ficha na web** e
+acrescenta-a sozinha.
+
+```
+POST /modelo   { "q": "xiripiti 55", "tipo": "tv" }
+→ { "ok": true,  "modelo": { modelo, diag, ratio, resolucao, touchscreen, fonte }, "procurou": [urls] }
+→ { "ok": false, "motivo": "…", "procurou": [urls] }
+```
+
+**O crivo é o que a torna utilizável numa ficha de produção.** Nada sai daqui
+sem passar por ele:
+
+- a pesquisa corre a sério (`web_search`, do lado da Anthropic) — não é
+  memória do modelo;
+- a `fonte` tem de ser **uma das páginas que a pesquisa devolveu**. Números
+  certos com um endereço escrito de cabeça são recusados, e é o caso mais
+  perigoso porque parece bem;
+- a diagonal tem de ser de um ecrã (7"–130"), o rácio tem de ser um dos
+  conhecidos, e a resolução só entra com os dois lados;
+- sem isso: `ok: false`. A app fica com a geometria que sabe fazer sozinha e
+  **ninguém escreve um número inventado**.
+
+Corre em `claude-haiku-4-5` com `web_search_20250305` (a variante com
+filtragem dinâmica pede um modelo 4.6+). **Custa**: uma chamada à API por
+procura, mais as pesquisas em si, que são faturadas à parte pela Anthropic.
+Leva a **mesma trava de gasto** do Assistente (`LIMITE_IA_POR_IP` /
+`LIMITE_IA_POR_DIA`) — as duas rotas partilham o mesmo contador diário, por
+isso subir o uso de uma reduz a outra. Do lado da app há ainda uma memória de
+sessão: o mesmo texto não é perguntado duas vezes.
+
+Testes: `node --test "worker/testes/modelo.test.mjs"` — nenhum deles gasta um
+cêntimo (a chamada à Anthropic é interceptada).
+
 ## A trava de gasto da IA
 
 O endereço deste Worker está publicado no `index.html` que o GitHub Pages

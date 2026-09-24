@@ -281,6 +281,11 @@ function lzAttachModelSearch(select) {
   // ficavam dois meios modelos na lista (medido).
   var ultimoAuto = null;
   var relogioAuto = null;
+  // O texto que está neste momento a ser procurado na web, e a razão por que
+  // a web não serviu da última vez. Os dois existem para a caixa poder dizer
+  // o que se passa: uma procura calada é indistinguível de uma app parada.
+  var aProcurarNaWeb = null;
+  var motivoDaWeb = null;
   // Escolher um modelo à mão limpa o campo da pesquisa (não faz sentido
   // continuar a filtrar o que já se escolheu). Mas quando é a APP a escolher
   // o que acabou de acrescentar, limpar o campo levava com ele o recado que
@@ -325,22 +330,45 @@ function lzAttachModelSearch(select) {
     }, 900);
   }
 
+  /**
+   * PRIMEIRO A WEB, DEPOIS A GEOMETRIA.
+   *
+   * A ordem é esta porque a web traz o que a app não consegue deduzir — a
+   * resolução daquele modelo, e o endereço da ficha que a sustenta. Só
+   * quando a web não responde (sem rede, Worker em baixo, modelo que
+   * ninguém publica) é que se cai no que a app sabe sozinha: a diagonal
+   * lida do nome, e a resolução por confirmar.
+   *
+   * Em obra sem rede a web nunca responde — e é exactamente por isso que
+   * ela nunca é o único caminho.
+   */
   function acrescentarSozinho(raw, tipo) {
-    var anterior = ultimoAuto;
-    var novo = window.meusModelos.acrescentarAutomatico(tipo, raw, sugestoesDaAba(tipo));
-    if (!novo) { autoFeito = null; applyFilter(); return; }   // falta a diagonal
-    // Substituir o que foi acrescentado há duas letras atrás, e não deixar os
-    // dois: só quando o novo é a continuação do anterior, porque aí é a mesma
-    // TV a ser escrita. Se a pessoa apagou tudo e escreveu outra coisa, são
-    // duas.
-    if (anterior && anterior.modelo !== novo.modelo &&
-        normalizeSearch(raw).indexOf(normalizeSearch(anterior.texto)) === 0) {
-      window.meusModelos.remover(tipo, anterior.modelo);
-    }
-    autoFeito = { modelo: novo.modelo, texto: raw, dados: novo };
-    ultimoAuto = autoFeito;
-    escolherNaLista(novo);
+    aProcurarNaWeb = raw;
+    motivoDaWeb = null;
     applyFilter();
+    window.meusModelos.procurarNaWeb(tipo, raw, function (ficha, porque) {
+      // Enquanto se procurava, a pessoa continuou a escrever: o que voltou é
+      // sobre outra coisa.
+      if (input.value.trim() !== raw) { aProcurarNaWeb = null; return; }
+      aProcurarNaWeb = null;
+      motivoDaWeb = ficha ? null : (porque || "não encontrei");
+      var novo = ficha
+        ? window.meusModelos.acrescentarDaWeb(tipo, ficha)
+        : window.meusModelos.acrescentarAutomatico(tipo, raw, sugestoesDaAba(tipo));
+      if (!novo) { autoFeito = null; applyFilter(); return; }   // falta a diagonal
+      // Substituir o que foi acrescentado há duas letras atrás, e não deixar
+      // os dois: só quando o novo é a continuação do anterior, porque aí é a
+      // mesma TV a ser escrita. Se a pessoa apagou tudo e escreveu outra
+      // coisa, são duas.
+      if (ultimoAuto && ultimoAuto.modelo !== novo.modelo &&
+          normalizeSearch(raw).indexOf(normalizeSearch(ultimoAuto.texto)) === 0) {
+        window.meusModelos.remover(tipo, ultimoAuto.modelo);
+      }
+      autoFeito = { modelo: novo.modelo, texto: raw, dados: novo };
+      ultimoAuto = autoFeito;
+      escolherNaLista(novo);
+      applyFilter();
+    });
   }
 
   function desfazerAuto() {
@@ -373,6 +401,16 @@ function lzAttachModelSearch(select) {
     var linkMercado = '<a class="srclink" href="' + noResultUrl +
       '" target="_blank" rel="noopener">conferir a ficha no mercado ↗</a>';
 
+    // ---- 0. A PROCURAR NA WEB ----------------------------------------
+    if (aProcurarNaWeb === raw) {
+      noResult.innerHTML =
+        '<p class="mm-feito a-procurar">A procurar ' + aspas(escapeXml(raw)) +
+        ' na web<span class="pontos">…</span></p>' +
+        '<p class="hint">Se não houver ficha, acrescento na mesma com a medida que der para saber.</p>';
+      noResult.style.display = "block";
+      return;
+    }
+
     // ---- 1. ACABEI DE ACRESCENTAR ISTO -------------------------------
     //
     // Tem de vir antes do "não há nada": depois de acrescentar, a lista TEM
@@ -380,15 +418,28 @@ function lzAttachModelSearch(select) {
     // fez nem deixar desfazer.
     if (autoFeito && autoFeito.texto === raw) {
       var d = autoFeito.dados;
+      // DE ONDE VIERAM OS NÚMEROS. É a única coisa que distingue uma ficha
+      // de um palpite, e por isso é a que se lê primeiro: da web com fonte,
+      // ou da geometria com a resolução por confirmar.
+      var sitio = "";
+      if (d.fonte) { try { sitio = new URL(d.fonte).hostname.replace(/^www\./, ""); } catch (_) { sitio = ""; } }
+      var comoSoube = d.daWeb
+        ? ", " + escapeXml(d.ratio) +
+          (d.resolucao ? ", " + d.resolucao.rx + "×" + d.resolucao.ry : ", resolução não publicada") +
+          (sitio ? " — encontrado em " + escapeXml(sitio) : "")
+        : ", " + escapeXml(d.ratio) + ", resolução por confirmar" +
+          (motivoDaWeb ? " (a web não deu: " + escapeXml(motivoDaWeb) + ")" : "");
       noResult.innerHTML =
         '<p class="mm-feito">Acrescentei ' + aspas(escapeXml(d.modelo)) + ' à lista ' +
         '<span class="hint">— ' + escapeXml(String(d.diag)) + '"' +
         (d.diagDe === "aba" ? " (a diagonal que estava na aba)" : "") +
-        ", " + escapeXml(d.ratio) + ", resolução por confirmar</span></p>" +
+        comoSoube + "</span></p>" +
         '<div class="model-add-linha">' +
         '<button type="button" class="copy model-desfazer">Desfazer</button>' +
         '<button type="button" class="copy model-ficha">Completar a ficha</button>' +
-        linkMercado + "</div>";
+        (d.fonte
+          ? '<a class="srclink" href="' + escapeXml(d.fonte) + '" target="_blank" rel="noopener">ver a ficha ↗</a>'
+          : linkMercado) + "</div>";
       noResult.querySelector(".model-desfazer").addEventListener("click", desfazerAuto);
       noResult.querySelector(".model-ficha").addEventListener("click", function () {
         window.pedirModeloNovo(tipo, d.modelo, function (m) {
@@ -432,7 +483,7 @@ function lzAttachModelSearch(select) {
             'inputmode="decimal" min="1" step="0.5" placeholder="55"><span class="unit">polegadas</span></div>' +
             '<button type="button" class="copy model-add">Acrescentar</button>' + linkMercado + "</div>"
           : (tipo
-              ? ' <span class="hint">— acrescento-a sozinho num instante…</span>'
+              ? ' <span class="hint">— vou procurar na web e acrescentar sozinho…</span>'
               : ' — ' + linkMercado + ' <span class="hint">(ou Enter)</span>'));
 
       if (faltaDiagonal) {
