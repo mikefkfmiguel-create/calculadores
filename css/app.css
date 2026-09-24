@@ -947,35 +947,56 @@
   }
   .model-search:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
   .model-search-noresult { margin-top: 6px; font-size: 12.5px; color: var(--ink-faint); }
-  /* O interruptor da procura automática vive dentro do próprio recado: é ali
-     que a coisa acontece, e é ali que se desliga. Em linha própria, e com
-     área de toque a sério — isto usa-se no telemóvel, em obra. */
-  .model-search-noresult .mercado-auto {
-    display: flex; align-items: center; gap: 7px;
-    margin-top: 6px; font-size: 12px; color: var(--ink-faint);
-    cursor: pointer; user-select: none; min-height: 28px;
+  /* O QUE SE PODE FAZER quando a lista não tem o modelo: acrescentá-lo. O
+     botão em linha própria, com área de toque a sério — isto usa-se em obra,
+     no telemóvel. */
+  .model-search-noresult .model-add-linha {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 7px;
   }
-  .model-search-noresult .mercado-auto input { width: 16px; height: 16px; margin: 0; }
-  /* O AVISO do que está a acontecer: é a única parte da caixa que muda
-     sozinha, e por isso tem linha e cor próprias. */
-  .model-search-noresult .mercado-estado {
-    margin: 6px 0 0; font-size: 12.5px; display: flex;
-    align-items: center; gap: 6px; flex-wrap: wrap;
+  .model-search-noresult .model-add { min-height: 32px; }
+
+  /* A linha de um modelo acrescentado: o que é dele, e os dois botões que
+     só a ele dizem respeito. */
+  .modelo-meu {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 6px; font-size: 12px;
   }
-  .model-search-noresult .mercado-estado.a-procurar { color: var(--accent, #4aa3ff); }
-  .model-search-noresult .mercado-estado.aberta { color: var(--ink-faint); }
-  /* Os três pontos a contar — mostram que a coisa está a decorrer, e não
-     parada à espera de um toque. Quem prefere o ecrã quieto (ou o sistema
-     pede menos movimento) continua a ler o texto todo na mesma. */
-  .model-search-noresult .mercado-estado .pontos {
-    animation: mercado-pontos 1.2s steps(4, end) infinite;
-    display: inline-block; overflow: hidden; vertical-align: bottom;
-    width: 1.1em; white-space: nowrap;
+  .modelo-meu[hidden] { display: none; }
+  .modelo-meu-nota { color: #0F8A6A; font-weight: 600; }
+  .modelo-meu button { min-height: 30px; font-size: 12px; }
+
+  /* O formulário do modelo novo. */
+  /* As mesmas medidas e cores do popup das zonas (.lz-details-dialog): é o
+     outro formulário modal desta app, e duas caixas com ar diferente na
+     mesma app leem-se como dois sítios diferentes. */
+  .mm-dialog {
+    width: min(460px, 92vw); max-height: 85vh; overflow-y: auto;
+    background: var(--paper-raised); color: var(--ink);
+    border: 1px solid var(--line-soft); border-radius: 14px; padding: 0;
+    box-shadow: var(--shadow); font-size: 14px;
+    z-index: 2147483647;
   }
-  @keyframes mercado-pontos { from { width: 0; } to { width: 1.1em; } }
-  @media (prefers-reduced-motion: reduce) {
-    .model-search-noresult .mercado-estado .pontos { animation: none; width: auto; }
+  .mm-dialog::backdrop { background: rgba(0, 0, 0, .55); }
+  .mm-form { padding: 20px; display: flex; flex-direction: column; gap: 13px; }
+  .mm-form h3 { margin: 0; font-size: 16px; }
+  .mm-aviso { margin: 0; font-size: 12.5px; line-height: 1.45; }
+  .mm-campo { display: flex; flex-direction: column; gap: 4px; }
+  .mm-campo > label { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
+  .mm-campo .hint { font-size: 11.5px; line-height: 1.4; }
+  .mm-campo input[type="text"], .mm-campo select { width: 100%; }
+  .mm-obrig { color: var(--rose-500); font-size: 11px; font-weight: 400; }
+  .mm-check { display: flex; align-items: center; gap: 7px; min-height: 30px; font-size: 13px; }
+  .mm-check input { width: 16px; height: 16px; margin: 0; }
+  .mm-erro { margin: 0; color: var(--rose-500); font-size: 12.5px; font-weight: 600; }
+  .mm-erro[hidden] { display: none; }
+  .mm-botoes { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 2px; }
+  .mm-botoes button { min-height: 36px; }
+  /* O botão que faz a coisa distingue-se do que a desfaz — é o mesmo
+     button.copy da app, com o peso a mais que o torna o gesto óbvio. */
+  .mm-botoes .mm-principal {
+    color: var(--paper-raised); background: var(--teal-600); border-color: var(--teal-600);
   }
+  .mm-botoes .mm-principal:hover { color: var(--paper-raised); background: var(--teal-500); border-color: var(--teal-500); }
 
   .divider {
     display: flex;

@@ -1,4 +1,4 @@
-const CACHE = "calculadores-v403";
+const CACHE = "calculadores-v404";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const APP_SHELL = [
   "./js/ficheiros.js",
   "./js/visualizacao.js",
   "./js/utils.js",
+  "./js/meus-modelos.js",
   "./js/zonas.js",
   "./js/i18n.js",
   "./js/calc-widget.js",

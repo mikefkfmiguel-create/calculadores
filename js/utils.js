@@ -219,77 +219,27 @@ function searchTerms(raw) {
   return normalizeSearch(raw).split(/\s+/).filter(function (t) { return t !== ""; });
 }
 
-/* ==================================================== A REGRA DO MERCADO
+/* ============================================ O QUE FALTA NA LISTA
  *
- * *"monta uma regra para quando devolve não encontrado disparar uma procura
- * no mercado"*.
+ * Duas versões atrás, isto disparava uma procura no Google sozinha quando a
+ * lista não tinha o modelo. Corrigido pelo próprio: *"a pesquisa auto não
+ * será para popups mas sim para adicionar a lista se não existir"*. E tem
+ * razão — um separador que abre sozinho resolve a curiosidade e não resolve
+ * o trabalho: no fim daquilo, a lista continua sem a TV, e na montagem
+ * seguinte volta tudo ao mesmo.
  *
- * A procura no mercado já existia como link. A regra é sobre QUANDO ela sai
- * sozinha — e o cuidado todo está em não a disparar a meio de uma palavra:
- * quem escreve "Samsung" passa por "S", "Sa", "Sam", e todos eles dão zero
- * resultados. Uma app que abre um separador a cada letra é inutilizável.
+ * O que fica no lugar:
  *
- * Por isso a procura só ARMA quando as quatro condições se juntam:
+ *   · a pesquisa no mercado continua, MAS só a pedido — um toque ou o Enter;
+ *     serve para ir buscar a ficha técnica, que é o que enche o formulário;
+ *   · e o que a caixa oferece primeiro é ACRESCENTAR à lista. Quem escreve
+ *     os números é a pessoa (ver js/meus-modelos.js): a app não inventa uma
+ *     ficha, e o que fica escrito numa folha de produção tem sempre dono.
  *
- *   1. nenhuma opção da lista corresponde (depois da pesquisa por palavras);
- *   2. o que está escrito tem pelo menos 3 caracteres;
- *   3. e tem pelo menos uma LETRA — "55" é uma medida, não um modelo, e
- *      quem escreve só números está a filtrar, não a procurar no mercado;
- *   4. passaram 1,2 s sem escrever nada. Não é um atraso: é a diferença
- *      entre "acabei" e "estou a meio".
- *
- * Armada, dispara sozinha uma vez — e só uma vez por texto escrito. Mudar o
- * texto desarma; voltar ao mesmo texto não volta a disparar.
- *
- * E DISPARA SÓ COM O CAMPO EM FOCO. Se a pessoa já foi para outro sítio da
- * página, um separador a abrir por cima do que ela está a fazer é um susto,
- * não uma ajuda.
- *
- * O BROWSER PODE RECUSAR, e isso não é um defeito desta app: abrir separadores
- * fora de um toque é o que os bloqueadores de popups existem para travar, e no
- * telemóvel é mais apertado do que no computador. Por isso a abertura é
- * medida (ver abrirNoMercado) e, quando é recusada, o recado di-lo e o botão
- * fica lá — um toque abre à mesma.
- *
- * Desliga-se na própria caixa, onde a coisa acontece. A escolha fica guardada
- * e é partilhada pelas quatro listas que usam isto.
+ * Ficam também as duas coisas que a medição do dia tinha trazido: a pesquisa
+ * por palavras em vez de por pedaço de texto, e o recado a dizer QUAL é a
+ * palavra que a lista não conhece.
  */
-var MERCADO_MIN_LETRAS = 3;
-var MERCADO_ESPERA_MS = 1200;
-var MERCADO_AUTO_KEY = "mikeapps-mercado-auto-v1";
-
-function mercadoAutoLigado() {
-  try {
-    var v = localStorage.getItem(MERCADO_AUTO_KEY);
-    return v === null ? true : v === "1";
-  } catch (_) { return true; }
-}
-
-function mercadoAutoGuardar(ligado) {
-  try { localStorage.setItem(MERCADO_AUTO_KEY, ligado ? "1" : "0"); } catch (_) {}
-}
-
-/** Uma consulta merece ir ao mercado? (condições 2 e 3 da regra) */
-function vaiAoMercado(raw) {
-  var q = normalizeSearch(raw).trim();
-  return q.length >= MERCADO_MIN_LETRAS && /[a-z]/.test(q);
-}
-
-/**
- * Abre a procura e DIZ SE CONSEGUIU.
- *
- * Sem o "noopener" de propósito: com ele, o window.open devolve sempre null
- * por especificação, e não haveria como distinguir "o browser bloqueou" de
- * "abriu". A ligação ao separador novo corta-se logo a seguir (`opener =
- * null`), que dá a mesma protecção.
- */
-function abrirNoMercado(url) {
-  var w = null;
-  try { w = window.open(url, "_blank"); } catch (_) { w = null; }
-  if (!w) return false;
-  try { w.opener = null; } catch (_) {}
-  return true;
-}
 
 /** A pergunta que se leva ao mercado, a partir do que a lista é. */
 function consultaDeMercado(raw, oQueE) {
@@ -319,76 +269,6 @@ function lzAttachModelSearch(select) {
   select.parentNode.insertBefore(noResult, select.nextSibling);
 
   var noResultUrl = null;
-  // O que a regra do mercado precisa de saber entre teclas: o relógio a
-  // contar o silêncio, e qual foi o último texto que já foi ao mercado
-  // (para não ir duas vezes ao mesmo).
-  var relogioMercado = null;
-  var jaDisparado = null;
-  var bloqueado = false;
-  // O QUE A CAIXA ESTÁ A FAZER, para se poder dizer: "" (nada), "a-vir" (o
-  // relógio a contar o silêncio antes de disparar) ou "aberto" (já foi).
-  //
-  // Pedido: *"adiciona um aviso de que está a procurar"*. Uma coisa que
-  // acontece sozinha e em silêncio é indistinguível de uma avaria -- e um
-  // separador que aparece do nada, sem nada na app a dizer que foi ela, é
-  // exactamente isso. O aviso também serve de travão: quem o vê a contar
-  // sabe que pode escrever mais uma letra, ou desligar, antes de abrir.
-  var estadoMercado = "";
-
-  function porEstado(novo) {
-    if (estadoMercado === novo) return;
-    estadoMercado = novo;
-    applyFilter();
-  }
-
-  function desarmarMercado() {
-    if (relogioMercado) { clearTimeout(relogioMercado); relogioMercado = null; }
-    if (estadoMercado === "a-vir") porEstado("");
-  }
-
-  // O disparo em si. `porGesto` é verdade quando foi um toque ou o Enter —
-  // aí não há regra nenhuma a cumprir, a pessoa pediu.
-  function irAoMercado(porGesto) {
-    if (!noResultUrl) return false;
-    jaDisparado = input.value.trim();
-    var abriu = abrirNoMercado(noResultUrl);
-    if (abriu) {
-      // Dizer que foi aberta, e onde: um separador novo não se vê quando se
-      // está a olhar para o teclado do telemóvel.
-      bloqueado = false;
-      porEstado("aberto");
-    } else if (!porGesto) {
-      // O browser recusou. Dizer-se, e deixar o botão: um toque abre.
-      bloqueado = true;
-      porEstado("");
-      applyFilter();
-    }
-    return abriu;
-  }
-
-  function armarMercado() {
-    desarmarMercado();
-    var raw = input.value.trim();
-    // `noResultUrl` a null quer dizer que a lista TEM o que se procura: aí
-    // não há aviso nenhum a dar, nem procura a armar.
-    if (!mercadoAutoLigado() || !noResultUrl) return;
-    if (!vaiAoMercado(raw) || raw === jaDisparado) return;
-    porEstado("a-vir");
-    relogioMercado = setTimeout(function () {
-      relogioMercado = null;
-      // Voltar a confirmar tudo no momento de disparar: em 1,2 s a pessoa
-      // pode ter apagado, escolhido um modelo, ou saído do campo. Em
-      // qualquer desses casos o aviso tem de SAIR -- um "vou procurar" que
-      // fica pendurado sem nunca procurar é pior do que aviso nenhum.
-      var agora = input.value.trim();
-      if (!noResultUrl || document.activeElement !== input ||
-          agora !== raw || !vaiAoMercado(agora) || agora === jaDisparado) {
-        porEstado("");
-        return;
-      }
-      irAoMercado(false);
-    }, MERCADO_ESPERA_MS);
-  }
 
   function applyFilter() {
     var raw = input.value.trim();
@@ -405,7 +285,7 @@ function lzAttachModelSearch(select) {
       // QUAL É A PALAVRA QUE NÃO EXISTE. "Não encontrei nada" deixa a pessoa
       // sem saber se a app está avariada, se escreveu mal, ou se a casa
       // simplesmente não tem aquilo. Dizer «nada com "xiaomi"» responde à
-      // pergunta toda: a lista não tem essa marca, e o link é a saída.
+      // pergunta toda: a lista não tem essa marca, e daí o que se pode fazer.
       var semNada = termos.filter(function (t) {
         return !Array.prototype.some.call(select.options, function (o) {
           return matchesSearch(o.textContent, [t]);
@@ -417,79 +297,55 @@ function lzAttachModelSearch(select) {
         : (termos.length > 1
             ? "Cada palavra existe, mas nenhum modelo as junta todas"
             : "Não encontrei nada na lista");
-      // A REGRA À VISTA, e desligável onde acontece. Um interruptor escondido
-      // numas definições, para uma coisa que só aparece aqui, era a pessoa a
-      // ter de adivinhar onde se muda o que a incomodou.
-      // Com o aviso do estado à vista, o parêntesis que explica a regra
-      // cala-se: o que está a acontecer manda sobre o que costuma acontecer.
-      var aviso = bloqueado
-        ? ' <span class="hint">(o browser não deixou abrir sozinho — toca)</span>'
-        : (estadoMercado
-            ? ""
-            : (mercadoAutoLigado()
-                ? ' <span class="hint">(abre sozinho, ou Enter)</span>'
-                : ' <span class="hint">(ou Enter)</span>'));
-      // O AVISO DO QUE ESTÁ A ACONTECER. Uma linha própria, e não mais um
-      // parêntesis no meio do texto: é a única parte desta caixa que MUDA
-      // sozinha, e o que muda sozinho tem de se ver a mudar.
-      var estado = "";
-      if (estadoMercado === "a-vir") {
-        estado = '<p class="mercado-estado a-procurar">A procurar ' +
-          aspas(escapeXml(raw)) + ' no mercado<span class="pontos">…</span>' +
-          '<span class="hint">(escreve mais para parar)</span></p>';
-      } else if (estadoMercado === "aberto") {
-        estado = '<p class="mercado-estado aberta">Procura aberta num separador novo ↗</p>';
-      }
+
+      // O QUE SE PODE FAZER, por esta ordem: acrescentar à lista (resolve o
+      // trabalho), e procurar a ficha no mercado (ajuda a preencher). A
+      // procura já não sai sozinha -- ver a nota no topo deste ficheiro.
+      var podeAcrescentar = !!(select.dataset.acrescentar && window.pedirModeloNovo);
+      var botao = podeAcrescentar
+        ? '<button type="button" class="copy model-add">+ Acrescentar ' +
+          aspas(escapeXml(raw)) + ' à lista</button>'
+        : "";
       noResult.innerHTML = porque +
-        ' — <a class="srclink" href="' + noResultUrl + '" target="_blank" rel="noopener">procurar "' +
-        escapeXml(raw) + '" no mercado ↗</a>' + aviso + estado +
-        '<label class="mercado-auto"><input type="checkbox" class="mercado-auto-caixa"' +
-        (mercadoAutoLigado() ? " checked" : "") + '> abrir sozinha a procura</label>';
-      var caixa = noResult.querySelector(".mercado-auto-caixa");
-      caixa.addEventListener("change", function () {
-        mercadoAutoGuardar(caixa.checked);
-        bloqueado = false;
-        if (caixa.checked) armarMercado(); else desarmarMercado();
-        applyFilter();
-      });
-      // O clique no link é um gesto — nunca é bloqueado, e não precisa da
-      // regra. Só se marca como já disparado, para o automático não repetir.
-      var link = noResult.querySelector("a.srclink");
-      link.addEventListener("click", function () { jaDisparado = input.value.trim(); });
+        ' — <a class="srclink" href="' + noResultUrl + '" target="_blank" rel="noopener">' +
+        'procurar a ficha no mercado ↗</a> <span class="hint">(ou Enter)</span>' +
+        (podeAcrescentar
+          ? '<div class="model-add-linha">' + botao +
+            '<span class="hint">fica na tua lista e vai dentro do projeto</span></div>'
+          : "");
+      if (podeAcrescentar) {
+        noResult.querySelector(".model-add").addEventListener("click", function () {
+          var tipo = select.dataset.acrescentar;
+          var sugestoes = window.sugestoesParaModeloNovo
+            ? window.sugestoesParaModeloNovo(tipo) : null;
+          window.pedirModeloNovo(tipo, raw, function (novo) {
+            // Quem acrescentou acabou de dizer qual é o modelo: a pesquisa
+            // já não serve para nada, e o campo limpo mostra a lista inteira
+            // com o modelo novo lá dentro, escolhido.
+            input.value = "";
+            applyFilter();
+            if (select._modelSearchEscolher) select._modelSearchEscolher(novo);
+          }, sugestoes);
+        });
+      }
       noResult.style.display = "block";
     } else {
       noResultUrl = null;
-      bloqueado = false;
-      estadoMercado = "";
-      desarmarMercado();
       noResult.style.display = "none";
     }
   }
   select._modelSearchRefresh = applyFilter;
 
-  input.addEventListener("input", function () {
-    bloqueado = false;
-    // Escrever apaga o aviso da procura anterior: ele fala do que está
-    // escrito, e o que está escrito acabou de mudar.
-    estadoMercado = "";
-    applyFilter();
-    // Cada tecla volta a pôr o relógio a zero: a regra conta o SILÊNCIO,
-    // não o tempo desde que se começou a escrever.
-    armarMercado();
-  });
-  // Enter dispara logo a pesquisa externa quando não há nada na lista —
-  // não é preciso ir com o rato até ao link. É um gesto, por isso não passa
-  // pela regra nem espera pelo relógio.
+  input.addEventListener("input", applyFilter);
+  // Enter leva a procura ao mercado quando não há nada na lista — não é
+  // preciso ir com o dedo até ao link. É sempre a pessoa a pedir: esta app
+  // não abre separadores sozinha.
   input.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && noResultUrl) {
       e.preventDefault();
-      desarmarMercado();
-      irAoMercado(true);
+      window.open(noResultUrl, "_blank", "noopener");
     }
   });
-  // Sair do campo desarma. Um separador a abrir depois de a pessoa já estar
-  // noutro sítio da página é um susto, não uma ajuda.
-  input.addEventListener("blur", desarmarMercado);
   // No telemóvel, a tecla do teclado passa a ser a lupa em vez do "↵".
   input.setAttribute("enterkeyhint", "search");
   select.addEventListener("change", function () {
