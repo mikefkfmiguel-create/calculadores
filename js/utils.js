@@ -218,6 +218,83 @@ function matchesSearch(texto, termos) {
 function searchTerms(raw) {
   return normalizeSearch(raw).split(/\s+/).filter(function (t) { return t !== ""; });
 }
+
+/* ==================================================== A REGRA DO MERCADO
+ *
+ * *"monta uma regra para quando devolve não encontrado disparar uma procura
+ * no mercado"*.
+ *
+ * A procura no mercado já existia como link. A regra é sobre QUANDO ela sai
+ * sozinha — e o cuidado todo está em não a disparar a meio de uma palavra:
+ * quem escreve "Samsung" passa por "S", "Sa", "Sam", e todos eles dão zero
+ * resultados. Uma app que abre um separador a cada letra é inutilizável.
+ *
+ * Por isso a procura só ARMA quando as quatro condições se juntam:
+ *
+ *   1. nenhuma opção da lista corresponde (depois da pesquisa por palavras);
+ *   2. o que está escrito tem pelo menos 3 caracteres;
+ *   3. e tem pelo menos uma LETRA — "55" é uma medida, não um modelo, e
+ *      quem escreve só números está a filtrar, não a procurar no mercado;
+ *   4. passaram 1,2 s sem escrever nada. Não é um atraso: é a diferença
+ *      entre "acabei" e "estou a meio".
+ *
+ * Armada, dispara sozinha uma vez — e só uma vez por texto escrito. Mudar o
+ * texto desarma; voltar ao mesmo texto não volta a disparar.
+ *
+ * E DISPARA SÓ COM O CAMPO EM FOCO. Se a pessoa já foi para outro sítio da
+ * página, um separador a abrir por cima do que ela está a fazer é um susto,
+ * não uma ajuda.
+ *
+ * O BROWSER PODE RECUSAR, e isso não é um defeito desta app: abrir separadores
+ * fora de um toque é o que os bloqueadores de popups existem para travar, e no
+ * telemóvel é mais apertado do que no computador. Por isso a abertura é
+ * medida (ver abrirNoMercado) e, quando é recusada, o recado di-lo e o botão
+ * fica lá — um toque abre à mesma.
+ *
+ * Desliga-se na própria caixa, onde a coisa acontece. A escolha fica guardada
+ * e é partilhada pelas quatro listas que usam isto.
+ */
+var MERCADO_MIN_LETRAS = 3;
+var MERCADO_ESPERA_MS = 1200;
+var MERCADO_AUTO_KEY = "mikeapps-mercado-auto-v1";
+
+function mercadoAutoLigado() {
+  try {
+    var v = localStorage.getItem(MERCADO_AUTO_KEY);
+    return v === null ? true : v === "1";
+  } catch (_) { return true; }
+}
+
+function mercadoAutoGuardar(ligado) {
+  try { localStorage.setItem(MERCADO_AUTO_KEY, ligado ? "1" : "0"); } catch (_) {}
+}
+
+/** Uma consulta merece ir ao mercado? (condições 2 e 3 da regra) */
+function vaiAoMercado(raw) {
+  var q = normalizeSearch(raw).trim();
+  return q.length >= MERCADO_MIN_LETRAS && /[a-z]/.test(q);
+}
+
+/**
+ * Abre a procura e DIZ SE CONSEGUIU.
+ *
+ * Sem o "noopener" de propósito: com ele, o window.open devolve sempre null
+ * por especificação, e não haveria como distinguir "o browser bloqueou" de
+ * "abriu". A ligação ao separador novo corta-se logo a seguir (`opener =
+ * null`), que dá a mesma protecção.
+ */
+function abrirNoMercado(url) {
+  var w = null;
+  try { w = window.open(url, "_blank"); } catch (_) { w = null; }
+  if (!w) return false;
+  try { w.opener = null; } catch (_) {}
+  return true;
+}
+
+/** A pergunta que se leva ao mercado, a partir do que a lista é. */
+function consultaDeMercado(raw, oQueE) {
+  return String(raw) + (oQueE ? " " + oQueE : "") + " ficha técnica";
+}
 // Campo de pesquisa por cima de um select de modelo — filtra as opções ao
 // escrever (sem trazer nada de fora para a app). Sem nenhuma opção a
 // corresponder, mostra um link para pesquisar o termo no Google numa nova
@@ -242,6 +319,48 @@ function lzAttachModelSearch(select) {
   select.parentNode.insertBefore(noResult, select.nextSibling);
 
   var noResultUrl = null;
+  // O que a regra do mercado precisa de saber entre teclas: o relógio a
+  // contar o silêncio, e qual foi o último texto que já foi ao mercado
+  // (para não ir duas vezes ao mesmo).
+  var relogioMercado = null;
+  var jaDisparado = null;
+  var bloqueado = false;
+
+  function desarmarMercado() {
+    if (relogioMercado) { clearTimeout(relogioMercado); relogioMercado = null; }
+  }
+
+  // O disparo em si. `porGesto` é verdade quando foi um toque ou o Enter —
+  // aí não há regra nenhuma a cumprir, a pessoa pediu.
+  function irAoMercado(porGesto) {
+    if (!noResultUrl) return false;
+    jaDisparado = input.value.trim();
+    var abriu = abrirNoMercado(noResultUrl);
+    if (!abriu && !porGesto) {
+      // O browser recusou. Dizer-se, e deixar o botão: um toque abre.
+      bloqueado = true;
+      applyFilter();
+    }
+    return abriu;
+  }
+
+  function armarMercado() {
+    desarmarMercado();
+    if (!mercadoAutoLigado()) return;
+    var raw = input.value.trim();
+    if (!vaiAoMercado(raw) || raw === jaDisparado) return;
+    relogioMercado = setTimeout(function () {
+      relogioMercado = null;
+      // Voltar a confirmar tudo no momento de disparar: em 1,2 s a pessoa
+      // pode ter apagado, escolhido um modelo, ou saído do campo.
+      if (!noResultUrl) return;
+      if (document.activeElement !== input) return;
+      var agora = input.value.trim();
+      if (agora !== raw || !vaiAoMercado(agora) || agora === jaDisparado) return;
+      irAoMercado(false);
+    }, MERCADO_ESPERA_MS);
+  }
+
   function applyFilter() {
     var raw = input.value.trim();
     var termos = searchTerms(raw);
@@ -252,7 +371,7 @@ function lzAttachModelSearch(select) {
       if (match) anyVisible = true;
     });
     if (!anyVisible && termos.length) {
-      var query = encodeURIComponent(raw + " ficha técnica");
+      var query = encodeURIComponent(consultaDeMercado(raw, select.dataset.mercado || ""));
       noResultUrl = "https://www.google.com/search?q=" + query;
       // QUAL É A PALAVRA QUE NÃO EXISTE. "Não encontrei nada" deixa a pessoa
       // sem saber se a app está avariada, se escreveu mal, ou se a casa
@@ -269,24 +388,62 @@ function lzAttachModelSearch(select) {
         : (termos.length > 1
             ? "Cada palavra existe, mas nenhum modelo as junta todas"
             : "Não encontrei nada na lista");
-      noResult.innerHTML = porque + ' — <a class="srclink" href="' + noResultUrl + '" target="_blank" rel="noopener">procurar "' + escapeXml(raw) + '" no mercado ↗</a> <span class="hint">(ou Enter)</span>';
+      // A REGRA À VISTA, e desligável onde acontece. Um interruptor escondido
+      // numas definições, para uma coisa que só aparece aqui, era a pessoa a
+      // ter de adivinhar onde se muda o que a incomodou.
+      var aviso = bloqueado
+        ? ' <span class="hint">(o browser não deixou abrir sozinho — toca)</span>'
+        : (mercadoAutoLigado()
+            ? ' <span class="hint">(abre sozinho, ou Enter)</span>'
+            : ' <span class="hint">(ou Enter)</span>');
+      noResult.innerHTML = porque +
+        ' — <a class="srclink" href="' + noResultUrl + '" target="_blank" rel="noopener">procurar "' +
+        escapeXml(raw) + '" no mercado ↗</a>' + aviso +
+        '<label class="mercado-auto"><input type="checkbox" class="mercado-auto-caixa"' +
+        (mercadoAutoLigado() ? " checked" : "") + '> abrir sozinha a procura</label>';
+      var caixa = noResult.querySelector(".mercado-auto-caixa");
+      caixa.addEventListener("change", function () {
+        mercadoAutoGuardar(caixa.checked);
+        bloqueado = false;
+        if (caixa.checked) armarMercado(); else desarmarMercado();
+        applyFilter();
+      });
+      // O clique no link é um gesto — nunca é bloqueado, e não precisa da
+      // regra. Só se marca como já disparado, para o automático não repetir.
+      var link = noResult.querySelector("a.srclink");
+      link.addEventListener("click", function () { jaDisparado = input.value.trim(); });
       noResult.style.display = "block";
     } else {
       noResultUrl = null;
+      bloqueado = false;
+      desarmarMercado();
       noResult.style.display = "none";
     }
   }
   select._modelSearchRefresh = applyFilter;
 
-  input.addEventListener("input", applyFilter);
+  input.addEventListener("input", function () {
+    bloqueado = false;
+    applyFilter();
+    // Cada tecla volta a pôr o relógio a zero: a regra conta o SILÊNCIO,
+    // não o tempo desde que se começou a escrever.
+    armarMercado();
+  });
   // Enter dispara logo a pesquisa externa quando não há nada na lista —
-  // não é preciso ir com o rato até ao link.
+  // não é preciso ir com o rato até ao link. É um gesto, por isso não passa
+  // pela regra nem espera pelo relógio.
   input.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && noResultUrl) {
       e.preventDefault();
-      window.open(noResultUrl, "_blank", "noopener");
+      desarmarMercado();
+      irAoMercado(true);
     }
   });
+  // Sair do campo desarma. Um separador a abrir depois de a pessoa já estar
+  // noutro sítio da página é um susto, não uma ajuda.
+  input.addEventListener("blur", desarmarMercado);
+  // No telemóvel, a tecla do teclado passa a ser a lupa em vez do "↵".
+  input.setAttribute("enterkeyhint", "search");
   select.addEventListener("change", function () {
     if (input.value) { input.value = ""; applyFilter(); }
   });
