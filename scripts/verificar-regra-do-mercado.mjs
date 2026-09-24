@@ -155,10 +155,41 @@ conferir(!!depois[0] && /xiaomi/i.test(decodeURIComponent(depois[0])),
 conferir(!!depois[0] && /televisor/i.test(decodeURIComponent(depois[0])),
   "e com o que a lista é («televisor»), para vir a ficha e não a loja");
 
+console.log("\n== e avisa, antes e depois ==");
+// Pedido: *"adiciona um aviso de que está a procurar"*. Mede-se nos dois
+// momentos: enquanto o relógio conta, e depois de abrir.
+await limpar();
+await escrever("hisense");
+await pagina.waitForTimeout(400);           // a meio da espera
+const aviso1 = await recado();
+const aberturasAoAvisar = await aberturas();
+conferir(!!aviso1 && /a procurar/i.test(aviso1),
+  "durante a espera diz que está a procurar: “" + (aviso1 || "").split("\n")[0].trim() + "”");
+conferir(aberturasAoAvisar.length === 0, "e ainda não abriu nada — o aviso vem ANTES");
+await pagina.waitForTimeout(ESPERA);
+const aviso2 = await recado();
+conferir(!!aviso2 && /separador novo/i.test(aviso2),
+  "depois de abrir diz onde foi parar: “" + (aviso2 || "").trim().slice(-60) + "”");
+
+// E o aviso sai quando a procura deixa de estar de pé: escrever mais uma
+// letra desarma, e um "vou procurar" pendurado sem nunca procurar é pior do
+// que aviso nenhum.
+await pagina.keyboard.type("x");
+await pagina.waitForTimeout(150);
+const aviso3 = await recado();
+conferir(!!aviso3 && !/separador novo/i.test(aviso3),
+  "escrever apaga o aviso da procura anterior");
+await limpar();
+
 console.log("\n== não repete no mesmo texto ==");
+await limpar();
+await escrever("sony");
+await pagina.waitForTimeout(ESPERA + 700);
+const uma = await aberturas();
+conferir(uma.length === 1, `disparou uma vez (${uma.length})`);
 await pagina.waitForTimeout(ESPERA + 700);
 const repetiu = await aberturas();
-conferir(repetiu.length === 1, `continua em ${repetiu.length} abertura`);
+conferir(repetiu.length === 1, `e continua em ${repetiu.length} abertura`);
 
 console.log("\n== não dispara com o campo fora de foco ==");
 await limpar();

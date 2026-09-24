@@ -956,6 +956,26 @@
     cursor: pointer; user-select: none; min-height: 28px;
   }
   .model-search-noresult .mercado-auto input { width: 16px; height: 16px; margin: 0; }
+  /* O AVISO do que está a acontecer: é a única parte da caixa que muda
+     sozinha, e por isso tem linha e cor próprias. */
+  .model-search-noresult .mercado-estado {
+    margin: 6px 0 0; font-size: 12.5px; display: flex;
+    align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .model-search-noresult .mercado-estado.a-procurar { color: var(--accent, #4aa3ff); }
+  .model-search-noresult .mercado-estado.aberta { color: var(--ink-faint); }
+  /* Os três pontos a contar — mostram que a coisa está a decorrer, e não
+     parada à espera de um toque. Quem prefere o ecrã quieto (ou o sistema
+     pede menos movimento) continua a ler o texto todo na mesma. */
+  .model-search-noresult .mercado-estado .pontos {
+    animation: mercado-pontos 1.2s steps(4, end) infinite;
+    display: inline-block; overflow: hidden; vertical-align: bottom;
+    width: 1.1em; white-space: nowrap;
+  }
+  @keyframes mercado-pontos { from { width: 0; } to { width: 1.1em; } }
+  @media (prefers-reduced-motion: reduce) {
+    .model-search-noresult .mercado-estado .pontos { animation: none; width: auto; }
+  }
 
   .divider {
     display: flex;
