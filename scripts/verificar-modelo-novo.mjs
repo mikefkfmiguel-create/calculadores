@@ -183,7 +183,9 @@ respostaDaWeb = { ok: true, modelo: {
   fonte: "https://www.xiripiti.com/tv/a55"
 } };
 await campo.fill("");
-await pagina.keyboard.type("xiripiti", { delay: 25 });
+// Com número: desde a v4.19 uma marca solta não dispara nada (ver o caso da
+// marca, mais abaixo). O que se mede aqui é a web a responder.
+await pagina.keyboard.type("xiripiti 55", { delay: 25 });
 await pagina.waitForTimeout(1800);
 const daWeb = await estado();
 const recadoWeb = await caixaTexto();
@@ -218,29 +220,59 @@ console.log("\n== continuar a escrever substitui, não duplica ==");
 // Uma pausa a meio de escrever acrescenta o que lá está; acabar a palavra
 // tem de corrigir esse, e não deixar dois meios modelos na lista.
 await campo.fill("");
-await pagina.keyboard.type("Grundig", { delay: 25 });
+await pagina.keyboard.type("Grundig 43", { delay: 25 });
 await pagina.waitForTimeout(1500);
 const aMeio = await estado();
-await pagina.keyboard.type(" 43", { delay: 25 });
+await pagina.keyboard.type(" Fire TV", { delay: 25 });
 await pagina.waitForTimeout(1500);
 const completo = await estado();
-conferir(aMeio.meus.includes("Grundig"), "a meio ficou «Grundig» (" + aMeio.meus.join(", ") + ")");
-conferir(completo.meus.includes("Grundig 43") && !completo.meus.includes("Grundig"),
-  "e ao acabar ficou só «Grundig 43»: " + completo.meus.join(", "));
-conferir(completo.diag === "43", "com a diagonal nova: " + completo.diag);
+conferir(aMeio.meus.includes("Grundig 43"), "a meio ficou «Grundig 43» (" + aMeio.meus.join(", ") + ")");
+conferir(completo.meus.includes("Grundig 43 Fire TV") && !completo.meus.includes("Grundig 43"),
+  "e ao acabar ficou só «Grundig 43 Fire TV»: " + completo.meus.join(", "));
+conferir(completo.diag === "43", "com a diagonal lida do nome: " + completo.diag);
 
 console.log("\n== desfazer tira-o outra vez ==");
 await pagina.click(".model-search-noresult .model-desfazer");
 await pagina.waitForTimeout(500);
 const desfeito = await estado();
-conferir(!desfeito.meus.includes("Grundig 43"), "saiu da lista: " + JSON.stringify(desfeito.meus));
+conferir(!desfeito.meus.includes("Grundig 43 Fire TV"), "saiu da lista: " + JSON.stringify(desfeito.meus));
 conferir(desfeito.escolhido === "Personalizado…", "e a escolha voltou a «" + desfeito.escolhido + "»");
+
+console.log("\n== uma MARCA não vira modelo, nem com a diagonal na aba ==");
+// Reportado com uma foto da lista a mostrar «Xiaomi — 55" · meu»: *"e
+// remover isto"*. A diagonal da aba (55) chegava para a app dar uma marca
+// por resolvida, e ficava uma entrada que não serve para nada.
+pedidosAWeb = [];
+await pagina.fill("#tv-diag", "55");
+await campo.fill("");
+// «Xiaomi» não serve para medir isto neste ponto do teste: já lá está o
+// «Xiaomi TV A Pro 55» acrescentado acima, a lista responde, e a caixa nem
+// aparece -- estaria a medir o vazio. Tem de ser uma marca que não existe
+// em lado nenhum.
+await pagina.keyboard.type("Vestel", { delay: 25 });
+await pagina.waitForTimeout(1800);
+const soMarca = await estado();
+const recadoMarca = await caixaTexto();
+conferir(!!recadoMarca, "a caixa aparece (a lista não tem «Vestel» — há o que medir)");
+conferir(!soMarca.meus.some((m) => m.toLowerCase() === "vestel"),
+  "não acrescentou «Vestel»: " + JSON.stringify(soMarca.meus));
+conferir(pedidosAWeb.length === 0,
+  "nem gastou uma procura na web por uma marca (" + pedidosAWeb.length + ")");
+conferir(/é uma marca, não um modelo/.test(recadoMarca || ""),
+  "e diz o que falta: “" + (recadoMarca || "—") + "”");
+
+// Com o tamanho escrito, é outra coisa — e aí acrescenta.
+await pagina.keyboard.type(" 55", { delay: 25 });
+await pagina.waitForTimeout(1800);
+const comTamanho = await estado();
+conferir(comTamanho.meus.includes("Vestel 55"),
+  "com o tamanho escrito, acrescenta: " + JSON.stringify(comTamanho.meus));
 
 console.log("\n== sem diagonal em lado nenhum, pergunta só isso ==");
 await pagina.fill("#tv-diag", "");
 await campo.fill("");
-await pagina.keyboard.type("Sharp tv", { delay: 25 });
-await pagina.waitForTimeout(1500);
+await pagina.keyboard.type("Sharp 4S", { delay: 25 });
+await pagina.waitForTimeout(1800);
 const semDiag = await estado();
 const pergunta = await caixaTexto();
 conferir(!semDiag.meus.some((m) => /sharp/i.test(m)),
@@ -252,8 +284,33 @@ await pagina.fill(".model-search-noresult .model-diag", "50");
 await pagina.click(".model-search-noresult .model-add");
 await pagina.waitForTimeout(700);
 const comDiag = await estado();
-conferir(comDiag.meus.includes("Sharp tv"), "escrita a diagonal, entrou: " + JSON.stringify(comDiag.meus));
+conferir(comDiag.meus.includes("Sharp 4S"), "escrita a diagonal, entrou: " + JSON.stringify(comDiag.meus));
 conferir(comDiag.diag === "50", "e aplicou-se: " + comDiag.diag + '"');
+
+console.log("\n== e as marcas soltas que já lá estavam saem à entrada ==");
+const limpeza = await pagina.evaluate(async () => {
+  // Uma lista como a que a foto mostrava: uma marca solta criada pela app,
+  // uma marca que alguém completou à mão, e um modelo a sério.
+  localStorage.setItem("mikeapps-meus-modelos-v1", JSON.stringify({ tv: [
+    { modelo: "Xiaomi", diag: 55, ratio: "16:9", resolucao: null, fonte: null, meu: true, auto: true },
+    { modelo: "Philips", diag: 43, ratio: "16:9", resolucao: { rx: 1920, ry: 1080 }, fonte: null, meu: true, auto: true },
+    { modelo: "LG 86UK6500PLA", diag: 86, ratio: "16:9", resolucao: null, fonte: null, meu: true, auto: true }
+  ] }));
+  return true;
+});
+await pagina.reload({ waitUntil: "networkidle" });
+await pagina.waitForTimeout(2500);
+const depoisDaLimpeza = await pagina.evaluate(() =>
+  (window.meusModelos.ler("tv") || []).map((m) => m.modelo));
+conferir(!depoisDaLimpeza.includes("Xiaomi"), "a marca solta saiu: " + JSON.stringify(depoisDaLimpeza));
+conferir(depoisDaLimpeza.includes("Philips"),
+  "mas a que alguém completou à mão FICA — apagar o trabalho de outros é pior do que a sujidade");
+conferir(depoisDaLimpeza.includes("LG 86UK6500PLA"), "e um modelo a sério fica, claro");
+// A app ficou noutro estado; volta-se ao caminho normal para o resto do teste.
+await pagina.click("#btMenuCompleta");
+await pagina.waitForTimeout(600);
+await pagina.click('button.tab[data-mode="tv"]');
+await pagina.waitForTimeout(500);
 
 console.log("\n== o mercado está na lista, em tamanhos ==");
 const mercado = await pagina.evaluate(() => {
@@ -308,7 +365,7 @@ conferir(/^https:\/\/www\.mi\.com\//.test(comFicha.fonte || ""),
 console.log("\n== e tem como sair daqui para o catálogo de toda a gente ==");
 const linhaCat = await pagina.evaluate(() => {
   const caixa = document.getElementById("tv-model-meu");
-  const m = window.meusModelos.ler("tv").find((x) => x.resolucao);
+  const m = window.meusModelos.ler("tv").find((x) => x.modelo === "Xiaomi TV A Pro 55");
   return { visivel: !caixa.hidden, nota: caixa.textContent, linha: window.meusModelos.linhaDeCatalogo(m) };
 });
 conferir(linhaCat.visivel && /Acrescentado por ti/.test(linhaCat.nota),

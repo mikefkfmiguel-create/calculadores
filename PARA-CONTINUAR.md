@@ -14,6 +14,45 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 24 de setembro — uma marca não é um modelo (v4.19)
+
+> *"e remover isto"* — com uma foto da lista a mostrar **«Xiaomi — 55" ·
+> meu»**.
+
+Tinha toda a razão: «Xiaomi» é um fabricante, não um ecrã, e foi a app que o
+criou. A v4.17 lia a diagonal do nome e, **não a encontrando, ia buscar a que
+estava na aba**. Uma pausa a meio de escrever a marca chegava para criar uma
+entrada que não serve para nada e fica lá para sempre.
+
+**A regra que separa as duas coisas é simples: um modelo tem sempre um
+número.** Ou o tamanho ("Xiaomi 55"), ou a referência do fabricante ("Samsung
+TU55DU7105K", "LG 86UK6500PLA"). Uma palavra sem um único algarismo é uma
+marca — e por uma marca:
+
+- não se acrescenta nada;
+- **não se gasta uma procura na web** (procurar a ficha técnica de «Xiaomi»
+  não devolve nada e custa dinheiro);
+- e diz-se o que falta: *«Xiaomi» é uma marca, não um modelo. Escreve também
+  o tamanho ou a referência — «Xiaomi 55» — e trato do resto.* O link para o
+  mercado fica, que é onde se vê que modelos a marca tem.
+
+**As que já lá estavam saem à entrada.** Uma regra nova não desfaz o que a
+antiga escreveu, por isso há uma limpeza à carga — e é deliberadamente
+estreita: só o que a app criou sozinha (`auto`), sem número no nome, **sem
+resolução e sem fonte**. Um modelo que alguém completou à mão, ou que veio da
+web, tem sempre uma dessas coisas e não é tocado. Apagar o trabalho de outra
+pessoa é pior do que a sujidade — é a lição do `arrumarGrupos()` do Preview,
+que apagava cenários inteiros a arrumar.
+
+### Um erro meu, apanhado pela suite
+
+Ao pôr o link do mercado nessa mensagem deixei uma plica a mais no fim de uma
+linha do `js/utils.js`. O ficheiro deixou de carregar, **e com ele a lista de
+TVs inteira** — zero opções, não 88. Não deu erro nenhum visível na app: só
+um `SyntaxError` na consola e uma lista vazia. Foi o
+`verificar-pesquisa-de-modelos` a apanhá-lo, com a contagem de entradas da
+lista a dar 0 — a asserção mais aborrecida do ficheiro, e a que valeu a pena.
+
 ## 24 de setembro — a procura na web, com a fonte a servir de prova (v4.18)
 
 > *"a coisa é simples: se escrever «xiripiti» no campo da marca e a lista
