@@ -483,13 +483,42 @@ conferir(fab.mudos.length === 0,
                    : "quem não tem produtos recolhidos diz porquê, e não fica calado");
 // Os dois que não deram para ler, ditos em voz alta e não escondidos.
 conferir(/recusou a ligação/.test(fab.texto), "diz que o site da Cisco recusou a ligação");
-conferir(/estava em baixo/.test(fab.texto), "e que o da Lightware estava em baixo");
+// A Lightware esteve em baixo na primeira recolha e entrou na segunda, pelo
+// `www`. O que a app tem de dizer agora é por onde se lá chega — o domínio
+// sem `www` continua a responder que está indisponível.
+conferir(/lightware\.com` sem o «www»|sem o «www»/.test(fab.texto),
+  "e diz por que domínio se chega à Lightware, que só responde no www");
 // O achado que muda uma decisão em terreno.
 conferir(/AXM763/.test(fab.texto) && /220 m/.test(fab.texto),
   "e traz o AXM763, que leva 10 Gbps a 220 m em OM1 velha");
 // O aparelho que recusa monomodo — o engano dos modos, mas do lado do equipamento.
 conferir(/monomodo NÃO é suportada/.test(fab.texto),
   "e avisa que o extensor da Gefen não aceita monomodo");
+
+// OS EXTENSORES DE FIBRA, MARCA A MARCA. Reparo dele: a primeira recolha
+// trouxe um modelo por marca, como amostra, e não a gama. Quatro marcas
+// fazem extensores; as outras fazem rede, e isso tem de estar dito.
+const extensores = await pagina.evaluate(() =>
+  [...document.querySelectorAll("#fib-fabricantes > details")].map((b) => ({
+    nome: (b.querySelector("summary b") || {}).textContent,
+    n: b.querySelectorAll(".lm-item").length,
+    texto: b.textContent.replace(/\s+/g, " ")
+  })));
+const porMarca = (n) => extensores.find((x) => x.nome === n) || { n: 0, texto: "" };
+for (const [marca, minimo] of [["Kramer", 2], ["Extron", 4], ["Gefen", 4], ["Lightware", 2]]) {
+  const m = porMarca(marca);
+  conferir(m.n >= minimo, marca + " traz " + m.n + " aparelhos (a gama, não um exemplo)");
+}
+conferir(/rede/i.test(fab.texto) && /extensor/i.test(fab.texto) && /NovaStar fica no meio/.test(fab.texto),
+  "e a app separa quem faz rede de quem faz extensores, antes da lista");
+// Os dois que mudam uma decisão: o conector que não se improvisa, e o único
+// fabricante que publica o orçamento ótico do aparelho.
+conferir(/MPO\/MTP não é LC nem SC/.test(porMarca("Gefen").texto),
+  "o 8K da Gefen avisa que o MPO/MTP não se improvisa em obra");
+conferir(/150 m em OM1/.test(porMarca("Lightware").texto) && /1100 m em OM4/.test(porMarca("Lightware").texto),
+  "e a Lightware traz a distância fibra a fibra, de OM1 a OM4");
+conferir(/8 dB para gastar/.test(porMarca("Lightware").texto),
+  "com o orçamento ótico do aparelho, que é o que deixa fazer a conta a sério");
 
 console.log("\n== que fibra é aquela, e porque é que não sobe ==");
 await pagina.evaluate(() => {
