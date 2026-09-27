@@ -14,6 +14,54 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 27 de setembro — a aba da fibra (v4.22)
+
+> *"quero incluir tudo nas calculadoras mesmo sem ter na casa para poder
+> decidir se peço para comprar. A ideia é ter um calculador real das
+> capacidades, distâncias e tipologia. Por exemplo que distância e com que
+> tipo de SFP e fibra conseguimos determinado bandwidth"*.
+
+A pergunta é essa, e a aba responde-lhe: **dá-se o débito e a distância, e ela
+diz o que serve**. Com o mercado todo lá dentro — o ponto era precisamente
+poder decidir uma compra, não listar só o que já há em casa.
+
+**Duas metades:**
+
+1. **O que serve.** A lista das combinações ótica + fibra que levam aquele
+   débito àquela distância, ordenadas pelo que é mais barato de levar: menos
+   débito a mais primeiro (uma ótica de 100G para levar 10G é dinheiro
+   deitado fora) e, dentro disso, o alcance mais curto que ainda chega.
+2. **Aguenta? — orçamento de perdas.** A tabela de distâncias é o máximo em
+   condições ideais; quem decide é esta conta. Comprimento × dB/km, mais
+   0,75 dB por par de conectores e 0,3 dB por emenda. Conta pelo comprimento
+   de onda mais curto que a fibra serve, que é o pior caso.
+
+**A regra que manda no `data/fibra.json` é a do catálogo de tiles: nada sem
+fonte.** E mais do que isso — cada linha diz **de onde vem**: `norma`
+(IEEE/TIA/SMPTE, lida em fonte que a cita), `fabricante` (ficha de produto),
+`indicativo` (blogue ou vendedor, a confirmar antes de uma compra). Onde um
+número não foi recolhido fica a `null`, e a app **escreve que não foi** em vez
+de mostrar um valor plausível. É a diferença entre uma ferramenta com que se
+decide uma compra e uma máquina de palpites bem formatados.
+
+**O aviso que impede uma compra errada.** A tabela é uma primeira recolha, e
+uma lista incompleta lida como completa dá conselhos errados: a pedir 25 Gbps
+a 2 km ela responde «100GBASE-LR4», porque o 25GBASE-LR — que existe e faz
+10 km — ainda não foi recolhido com fonte. A aba diz isso à vista: *o que não
+está aqui não é o que não existe*.
+
+**O que falta, e é dele:** saber que SFPs a AVK tem. Enquanto não souber, tudo
+o que está na tabela é mercado — o que serve para decidir compras, mas não
+distingue o que já está na casa. A pesquisa que deu origem a isto está no
+`PESQUISA-FIBRA.md`, com as fontes separadas por qualidade.
+
+Teste novo: `scripts/verificar-fibra.mjs`. A maioria das asserções é sobre a
+**proveniência**, e não sobre a aritmética: que toda a linha tem fonte, que
+todas dizem de onde vêm, que onde o orçamento não foi recolhido a app o diz,
+que o aviso da recolha incompleta está à vista, e que a app nomeia a edição da
+norma (D) e avisa que a E mudou os valores. A conta das perdas confere-se com
+uma soma feita à mão ao lado: 2 km de OS2 + 4 pares + 2 emendas = 4,40 dB.
+
 ## 27 de setembro — a lista primeiro, a procura a seguir (v4.21)
 
 > *"em vez de ter obrigatoriamente de escrever pode dar a lista de

@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.21</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.22</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -187,6 +187,7 @@
       <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
       <button class="tab" data-mode="zonas" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã Complexo</button>
       <button class="tab" data-mode="sinal" role="tab" aria-selected="false"><span class="swatch"></span>Sinal &amp; Data Rate</button>
+      <button class="tab" data-mode="fibra" role="tab" aria-selected="false"><span class="swatch"></span>Fibra &amp; SFP</button>
       <button class="tab" data-mode="mediaserver" role="tab" aria-selected="false"><span class="swatch"></span>Media Server</button>
       <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
       <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
@@ -2590,6 +2591,112 @@
   </section>
 
   <!-- GRAFISMO -->
+  <!-- ABA FIBRA & SFP.
+       Pedido assim: *"quero incluir tudo nas calculadoras mesmo sem ter na
+       casa para poder decidir se peço para comprar. A ideia é ter um
+       calculador real das capacidades, distâncias e tipologia. Por exemplo
+       que distância e com que tipo de SFP e fibra conseguimos determinado
+       bandwidth"*.
+       A pergunta é essa, e é essa que a aba responde: dá-se o débito e a
+       distância, e ela diz o que serve. Tudo o que está aqui vem do
+       data/fibra.json, e lá dentro nada existe sem fonte -- o que não foi
+       recolhido fica por recolher e a app diz que não sabe, em vez de
+       inventar um número plausível. -->
+  <section class="panel" data-mode="fibra">
+    <details class="howto">
+      <summary>Como usar esta calculadora</summary>
+      <div class="howto-body">
+        <p>Diz <b>quanto</b> tens de levar e <b>até onde</b>, e a app diz que óticas e que fibra chegam lá — para decidires o que comprar, e não só o que já tens.</p>
+        <p>Os débitos podem vir das outras abas: o data rate de um ecrã LED sai da <b>Sinal &amp; Data Rate</b>, e a lista tem também os débitos de SDI e de vídeo sobre IP.</p>
+        <p>A segunda metade faz a conta que decide mesmo se uma tirada passa: o <b>orçamento de perdas</b>. Distância, conectores e emendas somam dB; se a soma passar o que a ótica aguenta, não passa — por muito que a tabela de distâncias diga que sim.</p>
+        <p><b>Nada aqui é inventado.</b> Cada linha traz a fonte, e diz se vem de uma norma, da ficha de um fabricante, ou de uma fonte indicativa que ainda precisa de confirmação antes de se decidir uma compra com ela.</p>
+      </div>
+    </details>
+    <div class="grid">
+
+      <details class="card sinal-block" open>
+        <summary>O que tenho de levar, e até onde</summary>
+        <div class="sinal-block-body">
+          <div class="field">
+            <label for="fib-preset">Débito</label>
+            <select id="fib-preset" class="plain"></select>
+            <div class="hint">Escolhe da lista, ou escreve o valor em baixo.</div>
+          </div>
+          <div class="field">
+            <label for="fib-gbps">Débito necessário</label>
+            <div class="inputgroup"><input id="fib-gbps" type="number" autocomplete="off" inputmode="decimal" value="10" min="0.001" step="0.01"><span class="unit">Gbps</span></div>
+            <div class="hint" id="fib-gbps-hint"></div>
+          </div>
+          <div class="field">
+            <label for="fib-dist">Distância necessária</label>
+            <div class="inputgroup"><input id="fib-dist" type="number" autocomplete="off" inputmode="decimal" value="300" min="1" step="1"><span class="unit">m</span></div>
+          </div>
+          <div class="field">
+            <label class="addproject"><input type="checkbox" id="fib-so-serve" checked>Mostrar só o que chega lá</label>
+            <div class="hint">Desligado, mostra a tabela toda — serve para ver o que falta para se chegar mais longe.</div>
+          </div>
+        </div>
+      </details>
+
+      <details class="card results sinal-block" data-accent="led" open>
+        <div class="stripe"></div>
+        <summary>O que serve</summary>
+        <div class="sinal-block-body">
+          <div class="lensmatch-list" id="fib-lista">—</div>
+          <div class="hint" id="fib-resumo"></div>
+          <!-- O AVISO QUE IMPEDE UMA COMPRA ERRADA. Esta tabela é uma
+               primeira recolha, e uma lista incompleta lida como completa dá
+               conselhos errados: a pedir 25 Gbps a 2 km ela responde "100G",
+               porque o 25GBASE-LR (que existe, e faz 10 km) ainda não foi
+               recolhido com fonte. Dizê-lo é a diferença entre uma tabela
+               honesta e uma armadilha. -->
+          <p class="warn" id="fib-incompleta" style="margin-top:10px">Esta tabela é uma <b>primeira recolha</b>, não o catálogo do mundo: <b>o que não está aqui não é o que não existe</b>. Faltam óticas que existem e ainda não foram recolhidas com fonte — entre elas as de longo alcance a 25 e 40 Gbps. Antes de pedir para comprar, confirma que não há uma opção mais barata fora desta lista.</p>
+        </div>
+      </details>
+
+      <details class="card sinal-block">
+        <summary>Aguenta? — orçamento de perdas</summary>
+        <div class="sinal-block-body">
+          <div class="hint" style="margin-bottom:10px">A tabela de distâncias diz o máximo em condições ideais. Quem decide mesmo é esta conta: cada conector e cada emenda comem dB, e uma tirada curta com muitas junções pode não passar.</div>
+          <div class="field">
+            <label for="fib-tipo">Fibra</label>
+            <select id="fib-tipo" class="plain"></select>
+          </div>
+          <div class="field">
+            <label for="fib-comp">Comprimento</label>
+            <div class="inputgroup"><input id="fib-comp" type="number" autocomplete="off" inputmode="decimal" value="300" min="1" step="1"><span class="unit">m</span></div>
+          </div>
+          <div class="field">
+            <label for="fib-conect">Pares de conectores</label>
+            <div class="inputgroup"><input id="fib-conect" type="number" autocomplete="off" inputmode="numeric" value="2" min="0" step="1"><span class="unit">pares</span></div>
+            <div class="hint">Uma tirada simples tem 2: um em cada ponta. Cada patch pelo meio acrescenta mais.</div>
+          </div>
+          <div class="field">
+            <label for="fib-emendas">Emendas</label>
+            <div class="inputgroup"><input id="fib-emendas" type="number" autocomplete="off" inputmode="numeric" value="0" min="0" step="1"><span class="unit">emendas</span></div>
+          </div>
+          <div id="fib-perdas">—</div>
+        </div>
+      </details>
+
+      <details class="card sinal-block">
+        <summary>Conectores de terreno</summary>
+        <div class="sinal-block-body">
+          <div class="hint" style="margin-bottom:10px">O que se usa em digressão, e quantas fibras leva cada um.</div>
+          <div class="lensmatch-list" id="fib-conectores">—</div>
+        </div>
+      </details>
+
+      <details class="card sinal-block">
+        <summary>De onde vêm estes números</summary>
+        <div class="sinal-block-body">
+          <div class="hint" id="fib-fontes">—</div>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
   <section class="panel" data-mode="grafismo">
     <details class="howto">
       <summary>Como usar esta calculadora</summary>
@@ -3199,6 +3306,8 @@
   var LENTES_DATA = [];
   var PROJECTORS_DATA = [];
   var LED_TILES_DATA = [];
+  // A tabela das óticas e da fibra (data/fibra.json). Nada lá dentro sem fonte.
+  var FIBRA_DATA = null;
   var TVS_DATA = [];
   // O catálogo da casa, tal como vem do ficheiro. TVS_DATA é ele mais os
   // modelos acrescentados -- e sem o guardar à parte não havia como refazer
@@ -9006,14 +9115,214 @@
     calcVisualizacao();
   });
 
+
+  // ---------------------------------------------------------------- FIBRA
+  //
+  // *"Que distância e com que tipo de SFP e fibra conseguimos determinado
+  // bandwidth"* — é esta a pergunta, e é esta que a aba responde.
+  //
+  // Tudo o que aqui se mostra vem do data/fibra.json. A regra que manda neste
+  // ficheiro é a mesma do catálogo de tiles: NADA SEM FONTE. Onde um número
+  // não foi recolhido, ele fica a null e a app diz que não sabe — nunca
+  // preenche o buraco com um valor plausível. É a diferença entre uma
+  // ferramenta com que se decide uma compra e uma que dá palpites bem
+  // formatados.
+  var FIB_PRESETS = [
+    { nome: "1 Gbps — Ethernet 1G, ponto Dante/AES67", gbps: 1 },
+    { nome: "1,485 Gbps — HD-SDI (ST 292)", gbps: 1.485 },
+    { nome: "2,97 Gbps — 3G-SDI (ST 424)", gbps: 2.97 },
+    { nome: "3 Gbps — 1080p59.94 sem compressão (ST 2110)", gbps: 3 },
+    { nome: "5,94 Gbps — 6G-SDI", gbps: 5.94 },
+    { nome: "10 Gbps — Ethernet 10G", gbps: 10 },
+    { nome: "11,88 Gbps — 12G-SDI (ST 2082, UHD 2160p60)", gbps: 11.88 },
+    { nome: "12 Gbps — UHD 2160p60 sem compressão (ST 2110)", gbps: 12 },
+    { nome: "25 Gbps — Ethernet 25G", gbps: 25 },
+    { nome: "100 Gbps — Ethernet 100G", gbps: 100 }
+  ];
+
+  function fibSelo(confianca) {
+    if (confianca === "norma") return '<span class="lm-priority lm-priority-best" title="Valor de norma (IEEE, TIA ou SMPTE), lido numa fonte que a cita">Norma</span>';
+    if (confianca === "fabricante") return '<span class="lm-priority lm-priority-mid" title="Da ficha técnica de um produto — é o que aquele módulo faz, não o que a norma exige">Ficha</span>';
+    return '<span class="lm-priority lm-priority-tight" title="Fonte indicativa (blogue ou vendedor). Confirmar antes de decidir uma compra com este número.">A confirmar</span>';
+  }
+
+  function fibMetros(m) {
+    return m >= 1000 ? fmt(m / 1000, m % 1000 === 0 ? 0 : 1) + " km" : fmtInt(m) + " m";
+  }
+
+  /** A lista das óticas que levam este débito até esta distância. */
+  function fibOpcoes(gbps, metros) {
+    if (!FIBRA_DATA || !FIBRA_DATA.oticas) return [];
+    var fora = [];
+    FIBRA_DATA.oticas.forEach(function (o) {
+      if (o.gbps < gbps - 1e-9) return;   // não leva o que é preciso levar
+      o.alcances.forEach(function (a) {
+        fora.push({
+          otica: o, fibra: a.fibra, metros: a.metros,
+          orcamento: a.orcamento_db != null ? a.orcamento_db : o.orcamento_db,
+          serve: a.metros >= metros,
+          folga: a.metros - metros
+        });
+      });
+    });
+    // O que serve primeiro; dentro disso, o mais barato de levar: menos débito
+    // a mais (uma ótica de 100G para levar 10G é dinheiro deitado fora) e,
+    // a seguir, a distância mais curta que ainda chega — pela mesma razão.
+    fora.sort(function (a, b) {
+      return (a.serve ? 0 : 1) - (b.serve ? 0 : 1)
+          || a.otica.gbps - b.otica.gbps
+          || a.metros - b.metros;
+    });
+    return fora;
+  }
+
+  function calcFibra() {
+    var lista = document.getElementById("fib-lista");
+    if (!lista) return;
+    if (!FIBRA_DATA) { lista.innerHTML = '<div class="lm-item"><span>A carregar a tabela das óticas…</span></div>'; return; }
+
+    var gbps = val("fib-gbps");
+    var metros = val("fib-dist");
+    if (isNaN(gbps) || gbps <= 0 || isNaN(metros) || metros <= 0) {
+      lista.innerHTML = '<div class="lm-item"><span>Escreve o débito e a distância.</span></div>';
+      document.getElementById("fib-resumo").textContent = "";
+      return;
+    }
+
+    var soServe = document.getElementById("fib-so-serve").checked;
+    var todas = fibOpcoes(gbps, metros);
+    var mostrar = soServe ? todas.filter(function (x) { return x.serve; }) : todas;
+
+    lista.innerHTML = mostrar.length
+      ? mostrar.map(function (x) {
+          var o = x.otica;
+          var selo = x.serve
+            ? '<span class="lm-priority lm-priority-best">Chega</span>'
+            : '<span class="lm-priority lm-priority-tight">Fica a ' + fibMetros(metros - x.metros) + '</span>';
+          var orc = x.orcamento != null
+            ? " — orçamento " + fmt(x.orcamento, 1) + " dB"
+            : " — orçamento não recolhido";
+          return '<div class="lm-item"><span class="lm-row"><span>' +
+            selo + fibSelo(o.confianca) +
+            '<strong>' + escapeXml(o.nome) + '</strong> <span class="lm-model">' + escapeXml(x.fibra) + '</span>' +
+            srcLinkHtml(o.fonte) +
+            '</span><span>' + fibMetros(x.metros) + " · " + fmtInt(o.onda_nm) + " nm · " +
+            escapeXml(o.conector) + " · " + fmt(o.gbps, o.gbps % 1 ? 2 : 0) + " Gbps" + orc +
+            '</span></span>' +
+            (o.nota ? '<div class="hint" style="margin-top:4px">' + escapeXml(o.nota) + '</div>' : '') +
+            '</div>';
+        }).join("")
+      : '<div class="lm-item"><span>Nada na tabela leva ' + fmt(gbps, 2) + ' Gbps a ' + fibMetros(metros) +
+        '. Desliga o "mostrar só o que chega lá" para ver o que há, e quanto falta.</span></div>';
+
+    var servem = todas.filter(function (x) { return x.serve; }).length;
+    document.getElementById("fib-resumo").innerHTML = servem
+      ? servem + " de " + todas.length + " combinações levam " + fmt(gbps, 2) + " Gbps a " + fibMetros(metros) + "."
+      : "Nenhuma das " + todas.length + " combinações da tabela lá chega.";
+
+    calcFibraPerdas();
+  }
+
+  /** A conta que decide mesmo: quantos dB come esta tirada. */
+  function calcFibraPerdas() {
+    var caixa = document.getElementById("fib-perdas");
+    if (!caixa || !FIBRA_DATA) return;
+    var sel = document.getElementById("fib-tipo");
+    var fibra = (FIBRA_DATA.fibras || []).filter(function (f) { return f.id === sel.value; })[0];
+    if (!fibra) { caixa.innerHTML = '<div class="hint">Escolhe a fibra.</div>'; return; }
+
+    var metros = val("fib-comp"), pares = val("fib-conect"), emendas = val("fib-emendas");
+    if (isNaN(metros) || metros <= 0) { caixa.innerHTML = '<div class="hint">Escreve o comprimento.</div>'; return; }
+    pares = isNaN(pares) ? 0 : pares;
+    emendas = isNaN(emendas) ? 0 : emendas;
+
+    // O comprimento de onda mais curto da fibra é o que dá mais perda — é
+    // por aí que se orça, porque é o pior caso dos que ela serve.
+    var ondas = Object.keys(fibra.atenuacao).map(Number).sort(function (a, b) { return a - b; });
+    var onda = ondas[0];
+    var dbKm = fibra.atenuacao[String(onda)];
+
+    var daFibra = (metros / 1000) * dbKm;
+    var dosConectores = pares * FIBRA_DATA.perdas.conector_par_db;
+    var dasEmendas = emendas * FIBRA_DATA.perdas.emenda_db;
+    var total = daFibra + dosConectores + dasEmendas;
+
+    caixa.innerHTML =
+      '<h2>Perda total: ' + fmt(total, 2) + ' dB</h2>' +
+      '<div class="rowline"><span>Fibra (' + fmtInt(metros) + ' m × ' + fmt(dbKm, 1) + ' dB/km, a ' + onda + ' nm)</span><b>' + fmt(daFibra, 2) + ' dB</b></div>' +
+      '<div class="rowline"><span>' + fmtInt(pares) + ' par(es) de conectores × ' + fmt(FIBRA_DATA.perdas.conector_par_db, 2) + ' dB</span><b>' + fmt(dosConectores, 2) + ' dB</b></div>' +
+      '<div class="rowline"><span>' + fmtInt(emendas) + ' emenda(s) × ' + fmt(FIBRA_DATA.perdas.emenda_db, 1) + ' dB</span><b>' + fmt(dasEmendas, 2) + ' dB</b></div>' +
+      '<div class="hint" style="margin-top:8px">Compara com o <b>orçamento ótico</b> da ótica escolhida na lista acima. Se a perda passar o orçamento, não passa — e onde o orçamento está por recolher, é a ficha do SFP que o diz.</div>' +
+      '<div class="hint">' + fibSelo(fibra.confianca) + ' ' + escapeXml(fibra.nome) +
+      (fibra.nota ? ' — ' + escapeXml(fibra.nota) : '') + ' ' + srcLinkHtml(fibra.fonte) + '</div>';
+  }
+
+  ["fib-gbps", "fib-dist"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener("input", calcFibra);
+  });
+  ["fib-comp", "fib-conect", "fib-emendas"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener("input", calcFibraPerdas);
+  });
+  (function () {
+    var so = document.getElementById("fib-so-serve");
+    if (so) so.addEventListener("change", calcFibra);
+  })();
+
+  function encherFibra() {
+    if (!FIBRA_DATA) return;
+    var preset = document.getElementById("fib-preset");
+    if (preset && !preset.options.length) {
+      preset.innerHTML = '<option value="">Escrever à mão…</option>' +
+        FIB_PRESETS.map(function (p, i) { return '<option value="' + i + '">' + p.nome + '</option>'; }).join("");
+      preset.addEventListener("change", function () {
+        var p = FIB_PRESETS[parseInt(preset.value, 10)];
+        if (!p) return;
+        document.getElementById("fib-gbps").value = p.gbps;
+        calcFibra();
+      });
+    }
+    var tipo = document.getElementById("fib-tipo");
+    if (tipo && !tipo.options.length) {
+      tipo.innerHTML = (FIBRA_DATA.fibras || []).map(function (f) {
+        return '<option value="' + f.id + '"' + (f.id === "OM4" ? " selected" : "") + '>' + f.nome + '</option>';
+      }).join("");
+      tipo.addEventListener("change", calcFibraPerdas);
+    }
+    var conectores = document.getElementById("fib-conectores");
+    if (conectores) {
+      conectores.innerHTML = (FIBRA_DATA.conectores_de_terreno || []).map(function (c) {
+        return '<div class="lm-item"><span class="lm-row"><span>' + fibSelo(c.confianca) +
+          '<strong>' + escapeXml(c.nome) + '</strong>' + srcLinkHtml(c.fonte) +
+          '</span><span>' + fmtInt(c.fibras) + ' fibras · ' + c.modos.join(" ou ") + '</span></span>' +
+          (c.nota ? '<div class="hint" style="margin-top:4px">' + escapeXml(c.nota) + '</div>' : '') +
+          '</div>';
+      }).join("");
+    }
+    var fontes = document.getElementById("fib-fontes");
+    if (fontes) {
+      fontes.innerHTML =
+        '<p><b>Norma</b> — valor de uma norma (IEEE 802.3, TIA-568.3, SMPTE), lido numa fonte que a cita. As normas são pagas; não as li em primeira mão, e isso está dito.</p>' +
+        '<p><b>Ficha</b> — da ficha técnica de um produto. É o que <i>aquele módulo</i> faz, e não o que a norma exige: há SFPs que vão mais longe do que a norma pede.</p>' +
+        '<p><b>A confirmar</b> — fonte indicativa, de blogue ou de vendedor de ótica. Serve para ter ordem de grandeza; <b>não</b> serve para decidir uma compra sem se confirmar na ficha original.</p>' +
+        '<p>As distâncias são <b>máximos em condições ideais</b>. Com conectores a mais, uma tirada curta pode não passar — é para isso que serve o orçamento de perdas.</p>' +
+        '<p class="warn">Os valores de perdas são da <b>TIA-568.3-D</b>. A edição E mudou os valores para conectores de referência — se isto for para uma compra, confirma a edição. ' + srcLinkHtml(FIBRA_DATA.perdas.fonte_aviso) + '</p>';
+    }
+    calcFibra();
+  }
+
   Promise.all([
     fetch("data/projectors.json").then(function (r) { return r.json(); }),
     fetch("data/led-tiles.json").then(function (r) { return r.json(); }),
     fetch("data/lenses.json").then(function (r) { return r.json(); }),
     fetch("data/processors.json").then(function (r) { return r.json(); }),
-    fetch("data/tvs.json").then(function (r) { return r.json(); })
+    fetch("data/tvs.json").then(function (r) { return r.json(); }),
+    fetch("data/fibra.json").then(function (r) { return r.json(); })
   ]).then(function (results) {
     var projectors = results[0], ledTiles = results[1], lenses = results[2], processors = results[3], tvs = results[4];
+    FIBRA_DATA = results[5] || null;
+    encherFibra();
     PROJECTORS_DATA = projectors;
     LED_TILES_DATA = ledTiles;
     PROCESSORS_DATA = processors;
