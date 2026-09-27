@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.25</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.26</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2698,6 +2698,13 @@
         <summary>⚠ O engano que mais custa</summary>
         <div class="sinal-block-body">
           <div id="fib-erro">—</div>
+        </div>
+      </details>
+
+      <details class="card sinal-block" id="fib-sm-card">
+        <summary>Quanto anda um SFP em fibra monomodo</summary>
+        <div class="sinal-block-body">
+          <div id="fib-sm">—</div>
         </div>
       </details>
 
@@ -9216,10 +9223,16 @@
       o.alcances.forEach(function (a) {
         fora.push({
           otica: o, fibra: a.fibra, metros: a.metros,
+          // A FICHA MANDA: onde o fabricante diz mais do que a norma, é por
+          // esse número que se planeia -- a norma é o chão que qualquer
+          // módulo tem de cumprir, não o máximo que ele faz.
+          metrosFabricante: a.metros_fabricante || null,
+          fonteFabricante: a.fonte_fabricante || null,
+          notaFabricante: a.nota_fabricante || null,
           condicionamento: !!a.precisa_condicionamento,
           orcamento: a.orcamento_db != null ? a.orcamento_db : o.orcamento_db,
-          serve: a.metros >= metros,
-          folga: a.metros - metros
+          serve: (a.metros_fabricante || a.metros) >= metros,
+          folga: (a.metros_fabricante || a.metros) - metros
         });
       });
     });
@@ -9275,6 +9288,10 @@
             aviso = '<div class="warn" style="margin-top:4px">Esta linha é para <b>' + escapeXml(x.fibra) +
               '</b>, e a tua fibra é <b>' + escapeXml(tenho) + '</b>.</div>';
           }
+          if (x.notaFabricante) {
+            aviso += '<div class="hint" style="margin-top:4px">' + escapeXml(x.notaFabricante) +
+              ' ' + srcLinkHtml(x.fonteFabricante) + '</div>';
+          }
           if (x.condicionamento) {
             aviso += '<div class="warn" style="margin-top:4px">Só com <b>cabo de condicionamento de modo</b> — sem ele não funciona.</div>';
           }
@@ -9282,7 +9299,9 @@
             selo + fibSelo(o.confianca) +
             '<strong>' + escapeXml(o.nome) + '</strong> <span class="lm-model">' + escapeXml(x.fibra) + '</span>' +
             srcLinkHtml(o.fonte) +
-            '</span><span>' + fibMetros(x.metros) + " · " + fmtInt(o.onda_nm) + " nm · " +
+            '</span><span>' + (x.metrosFabricante
+                ? fibMetros(x.metrosFabricante) + " <small>(ficha) · norma " + fibMetros(x.metros) + "</small>"
+                : fibMetros(x.metros)) + " · " + fmtInt(o.onda_nm) + " nm · " +
             escapeXml(o.conector) + " · " + fmt(o.gbps, o.gbps % 1 ? 2 : 0) + " Gbps" + orc +
             '</span></span>' +
             aviso +
@@ -9436,6 +9455,48 @@
     }).join("");
   }
 
+  /**
+   * Quanto anda cada ótica em monomodo — pela ficha, e não só pela norma.
+   *
+   * *"Usa as informações dos fabricantes sempre como base"*, e tem razão: a
+   * norma diz o MÍNIMO que um módulo tem de cumprir, não o máximo que ele
+   * faz. O 1000BASE-LX é o caso de escola — 5 km na norma, 10 km na ficha
+   * da Cisco, no mesmo módulo. Quem planeia pela norma deita fora metade
+   * do alcance que comprou.
+   */
+  function encherMonomodo() {
+    var caixa = document.getElementById("fib-sm");
+    if (!caixa || !FIBRA_DATA || !FIBRA_DATA.em_monomodo) return;
+    var sm = FIBRA_DATA.em_monomodo;
+
+    var linhas = [];
+    (FIBRA_DATA.oticas || []).forEach(function (o) {
+      o.alcances.forEach(function (a) {
+        if (String(a.fibra).indexOf("OS") !== 0) return;
+        linhas.push({ o: o, a: a });
+      });
+    });
+    linhas.sort(function (x, y) {
+      return (y.a.metros_fabricante || y.a.metros) - (x.a.metros_fabricante || x.a.metros);
+    });
+
+    caixa.innerHTML =
+      '<p class="warn">' + escapeXml(sm.aviso) + '</p>' +
+      '<div class="lensmatch-list" style="margin-top:10px">' + linhas.map(function (l) {
+        var daFicha = l.a.metros_fabricante;
+        return '<div class="lm-item"><span class="lm-row"><span>' +
+          fibSelo(daFicha ? "fabricante" : l.o.confianca) +
+          '<strong>' + escapeXml(l.o.nome) + '</strong> <span class="lm-model">' + escapeXml(l.a.fibra) + '</span>' +
+          srcLinkHtml(daFicha ? l.a.fonte_fabricante : l.o.fonte) +
+          '</span><span>' + (daFicha
+            ? fibMetros(daFicha) + " <small>pela ficha · " + fibMetros(l.a.metros) + " na norma</small>"
+            : fibMetros(l.a.metros) + " <small>(norma; ficha por recolher)</small>") +
+          '</span></span></div>';
+      }).join("") + '</div>' +
+      '<p class="hint" style="margin-top:12px"><b>Ao contrário:</b> ' + escapeXml(sm.ao_contrario) + ' ' +
+      fibSelo(sm.confianca) + ' ' + srcLinkHtml(sm.fonte) + '</p>';
+  }
+
   function encherErro() {
     var caixa = document.getElementById("fib-erro");
     if (!caixa || !FIBRA_DATA || !FIBRA_DATA.erro_classico) return;
@@ -9566,6 +9627,7 @@
         '<p class="warn">Os valores de perdas são da <b>TIA-568.3-D</b>. A edição E mudou os valores para conectores de referência — se isto for para uma compra, confirma a edição. ' + srcLinkHtml(FIBRA_DATA.perdas.fonte_aviso) + '</p>';
     }
     encherErro();
+    encherMonomodo();
     encherModos();
     encherEquipamento();
     encherCustos();

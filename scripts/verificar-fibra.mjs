@@ -164,6 +164,46 @@ conferir(!!aviso && aviso.visivel, "o aviso está à vista");
 conferir(!!aviso && /primeira recolha/i.test(aviso.texto) && /não existe/i.test(aviso.texto),
   "e diz que o que não está lá não é o que não existe");
 
+console.log("\n== a ficha do fabricante manda, e a norma é o chão ==");
+// *"usa as informações dos fabricantes sempre como base"*. A norma diz o
+// MÍNIMO que um módulo tem de cumprir, não o máximo que faz — e planear pela
+// norma é deitar fora metade do alcance que se comprou.
+const aOito = await pagina.evaluate(async () => {
+  const g = document.getElementById("fib-gbps");
+  g.value = "1"; g.dispatchEvent(new Event("input", { bubbles: true }));
+  const d = document.getElementById("fib-dist");
+  d.value = "8000"; d.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 600));
+  const itens = [...document.querySelectorAll("#fib-lista .lm-item")];
+  return {
+    lx: (itens.find((e) => /1000BASE-LX/.test(e.textContent)) || {}).textContent || null
+  };
+});
+// Pela norma (5 km) o LX nem aparecia a 8 km. Pela ficha (10 km), aparece —
+// e é a asserção que prova que é a ficha que manda, e não a norma.
+conferir(!!aOito.lx, "1 Gbps a 8 km encontra o 1000BASE-LX (que a norma sozinha excluiria)");
+conferir(!!aOito.lx && /10 km/.test(aOito.lx) && /norma 5 km/.test(aOito.lx),
+  "e a linha mostra os dois: 10 km pela ficha, 5 km na norma");
+
+await pagina.evaluate(() => { document.getElementById("fib-sm-card").open = true; });
+await pagina.waitForTimeout(300);
+const emSM = await pagina.evaluate(() => {
+  const e = document.getElementById("fib-sm");
+  return {
+    texto: e.textContent.replace(/\s+/g, " "),
+    linhas: e.querySelectorAll(".lm-item").length,
+    comFonte: [...e.querySelectorAll(".lm-item")].every((x) => !!x.querySelector("a[href^='http']"))
+  };
+});
+conferir(emSM.linhas >= 5, "o bloco do monomodo lista " + emSM.linhas + " óticas");
+conferir(emSM.comFonte, "todas com fonte");
+conferir(/MÍNIMO/.test(emSM.texto) && /não o máximo/.test(emSM.texto),
+  "e avisa que a norma é o mínimo, não o máximo");
+conferir(/ORÇAMENTO DE PERDAS/.test(emSM.texto),
+  "e que a distância da ficha é para uma tirada limpa — confirma-se com o orçamento");
+conferir(/850 nm/.test(emSM.texto) && /não se faz/.test(emSM.texto),
+  "e diz que ao contrário (850 nm em monomodo) não há distância a calcular: não se faz");
+
 console.log("\n== o que já sai direto em fibra, do nosso catálogo ==");
 // *"nas calculadoras temos da lista de switcher e eletrónicas de controlo de
 // LED algumas que saem direto em SFP — inclui isso"*. E saem: já estava

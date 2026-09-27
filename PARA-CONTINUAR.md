@@ -14,6 +14,37 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 27 de setembro — a ficha do fabricante manda (v4.26)
+
+> *"podes gerar o aviso de quanto um SFP poderá andar em fibra SM. Usa as
+> informações dos fabricantes sempre como base"*.
+
+A segunda frase é uma **regra**, e ele tem razão: **a norma diz o mínimo que
+um módulo tem de cumprir, não o máximo que ele faz**. Quem planeia pela norma
+deita fora metade do alcance que comprou.
+
+O caso de escola está agora na app: o **1000BASE-LX** tem **5 km** na norma e
+**10 km** na ficha da Cisco — o mesmo módulo. A linha passa a mostrar os
+dois: *«10 km (ficha) · norma 5 km»*, e é **pelo número da ficha que a app
+decide** se serve. Isso muda respostas, e é fácil de ver: pedir **1 Gbps a
+8 km** não tinha solução de 1G pela norma; pela ficha, tem.
+
+**Um bloco novo, «Quanto anda um SFP em fibra monomodo»**, com todas as
+óticas de monomodo ordenadas por alcance, e três coisas ditas à cabeça:
+
+- a norma é o **chão garantido**, a ficha é o que se planeia;
+- a distância da ficha é para uma **tirada limpa** — a tua tem conectores e
+  emendas, e é o orçamento de perdas que fecha a conta;
+- **ao contrário não há distância nenhuma a calcular.** Um SFP multimodo de
+  850 nm numa fibra monomodo não é uma ligação mais curta: é uma ligação que
+  **não se faz**. Nem acopla no núcleo de 9 µm nem sobrevive à atenuação
+  nesse comprimento de onda — e não há cabo de condicionamento que resolva,
+  que esse serve para o caso inverso.
+
+Onde a ficha ainda não foi recolhida, a linha di-lo: *«norma; ficha por
+recolher»*. O `_regra_das_fontes` no `data/fibra.json` deixa a regra escrita
+para quem lá mexer a seguir.
+
 ## 27 de setembro — o que já sai direto em fibra (v4.25)
 
 > *"lista os SFPs e as fibras a usar com relação ao mercado, as aconselhadas

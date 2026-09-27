@@ -110,11 +110,15 @@
         {
           "fibra": "OM2",
           "metros": 550,
-          "precisa_condicionamento": true
+          "precisa_condicionamento": true,
+          "fonte_fabricante": "https://www.cisco.com/c/en/us/products/collateral/interfaces-modules/gigabit-ethernet-gbic-sfp-modules/datasheet-c78-366584.html",
+          "nota_fabricante": "A Cisco dá 550 m em qualquer multimodo, com cabo de condicionamento de modo."
         },
         {
           "fibra": "OS2",
-          "metros": 5000
+          "metros": 5000,
+          "metros_fabricante": 10000,
+          "fonte_fabricante": "https://www.cisco.com/c/en/us/products/collateral/interfaces-modules/gigabit-ethernet-gbic-sfp-modules/datasheet-c78-366584.html"
         }
       ],
       "orcamento_db": null,
@@ -122,7 +126,7 @@
       "mercado": true,
       "confianca": "norma",
       "fonte": "https://en.wikipedia.org/wiki/Gigabit_Ethernet",
-      "nota": "5 km é o da norma; há SFPs no mercado que fazem 10 km — é do módulo, não da norma. Em multimodo só funciona com CABO DE CONDICIONAMENTO DE MODO (mode conditioning patch cord), que desvia a entrada da luz; sem ele, não é para multimodo.",
+      "nota": "A norma dá 5 km em monomodo; a ficha da Cisco dá 10 km ao mesmo módulo. Em multimodo só funciona com CABO DE CONDICIONAMENTO DE MODO — sem ele, não é para multimodo.",
       "modo": "monomodo"
     },
     {
@@ -497,5 +501,13 @@
     "confianca": "indicativo",
     "fonte": "https://www.router-switch.com/faq/single-mode-vs-multimode-fiber-1300nm-1310nm-sfp.html",
     "fonte_lrm": "https://www.fs.com/blog/sfp10gsr-vs-sfp10glrm-vs-sfp10glr-which-to-choose-1177.html"
+  },
+  "_regra_das_fontes": "A FICHA DO FABRICANTE MANDA. Pedido dele: *\"usa as informações dos fabricantes sempre como base\"* — e tem razão: a norma dá o MÍNIMO que qualquer módulo tem de cumprir, e o que se compra costuma ir mais longe. Onde há os dois, o campo `metros` é o da norma (o chão garantido) e `metros_fabricante` é o que a ficha promete. A app mostra o do fabricante em primeiro e o da norma ao lado, para se saber qual é qual.",
+  "em_monomodo": {
+    "_nota": "Quanto anda cada ótica em fibra monomodo. A norma é o chão; a ficha do fabricante é o que se planeia.",
+    "aviso": "A norma diz o MÍNIMO que o módulo tem de cumprir — não o máximo que ele faz. O 1000BASE-LX é o exemplo: a norma dá-lhe 5 km, e a ficha da Cisco dá-lhe 10 km ao mesmo módulo. Planeia pela ficha do que vais comprar, e usa a norma como o chão garantido. E confirma sempre com o ORÇAMENTO DE PERDAS: a distância da ficha é para uma tirada limpa, sem os conectores e as emendas que a tua tem.",
+    "ao_contrario": "Ao contrário não há distância nenhuma a calcular: um SFP multimodo de 850 nm numa fibra monomodo não é uma ligação mais curta, é uma ligação que não se faz. O feixe de 850 nm nem acopla no núcleo de 9 µm nem sobrevive à atenuação da monomodo nesse comprimento de onda. Não há cabo de condicionamento que resolva isto — esse serve para o caso inverso.",
+    "confianca": "indicativo",
+    "fonte": "https://www.router-switch.com/faq/single-mode-vs-multimode-fiber-1300nm-1310nm-sfp.html"
   }
 }
