@@ -1,6 +1,6 @@
 # Versão estável
 
-**Calculadores v4.28** · commit `1469088` · dada como estável a 27 de setembro de 2026.
+**Calculadores v4.30** · commit `490a73d` · dada como estável a 27 de setembro de 2026.
 
 > *"publica e promove as duas"*.
 
@@ -28,7 +28,7 @@ como bom*, com as verificações todas verdes no dia em que se escreveu isto.
 `modelo-novo` · `pesquisa-de-modelos` · `pitch` ·
 `prioridade-eletronicas` · `recado-de-erro` · `traducao`
 
-A nova desde a v4.21 é a `fibra`, com cinco secções.
+A nova desde a v4.21 é a `fibra`, com sete secções.
 
 E `verificar-traducao`: **nada de novo por traduzir** (dívida conhecida: 287
 trechos, em `traducao-por-fazer.json`).
@@ -79,19 +79,42 @@ plausível. E, desde a v4.26, *a ficha do fabricante manda e a norma é o chão*
   identificar a fibra pela cor, a regra do cruzamento Tx/Rx, e as regras de
   compatibilidade dos cages.
 
+- **v4.29** — os **extensores de fibra marca a marca**. A recolha da v4.28
+  trouxe um modelo por marca, como amostra; esta traz as gamas, e são **18
+  aparelhos**. Entra a gama FOX3 da Extron (incluindo matrizes óticas
+  modulares até 840×840), mais três Gefen (com o 8K a 48 Gbps sobre MPO/MTP,
+  que não é LC nem SC e não se improvisa em obra), o kit 675R/T da Kramer, e
+  a **Lightware**, que na v4.28 tinha ficado por fazer: o site estava em
+  baixo no `lightware.com`, e responde no `www.lightware.com`. É a melhor
+  ficha das nove — publica a distância **fibra a fibra** (150 m em OM1 até
+  1100 m em OM4) e o **orçamento ótico do aparelho**, 8 dB. Com esse número
+  a conta das perdas desta app deixa de ser indicativa;
+- **v4.30** — a **PixelHue**, e o número que faltava ao lado do LED: uma
+  porta ótica de 10G carrega o mesmo que **oito portas Ethernet**. Quatro
+  placas da série Lumina, e dois avisos que evitam enganos — na placa de
+  16+2 as óticas copiam o cobre e não acrescentam carga, e a placa ST 2110
+  nomeia as normas de 25G (25GBASE-LR e -SR) que ainda faltam à tabela das
+  óticas, o que chega para saber o que pedir.
+
+A lista dos fabricantes passou também a separar **três famílias** em vez de
+uma lista corrida: rede (Luminex, Netgear, Cisco), extensores (Kramer,
+Extron, Gefen, Lightware) e LED (NovaStar, PixelHue). Um extensor não se
+liga a um switch e um SFP solto não estende vídeo — não eram comparáveis, e
+a lista dava a entender que eram.
+
 Do outro lado, o Preview não andou neste período: está na v3.93, que foi a
 última coisa que ele deu como boa.
 
 ## Como se volta a este ponto
 
 ```
-git checkout 1469088          # ver como estava
+git checkout 490a73d          # ver como estava
 git revert <commit>           # desfazer uma coisa só, sem perder o resto
 ```
 
-A tag `v4.28` **não** está no GitHub: as credenciais da sessão que escreveu
+A tag `v4.30` **não** está no GitHub: as credenciais da sessão que escreveu
 isto deixam empurrar ramos, não tags (HTTP 403). Se ela fizer falta, cria-se
-na página de *releases* do repositório, apontada a `1469088`.
+na página de *releases* do repositório, apontada a `490a73d`.
 
 ## Quando isto deixa de valer
 
