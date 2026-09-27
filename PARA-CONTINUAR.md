@@ -14,6 +14,46 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 27 de setembro — o que já sai direto em fibra (v4.25)
+
+> *"lista os SFPs e as fibras a usar com relação ao mercado, as aconselhadas
+> e correctas para os equipamentos. Nas calculadoras temos da lista de
+> switcher e electrónicas de controlo de LED algumas que saem direto em SFP.
+> Inclui isso"*.
+
+E saem mesmo — **a base já sabia quais**. Estava escrito nas notas de cada
+aparelho, com a fonte da ficha: *"2 saídas óticas 10G"*, *"4× saída de
+fibra"*, *"8x SFP ótica 10G"*. Era texto para ler, não campo para usar.
+
+Passou a campo (`optica`), e a aba lista os **14 aparelhos** do nosso
+catálogo que saem direto em fibra — switchers e electrónicas de LED — e, para
+cada um, **que ótica e que fibra lhe pôr à distância pedida**. A 300 m
+aconselha o 10GBASE-SR em OM3; a 4 km, o 10GBASE-LR em OS2. O conselho sai da
+**mesma tabela** que a lista principal usa: duas listas de óticas acabariam a
+discordar no dia em que uma delas mudasse, que é a doença que a v4.20 curou
+nas eletrónicas.
+
+**Três coisas que a construção obrigou a acertar, e valem por si:**
+
+- **A ótica aconselhada é do MESMO débito da porta**, e não «pelo menos». A
+  primeira versão aconselhava um 100GBASE-LR4 à porta de 40G do CX80 Pro —
+  porque «também leva 40». Uma ótica de 100G não encaixa numa porta de 40G. A
+  lista principal responde a *o que me leva isto*; aqui a pergunta é outra:
+  *o que é que esta porta leva*.
+- **Onde não há ótica recolhida para aquele débito, a app diz que não há** em
+  vez de arranjar uma. É o caso das portas de 40G: não temos 40GBASE-SR4 nem
+  LR4 na tabela, e isso está escrito.
+- **E onde o aparelho não tem ficha registada, diz-se.** O `MCTRL500/SD500`
+  não tem `fonte` nenhuma na base — um buraco que já lá estava. Inventar-lhe
+  uma fonte era o pior caminho; escondê-lo era o segundo pior. Leva um selo
+  **«Sem fonte»** e o teste conta quantos estão assim, para não passarem de
+  um sem alguém dar por isso.
+
+Também apanhado a construir: a lista nascia vazia. O `encherFibra()` corria
+**antes** de o `PROCESSORS_DATA` estar atribuído, e encontrava o catálogo por
+carregar — só aparecia quando alguém mexesse num campo. Medido, e movido para
+depois.
+
 ## 27 de setembro — o engano que mais custa (v4.24)
 
 > *"marca diferença entre os SFP a usar para cada tipo de fibra e distância.

@@ -164,6 +164,57 @@ conferir(!!aviso && aviso.visivel, "o aviso está à vista");
 conferir(!!aviso && /primeira recolha/i.test(aviso.texto) && /não existe/i.test(aviso.texto),
   "e diz que o que não está lá não é o que não existe");
 
+console.log("\n== o que já sai direto em fibra, do nosso catálogo ==");
+// *"nas calculadoras temos da lista de switcher e eletrónicas de controlo de
+// LED algumas que saem direto em SFP — inclui isso"*. E saem: já estava
+// escrito nas notas de cada aparelho, com a fonte da ficha. Agora é campo.
+const equip = await pagina.evaluate(async () => {
+  const d = document.getElementById("fib-dist");
+  d.value = "300"; d.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 600));
+  const itens = [...document.querySelectorAll("#fib-equipamento .lm-item")];
+  return {
+    n: itens.length,
+    // Ou traz a fonte, ou diz que não tem: o que não pode é uma
+    // afirmação sem nenhuma das duas coisas.
+    comFonte: itens.every((e) => !!e.querySelector("a[href^='http']") ||
+                                 /Sem fonte/.test(e.textContent)),
+    semFonte: itens.filter((e) => /Sem fonte/.test(e.textContent))
+                   .map((e) => (e.querySelector("strong") || {}).textContent + " " +
+                               (e.querySelector(".lm-model") || {}).textContent),
+    mx40: (itens.find((e) => /MX40/.test(e.textContent)) || {}).textContent,
+    cx80: (itens.find((e) => /CX80/.test(e.textContent)) || {}).textContent
+  };
+});
+conferir(equip.n >= 10, "a lista traz " + equip.n + " aparelhos com saída ótica");
+conferir(equip.comFonte, "e cada um traz a fonte — ou diz que não tem");
+conferir(equip.semFonte.length <= 1,
+  "e só " + equip.semFonte.length + " está sem ficha registada na base" +
+  (equip.semFonte.length ? ": " + equip.semFonte.join(", ").trim() : ""));
+conferir(!!equip.mx40 && /4 portas óticas de 10G/.test(equip.mx40.replace(/\s+/g, " ")),
+  "o MX40 Pro diz as suas 4 portas óticas de 10G");
+conferir(!!equip.mx40 && /10GBASE-SR/.test(equip.mx40),
+  "e a 300 m a ótica aconselhada é a de curto alcance");
+
+// A ótica aconselhada muda com a distância — senão não é um conselho, é uma
+// etiqueta.
+const aLonge = await pagina.evaluate(async () => {
+  const d = document.getElementById("fib-dist");
+  d.value = "4000"; d.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 700));
+  const itens = [...document.querySelectorAll("#fib-equipamento .lm-item")];
+  return (itens.find((e) => /MX40/.test(e.textContent)) || {}).textContent || "";
+});
+conferir(/10GBASE-LR/.test(aLonge) && !/10GBASE-SR/.test(aLonge),
+  "a 4 km passa a aconselhar o de longo alcance");
+
+// E o conselho é do MESMO débito da porta: aconselhar uma ótica de 100G a
+// uma porta de 40G é aconselhar uma coisa que não encaixa lá.
+conferir(!!equip.cx80 && /40G/.test(equip.cx80) && !/100GBASE/.test(equip.cx80),
+  "a porta de 40G do CX80 Pro não leva um conselho de 100G");
+conferir(!!equip.cx80 && /Não há ótica de 40G/.test(equip.cx80.replace(/\s+/g, " ")),
+  "— admite que não há ótica de 40G recolhida, em vez de arranjar uma");
+
 console.log("\n== o engano que ele reportou: SFP monomodo em fibra multimodo ==");
 // *"o problema muitas vezes é um SFP SM LR 1310 usado em OM3 MM"*. É o erro
 // que mais custa porque às vezes a ligação até sobe numa tirada curta e cai

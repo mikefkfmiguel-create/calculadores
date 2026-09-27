@@ -1,77 +1,779 @@
 {
   "bandwidthNote": "Capacidade das portas GigE calculada com 930 Mbps utilizáveis por porta (sem COEX). A NovaStar usa oficialmente um fator de eficiência de ~93,6% (não 100%, por perdas reais de transmissão — distância de cabo, qualidade, etc.), que a 8-bit@60Hz dá ≈650.000 píxeis por porta — o nosso valor de 930 Mbps já está alinhado com esse fator oficial, não é margem extra nossa por cima. Ao mudar a profundidade de cor (10/12-bit), a NovaStar conta sempre como se fosse 16-bit por canal (48bpp), nunca proporcional ao bit exato — é o que a app já aplica.",
   "switchers": [
-    { "marca": "Barco", "modelo": "E2", "maxMPSwitcher": 20, "maxMPPgmOnly": 40, "maxMPPgmOnly30p": 80, "unitsOwned": 2, "maxMPSwitcherLinked": 40, "maxMPPgmOnlyLinked": 80, "maxMPPgmOnly30pLinked": 160, "inputs": 32, "outputs": 16, "latenciaFrames": 1, "maxPixelClockMHz": 330, "maxPixelClockSource": "oficial (DisplayPort 1.1 — HDMI 1.4a nas mesmas entradas limita a 297MHz)", "nota": "Descontinuado (pré-2019). Temos 2 chassis — ligação de 2 unidades é oficialmente suportada desde o lançamento (doc. Barco R5905948, secção 6.17: \"2 E2 units can be linked\", capacidade duplicada). Linked = valores acima aplicam-se só quando as 2 unidades são usadas juntas. As 16 saídas são configuráveis como ecrãs individuais ou combinadas/blended num canvas maior (não são todas 4K em simultâneo — a resolução máxima por saída depende de quantas saídas se usam) — não modelado como modos separados aqui por incerteza na tabela exata de trade-off resolução/nº de saídas. Entradas: 8 slots de placa, cada slot aceita 4× HD OU 2× WQXGA (2560×1600) OU 1× 4K — as 32 entradas acima são o máximo em HD; em 4K puro seriam só 8.", "fonte": "https://www.barco.com/en/product/e2" },
-    { "marca": "Barco", "modelo": "E2 Gen2", "maxMPSwitcher": 20, "maxMPPgmOnly": 40, "maxMPPgmOnly30p": 80, "unitsOwned": 1, "maxMPSwitcherLinked": 160, "maxMPPgmOnlyLinked": 320, "maxMPPgmOnly30pLinked": 640, "inputs": 40, "outputs": 18, "latenciaFrames": 1, "maxPixelClockMHz": 600, "maxPixelClockSource": "oficial (HDMI 2.0 e DisplayPort 1.2)", "nota": "Linked = até 8 chassis ligados por fibra (valor oficial da Barco). Só temos 1 unidade — capacidade linked não aplicável enquanto não houver uma 2ª unidade. As 18 saídas incluem até 8 mixáveis PGM + 4 Aux escaladas, com até 16 saídas de programa configuráveis como ecrãs individuais ou blended — o nº de saídas 4K simultâneas depende da configuração BTO instalada, não modelado aqui como modos separados por incerteza na tabela exata. Entradas: até 16× 4K60 OU até 40× HD (com software 6.0+, cada slot de entrada aceita 2× 4K60 ou 6× HD) — as 40 entradas acima são o máximo em HD; em 4K puro seriam só 16.", "fonte": "https://www.barco.com/en/product/e2-gen-2" },
-    { "marca": "Barco", "modelo": "S3-4K", "maxMPSwitcher": 20, "maxMPPgmOnly": 20, "unitsOwned": 1, "inputs": 12, "outputs": 8, "maxPixelClockMHz": 300, "maxPixelClockSource": "oficial (DisplayPort 1.1 — HDMI 1.4a nas mesmas entradas limita a 297MHz)", "nota": "Corrigido para 20MP (2026-08-28) — testado pelo utilizador na unidade real da AVK com o Event Master Toolset oficial da Barco, canvas vazio (sem camadas/conteúdo, só a testar se a resolução cabe fisicamente nas saídas): 8 saídas a 2048×1080@60 cada (8192×2160, ~17,7MP) funcionou sem aviso; somando as 2 saídas MW a 1920×1080 cada (~4,1MP) dá ~20MP, valor que o utilizador confirmou como teto e que bate certo com o nº de VPU cards instaladas (par com a gama oficial de 10–160MP por VPU card — 1 VPU card ≈10MP, 2 VPU cards ≈20MP). Este é o teto de routing pelas saídas físicas, não necessariamente o teto de processamento da VPU para conteúdo real com camadas ao vivo — decisão do utilizador foi usar este valor como teto na app. Nº de saídas físicas ainda a rever: 8 confirmadas nos testes de canvas, mais 2 saídas MW por confirmar se contam para \"outputs\" abaixo. 1 unidade. Latência ~15ms circula em fontes não-oficiais, não confirmada pela Barco. Entradas: BTO também no lado da entrada, de 4 a 128 FHD, 2 a 48 4K/UHD30 ou 2 a 40 4K/UHD60, consoante as placas instaladas — as 12 entradas acima refletem a configuração deste chassis específico, não o máximo BTO possível.", "fonte": "https://www.barco.com/product/s3-4k" },
-    { "marca": "Analog Way", "modelo": "Aquilon RS4", "maxMPSwitcher": 120, "inputs": 24, "outputs": 16, "latenciaFrames": 1, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (máximo publicado em HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "120MP a 10-bit 4:4:4 @60Hz no Program. As 16 saídas trocam resolução por quantidade: até 16× saídas 2K60 (Dual/2K) ou até 12× saídas 4K60 (clonáveis para as saídas não usadas) — o nº de saídas acima (16) assume o modo de mais saídas a 2K; em modo 4K há só 12. Não modelado como modos separados por o limite de pixel clock por saída também mudar entre os 2 modos (dado que não temos confirmado com precisão). Entradas: 24× 4K60 via 6 placas trocáveis a quente (12× HDMI2.0 + 8× DP1.2 + 4× 12G-SDI, todas até 4K60 em várias profundidades de cor) — suporta ainda combinar entradas em duplo/quádruplo para formatos tipo 8192×1080@60p.", "fonte": "https://www.analogway.com/products/aquilon-rs4" },
-    { "marca": "PixelHUE", "modelo": "P10", "maxMPSwitcher": 8.3, "maxMPPgmOnly": 17.7, "nota": "Modo switcher: 1×4K60. Modo PGM only: 8K×2K60. MP calculados da resolução, não publicados diretamente.", "fonte": "https://pixelhue.com/index.php/content/products_detail/catid/62/id/18.html" },
-    { "marca": "PixelHUE", "modelo": "P20", "maxMPSwitcher": 16.6, "maxMPPgmOnly": 35.4, "nota": "Modo switcher: 2×4K60. Modo PGM only: 8K×4K60. MP calculados da resolução, não publicados diretamente.", "fonte": "https://www.pixelhue.com/index.php/content/products_detail/catid/64/id/20.html" },
-    { "marca": "PixelHUE", "modelo": "P80", "maxMPSwitcher": 35, "inputs": 12, "outputs": 12, "outputModes": [ { "label": "Split — 8× Dual-Link principais + 4× flex 4K (repartir um canvas grande)", "outputs": 12 }, { "label": "Copy — 4× saídas 4K principais espelhadas + 4× flex 4K (conteúdo repetido nas principais)", "outputs": 8 } ], "nota": "Entradas: 12x 4K fixas (HDMI2.0/DP1.2/12G-SDI), expansível até 20x 4K com cartão de entrada opcional. Saídas principais: 8x HDMI2.0, com 2 modos de funcionamento — \"copy\" (4x saídas 4K concorrentes, todas com o mesmo conteúdo espelhado) ou \"split\" (8x saídas Dual-Link, para repartir um canvas maior por várias ligações separadas). O valor de 12 saídas aqui é o total físico (8 principais + 4 flex 4K) — não distingue os 2 modos das principais; para repartir um canvas grande usa o modo split. Também tem 4x 12G-SDI matrix, 2x multiviewer e 8x SFP ótica 10G (cópia das principais). Confirmado por múltiplos distribuidores oficiais (Blizzard Pro, Paragon Projection, Nationwide Video, Rentex) — o site oficial da PixelHUE não ficou acessível nesta pesquisa para confirmação direta.", "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html" },
-    { "marca": "NovaStar", "modelo": "H5", "maxMPSwitcher": 39, "maxMPFibra": 62.4, "maxMPSwitcherAdvanced": 62.4, "avancadoNota": "placa de saída em fibra H_4xfiber — não faz parte do inventário atual da AVK, confirmar disponibilidade/aluguer antes de assumir esta capacidade", "inputs": 40, "outputs": 48, "latenciaFrames": 1, "maxPixelClockMHz": 556.9, "maxPixelClockSource": "derivado de 4096×2160@60Hz (porta DisplayPort 1.2 do cartão de maior largura de banda) via CVT-RB2 — a NovaStar não publica MHz diretamente. \"H5-4K\" não é o nome oficial de uma porta/cartão NovaStar.", "nota": "39MP via RJ45 (placas H_20xRJ45, o que a AVK tem hoje). 62,4MP via saída de fibra H_4xfiber — ver \"modo avançado\", equipamento não confirmado no inventário. O nº de placas de saída realmente montadas nas unidades da AVK ainda está por confirmar (2025-08-27) — este valor de 39MP pode vir a ser corrigido.", "fonte": "https://oss.novastar.tech/uploads/2025/06/H5-Video-Wall-Splicer-Specifications-V1.15.0.pdf" },
-    { "marca": "Barco (Folsom)", "modelo": "DCS-200", "maxMPSwitcher": 1.92, "nota": "Dual Channel Seamless Switcher (linha Folsom, hoje Barco). Só modo switcher (sem tier PGM-only elevado). Resolução máx. UXGA 1600×1200. Contagem de entradas não publicada.", "fonte": "https://www.barco.com/product/dcs-200" },
-    { "marca": "Analog Way", "modelo": "OPS 200 (Opus LE)", "maxMPSwitcher": 2.3, "inputs": 11, "outputs": 2, "nota": "Resolução máx. ~2K (1920×1200). Até 3 camadas ao vivo + frame + 2 logos.", "fonte": "http://old.analogway.com/files/uploads/produit/download/en/ops200-ops200-mixers-seamless-switchers-web.pdf" },
-    { "marca": "Analog Way", "modelo": "PULSE II", "maxMPSwitcher": 2.3, "inputs": 8, "outputs": 2, "maxPixelClockMHz": 151.3, "maxPixelClockSource": "derivado de 2048×1152@60Hz (máximo publicado) via CVT-RB2 — a Analog Way não publica MHz diretamente para este modelo", "nota": "Resolução máx. ~2K (1920×1200). Só modo switcher (sem tier PGM-only elevado).", "fonte": "https://www.analogway.com/products/pulse2" },
-    { "marca": "Analog Way", "modelo": "Pulse 4K", "maxMPSwitcher": 8.3, "inputs": 10, "outputs": 2, "latenciaFrames": 1, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "Modo Matrix: 2 saídas PGM independentes, ambas até 4K60. Modo Switcher/Mixer: 1 saída PGM até 4K60 + 1 saída AUX limitada a 1080p60 (não é 4K nas duas saídas neste modo, ao contrário do que uma versão anterior desta nota dizia) — sem tier PGM-only elevado. + 1 saída multiviewer dedicada. ~16ms de latência.", "fonte": "https://www.analogway.com/products/pulse-4k" },
-    { "marca": "Analog Way", "modelo": "Ascender (LiveCore)", "maxMPSwitcher": 8.3, "inputs": 12, "outputs": 4, "nota": "SKU exato não confirmado na folha de inventário — valores da Ascender 32-4K (4K@30 4:4:4 ou 4K@60 4:2:0). Se for a geração anterior (só 2K), a capacidade real é menor.", "fonte": null },
-    { "marca": "Barco (Folsom)", "modelo": "Encore 3 ME", "maxMPSwitcher": 2.21, "latenciaFrames": 1.5, "nota": "Resolução máx. 2048×1080. Até 3 placas Mix/Effect, 2 canais de scaler por ME — nº de entradas/saídas depende da configuração de placas instaladas.", "fonte": "https://www.barco.com/en/support/encore-video-processor" },
-    { "marca": "Barco", "modelo": "PDS-902 3G", "maxMPSwitcher": 2.3, "inputs": 9, "outputs": 2, "nota": "Resolução máx. WUXGA 1920×1200. Tem ainda 1 saída 3G-SDI Program-only adicional.", "fonte": "https://www.barco.com/en/support/pds-902-3g" },
-    { "marca": "Magnimage", "modelo": "LED-550DS", "maxMPSwitcher": 2.65, "inputs": 8, "outputs": 2, "nota": "Melhor caso 2304×1152; outras opções de saída: 2560×816 ou 1536×1536.", "fonte": "http://www.magnimage.com/article/specification?cid=143&nid=25" },
-    { "marca": "Magnimage", "modelo": "LED-750HDS", "maxMPSwitcher": 4.6, "inputs": 7, "outputs": 4, "maxPixelClockMHz": 261.4, "maxPixelClockSource": "derivado de 3840×1080@60Hz (máximo publicado) via CVT-RB2 — a Magnimage não publica MHz diretamente", "nota": "4,6M píxeis é o limite de carga publicado do aparelho (não MP de composição ao vivo). 4 saídas DVI (2 grupos), largura de processo até 7680px.", "fonte": "http://www.magnimage.com/article/detail/159" },
-    { "marca": "Magnimage", "modelo": "LED-780H", "maxMPSwitcher": 8.3, "outputs": 8, "maxPixelClockMHz": 261.4, "maxPixelClockSource": "derivado de 3840×1080@60Hz (máximo publicado) via CVT-RB2 — a Magnimage não publica MHz diretamente", "nota": "No inventário da AVK aparece como \"783HP\" — SKU exato não confirmado publicamente, usados os valores do LED-780H (mesma série 780H), 4K×2K, 8 saídas DVI. Tratar com alguma reserva.", "fonte": null },
-    { "marca": "Magnimage", "modelo": "W4000-2DH", "maxMPSwitcher": 17.7, "inputs": 4, "outputs": 2, "maxPixelClockMHz": 278.4, "maxPixelClockSource": "derivado de 4096×1080@60Hz (entradas standard; módulo 4K opcional sobe a 4096×2160@60Hz) via CVT-RB2 — a Magnimage não publica MHz diretamente", "nota": "12 portas físicas em 4 grupos seletáveis (1 de 3 activo por grupo) = 4 entradas simultâneas. Saída 8K×2K@60Hz (8192×2160), 2 saídas HDMI.", "fonte": "http://www.magnimage.com/article/detail/425" },
-    { "marca": "PixelHUE", "modelo": "P20-DS", "maxMPSwitcher": 16.6, "maxMPPgmOnly": 35.4, "inputs": 12, "outputs": 8, "nota": "Variante Dante do P20 — mesma classe de resolução (switcher 2×4K60, PGM-only 8K×4K60). MP calculados da resolução, não publicados diretamente.", "fonte": "https://www.pixelhue.com/index.php/content/products_detail/catid/64/id/20.html" },
-    { "marca": "Barco", "modelo": "Encore3 (E3)", "mercado": true, "maxMPSwitcher": 80, "inputs": 16, "outputs": 8, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Barco não publica MHz diretamente para este modelo", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Config. standard: 4 placas de entrada + 2 de saída = 16 entradas 4K60 / 8 saídas 4K60 PVW/PGM (chassi modular, expansível a mais placas — BTO). ~80MP de canvas PVW/PGM a 12-bit 4:4:4. Latência oficial ~16ms (motor de escalamento Athena).", "fonte": "https://www.barco.com/en/product/encore3" },
-    { "marca": "Christie", "modelo": "Spyder X20", "mercado": true, "maxMPSwitcher": 20, "inputs": 16, "outputs": 8, "maxPixelClockMHz": 330, "maxPixelClockSource": "oficial (DVI dual-link)", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Produto agora listado pela Christie como \"end of support\". Saídas DVI. Latência oficial <1,5 frames entrelaçados. Config. de referência X20-1608 (16 entradas/8 saídas) — existe também a X20-0808 (8/8).", "fonte": "https://www.christiedigital.com/products/end-of-support/image-processors/christie-spyder-x20/" },
-    { "marca": "Christie", "modelo": "Spyder X80", "mercado": true, "maxMPSwitcher": 80, "inputs": 24, "outputs": 16, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0/DP 1.2/12G-SDI) via CVT-RB2 — a Christie não publica MHz diretamente", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 80MP é a capacidade a 8-bit; a 12-bit 4:4:4 desce para 53MP (não modelado dinamicamente por profundidade de cor aqui — confirmar sempre na ficha se o job for 12-bit). Latência não publicada numericamente pela Christie (só \"extremely low latency\").", "fonte": "https://www.christiedigital.com/products/image-processors/christie-spyder-x80/" },
-    { "marca": "Analog Way", "modelo": "Aquilon RS alpha", "mercado": true, "maxMPSwitcher": 40, "inputs": 8, "outputs": 4, "latenciaFrames": 1, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 40MP a 10-bit 4:4:4 @60Hz no Program. 8 entradas 4K60 HDMI2.0. 4 saídas 4K60 HDMI2.0 PGM + 2 saídas multiviewer 4K dedicadas (não contam para as 4 saídas PGM acima).", "fonte": "https://www.analogway.com/products/aquilon-rs-alpha" },
-    { "marca": "Analog Way", "modelo": "Aquilon RS1", "mercado": true, "maxMPSwitcher": 40, "inputs": 16, "outputs": 8, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 40MP a 10-bit 4:4:4 @60Hz no Program (confirmado — igual ao RS alpha apesar do dobro de entradas/saídas). 16 entradas 4K60, 8 saídas (config. opcional inclui 4× HDMI2.0 + 4× 12G-SDI). Latência em frames não confirmada diretamente para este modelo.", "fonte": "https://www.analogway.com/products/aquilon-rs1" },
-    { "marca": "Analog Way", "modelo": "Aquilon RS2", "mercado": true, "maxMPSwitcher": 80, "inputs": 16, "outputs": 12, "latenciaFrames": 1, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 80MP a 10-bit 4:4:4 @60Hz no Program. 16 entradas 4K60p (4 placas pré-instaladas: 8× HDMI2.0 + 4× DisplayPort1.2). 12 saídas.", "fonte": "https://www.analogway.com/products/aquilon-rs2" },
-    { "marca": "Analog Way", "modelo": "Aquilon RS3", "mercado": true, "maxMPSwitcher": 80, "inputs": 24, "outputs": 12, "latenciaFrames": 1, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 80MP a 10-bit 4:4:4 @60Hz no Program. Compatível HDR10/HLG. Pode alimentar 2 LED walls 8K60p + 4 saídas AUX 4K60p, ou até 12 saídas DL/2K60 ou 8 saídas 4K60 program.", "fonte": "https://www.analogway.com/products/aquilon-rs3" },
-    { "marca": "Analog Way", "modelo": "Aquilon RS5", "mercado": true, "maxMPSwitcher": 120, "inputs": 32, "outputs": 16, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 120MP a 10-bit 4:4:4 @60Hz no Program (mesmo tier do RS4 já existente, com config. de I/O diferente). 32 entradas 4K, 16 saídas 4K + 2 saídas HDMI2.0 dedicadas (configuráveis 2×4K30, 2×2560×1440@60 ou 1×4K60). Latência em frames não confirmada diretamente para este modelo.", "fonte": "https://www.analogway.com/products/aquilon-rs5" },
-    { "marca": "Analog Way", "modelo": "Aquilon RS6", "mercado": true, "maxMPSwitcher": 160, "inputs": 32, "outputs": 20, "latenciaFrames": 1, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 160MP a 10-bit 4:4:4 @60Hz no Program — o maior modelo pré-configurado da gama LivePremier, classe mission-critical. 32 entradas 4K60p (opção 4× 5K60p). 20 saídas 4K + 2 saídas multiviewer 4K dedicadas.", "fonte": "https://www.analogway.com/products/aquilon-rs6" },
-    { "marca": "Analog Way", "modelo": "Aquilon C", "mercado": true, "maxMPSwitcher": 80, "inputs": 16, "outputs": 16, "latenciaFrames": 1, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Chassi modular 4RU — sem MP fixo de fábrica; o valor acima (80MP a 10-bit 4:4:4) é o teto da configuração máxima publicada (até 16 entradas/16 saídas 4K60p), não a capacidade de uma unidade base — a capacidade real depende inteiramente das placas instaladas.", "fonte": "https://www.analogway.com/products/aquilon-c" },
-    { "marca": "Analog Way", "modelo": "Aquilon C+", "mercado": true, "maxMPSwitcher": 120, "inputs": 24, "outputs": 20, "latenciaFrames": 1, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Chassi modular — sem MP fixo de fábrica; o valor acima (120MP a 10-bit 4:4:4) é o teto da configuração máxima publicada (até 24 entradas/20 saídas 4K60p, até 12 camadas de mistura 4K), não a capacidade de uma unidade base — a capacidade real depende das placas instaladas.", "fonte": "https://www.analogway.com/products/aquilon-c-plus" },
-    { "marca": "Analog Way", "modelo": "Aquilon Cmax", "mercado": true, "maxMPSwitcher": 160, "inputs": 32, "outputs": 24, "maxPixelClockMHz": 522.6, "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente", "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Chassi modular, o maior da gama LivePremier — sem MP fixo de fábrica; o valor acima (160MP a 10-bit 4:4:4 @60Hz no Program) é o teto da configuração máxima publicada (até 32 entradas/24 saídas 4K60p, até 16 camadas 4K60p), não a capacidade de uma unidade base — a capacidade real depende das placas instaladas. Latência em frames não confirmada diretamente para este modelo.", "fonte": "https://www.analogway.com/products/aquilon-cmax" }
+    {
+      "marca": "Barco",
+      "modelo": "E2",
+      "maxMPSwitcher": 20,
+      "maxMPPgmOnly": 40,
+      "maxMPPgmOnly30p": 80,
+      "unitsOwned": 2,
+      "maxMPSwitcherLinked": 40,
+      "maxMPPgmOnlyLinked": 80,
+      "maxMPPgmOnly30pLinked": 160,
+      "inputs": 32,
+      "outputs": 16,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 330,
+      "maxPixelClockSource": "oficial (DisplayPort 1.1 — HDMI 1.4a nas mesmas entradas limita a 297MHz)",
+      "nota": "Descontinuado (pré-2019). Temos 2 chassis — ligação de 2 unidades é oficialmente suportada desde o lançamento (doc. Barco R5905948, secção 6.17: \"2 E2 units can be linked\", capacidade duplicada). Linked = valores acima aplicam-se só quando as 2 unidades são usadas juntas. As 16 saídas são configuráveis como ecrãs individuais ou combinadas/blended num canvas maior (não são todas 4K em simultâneo — a resolução máxima por saída depende de quantas saídas se usam) — não modelado como modos separados aqui por incerteza na tabela exata de trade-off resolução/nº de saídas. Entradas: 8 slots de placa, cada slot aceita 4× HD OU 2× WQXGA (2560×1600) OU 1× 4K — as 32 entradas acima são o máximo em HD; em 4K puro seriam só 8.",
+      "fonte": "https://www.barco.com/en/product/e2"
+    },
+    {
+      "marca": "Barco",
+      "modelo": "E2 Gen2",
+      "maxMPSwitcher": 20,
+      "maxMPPgmOnly": 40,
+      "maxMPPgmOnly30p": 80,
+      "unitsOwned": 1,
+      "maxMPSwitcherLinked": 160,
+      "maxMPPgmOnlyLinked": 320,
+      "maxMPPgmOnly30pLinked": 640,
+      "inputs": 40,
+      "outputs": 18,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 600,
+      "maxPixelClockSource": "oficial (HDMI 2.0 e DisplayPort 1.2)",
+      "nota": "Linked = até 8 chassis ligados por fibra (valor oficial da Barco). Só temos 1 unidade — capacidade linked não aplicável enquanto não houver uma 2ª unidade. As 18 saídas incluem até 8 mixáveis PGM + 4 Aux escaladas, com até 16 saídas de programa configuráveis como ecrãs individuais ou blended — o nº de saídas 4K simultâneas depende da configuração BTO instalada, não modelado aqui como modos separados por incerteza na tabela exata. Entradas: até 16× 4K60 OU até 40× HD (com software 6.0+, cada slot de entrada aceita 2× 4K60 ou 6× HD) — as 40 entradas acima são o máximo em HD; em 4K puro seriam só 16.",
+      "fonte": "https://www.barco.com/en/product/e2-gen-2"
+    },
+    {
+      "marca": "Barco",
+      "modelo": "S3-4K",
+      "maxMPSwitcher": 20,
+      "maxMPPgmOnly": 20,
+      "unitsOwned": 1,
+      "inputs": 12,
+      "outputs": 8,
+      "maxPixelClockMHz": 300,
+      "maxPixelClockSource": "oficial (DisplayPort 1.1 — HDMI 1.4a nas mesmas entradas limita a 297MHz)",
+      "nota": "Corrigido para 20MP (2026-08-28) — testado pelo utilizador na unidade real da AVK com o Event Master Toolset oficial da Barco, canvas vazio (sem camadas/conteúdo, só a testar se a resolução cabe fisicamente nas saídas): 8 saídas a 2048×1080@60 cada (8192×2160, ~17,7MP) funcionou sem aviso; somando as 2 saídas MW a 1920×1080 cada (~4,1MP) dá ~20MP, valor que o utilizador confirmou como teto e que bate certo com o nº de VPU cards instaladas (par com a gama oficial de 10–160MP por VPU card — 1 VPU card ≈10MP, 2 VPU cards ≈20MP). Este é o teto de routing pelas saídas físicas, não necessariamente o teto de processamento da VPU para conteúdo real com camadas ao vivo — decisão do utilizador foi usar este valor como teto na app. Nº de saídas físicas ainda a rever: 8 confirmadas nos testes de canvas, mais 2 saídas MW por confirmar se contam para \"outputs\" abaixo. 1 unidade. Latência ~15ms circula em fontes não-oficiais, não confirmada pela Barco. Entradas: BTO também no lado da entrada, de 4 a 128 FHD, 2 a 48 4K/UHD30 ou 2 a 40 4K/UHD60, consoante as placas instaladas — as 12 entradas acima refletem a configuração deste chassis específico, não o máximo BTO possível.",
+      "fonte": "https://www.barco.com/product/s3-4k"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Aquilon RS4",
+      "maxMPSwitcher": 120,
+      "inputs": 24,
+      "outputs": 16,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (máximo publicado em HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "120MP a 10-bit 4:4:4 @60Hz no Program. As 16 saídas trocam resolução por quantidade: até 16× saídas 2K60 (Dual/2K) ou até 12× saídas 4K60 (clonáveis para as saídas não usadas) — o nº de saídas acima (16) assume o modo de mais saídas a 2K; em modo 4K há só 12. Não modelado como modos separados por o limite de pixel clock por saída também mudar entre os 2 modos (dado que não temos confirmado com precisão). Entradas: 24× 4K60 via 6 placas trocáveis a quente (12× HDMI2.0 + 8× DP1.2 + 4× 12G-SDI, todas até 4K60 em várias profundidades de cor) — suporta ainda combinar entradas em duplo/quádruplo para formatos tipo 8192×1080@60p.",
+      "fonte": "https://www.analogway.com/products/aquilon-rs4"
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "P10",
+      "maxMPSwitcher": 8.3,
+      "maxMPPgmOnly": 17.7,
+      "nota": "Modo switcher: 1×4K60. Modo PGM only: 8K×2K60. MP calculados da resolução, não publicados diretamente.",
+      "fonte": "https://pixelhue.com/index.php/content/products_detail/catid/62/id/18.html"
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "P20",
+      "maxMPSwitcher": 16.6,
+      "maxMPPgmOnly": 35.4,
+      "nota": "Modo switcher: 2×4K60. Modo PGM only: 8K×4K60. MP calculados da resolução, não publicados diretamente.",
+      "fonte": "https://www.pixelhue.com/index.php/content/products_detail/catid/64/id/20.html"
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "P80",
+      "maxMPSwitcher": 35,
+      "inputs": 12,
+      "outputs": 12,
+      "outputModes": [
+        {
+          "label": "Split — 8× Dual-Link principais + 4× flex 4K (repartir um canvas grande)",
+          "outputs": 12
+        },
+        {
+          "label": "Copy — 4× saídas 4K principais espelhadas + 4× flex 4K (conteúdo repetido nas principais)",
+          "outputs": 8
+        }
+      ],
+      "nota": "Entradas: 12x 4K fixas (HDMI2.0/DP1.2/12G-SDI), expansível até 20x 4K com cartão de entrada opcional. Saídas principais: 8x HDMI2.0, com 2 modos de funcionamento — \"copy\" (4x saídas 4K concorrentes, todas com o mesmo conteúdo espelhado) ou \"split\" (8x saídas Dual-Link, para repartir um canvas maior por várias ligações separadas). O valor de 12 saídas aqui é o total físico (8 principais + 4 flex 4K) — não distingue os 2 modos das principais; para repartir um canvas grande usa o modo split. Também tem 4x 12G-SDI matrix, 2x multiviewer e 8x SFP ótica 10G (cópia das principais). Confirmado por múltiplos distribuidores oficiais (Blizzard Pro, Paragon Projection, Nationwide Video, Rentex) — o site oficial da PixelHUE não ficou acessível nesta pesquisa para confirmação direta.",
+      "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html",
+      "optica": {
+        "portas": 8,
+        "gbps": 10,
+        "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "H5",
+      "maxMPSwitcher": 39,
+      "maxMPFibra": 62.4,
+      "maxMPSwitcherAdvanced": 62.4,
+      "avancadoNota": "placa de saída em fibra H_4xfiber — não faz parte do inventário atual da AVK, confirmar disponibilidade/aluguer antes de assumir esta capacidade",
+      "inputs": 40,
+      "outputs": 48,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 556.9,
+      "maxPixelClockSource": "derivado de 4096×2160@60Hz (porta DisplayPort 1.2 do cartão de maior largura de banda) via CVT-RB2 — a NovaStar não publica MHz diretamente. \"H5-4K\" não é o nome oficial de uma porta/cartão NovaStar.",
+      "nota": "39MP via RJ45 (placas H_20xRJ45, o que a AVK tem hoje). 62,4MP via saída de fibra H_4xfiber — ver \"modo avançado\", equipamento não confirmado no inventário. O nº de placas de saída realmente montadas nas unidades da AVK ainda está por confirmar (2025-08-27) — este valor de 39MP pode vir a ser corrigido.",
+      "fonte": "https://oss.novastar.tech/uploads/2025/06/H5-Video-Wall-Splicer-Specifications-V1.15.0.pdf",
+      "optica": {
+        "portas": 4,
+        "gbps": null,
+        "nota": "Saída de fibra H_4xfiber, 62,4 MP. Débito por porta não confirmado.",
+        "fonte": "https://oss.novastar.tech/uploads/2025/06/H5-Video-Wall-Splicer-Specifications-V1.15.0.pdf"
+      }
+    },
+    {
+      "marca": "Barco (Folsom)",
+      "modelo": "DCS-200",
+      "maxMPSwitcher": 1.92,
+      "nota": "Dual Channel Seamless Switcher (linha Folsom, hoje Barco). Só modo switcher (sem tier PGM-only elevado). Resolução máx. UXGA 1600×1200. Contagem de entradas não publicada.",
+      "fonte": "https://www.barco.com/product/dcs-200"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "OPS 200 (Opus LE)",
+      "maxMPSwitcher": 2.3,
+      "inputs": 11,
+      "outputs": 2,
+      "nota": "Resolução máx. ~2K (1920×1200). Até 3 camadas ao vivo + frame + 2 logos.",
+      "fonte": "http://old.analogway.com/files/uploads/produit/download/en/ops200-ops200-mixers-seamless-switchers-web.pdf"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "PULSE II",
+      "maxMPSwitcher": 2.3,
+      "inputs": 8,
+      "outputs": 2,
+      "maxPixelClockMHz": 151.3,
+      "maxPixelClockSource": "derivado de 2048×1152@60Hz (máximo publicado) via CVT-RB2 — a Analog Way não publica MHz diretamente para este modelo",
+      "nota": "Resolução máx. ~2K (1920×1200). Só modo switcher (sem tier PGM-only elevado).",
+      "fonte": "https://www.analogway.com/products/pulse2"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Pulse 4K",
+      "maxMPSwitcher": 8.3,
+      "inputs": 10,
+      "outputs": 2,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "Modo Matrix: 2 saídas PGM independentes, ambas até 4K60. Modo Switcher/Mixer: 1 saída PGM até 4K60 + 1 saída AUX limitada a 1080p60 (não é 4K nas duas saídas neste modo, ao contrário do que uma versão anterior desta nota dizia) — sem tier PGM-only elevado. + 1 saída multiviewer dedicada. ~16ms de latência.",
+      "fonte": "https://www.analogway.com/products/pulse-4k"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Ascender (LiveCore)",
+      "maxMPSwitcher": 8.3,
+      "inputs": 12,
+      "outputs": 4,
+      "nota": "SKU exato não confirmado na folha de inventário — valores da Ascender 32-4K (4K@30 4:4:4 ou 4K@60 4:2:0). Se for a geração anterior (só 2K), a capacidade real é menor.",
+      "fonte": null
+    },
+    {
+      "marca": "Barco (Folsom)",
+      "modelo": "Encore 3 ME",
+      "maxMPSwitcher": 2.21,
+      "latenciaFrames": 1.5,
+      "nota": "Resolução máx. 2048×1080. Até 3 placas Mix/Effect, 2 canais de scaler por ME — nº de entradas/saídas depende da configuração de placas instaladas.",
+      "fonte": "https://www.barco.com/en/support/encore-video-processor"
+    },
+    {
+      "marca": "Barco",
+      "modelo": "PDS-902 3G",
+      "maxMPSwitcher": 2.3,
+      "inputs": 9,
+      "outputs": 2,
+      "nota": "Resolução máx. WUXGA 1920×1200. Tem ainda 1 saída 3G-SDI Program-only adicional.",
+      "fonte": "https://www.barco.com/en/support/pds-902-3g"
+    },
+    {
+      "marca": "Magnimage",
+      "modelo": "LED-550DS",
+      "maxMPSwitcher": 2.65,
+      "inputs": 8,
+      "outputs": 2,
+      "nota": "Melhor caso 2304×1152; outras opções de saída: 2560×816 ou 1536×1536.",
+      "fonte": "http://www.magnimage.com/article/specification?cid=143&nid=25"
+    },
+    {
+      "marca": "Magnimage",
+      "modelo": "LED-750HDS",
+      "maxMPSwitcher": 4.6,
+      "inputs": 7,
+      "outputs": 4,
+      "maxPixelClockMHz": 261.4,
+      "maxPixelClockSource": "derivado de 3840×1080@60Hz (máximo publicado) via CVT-RB2 — a Magnimage não publica MHz diretamente",
+      "nota": "4,6M píxeis é o limite de carga publicado do aparelho (não MP de composição ao vivo). 4 saídas DVI (2 grupos), largura de processo até 7680px.",
+      "fonte": "http://www.magnimage.com/article/detail/159"
+    },
+    {
+      "marca": "Magnimage",
+      "modelo": "LED-780H",
+      "maxMPSwitcher": 8.3,
+      "outputs": 8,
+      "maxPixelClockMHz": 261.4,
+      "maxPixelClockSource": "derivado de 3840×1080@60Hz (máximo publicado) via CVT-RB2 — a Magnimage não publica MHz diretamente",
+      "nota": "No inventário da AVK aparece como \"783HP\" — SKU exato não confirmado publicamente, usados os valores do LED-780H (mesma série 780H), 4K×2K, 8 saídas DVI. Tratar com alguma reserva.",
+      "fonte": null
+    },
+    {
+      "marca": "Magnimage",
+      "modelo": "W4000-2DH",
+      "maxMPSwitcher": 17.7,
+      "inputs": 4,
+      "outputs": 2,
+      "maxPixelClockMHz": 278.4,
+      "maxPixelClockSource": "derivado de 4096×1080@60Hz (entradas standard; módulo 4K opcional sobe a 4096×2160@60Hz) via CVT-RB2 — a Magnimage não publica MHz diretamente",
+      "nota": "12 portas físicas em 4 grupos seletáveis (1 de 3 activo por grupo) = 4 entradas simultâneas. Saída 8K×2K@60Hz (8192×2160), 2 saídas HDMI.",
+      "fonte": "http://www.magnimage.com/article/detail/425"
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "P20-DS",
+      "maxMPSwitcher": 16.6,
+      "maxMPPgmOnly": 35.4,
+      "inputs": 12,
+      "outputs": 8,
+      "nota": "Variante Dante do P20 — mesma classe de resolução (switcher 2×4K60, PGM-only 8K×4K60). MP calculados da resolução, não publicados diretamente.",
+      "fonte": "https://www.pixelhue.com/index.php/content/products_detail/catid/64/id/20.html"
+    },
+    {
+      "marca": "Barco",
+      "modelo": "Encore3 (E3)",
+      "mercado": true,
+      "maxMPSwitcher": 80,
+      "inputs": 16,
+      "outputs": 8,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Barco não publica MHz diretamente para este modelo",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Config. standard: 4 placas de entrada + 2 de saída = 16 entradas 4K60 / 8 saídas 4K60 PVW/PGM (chassi modular, expansível a mais placas — BTO). ~80MP de canvas PVW/PGM a 12-bit 4:4:4. Latência oficial ~16ms (motor de escalamento Athena).",
+      "fonte": "https://www.barco.com/en/product/encore3"
+    },
+    {
+      "marca": "Christie",
+      "modelo": "Spyder X20",
+      "mercado": true,
+      "maxMPSwitcher": 20,
+      "inputs": 16,
+      "outputs": 8,
+      "maxPixelClockMHz": 330,
+      "maxPixelClockSource": "oficial (DVI dual-link)",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Produto agora listado pela Christie como \"end of support\". Saídas DVI. Latência oficial <1,5 frames entrelaçados. Config. de referência X20-1608 (16 entradas/8 saídas) — existe também a X20-0808 (8/8).",
+      "fonte": "https://www.christiedigital.com/products/end-of-support/image-processors/christie-spyder-x20/"
+    },
+    {
+      "marca": "Christie",
+      "modelo": "Spyder X80",
+      "mercado": true,
+      "maxMPSwitcher": 80,
+      "inputs": 24,
+      "outputs": 16,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0/DP 1.2/12G-SDI) via CVT-RB2 — a Christie não publica MHz diretamente",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 80MP é a capacidade a 8-bit; a 12-bit 4:4:4 desce para 53MP (não modelado dinamicamente por profundidade de cor aqui — confirmar sempre na ficha se o job for 12-bit). Latência não publicada numericamente pela Christie (só \"extremely low latency\").",
+      "fonte": "https://www.christiedigital.com/products/image-processors/christie-spyder-x80/"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Aquilon RS alpha",
+      "mercado": true,
+      "maxMPSwitcher": 40,
+      "inputs": 8,
+      "outputs": 4,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 40MP a 10-bit 4:4:4 @60Hz no Program. 8 entradas 4K60 HDMI2.0. 4 saídas 4K60 HDMI2.0 PGM + 2 saídas multiviewer 4K dedicadas (não contam para as 4 saídas PGM acima).",
+      "fonte": "https://www.analogway.com/products/aquilon-rs-alpha"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Aquilon RS1",
+      "mercado": true,
+      "maxMPSwitcher": 40,
+      "inputs": 16,
+      "outputs": 8,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 40MP a 10-bit 4:4:4 @60Hz no Program (confirmado — igual ao RS alpha apesar do dobro de entradas/saídas). 16 entradas 4K60, 8 saídas (config. opcional inclui 4× HDMI2.0 + 4× 12G-SDI). Latência em frames não confirmada diretamente para este modelo.",
+      "fonte": "https://www.analogway.com/products/aquilon-rs1"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Aquilon RS2",
+      "mercado": true,
+      "maxMPSwitcher": 80,
+      "inputs": 16,
+      "outputs": 12,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 80MP a 10-bit 4:4:4 @60Hz no Program. 16 entradas 4K60p (4 placas pré-instaladas: 8× HDMI2.0 + 4× DisplayPort1.2). 12 saídas.",
+      "fonte": "https://www.analogway.com/products/aquilon-rs2"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Aquilon RS3",
+      "mercado": true,
+      "maxMPSwitcher": 80,
+      "inputs": 24,
+      "outputs": 12,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 80MP a 10-bit 4:4:4 @60Hz no Program. Compatível HDR10/HLG. Pode alimentar 2 LED walls 8K60p + 4 saídas AUX 4K60p, ou até 12 saídas DL/2K60 ou 8 saídas 4K60 program.",
+      "fonte": "https://www.analogway.com/products/aquilon-rs3"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Aquilon RS5",
+      "mercado": true,
+      "maxMPSwitcher": 120,
+      "inputs": 32,
+      "outputs": 16,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 120MP a 10-bit 4:4:4 @60Hz no Program (mesmo tier do RS4 já existente, com config. de I/O diferente). 32 entradas 4K, 16 saídas 4K + 2 saídas HDMI2.0 dedicadas (configuráveis 2×4K30, 2×2560×1440@60 ou 1×4K60). Latência em frames não confirmada diretamente para este modelo.",
+      "fonte": "https://www.analogway.com/products/aquilon-rs5"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Aquilon RS6",
+      "mercado": true,
+      "maxMPSwitcher": 160,
+      "inputs": 32,
+      "outputs": 20,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 160MP a 10-bit 4:4:4 @60Hz no Program — o maior modelo pré-configurado da gama LivePremier, classe mission-critical. 32 entradas 4K60p (opção 4× 5K60p). 20 saídas 4K + 2 saídas multiviewer 4K dedicadas.",
+      "fonte": "https://www.analogway.com/products/aquilon-rs6"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Aquilon C",
+      "mercado": true,
+      "maxMPSwitcher": 80,
+      "inputs": 16,
+      "outputs": 16,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Chassi modular 4RU — sem MP fixo de fábrica; o valor acima (80MP a 10-bit 4:4:4) é o teto da configuração máxima publicada (até 16 entradas/16 saídas 4K60p), não a capacidade de uma unidade base — a capacidade real depende inteiramente das placas instaladas.",
+      "fonte": "https://www.analogway.com/products/aquilon-c"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Aquilon C+",
+      "mercado": true,
+      "maxMPSwitcher": 120,
+      "inputs": 24,
+      "outputs": 20,
+      "latenciaFrames": 1,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Chassi modular — sem MP fixo de fábrica; o valor acima (120MP a 10-bit 4:4:4) é o teto da configuração máxima publicada (até 24 entradas/20 saídas 4K60p, até 12 camadas de mistura 4K), não a capacidade de uma unidade base — a capacidade real depende das placas instaladas.",
+      "fonte": "https://www.analogway.com/products/aquilon-c-plus"
+    },
+    {
+      "marca": "Analog Way",
+      "modelo": "Aquilon Cmax",
+      "mercado": true,
+      "maxMPSwitcher": 160,
+      "inputs": 32,
+      "outputs": 24,
+      "maxPixelClockMHz": 522.6,
+      "maxPixelClockSource": "derivado de 3840×2160@60Hz 8-bit 4:4:4 (HDMI 2.0) via CVT-RB2 — a Analog Way não publica MHz diretamente",
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Chassi modular, o maior da gama LivePremier — sem MP fixo de fábrica; o valor acima (160MP a 10-bit 4:4:4 @60Hz no Program) é o teto da configuração máxima publicada (até 32 entradas/24 saídas 4K60p, até 16 camadas 4K60p), não a capacidade de uma unidade base — a capacidade real depende das placas instaladas. Latência em frames não confirmada diretamente para este modelo.",
+      "fonte": "https://www.analogway.com/products/aquilon-cmax"
+    }
   ],
   "ledProcessors": [
-    { "marca": "NovaStar", "modelo": "MCTRL300", "ports": 2, "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=30" },
-    { "marca": "NovaStar", "modelo": "MCTRL600", "ports": 4, "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=28" },
-    { "marca": "NovaStar", "modelo": "MCTRL660", "ports": 4, "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=27" },
-    { "marca": "NovaStar", "modelo": "MCTRL660 PRO", "ports": 6, "nota": "Tem ainda 2× saída ótica 10G — capacidade exata por fibra não confirmada; tratada como porta GigE padrão por segurança (sem COEX).", "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=26" },
-    { "marca": "NovaStar", "modelo": "MCTRL4K", "ports": 16, "maxPixelsHardCap": 8800000, "nota": "Tem ainda 4× saída de fibra — tratada como porta GigE padrão por segurança (sem COEX). Limite físico do aparelho: 8,8M píxeis (entrada DP/HDMI).", "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=24" },
-    { "marca": "NovaStar", "modelo": "MCTRL500 (na folha: \"SD500\")", "ports": 4, "maxPixelsHardCap": 1300000, "nota": "\"MCTRL SD500\" não existe como modelo NovaStar confirmado — assumido MCTRL500 (nome mais próximo). 4 saídas RJ45 OU 4 saídas de fibra (seleção, não simultâneo). Limite ~1,3M píxeis @ 1920×1200 ou 2048×1152@60Hz.", "fonte": null },
-    { "marca": "NovaStar", "modelo": "MX20", "mercado": true, "ports": 6, "maxPixelsHardCap": 3900000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX. 6 saídas Ethernet standard (tier \"1G\", mesma banda das MCTRL) + 2 saídas óticas 10G (tratadas como porta GigE padrão por segurança — capacidade real por fibra não modelada aqui). Canvas até 3840×2560, 3 camadas de processamento.", "fonte": "https://oss.novastar.tech/uploads/2023/07/MX20-LED-Display-Controller-Specifications-V1.0.1.pdf" },
-    { "marca": "NovaStar", "modelo": "MX30", "mercado": true, "ports": 10, "maxPixelsHardCap": 6500000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX. 10 saídas Ethernet standard (tier \"1G\") + 2 saídas óticas 10G (tratadas como porta GigE padrão por segurança). Canvas até 16384px de largura/altura, entrada HDMI2.0 4K, HDR10/HLG.", "fonte": "https://oss.novastar.tech/uploads/2023/07/MX30-LED-Display-Controller-Specifications-V1.0.1.pdf" },
-    { "marca": "NovaStar", "modelo": "MX40 PRO", "mercado": true, "ports": 20, "maxPixelsHardCap": 9000000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX, xR-ready. 20 saídas Ethernet standard (tier \"1G\") + 4 saídas óticas 10G (tratadas como porta GigE padrão por segurança). Existe uma placa opcional de 8 saídas \"5G\" — não confirmado se vem de série ou é vendida à parte, não modelada aqui (usar 9M como teto conservador). Multiplicação de frames até 480Hz.", "fonte": "https://oss.novastar.tech/uploads/2024/08/MX40-Pro-LED-Display-Controller-Specifications-V1.4.1.pdf" },
-    { "marca": "NovaStar", "modelo": "KU20", "mercado": true, "ports": 6, "maxPixelsHardCap": 3900000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX, modelo compacto/económico. 6 saídas Ethernet standard (tier \"1G\", 650.000px/porta a 8-bit/60Hz confirmado diretamente na ficha) + 1 saída ótica 10G. Resolução máx. de entrada HDMI varia entre revisões da ficha (1920×1200 vs 2560×1440) — não confirmado qual é a atual, não afeta a capacidade acima.", "fonte": "https://oss.novastar.tech/uploads/2023/05/KU20-LED-Display-Controller-Specifications-V1.1.0.pdf" },
-    { "marca": "NovaStar", "modelo": "MX2000 Pro", "mercado": true, "ports": 16, "portGbpsUsable": 3.73248, "portGbpsUsableSource": "derivado de 2.592.000px/porta @8-bit/60Hz (tier \"5G\" da COEX, valor oficial da wiki técnica da NovaStar) — a NovaStar não publica Gbps/porta diretamente", "maxPixelsHardCap": 35380000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX, 8K, 12-bit. As 16 portas Ethernet são de modo duplo (\"1G\" ou \"5G\", não em simultâneo na mesma tela) — modelado aqui só no modo \"5G\" (capacidade total publicada, 35,38M). No modo \"1G\" a capacidade desceria para ~10,6M, não modelado separadamente. Tem ainda 2 slots para placas de saída em fibra (4×10G ou 1×40G, não contabilizadas nas portas acima).", "fonte": "https://oss.novastar.tech/uploads/2023/12/MX2000-Pro-LED-Display-Controller-Specifications-V1.1.1.pdf" },
-    { "marca": "NovaStar", "modelo": "CX80 Pro", "mercado": true, "ports": 16, "portGbpsUsable": 3.73248, "portGbpsUsableSource": "derivado de 2.592.000px/porta @8-bit/60Hz (tier \"5G\" da COEX, valor oficial da wiki técnica da NovaStar) — a NovaStar não publica Gbps/porta diretamente", "maxPixelsHardCap": 9000000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX, 8K, flagship modular. 16 saídas Ethernet a 5Gbps + 2 saídas óticas a 40Gbps (não contabilizadas nas portas acima) + 2 portas GigE de controlo (não transportam píxeis). Teto total confirmado: 9M píxeis — bem abaixo do que as 16 portas 5G dariam em bruto, porque o limite real é o pipeline de processamento, não a banda das portas (mesmo padrão do MX40 PRO). Máx. publicado por saída/ecrã individual: 2.592.000px @8-bit/60Hz, 2.073.000px @10-bit, 1.728.000px @12-bit — não é o mesmo que o limite por porta Ethernet.", "fonte": "https://oss.novastar.tech/uploads/2023/07/CX80-Pro-LED-Display-Controller-Specifications-V1.1.2.pdf" },
-    { "marca": "NovaStar", "modelo": "VX400", "mercado": true, "ports": 4, "maxPixelsHardCap": 2600000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série VX (\"tudo-em-um\", processador + sending card). 4 saídas Ethernet standard (tier \"1G\"). Capacidade total (2,6M) não é um valor de ficha diretamente publicado — calculada a partir do nº de portas × 650.000px/porta, consistente com o padrão confirmado nos restantes modelos VX.", "fonte": "https://oss.novastar.tech/uploads/2023/06/VX400-All-in-One-Controller-Specifications-V1.0.0.pdf" },
-    { "marca": "NovaStar", "modelo": "VX600", "mercado": true, "ports": 6, "maxPixelsHardCap": 3900000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série VX (\"tudo-em-um\"). 6 saídas Ethernet standard (tier \"1G\").", "fonte": "https://oss.novastar.tech/uploads/2024/07/VX600-All-in-One-Controller-Specifications-V1.7.0.pdf" },
-    { "marca": "NovaStar", "modelo": "VX1000", "mercado": true, "ports": 10, "maxPixelsHardCap": 6500000, "latenciaFrames": 1, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série VX (\"tudo-em-um\"). 10 saídas Ethernet standard (tier \"1G\") + 2 saídas óticas 10G auto-adaptativas (tratadas como porta GigE padrão por segurança). Canvas até 10240×8192, entrada 4K×1K@60Hz.", "fonte": "https://oss.novastar.tech/uploads/2024/07/VX1000-All-in-One-Controller-Specifications-V1.6.0.pdf" },
-    { "marca": "NovaStar", "modelo": "VX1000 Pro", "mercado": true, "ports": 10, "maxPixelsHardCap": 6500000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Variante do VX1000 com par ótico redundante. 10 saídas Ethernet standard (tier \"1G\") + 2 saídas óticas 10G redundantes (tratadas como porta GigE padrão por segurança). Canvas até 10240×8192, entrada HDMI2.0 4K×2K@60Hz.", "fonte": "https://oss.novastar.tech/uploads/2025/03/VX1000-Pro-All-in-One-Controller-Specifications-V1.0.1.pdf" },
-    { "marca": "NovaStar", "modelo": "VX16s", "mercado": true, "ports": 16, "maxPixelsHardCap": 10400000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série VX (\"tudo-em-um\"). 16 saídas Ethernet standard (tier \"1G\"). Processamento até 4K×2K@60Hz. Ficha técnica oficial da NovaStar não localizada diretamente — fonte é uma página de revendedor, tratar com alguma reserva.", "fonte": "https://www.stagelightingstore.com/NovaStar-VX16s-LED-Display-Video-Processor-All-In-One-LED-Controller" },
-    { "marca": "NovaStar", "modelo": "TU20 Pro", "mercado": true, "ports": 6, "maxPixelsHardCap": 3900000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série TU (\"tudo-em-um\" com media player integrado — processador + sending card + player, 3 entradas HDMI). 6 saídas Ethernet standard (tier \"1G\").", "fonte": "https://oss.novastar.tech/uploads/2023/06/TU20-Pro-LED-Playback-Control-Processor-Specifications-V1.0.1.pdf" },
-    { "marca": "NovaStar", "modelo": "TU4K Pro", "mercado": true, "ports": 20, "maxPixelsHardCap": 13000000, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série TU (\"tudo-em-um\" com media player integrado). 20 saídas Ethernet standard (tier \"1G\") + 2 saídas óticas 10G (tratadas como porta GigE padrão por segurança). Entrada até HDMI2.0 4K@60Hz.", "fonte": "https://oss.novastar.tech/uploads/2025/11/TU4K-Pro-LED-Playback-Control-Processor-Specifications-V1.2.0.pdf" }
+    {
+      "marca": "NovaStar",
+      "modelo": "MCTRL300",
+      "ports": 2,
+      "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=30"
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "MCTRL600",
+      "ports": 4,
+      "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=28"
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "MCTRL660",
+      "ports": 4,
+      "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=27"
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "MCTRL660 PRO",
+      "ports": 6,
+      "nota": "Tem ainda 2× saída ótica 10G — capacidade exata por fibra não confirmada; tratada como porta GigE padrão por segurança (sem COEX).",
+      "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=26",
+      "optica": {
+        "portas": 2,
+        "gbps": 10,
+        "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=26"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "MCTRL4K",
+      "ports": 16,
+      "maxPixelsHardCap": 8800000,
+      "nota": "Tem ainda 4× saída de fibra — tratada como porta GigE padrão por segurança (sem COEX). Limite físico do aparelho: 8,8M píxeis (entrada DP/HDMI).",
+      "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=24",
+      "optica": {
+        "portas": 4,
+        "gbps": null,
+        "nota": "A ficha diz 4 saídas de fibra; o débito por porta não está confirmado.",
+        "fonte": "https://www.novastar.tech/product/detail.html?catid=2&id=24"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "MCTRL500 (na folha: \"SD500\")",
+      "ports": 4,
+      "maxPixelsHardCap": 1300000,
+      "nota": "\"MCTRL SD500\" não existe como modelo NovaStar confirmado — assumido MCTRL500 (nome mais próximo). 4 saídas RJ45 OU 4 saídas de fibra (seleção, não simultâneo). Limite ~1,3M píxeis @ 1920×1200 ou 2048×1152@60Hz.",
+      "fonte": null,
+      "optica": {
+        "portas": 4,
+        "gbps": null,
+        "nota": "4 saídas RJ45 OU 4 de fibra — à escolha, não em simultâneo. Débito por fibra não confirmado.",
+        "fonte": null
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "MX20",
+      "mercado": true,
+      "ports": 6,
+      "maxPixelsHardCap": 3900000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX. 6 saídas Ethernet standard (tier \"1G\", mesma banda das MCTRL) + 2 saídas óticas 10G (tratadas como porta GigE padrão por segurança — capacidade real por fibra não modelada aqui). Canvas até 3840×2560, 3 camadas de processamento.",
+      "fonte": "https://oss.novastar.tech/uploads/2023/07/MX20-LED-Display-Controller-Specifications-V1.0.1.pdf",
+      "optica": {
+        "portas": 2,
+        "gbps": 10,
+        "fonte": "https://oss.novastar.tech/uploads/2023/07/MX20-LED-Display-Controller-Specifications-V1.0.1.pdf"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "MX30",
+      "mercado": true,
+      "ports": 10,
+      "maxPixelsHardCap": 6500000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX. 10 saídas Ethernet standard (tier \"1G\") + 2 saídas óticas 10G (tratadas como porta GigE padrão por segurança). Canvas até 16384px de largura/altura, entrada HDMI2.0 4K, HDR10/HLG.",
+      "fonte": "https://oss.novastar.tech/uploads/2023/07/MX30-LED-Display-Controller-Specifications-V1.0.1.pdf",
+      "optica": {
+        "portas": 2,
+        "gbps": 10,
+        "fonte": "https://oss.novastar.tech/uploads/2023/07/MX30-LED-Display-Controller-Specifications-V1.0.1.pdf"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "MX40 PRO",
+      "mercado": true,
+      "ports": 20,
+      "maxPixelsHardCap": 9000000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX, xR-ready. 20 saídas Ethernet standard (tier \"1G\") + 4 saídas óticas 10G (tratadas como porta GigE padrão por segurança). Existe uma placa opcional de 8 saídas \"5G\" — não confirmado se vem de série ou é vendida à parte, não modelada aqui (usar 9M como teto conservador). Multiplicação de frames até 480Hz.",
+      "fonte": "https://oss.novastar.tech/uploads/2024/08/MX40-Pro-LED-Display-Controller-Specifications-V1.4.1.pdf",
+      "optica": {
+        "portas": 4,
+        "gbps": 10,
+        "nota": "Duas principais e duas de reserva.",
+        "fonte": "https://oss.novastar.tech/uploads/2024/08/MX40-Pro-LED-Display-Controller-Specifications-V1.4.1.pdf"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "KU20",
+      "mercado": true,
+      "ports": 6,
+      "maxPixelsHardCap": 3900000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX, modelo compacto/económico. 6 saídas Ethernet standard (tier \"1G\", 650.000px/porta a 8-bit/60Hz confirmado diretamente na ficha) + 1 saída ótica 10G. Resolução máx. de entrada HDMI varia entre revisões da ficha (1920×1200 vs 2560×1440) — não confirmado qual é a atual, não afeta a capacidade acima.",
+      "fonte": "https://oss.novastar.tech/uploads/2023/05/KU20-LED-Display-Controller-Specifications-V1.1.0.pdf",
+      "optica": {
+        "portas": 1,
+        "gbps": 10,
+        "fonte": "https://oss.novastar.tech/uploads/2023/05/KU20-LED-Display-Controller-Specifications-V1.1.0.pdf"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "MX2000 Pro",
+      "mercado": true,
+      "ports": 16,
+      "portGbpsUsable": 3.73248,
+      "portGbpsUsableSource": "derivado de 2.592.000px/porta @8-bit/60Hz (tier \"5G\" da COEX, valor oficial da wiki técnica da NovaStar) — a NovaStar não publica Gbps/porta diretamente",
+      "maxPixelsHardCap": 35380000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX, 8K, 12-bit. As 16 portas Ethernet são de modo duplo (\"1G\" ou \"5G\", não em simultâneo na mesma tela) — modelado aqui só no modo \"5G\" (capacidade total publicada, 35,38M). No modo \"1G\" a capacidade desceria para ~10,6M, não modelado separadamente. Tem ainda 2 slots para placas de saída em fibra (4×10G ou 1×40G, não contabilizadas nas portas acima).",
+      "fonte": "https://oss.novastar.tech/uploads/2023/12/MX2000-Pro-LED-Display-Controller-Specifications-V1.1.1.pdf",
+      "optica": {
+        "portas": 4,
+        "gbps": 10,
+        "nota": "Em placas de saída opcionais: 4×10G ou 1×40G por slot, dois slots. Não vêm de origem.",
+        "fonte": "https://oss.novastar.tech/uploads/2023/12/MX2000-Pro-LED-Display-Controller-Specifications-V1.1.1.pdf"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "CX80 Pro",
+      "mercado": true,
+      "ports": 16,
+      "portGbpsUsable": 3.73248,
+      "portGbpsUsableSource": "derivado de 2.592.000px/porta @8-bit/60Hz (tier \"5G\" da COEX, valor oficial da wiki técnica da NovaStar) — a NovaStar não publica Gbps/porta diretamente",
+      "maxPixelsHardCap": 9000000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série COEX, 8K, flagship modular. 16 saídas Ethernet a 5Gbps + 2 saídas óticas a 40Gbps (não contabilizadas nas portas acima) + 2 portas GigE de controlo (não transportam píxeis). Teto total confirmado: 9M píxeis — bem abaixo do que as 16 portas 5G dariam em bruto, porque o limite real é o pipeline de processamento, não a banda das portas (mesmo padrão do MX40 PRO). Máx. publicado por saída/ecrã individual: 2.592.000px @8-bit/60Hz, 2.073.000px @10-bit, 1.728.000px @12-bit — não é o mesmo que o limite por porta Ethernet.",
+      "fonte": "https://oss.novastar.tech/uploads/2023/07/CX80-Pro-LED-Display-Controller-Specifications-V1.1.2.pdf",
+      "optica": {
+        "portas": 2,
+        "gbps": 40,
+        "fonte": "https://oss.novastar.tech/uploads/2023/07/CX80-Pro-LED-Display-Controller-Specifications-V1.1.2.pdf"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "VX400",
+      "mercado": true,
+      "ports": 4,
+      "maxPixelsHardCap": 2600000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série VX (\"tudo-em-um\", processador + sending card). 4 saídas Ethernet standard (tier \"1G\"). Capacidade total (2,6M) não é um valor de ficha diretamente publicado — calculada a partir do nº de portas × 650.000px/porta, consistente com o padrão confirmado nos restantes modelos VX.",
+      "fonte": "https://oss.novastar.tech/uploads/2023/06/VX400-All-in-One-Controller-Specifications-V1.0.0.pdf"
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "VX600",
+      "mercado": true,
+      "ports": 6,
+      "maxPixelsHardCap": 3900000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série VX (\"tudo-em-um\"). 6 saídas Ethernet standard (tier \"1G\").",
+      "fonte": "https://oss.novastar.tech/uploads/2024/07/VX600-All-in-One-Controller-Specifications-V1.7.0.pdf"
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "VX1000",
+      "mercado": true,
+      "ports": 10,
+      "maxPixelsHardCap": 6500000,
+      "latenciaFrames": 1,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série VX (\"tudo-em-um\"). 10 saídas Ethernet standard (tier \"1G\") + 2 saídas óticas 10G auto-adaptativas (tratadas como porta GigE padrão por segurança). Canvas até 10240×8192, entrada 4K×1K@60Hz.",
+      "fonte": "https://oss.novastar.tech/uploads/2024/07/VX1000-All-in-One-Controller-Specifications-V1.6.0.pdf",
+      "optica": {
+        "portas": 2,
+        "gbps": 10,
+        "nota": "Auto-adaptativas.",
+        "fonte": "https://oss.novastar.tech/uploads/2024/07/VX1000-All-in-One-Controller-Specifications-V1.6.0.pdf"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "VX1000 Pro",
+      "mercado": true,
+      "ports": 10,
+      "maxPixelsHardCap": 6500000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Variante do VX1000 com par ótico redundante. 10 saídas Ethernet standard (tier \"1G\") + 2 saídas óticas 10G redundantes (tratadas como porta GigE padrão por segurança). Canvas até 10240×8192, entrada HDMI2.0 4K×2K@60Hz.",
+      "fonte": "https://oss.novastar.tech/uploads/2025/03/VX1000-Pro-All-in-One-Controller-Specifications-V1.0.1.pdf",
+      "optica": {
+        "portas": 2,
+        "gbps": 10,
+        "redundante": true,
+        "fonte": "https://oss.novastar.tech/uploads/2025/03/VX1000-Pro-All-in-One-Controller-Specifications-V1.0.1.pdf"
+      }
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "VX16s",
+      "mercado": true,
+      "ports": 16,
+      "maxPixelsHardCap": 10400000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série VX (\"tudo-em-um\"). 16 saídas Ethernet standard (tier \"1G\"). Processamento até 4K×2K@60Hz. Ficha técnica oficial da NovaStar não localizada diretamente — fonte é uma página de revendedor, tratar com alguma reserva.",
+      "fonte": "https://www.stagelightingstore.com/NovaStar-VX16s-LED-Display-Video-Processor-All-In-One-LED-Controller"
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "TU20 Pro",
+      "mercado": true,
+      "ports": 6,
+      "maxPixelsHardCap": 3900000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série TU (\"tudo-em-um\" com media player integrado — processador + sending card + player, 3 entradas HDMI). 6 saídas Ethernet standard (tier \"1G\").",
+      "fonte": "https://oss.novastar.tech/uploads/2023/06/TU20-Pro-LED-Playback-Control-Processor-Specifications-V1.0.1.pdf"
+    },
+    {
+      "marca": "NovaStar",
+      "modelo": "TU4K Pro",
+      "mercado": true,
+      "ports": 20,
+      "maxPixelsHardCap": 13000000,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Série TU (\"tudo-em-um\" com media player integrado). 20 saídas Ethernet standard (tier \"1G\") + 2 saídas óticas 10G (tratadas como porta GigE padrão por segurança). Entrada até HDMI2.0 4K@60Hz.",
+      "fonte": "https://oss.novastar.tech/uploads/2025/11/TU4K-Pro-LED-Playback-Control-Processor-Specifications-V1.2.0.pdf",
+      "optica": {
+        "portas": 2,
+        "gbps": 10,
+        "fonte": "https://oss.novastar.tech/uploads/2025/11/TU4K-Pro-LED-Playback-Control-Processor-Specifications-V1.2.0.pdf"
+      }
+    }
   ],
   "mediaServers": [
-    { "marca": "Dataton", "modelo": "Watchout 7 (WATCHPAX 64)", "maxMP": 33.18, "maxOutputs": 4, "escalavel": true, "nota": "Equipamento próprio da AVK (confirmado no inventário — \"Processador Watchout (pc+licença)\"). O software Watchout não tem limite fixo de saídas/resolução total — escala juntando mais unidades WATCHPAX (Display/Runner nodes), confirmado na ficha oficial da Dataton. O valor acima é a capacidade de 1 unidade WATCHPAX 64: 4 saídas DisplayPort 4K60 (oficial), calculado como 4×3840×2160px — não é um número de \"capacidade total\" publicado diretamente pela Dataton, é a soma das 4 saídas físicas. Latência de sync entre nodes: <2ms em rede local (oficial). Playback até 4K@120Hz por saída. \"escalavel\" aqui só diz que o software permite juntar mais unidades — não afirma quantas a AVK (ou o mercado) tem disponíveis para um job concreto, confirmar sempre.", "fonte": "https://www.dataton.com/watchpax" },
-    { "marca": "Dataton", "modelo": "Watchout 7 (PC próprio, placa AMD Radeon Pro W6800)", "maxMP": 49.77, "maxOutputs": 6, "estimated": true, "escalavel": true, "nota": "Equipamento próprio da AVK — outro PC do inventário (não a unidade WATCHPAX 64 acima) a correr o mesmo software Watchout, equipado com uma placa gráfica AMD Radeon Pro W6800 (6× Mini-DisplayPort 1.4 com DSC, confirmado na ficha técnica oficial da AMD). Tal como acima, o Watchout em si não tem limite fixo de saídas — o teto real é o da GPU/máquina onde corre, e o software permite juntar mais unidades/nós da mesma forma que a WATCHPAX 64. Valor acima calculado como 6×3840×2160px (6 saídas a 4K60) — a AMD não publica um nº de MP total, o cálculo é nosso a partir da contagem de saídas da ficha.", "fonte": "https://www.amd.com/content/dam/amd/en/documents/products/graphics/workstation/radeon-pro-w6800-datasheet.pdf" },
-    { "marca": "Resolume", "modelo": "Arena 7", "maxMP": 41.47, "maxOutputs": 5, "estimated": true, "nota": "Equipamento próprio da AVK (confirmado no inventário — \"Resolume Arena 7 system\"). O Resolume não tem nº de saídas fixo por software — depende da GPU/placa de saída da máquina onde corre (a própria Resolume recomenda não passar de ~5 saídas por GPU única em qualidade plena, escalando com extensores Datapath/Blackmagic ou várias GPUs). O valor acima assume esse típico de 5 saídas 4K — confirmar sempre contra a GPU/config real da máquina AVK antes de usar como teto rígido. Sem tier de licença \"Advance\" com nº de saídas diferente encontrado na documentação oficial atual.", "fonte": "https://www.resolume.com/support/en/lots-of-outputs" },
-    { "marca": "Imimot", "modelo": "Mitti", "maxMP": 33.18, "maxOutputs": 4, "estimated": true, "nota": "Equipamento próprio da AVK. Corre em vários MacBook Pro da casa (Intel, M1, M2, M3, M4 — variantes base/Pro/Max misturadas). O Mitti em si não tem nº de saídas fixo por software — o limite real é o do Mac onde corre: chip \"Max\" suporta 4 ecrãs externos nativos (o teto usado acima, 4×4K), \"Pro\" só 2, e um chip base (M1/M2/M3 sem \"Pro\"/\"Max\") só 1 (M3 chega a 2 só com a tampa fechada; M4 base já suporta 2 sempre). Confirmar sempre qual máquina concreta vai para o job antes de assumir o teto de 4 saídas.", "fonte": "https://kb.plugable.com/docking-stations-and-video/understanding-external-display-support-on-apple-m1-m2-m3-and-m4-chips" },
-    { "marca": "Millumin", "modelo": "Millumin", "maxMP": 33.18, "maxOutputs": 4, "estimated": true, "nota": "Equipamento próprio da AVK. Corre nos mesmos MacBook Pro do Mitti (Intel, M1, M2, M3, M4 — variantes base/Pro/Max misturadas). Tal como o Mitti/Resolume, o limite real de saídas é o do Mac onde corre: chip \"Max\" suporta 4 ecrãs externos nativos (o teto usado acima, 4×4K), \"Pro\" só 2, e um chip base só 1 (M3 chega a 2 só com a tampa fechada; M4 base já suporta 2 sempre). Confirmar sempre qual máquina concreta vai para o job antes de assumir o teto de 4 saídas.", "fonte": "https://kb.plugable.com/docking-stations-and-video/understanding-external-display-support-on-apple-m1-m2-m3-and-m4-chips" },
-    { "marca": "Millumin", "modelo": "Twin Server (rack)", "mercado": true, "maxMP": 17.69, "maxOutputs": 2, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência (pacote de hardware específico, distinto do software Millumin que a AVK já tem). Servidor em rack pré-configurado com o Millumin, vendido/alugado por revendedores: 2 saídas DisplayPort 1.2 até 4096×2160 cada, 4TB de armazenamento. Fonte é uma página de revendedor (4Wall), não a Millumin diretamente — tratar com alguma reserva.", "fonte": "https://www.4wall.com/rentals/9759157/millumin-twin-server-rack" },
-    { "marca": "twoloox (ex-Christie)", "modelo": "Pandoras Box Server R5", "mercado": true, "maxMP": 66.36, "maxOutputs": 8, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Produto vendido pela Christie à twoloox GmbH em out/2025 — já não é um produto Christie, apesar da ficha técnica ainda estar alojada no site da Christie. Até 8 saídas DisplayPort, licença de \"render outputs\" selecionável (4 ou 8 canais). Valor acima calculado como 8 canais × 4K (3840×2160) — a Christie publica \"suporta 8K e acima, sem compressão, a 60fps (até 240fps com conteúdo sem compressão)\" como reivindicação de capacidade total, mas sem um nº de MP exato.", "fonte": "https://www.christiedigital.com/globalassets/resources/public/christie-pandoras-box-server-brochure.pdf" },
-    { "marca": "disguise", "modelo": "GX 3", "mercado": true, "maxMP": 24.88, "maxOutputs": 3, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 3 saídas VFC (standard: cartões HDMI2.0, trocáveis por DP/SDI/IP) a 4K + 1 saída DisplayPort dedicada à GUI (não contada acima). Valor calculado como 3×4K (3840×2160) — a disguise não publica um nº de MP total diretamente.", "fonte": "https://www.disguise.one/media/8371/spec_sheet_gx3.pdf" },
-    { "marca": "disguise", "modelo": "VX 4+", "mercado": true, "maxMP": 33.18, "maxOutputs": 4, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Modelo topo de gama da gama VX. 4 saídas 4K60 (10-bit, sem compressão) via cartões VFC + 1 saída DisplayPort dedicada à GUI (não contada acima). Latência publicada (teste oficial r22.2, captura-para-saída): 5 frames (normal), 4 frames (baixa latência), 3-4 frames (ultra-baixa) a 60/50/30Hz. Valor de MP calculado como 4×4K (3840×2160).", "fonte": "https://www.disguise.one/sites/default/files/2023-12/Product_Disguise%20VX%204+%20Spec%20Sheet%20and%20Playback%20Data.pdf" },
-    { "marca": "disguise", "modelo": "VX 3", "mercado": true, "maxMP": 24.88, "maxOutputs": 3, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 3 saídas 4K via cartões VFC. Valor calculado como 3×4K (3840×2160).", "fonte": "https://www.disguise.one/en/products/vx-range" },
-    { "marca": "disguise", "modelo": "VX 2+", "maxMP": 16.59, "maxOutputs": 2, "nota": "Equipamento próprio da AVK. 2 saídas 4K via cartões VFC — modelo de entrada da gama VX. Valor calculado como 2×4K (3840×2160).", "fonte": "https://www.disguise.one/en/products/vx-range" },
-    { "marca": "AV Stumpfl", "modelo": "PIXERA zero", "mercado": true, "maxMP": 35.39, "maxOutputs": 4, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Modelo de entrada da gama Pixera. 2 ou 4 saídas (configuração), até 4096×2160@60Hz (CPU Xeon, GPU Nvidia RTX). Valor calculado com a config. máxima de 4 saídas × 4096×2160.", "fonte": "https://pixera.one/en/hardware/media-servers-1/pixera-zero/" },
-    { "marca": "AV Stumpfl", "modelo": "PIXERA TWO Gen2", "mercado": true, "maxMP": 66.36, "maxOutputs": 8, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 2, 4 ou 8 saídas (configuração), 4K 4:4:4@60fps sem compressão. Valor calculado com a config. máxima de 8 saídas × 4K (3840×2160). CPU Xeon, 128GB RAM, até 30TB de armazenamento a 10GB/s.", "fonte": "https://pixera.one/en/hardware/media-servers-1/pixera-two-gen2/" },
-    { "marca": "Green Hippo", "modelo": "Tagus MX", "mercado": true, "maxMP": 16.59, "maxOutputs": 2, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Gama atual \"MX\" (sucede a V4+/Karst+/Boreal+, ainda vendida em paralelo). 2 saídas de produção 4K (cartões modulares HDMI2.0/DP1.4/12G-SDI), sem genlock nas saídas de produção. 18 camadas 4K em simultâneo, 31.434 Notchmarks (métrica própria da Notch/Green Hippo). Valor de MP calculado como 2×4K (3840×2160).", "fonte": "https://www.green-hippo.com/hippotizer-media-servers/tagus-mx/" },
-    { "marca": "Green Hippo", "modelo": "Hyco MX", "mercado": true, "maxMP": 33.18, "maxOutputs": 4, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Topo da gama atual \"MX\". 4 saídas de produção 4K (cartões modulares HDMI2.0/DP1.4/12G-SDI), com genlock. 44 camadas 4K em simultâneo, 111.552 Notchmarks. Valor de MP calculado como 4×4K (3840×2160).", "fonte": "https://www.green-hippo.com/hippotizer-media-servers/hyco-mx/" },
-    { "marca": "Modulo Pi", "modelo": "Kinetic V-Node 4x4K", "mercado": true, "maxMP": 35.39, "maxOutputs": 4, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Modelo topo da gama Kinetic (requer estação Kinetic Designer à parte). Modo publicado: 4 saídas até 4096×2160 (4K) OU 6 saídas até 2560×1600 (WQXGA) — modos alternativos, não simultâneos. Valor acima usa o modo 4K (4×4096×2160). Cartões de captura Deltacast FLEX opcionais.", "fonte": "https://www.modulo-pi.com/media-servers/modulo-kinetic/" },
-    { "marca": "7thSense", "modelo": "W-Series", "mercado": true, "maxMP": 99.53, "maxOutputs": 16, "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Modelo topo de gama atual (2026) da 7thSense — até 16 saídas DisplayPort 1.4. Capacidade total publicada diretamente pelo fabricante (caso raro nesta lista): \"até 16 canais de 4K 10-bit 4:2:2 a 30fps, ou até 12 canais de 4K 10-bit 4:2:2 a 60fps\". Valor de MP acima usa o tier mais exigente/seguro (12 canais a 60fps) — a 30fps a capacidade de canais sobe para 16, não modelado aqui como tier separado.", "fonte": "https://7thsense.one/product/w-series" }
+    {
+      "marca": "Dataton",
+      "modelo": "Watchout 7 (WATCHPAX 64)",
+      "maxMP": 33.18,
+      "maxOutputs": 4,
+      "escalavel": true,
+      "nota": "Equipamento próprio da AVK (confirmado no inventário — \"Processador Watchout (pc+licença)\"). O software Watchout não tem limite fixo de saídas/resolução total — escala juntando mais unidades WATCHPAX (Display/Runner nodes), confirmado na ficha oficial da Dataton. O valor acima é a capacidade de 1 unidade WATCHPAX 64: 4 saídas DisplayPort 4K60 (oficial), calculado como 4×3840×2160px — não é um número de \"capacidade total\" publicado diretamente pela Dataton, é a soma das 4 saídas físicas. Latência de sync entre nodes: <2ms em rede local (oficial). Playback até 4K@120Hz por saída. \"escalavel\" aqui só diz que o software permite juntar mais unidades — não afirma quantas a AVK (ou o mercado) tem disponíveis para um job concreto, confirmar sempre.",
+      "fonte": "https://www.dataton.com/watchpax"
+    },
+    {
+      "marca": "Dataton",
+      "modelo": "Watchout 7 (PC próprio, placa AMD Radeon Pro W6800)",
+      "maxMP": 49.77,
+      "maxOutputs": 6,
+      "estimated": true,
+      "escalavel": true,
+      "nota": "Equipamento próprio da AVK — outro PC do inventário (não a unidade WATCHPAX 64 acima) a correr o mesmo software Watchout, equipado com uma placa gráfica AMD Radeon Pro W6800 (6× Mini-DisplayPort 1.4 com DSC, confirmado na ficha técnica oficial da AMD). Tal como acima, o Watchout em si não tem limite fixo de saídas — o teto real é o da GPU/máquina onde corre, e o software permite juntar mais unidades/nós da mesma forma que a WATCHPAX 64. Valor acima calculado como 6×3840×2160px (6 saídas a 4K60) — a AMD não publica um nº de MP total, o cálculo é nosso a partir da contagem de saídas da ficha.",
+      "fonte": "https://www.amd.com/content/dam/amd/en/documents/products/graphics/workstation/radeon-pro-w6800-datasheet.pdf"
+    },
+    {
+      "marca": "Resolume",
+      "modelo": "Arena 7",
+      "maxMP": 41.47,
+      "maxOutputs": 5,
+      "estimated": true,
+      "nota": "Equipamento próprio da AVK (confirmado no inventário — \"Resolume Arena 7 system\"). O Resolume não tem nº de saídas fixo por software — depende da GPU/placa de saída da máquina onde corre (a própria Resolume recomenda não passar de ~5 saídas por GPU única em qualidade plena, escalando com extensores Datapath/Blackmagic ou várias GPUs). O valor acima assume esse típico de 5 saídas 4K — confirmar sempre contra a GPU/config real da máquina AVK antes de usar como teto rígido. Sem tier de licença \"Advance\" com nº de saídas diferente encontrado na documentação oficial atual.",
+      "fonte": "https://www.resolume.com/support/en/lots-of-outputs"
+    },
+    {
+      "marca": "Imimot",
+      "modelo": "Mitti",
+      "maxMP": 33.18,
+      "maxOutputs": 4,
+      "estimated": true,
+      "nota": "Equipamento próprio da AVK. Corre em vários MacBook Pro da casa (Intel, M1, M2, M3, M4 — variantes base/Pro/Max misturadas). O Mitti em si não tem nº de saídas fixo por software — o limite real é o do Mac onde corre: chip \"Max\" suporta 4 ecrãs externos nativos (o teto usado acima, 4×4K), \"Pro\" só 2, e um chip base (M1/M2/M3 sem \"Pro\"/\"Max\") só 1 (M3 chega a 2 só com a tampa fechada; M4 base já suporta 2 sempre). Confirmar sempre qual máquina concreta vai para o job antes de assumir o teto de 4 saídas.",
+      "fonte": "https://kb.plugable.com/docking-stations-and-video/understanding-external-display-support-on-apple-m1-m2-m3-and-m4-chips"
+    },
+    {
+      "marca": "Millumin",
+      "modelo": "Millumin",
+      "maxMP": 33.18,
+      "maxOutputs": 4,
+      "estimated": true,
+      "nota": "Equipamento próprio da AVK. Corre nos mesmos MacBook Pro do Mitti (Intel, M1, M2, M3, M4 — variantes base/Pro/Max misturadas). Tal como o Mitti/Resolume, o limite real de saídas é o do Mac onde corre: chip \"Max\" suporta 4 ecrãs externos nativos (o teto usado acima, 4×4K), \"Pro\" só 2, e um chip base só 1 (M3 chega a 2 só com a tampa fechada; M4 base já suporta 2 sempre). Confirmar sempre qual máquina concreta vai para o job antes de assumir o teto de 4 saídas.",
+      "fonte": "https://kb.plugable.com/docking-stations-and-video/understanding-external-display-support-on-apple-m1-m2-m3-and-m4-chips"
+    },
+    {
+      "marca": "Millumin",
+      "modelo": "Twin Server (rack)",
+      "mercado": true,
+      "maxMP": 17.69,
+      "maxOutputs": 2,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência (pacote de hardware específico, distinto do software Millumin que a AVK já tem). Servidor em rack pré-configurado com o Millumin, vendido/alugado por revendedores: 2 saídas DisplayPort 1.2 até 4096×2160 cada, 4TB de armazenamento. Fonte é uma página de revendedor (4Wall), não a Millumin diretamente — tratar com alguma reserva.",
+      "fonte": "https://www.4wall.com/rentals/9759157/millumin-twin-server-rack"
+    },
+    {
+      "marca": "twoloox (ex-Christie)",
+      "modelo": "Pandoras Box Server R5",
+      "mercado": true,
+      "maxMP": 66.36,
+      "maxOutputs": 8,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Produto vendido pela Christie à twoloox GmbH em out/2025 — já não é um produto Christie, apesar da ficha técnica ainda estar alojada no site da Christie. Até 8 saídas DisplayPort, licença de \"render outputs\" selecionável (4 ou 8 canais). Valor acima calculado como 8 canais × 4K (3840×2160) — a Christie publica \"suporta 8K e acima, sem compressão, a 60fps (até 240fps com conteúdo sem compressão)\" como reivindicação de capacidade total, mas sem um nº de MP exato.",
+      "fonte": "https://www.christiedigital.com/globalassets/resources/public/christie-pandoras-box-server-brochure.pdf"
+    },
+    {
+      "marca": "disguise",
+      "modelo": "GX 3",
+      "mercado": true,
+      "maxMP": 24.88,
+      "maxOutputs": 3,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 3 saídas VFC (standard: cartões HDMI2.0, trocáveis por DP/SDI/IP) a 4K + 1 saída DisplayPort dedicada à GUI (não contada acima). Valor calculado como 3×4K (3840×2160) — a disguise não publica um nº de MP total diretamente.",
+      "fonte": "https://www.disguise.one/media/8371/spec_sheet_gx3.pdf"
+    },
+    {
+      "marca": "disguise",
+      "modelo": "VX 4+",
+      "mercado": true,
+      "maxMP": 33.18,
+      "maxOutputs": 4,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Modelo topo de gama da gama VX. 4 saídas 4K60 (10-bit, sem compressão) via cartões VFC + 1 saída DisplayPort dedicada à GUI (não contada acima). Latência publicada (teste oficial r22.2, captura-para-saída): 5 frames (normal), 4 frames (baixa latência), 3-4 frames (ultra-baixa) a 60/50/30Hz. Valor de MP calculado como 4×4K (3840×2160).",
+      "fonte": "https://www.disguise.one/sites/default/files/2023-12/Product_Disguise%20VX%204+%20Spec%20Sheet%20and%20Playback%20Data.pdf"
+    },
+    {
+      "marca": "disguise",
+      "modelo": "VX 3",
+      "mercado": true,
+      "maxMP": 24.88,
+      "maxOutputs": 3,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 3 saídas 4K via cartões VFC. Valor calculado como 3×4K (3840×2160).",
+      "fonte": "https://www.disguise.one/en/products/vx-range"
+    },
+    {
+      "marca": "disguise",
+      "modelo": "VX 2+",
+      "maxMP": 16.59,
+      "maxOutputs": 2,
+      "nota": "Equipamento próprio da AVK. 2 saídas 4K via cartões VFC — modelo de entrada da gama VX. Valor calculado como 2×4K (3840×2160).",
+      "fonte": "https://www.disguise.one/en/products/vx-range"
+    },
+    {
+      "marca": "AV Stumpfl",
+      "modelo": "PIXERA zero",
+      "mercado": true,
+      "maxMP": 35.39,
+      "maxOutputs": 4,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Modelo de entrada da gama Pixera. 2 ou 4 saídas (configuração), até 4096×2160@60Hz (CPU Xeon, GPU Nvidia RTX). Valor calculado com a config. máxima de 4 saídas × 4096×2160.",
+      "fonte": "https://pixera.one/en/hardware/media-servers-1/pixera-zero/"
+    },
+    {
+      "marca": "AV Stumpfl",
+      "modelo": "PIXERA TWO Gen2",
+      "mercado": true,
+      "maxMP": 66.36,
+      "maxOutputs": 8,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. 2, 4 ou 8 saídas (configuração), 4K 4:4:4@60fps sem compressão. Valor calculado com a config. máxima de 8 saídas × 4K (3840×2160). CPU Xeon, 128GB RAM, até 30TB de armazenamento a 10GB/s.",
+      "fonte": "https://pixera.one/en/hardware/media-servers-1/pixera-two-gen2/"
+    },
+    {
+      "marca": "Green Hippo",
+      "modelo": "Tagus MX",
+      "mercado": true,
+      "maxMP": 16.59,
+      "maxOutputs": 2,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Gama atual \"MX\" (sucede a V4+/Karst+/Boreal+, ainda vendida em paralelo). 2 saídas de produção 4K (cartões modulares HDMI2.0/DP1.4/12G-SDI), sem genlock nas saídas de produção. 18 camadas 4K em simultâneo, 31.434 Notchmarks (métrica própria da Notch/Green Hippo). Valor de MP calculado como 2×4K (3840×2160).",
+      "fonte": "https://www.green-hippo.com/hippotizer-media-servers/tagus-mx/"
+    },
+    {
+      "marca": "Green Hippo",
+      "modelo": "Hyco MX",
+      "mercado": true,
+      "maxMP": 33.18,
+      "maxOutputs": 4,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Topo da gama atual \"MX\". 4 saídas de produção 4K (cartões modulares HDMI2.0/DP1.4/12G-SDI), com genlock. 44 camadas 4K em simultâneo, 111.552 Notchmarks. Valor de MP calculado como 4×4K (3840×2160).",
+      "fonte": "https://www.green-hippo.com/hippotizer-media-servers/hyco-mx/"
+    },
+    {
+      "marca": "Modulo Pi",
+      "modelo": "Kinetic V-Node 4x4K",
+      "mercado": true,
+      "maxMP": 35.39,
+      "maxOutputs": 4,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Modelo topo da gama Kinetic (requer estação Kinetic Designer à parte). Modo publicado: 4 saídas até 4096×2160 (4K) OU 6 saídas até 2560×1600 (WQXGA) — modos alternativos, não simultâneos. Valor acima usa o modo 4K (4×4096×2160). Cartões de captura Deltacast FLEX opcionais.",
+      "fonte": "https://www.modulo-pi.com/media-servers/modulo-kinetic/"
+    },
+    {
+      "marca": "7thSense",
+      "modelo": "W-Series",
+      "mercado": true,
+      "maxMP": 99.53,
+      "maxOutputs": 16,
+      "nota": "Equipamento de mercado — não é propriedade da AVK, mostrado só como referência. Modelo topo de gama atual (2026) da 7thSense — até 16 saídas DisplayPort 1.4. Capacidade total publicada diretamente pelo fabricante (caso raro nesta lista): \"até 16 canais de 4K 10-bit 4:2:2 a 30fps, ou até 12 canais de 4K 10-bit 4:2:2 a 60fps\". Valor de MP acima usa o tier mais exigente/seguro (12 canais a 60fps) — a 30fps a capacidade de canais sobe para 16, não modelado aqui como tier separado.",
+      "fonte": "https://7thsense.one/product/w-series"
+    }
   ]
 }

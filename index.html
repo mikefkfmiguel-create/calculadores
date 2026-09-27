@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.24</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.25</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2714,6 +2714,20 @@
            tabela é sobre os SINAIS que se põem a andar, e não sobre
            equipamento. Serve para responder a "o que é que me cabe nesta
            fibra". -->
+      <!-- O EQUIPAMENTO QUE JÁ SAI EM FIBRA. Pedido: *"nas calculadoras temos
+           da lista de switcher e eletrónicas de controlo de LED algumas que
+           saem direto em SFP — inclui isso"*. E sai mesmo: a base já sabia
+           quais, estava escrito nas notas de cada um com a fonte da ficha.
+           Passou a campo legível, e a aba diz, para a distância pedida, que
+           SFP e que fibra pôr em cada um. -->
+      <details class="card sinal-block">
+        <summary>O que já sai direto em fibra — e o que lhe pôr</summary>
+        <div class="sinal-block-body">
+          <div class="hint" style="margin-bottom:10px">Do nosso catálogo de switchers e eletrónicas de LED. A ótica aconselhada muda com a distância que puseste lá em cima.</div>
+          <div class="lensmatch-list" id="fib-equipamento">—</div>
+        </div>
+      </details>
+
       <details class="card sinal-block">
         <summary>Quanto custa em banda — áudio, vídeo e luz</summary>
         <div class="sinal-block-body">
@@ -9284,6 +9298,7 @@
       : "Nenhuma das " + todas.length + " combinações da tabela lá chega.";
 
     calcFibraPerdas();
+    encherEquipamento();
   }
 
   /** A conta que decide mesmo: quantos dB come esta tirada. */
@@ -9343,6 +9358,84 @@
    * aterrar: a mesma tirada de 80 m e a mesma de 3 km, e o que muda.
    */
   /** O engano que mais custa — dito à entrada, e não escondido numa ajuda. */
+  /**
+   * O que do nosso catálogo já sai em fibra, e o que lhe pôr.
+   *
+   * A recomendação não é uma lista à parte: sai da MESMA tabela de óticas
+   * que a lista de cima usa. Duas listas de óticas acabariam a discordar no
+   * dia em que uma delas mudasse — e essa é a doença que a v4.20 curou nas
+   * eletrónicas.
+   */
+  function fibAparelhosComOtica() {
+    if (!PROCESSORS_DATA) return [];
+    var fora = [];
+    ["switchers", "ledProcessors"].forEach(function (g) {
+      (PROCESSORS_DATA[g] || []).forEach(function (x) {
+        if (x.optica) fora.push({ grupo: g, x: x, o: x.optica });
+      });
+    });
+    // Os que dizem o débito primeiro: são aqueles para quem se pode mesmo
+    // aconselhar uma ótica. Depois por débito, e depois por nome.
+    fora.sort(function (a, b) {
+      return (a.o.gbps ? 0 : 1) - (b.o.gbps ? 0 : 1)
+          || (b.o.gbps || 0) - (a.o.gbps || 0)
+          || (a.x.marca + a.x.modelo).localeCompare(b.x.marca + b.x.modelo);
+    });
+    return fora;
+  }
+
+  function encherEquipamento() {
+    var caixa = document.getElementById("fib-equipamento");
+    if (!caixa || !FIBRA_DATA) return;
+    var metros = val("fib-dist");
+    if (isNaN(metros) || metros <= 0) metros = 100;
+    var tenhoSel = document.getElementById("fib-tenho");
+    var tenho = tenhoSel && tenhoSel.value ? tenhoSel.value : null;
+
+    var aparelhos = fibAparelhosComOtica();
+    if (!aparelhos.length) { caixa.innerHTML = '<div class="lm-item"><span>—</span></div>'; return; }
+
+    caixa.innerHTML = aparelhos.map(function (a) {
+      var portas = fmtInt(a.o.portas) + (a.o.portas === 1 ? " porta ótica" : " portas óticas");
+      var debito = a.o.gbps ? " de " + fmtInt(a.o.gbps) + "G" : "";
+      var conselho;
+      if (!a.o.gbps) {
+        // Sem débito confirmado não se aconselha ótica nenhuma: era o
+        // palpite mais fácil de dar e o mais caro de seguir.
+        conselho = '<div class="warn" style="margin-top:4px">A ficha não confirma o débito por porta — sem isso não se aconselha ótica. Confirma na ficha antes de comprar.</div>';
+      } else {
+        // DO MESMO DÉBITO, e não "pelo menos". Uma porta de 40G leva uma
+        // ótica de 40G: aconselhar-lhe uma de 100G porque "também leva
+        // 40" é aconselhar uma coisa que não encaixa lá. A lista de cima
+        // responde a "o que me leva isto"; aqui a pergunta é outra — "o
+        // que é que ESTA porta leva".
+        var opcoes = fibOpcoes(a.o.gbps, metros, tenho).filter(function (x) {
+          return x.serve && x.otica.gbps === a.o.gbps && (!tenho || x.fibra === tenho);
+        });
+        conselho = opcoes.length
+          ? '<div class="hint" style="margin-top:4px">Para ' + fibMetros(metros) + ': <b>' +
+            escapeXml(opcoes[0].otica.nome) + '</b> em <b>' + escapeXml(opcoes[0].fibra) + '</b>' +
+            (opcoes.length > 1 ? " (e mais " + (opcoes.length - 1) + ")" : "") + '.</div>'
+          : '<div class="warn" style="margin-top:4px">Não há ótica de ' + fmtInt(a.o.gbps) +
+            'G na tabela que chegue a ' + fibMetros(metros) + (tenho ? " em " + escapeXml(tenho) : "") +
+            '. Pode ser que exista e ainda não esteja recolhida — ver o aviso da recolha incompleta.</div>';
+      }
+      return '<div class="lm-item"><span class="lm-row"><span>' +
+        (a.x.mercado ? '<span class="lm-market" title="Não é equipamento da AVK — referência de mercado">Mercado</span>' : '') +
+        '<strong>' + escapeXml(a.x.marca) + '</strong> <span class="lm-model">' + escapeXml(a.x.modelo) + '</span>' +
+        // SEM FONTE, DITO. O MCTRL500/SD500 não tem ficha registada na base
+        // — um buraco que já lá estava. Inventar-lhe uma fonte era o pior
+        // caminho; escondê-lo era o segundo pior. Fica à vista, para se
+        // preencher.
+        (a.o.fonte ? srcLinkHtml(a.o.fonte)
+                   : '<span class="lm-priority lm-priority-tight" title="Este aparelho não tem ficha registada na base de dados. O que aqui se diz vem da nota dele, sem fonte para confirmar.">Sem fonte</span>') +
+        '</span><span>' + portas + debito + (a.o.redundante ? " · redundantes" : "") + '</span></span>' +
+        conselho +
+        (a.o.nota ? '<div class="hint" style="margin-top:4px">' + escapeXml(a.o.nota) + '</div>' : '') +
+        '</div>';
+    }).join("");
+  }
+
   function encherErro() {
     var caixa = document.getElementById("fib-erro");
     if (!caixa || !FIBRA_DATA || !FIBRA_DATA.erro_classico) return;
@@ -9474,6 +9567,7 @@
     }
     encherErro();
     encherModos();
+    encherEquipamento();
     encherCustos();
     calcFibra();
   }
@@ -9488,11 +9582,15 @@
   ]).then(function (results) {
     var projectors = results[0], ledTiles = results[1], lenses = results[2], processors = results[3], tvs = results[4];
     FIBRA_DATA = results[5] || null;
-    encherFibra();
     PROJECTORS_DATA = projectors;
     LED_TILES_DATA = ledTiles;
     PROCESSORS_DATA = processors;
     TVS_DATA = tvs;
+    // DEPOIS do PROCESSORS_DATA, e não antes: a aba da fibra lê o catálogo
+    // dos aparelhos para dizer quais saem em fibra, e a correr primeiro
+    // encontrava-o vazio -- a lista nascia a "—" e só aparecia quando
+    // alguém mexesse num campo. Medido.
+    encherFibra();
 
     // NENHUM MODELO VEM ESCOLHIDO.
     //
