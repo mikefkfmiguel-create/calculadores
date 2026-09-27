@@ -14,6 +14,59 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 27 de setembro — a ordem e o selo das eletrónicas diziam coisas diferentes (v4.20)
+
+> *"esta prioridade de escolha de electrónicas está errada"* — a olhar para a
+> lista de processadores de LED.
+
+E estava, de duas maneiras que se alimentavam uma à outra.
+
+**Duas réguas na mesma linha.** A lista ordenava-se por **nº de unidades**
+(menos caixas para alugar e transportar — o critério de quem monta, e está
+certo), e o selo saía só da **percentagem de ocupação**. Como uma coisa não
+tem nada a ver com a outra, dava isto: uma máquina a 92%, com o selo vermelho
+**«Não aconselhado»**, aparecia ACIMA de outra a 40% com o selo amarelo
+**«Possível»**. Quem lê fica sem saber qual das duas seguir.
+
+**E o primeiro levava «Recomendado» sempre.** `markBestOption` era
+`list[0].isBest = true`, sem olhar a nada. Em Full HD havia duas máquinas com
+exactamente a mesma ocupação lado a lado: a de cima dizia «Recomendado» a
+verde, a de baixo «Não aconselhado» a vermelho. O mesmo número, dois selos
+opostos. Em 4K, o «Recomendado» ia para uma máquina a **94%** enquanto três
+unidades a 74% ficavam por baixo a dizer «Possível».
+
+**A cura, numa régua só.** A app já tinha a linha dos 80% escrita — era ela
+que dizia «Não aconselhado». Passou a estar num sítio (`APERTADO_PCT`) e a
+mandar nas duas coisas:
+
+- **`markBestOption`** procura o primeiro que NÃO está apertado. E se nenhum
+  estiver, **não há «Recomendado» nenhum** — que é a verdade desse caso: cabe
+  tudo à justa e escolhe-se com os olhos abertos. Um selo verde inventado para
+  não deixar a lista sem ele é a pior resposta possível. (Vale para as seis
+  listas que usam a função — switchers, pré-switch e media servers incluídos.)
+- **`ordemDasEletronicas`** manda o apertado para o fim, como segunda chave.
+  Dentro de cada grupo continua a mandar o critério de montagem: menos
+  unidades, menos portas, mais folga. O que já se **tem** continua em primeiro
+  de tudo (regra da casa) — por isso um apertado da AVK ainda pode ficar acima
+  de um folgado do mercado, mas esse traz o selo «Mercado» ao lado a dizer que
+  é outra lista. Dentro da mesma lista, nunca.
+
+**A armadilha por baixo desta.** Em dois sítios (os switchers e as
+eletrónicas da aba Projeto) a `%` era calculada DEPOIS de ordenar e de marcar
+o recomendado — o `markBestOption` novo estaria a olhar para um campo ainda
+vazio e a marcar o primeiro na mesma. Passou a vir no próprio objeto, no
+`.map()`, como já vinha na aba Sinal. E é a **% arredondada** que decide, a
+mesma que está escrita na linha: comparar contra a não arredondada deixava
+80,4% a contar como folgado na ordem e apertado no selo.
+
+Teste novo: `scripts/verificar-prioridade-eletronicas.mjs` — nas duas listas
+(Sinal e Projeto) e em cinco ecrãs diferentes, confere que dentro do mesmo
+grupo o selo nunca piora e volta a melhorar, que o «Recomendado» nunca cai em
+cima de uma máquina no limite, que há no máximo um por lista, e que os dois
+ecrãs de teste da aba Projeto são mesmo diferentes um do outro (a primeira
+versão escrevia nos campos de tiles, que nessa aba estão escondidos e não
+mexem em nada — media duas vezes o mesmo ecrã sem dar por isso).
+
 ## 24 de setembro — uma marca não é um modelo (v4.19)
 
 > *"e remover isto"* — com uma foto da lista a mostrar **«Xiaomi — 55" ·
