@@ -164,6 +164,62 @@ conferir(!!aviso && aviso.visivel, "o aviso está à vista");
 conferir(!!aviso && /primeira recolha/i.test(aviso.texto) && /não existe/i.test(aviso.texto),
   "e diz que o que não está lá não é o que não existe");
 
+console.log("\n== monomodo e multimodo: a fibra E a ótica ==");
+// A confusão entre as duas é a que custa dinheiro: a FIBRA decide quantos
+// caminhos a luz tem, a ÓTICA decide o que se paga. Se a explicação só
+// falar de uma delas, não explica o preço.
+await pagina.evaluate(() => { document.getElementById("fib-modos-card").open = true; });
+await pagina.waitForTimeout(300);
+const modos = await pagina.evaluate(() => {
+  const e = document.getElementById("fib-modos");
+  return { texto: e.textContent.replace(/\s+/g, " "), fonte: !!e.querySelector("a[href^='http']") };
+});
+conferir(/Na fibra/.test(modos.texto) && /Na ótica/.test(modos.texto),
+  "explica as duas metades: a fibra e a ótica");
+conferir(/µm/.test(modos.texto) && /9/.test(modos.texto) && /50/.test(modos.texto),
+  "com os núcleos (9 µm contra 50)");
+conferir(/VCSEL/.test(modos.texto) && /laser/i.test(modos.texto),
+  "e as fontes de luz (VCSEL contra laser), que é o que explica o preço");
+conferir(/dispersão modal/i.test(modos.texto),
+  "diz que o que limita o multimodo é a dispersão modal, e não a perda");
+conferir(/80 m/.test(modos.texto) && /3 km/.test(modos.texto),
+  "e traz o exemplo com as duas contas lado a lado");
+conferir(/1,74 dB/.test(modos.texto) && /2,7 dB/.test(modos.texto),
+  "com os números feitos: 1,74 dB nos 80 m e 2,7 dB nos 3 km");
+conferir(modos.fonte, "e a fonte");
+
+console.log("\n== quanto custa em banda: áudio, vídeo e luz ==");
+const custos = await pagina.evaluate(() => {
+  const caixa = document.getElementById("fib-custos");
+  return {
+    grupos: [...caixa.querySelectorAll(".divider")].map((e) => e.textContent.trim()),
+    linhas: caixa.querySelectorAll(".fib-custo").length,
+    comFonte: [...caixa.querySelectorAll(".fib-custo")].every((e) => !!e.querySelector("a[href^='http']")),
+    comSelo: [...caixa.querySelectorAll(".fib-custo")].every((e) => !!e.querySelector(".lm-priority"))
+  };
+});
+conferir(custos.grupos.join(",") === "Vídeo,Áudio,Iluminação",
+  "os três grupos estão lá (" + custos.grupos.join(", ") + ")");
+conferir(custos.linhas >= 10, "com " + custos.linhas + " sinais");
+conferir(custos.comFonte, "e todos com fonte");
+conferir(custos.comSelo, "e todos a dizer de onde vem o valor");
+
+// E servem para alguma coisa: tocar num põe o débito e a lista responde.
+const tocou = await pagina.evaluate(async () => {
+  const b = [...document.querySelectorAll(".fib-custo")].find((x) => /12G-SDI/.test(x.textContent));
+  if (!b) return null;
+  b.click();
+  await new Promise((r) => setTimeout(r, 500));
+  return {
+    gbps: document.getElementById("fib-gbps").value,
+    primeira: document.getElementById("fib-lista").querySelector(".lm-item").textContent.replace(/\s+/g, " ")
+  };
+});
+conferir(!!tocou && parseFloat(tocou.gbps) === 11.88,
+  "tocar no 12G-SDI põe 11,88 Gbps no débito");
+conferir(!!tocou && /12G-SDI/.test(tocou.primeira),
+  "e a lista responde com a ótica de 12G-SDI");
+
 console.log("\n== a conta das perdas ==");
 const perdas = await pagina.evaluate(async () => {
   const por = (id, v) => {

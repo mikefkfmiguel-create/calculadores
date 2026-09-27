@@ -1,47 +1,75 @@
 {
   "_nota": "Óticas e fibra para transporte de sinal. REGRA DA CASA: nada entra aqui sem fonte. Onde um número não foi recolhido, fica `null` — a app não mostra o que não sabe, e nunca inventa um valor plausível para encher a tabela. O campo `confianca` diz de onde vem: `norma` (IEEE/TIA/SMPTE, lido em fonte que a cita), `fabricante` (ficha de produto), `indicativo` (blogue ou vendedor, a confirmar antes de se decidir uma compra com isto).",
-
   "fibras": [
     {
-      "id": "OM1", "nome": "OM1 (multimodo 62,5/125)", "modo": "multimodo",
-      "atenuacao": { "850": 3.5, "1300": 1.5 },
+      "id": "OM1",
+      "nome": "OM1 (multimodo 62,5/125)",
+      "modo": "multimodo",
+      "atenuacao": {
+        "850": 3.5,
+        "1300": 1.5
+      },
       "confianca": "indicativo",
       "fonte": "https://www.thefoa.org/tech/tia568b3.htm",
       "nota": "Fibra antiga, laranja. A atenuação a 850 nm da OM1/OM2 não foi confirmada na norma — só a de OM3/OM4."
     },
     {
-      "id": "OM2", "nome": "OM2 (multimodo 50/125)", "modo": "multimodo",
-      "atenuacao": { "850": 3.5, "1300": 1.5 },
+      "id": "OM2",
+      "nome": "OM2 (multimodo 50/125)",
+      "modo": "multimodo",
+      "atenuacao": {
+        "850": 3.5,
+        "1300": 1.5
+      },
       "confianca": "indicativo",
       "fonte": "https://www.thefoa.org/tech/tia568b3.htm"
     },
     {
-      "id": "OM3", "nome": "OM3 (multimodo 50/125, laser optimizada)", "modo": "multimodo",
-      "atenuacao": { "850": 3.0, "1300": 1.5 },
+      "id": "OM3",
+      "nome": "OM3 (multimodo 50/125, laser optimizada)",
+      "modo": "multimodo",
+      "atenuacao": {
+        "850": 3.0,
+        "1300": 1.5
+      },
       "confianca": "norma",
       "fonte": "https://www.trend-networks.com/fibre-optic-cabling-how-much-loss-is-ok/",
       "nota": "TIA-568.3-D: 3,0 dB/km a 850 nm. O valor de 1300 nm vem citado como máximo de 1,5 dB/km."
     },
     {
-      "id": "OM4", "nome": "OM4 (multimodo 50/125, laser optimizada)", "modo": "multimodo",
-      "atenuacao": { "850": 3.0, "1300": 1.5 },
+      "id": "OM4",
+      "nome": "OM4 (multimodo 50/125, laser optimizada)",
+      "modo": "multimodo",
+      "atenuacao": {
+        "850": 3.0,
+        "1300": 1.5
+      },
       "confianca": "norma",
       "fonte": "https://www.trend-networks.com/fibre-optic-cabling-how-much-loss-is-ok/"
     },
     {
-      "id": "OS1", "nome": "OS1 (monomodo, interior)", "modo": "monomodo",
-      "atenuacao": { "1310": 1.0, "1550": 1.0 },
+      "id": "OS1",
+      "nome": "OS1 (monomodo, interior)",
+      "modo": "monomodo",
+      "atenuacao": {
+        "1310": 1.0,
+        "1550": 1.0
+      },
       "confianca": "norma",
       "fonte": "https://www.thefoa.org/tech/tia568b3.htm"
     },
     {
-      "id": "OS2", "nome": "OS2 (monomodo, exterior)", "modo": "monomodo",
-      "atenuacao": { "1310": 0.4, "1550": 0.4 },
+      "id": "OS2",
+      "nome": "OS2 (monomodo, exterior)",
+      "modo": "monomodo",
+      "atenuacao": {
+        "1310": 0.4,
+        "1550": 0.4
+      },
       "confianca": "norma",
       "fonte": "https://www.thefoa.org/tech/tia568b3.htm"
     }
   ],
-
   "perdas": {
     "_nota": "TIA-568.3-D. ATENÇÃO: a Fluke escreve que a edição E mudou os valores para conectores de referência — se isto for usado para decidir uma compra, confirmar a edição.",
     "conector_par_db": 0.75,
@@ -50,143 +78,371 @@
     "fonte": "https://www.thefoa.org/tech/loss-est.htm",
     "fonte_aviso": "https://www.flukenetworks.com/content/new-loss-budget-values-reference-grade-connectors-ansitia-5683-d"
   },
-
   "oticas": [
     {
-      "nome": "1000BASE-SX", "familia": "Ethernet", "gbps": 1, "onda_nm": 850,
+      "nome": "1000BASE-SX",
+      "familia": "Ethernet",
+      "gbps": 1,
+      "onda_nm": 850,
       "alcances": [
-        { "fibra": "OM1", "metros": 275 },
-        { "fibra": "OM2", "metros": 550 }
+        {
+          "fibra": "OM1",
+          "metros": 275
+        },
+        {
+          "fibra": "OM2",
+          "metros": 550
+        }
       ],
-      "orcamento_db": null, "conector": "LC duplex", "mercado": true,
+      "orcamento_db": null,
+      "conector": "LC duplex",
+      "mercado": true,
       "confianca": "norma",
       "fonte": "https://en.wikipedia.org/wiki/Gigabit_Ethernet"
     },
     {
-      "nome": "1000BASE-LX", "familia": "Ethernet", "gbps": 1, "onda_nm": 1310,
+      "nome": "1000BASE-LX",
+      "familia": "Ethernet",
+      "gbps": 1,
+      "onda_nm": 1310,
       "alcances": [
-        { "fibra": "OM2", "metros": 550 },
-        { "fibra": "OS2", "metros": 5000 }
+        {
+          "fibra": "OM2",
+          "metros": 550
+        },
+        {
+          "fibra": "OS2",
+          "metros": 5000
+        }
       ],
-      "orcamento_db": null, "conector": "LC duplex", "mercado": true,
+      "orcamento_db": null,
+      "conector": "LC duplex",
+      "mercado": true,
       "confianca": "norma",
       "fonte": "https://en.wikipedia.org/wiki/Gigabit_Ethernet",
       "nota": "5 km é o da norma. Há SFPs no mercado que fazem 10 km — é do módulo, não da norma."
     },
     {
-      "nome": "10GBASE-SR", "familia": "Ethernet", "gbps": 10, "onda_nm": 850,
+      "nome": "10GBASE-SR",
+      "familia": "Ethernet",
+      "gbps": 10,
+      "onda_nm": 850,
       "alcances": [
-        { "fibra": "OM3", "metros": 300 },
-        { "fibra": "OM4", "metros": 400, "orcamento_db": 2.9 }
+        {
+          "fibra": "OM3",
+          "metros": 300
+        },
+        {
+          "fibra": "OM4",
+          "metros": 400,
+          "orcamento_db": 2.9
+        }
       ],
-      "orcamento_db": null, "conector": "LC duplex", "mercado": true,
+      "orcamento_db": null,
+      "conector": "LC duplex",
+      "mercado": true,
       "confianca": "norma",
       "fonte": "https://ethernetalliance.org/blog/2012/06/13/10gbe-standardized-to-400-meters-on-om4-fiber/",
       "fonte_orcamento": "https://www.flukenetworks.com/blog/cabling-chronicles/short-reach-singlemode-puts-reflectance-radar"
     },
     {
-      "nome": "10GBASE-LR", "familia": "Ethernet", "gbps": 10, "onda_nm": 1310,
+      "nome": "10GBASE-LR",
+      "familia": "Ethernet",
+      "gbps": 10,
+      "onda_nm": 1310,
       "alcances": [
-        { "fibra": "OS2", "metros": 10000, "orcamento_db": 6.3 }
+        {
+          "fibra": "OS2",
+          "metros": 10000,
+          "orcamento_db": 6.3
+        }
       ],
-      "orcamento_db": 6.3, "conector": "LC duplex", "mercado": true,
+      "orcamento_db": 6.3,
+      "conector": "LC duplex",
+      "mercado": true,
       "confianca": "norma",
       "fonte": "https://www.tiafotc.org/ieee-802-3-ethernet-standards-update/singlemode-standards-update/10gbase-lr/",
       "fonte_orcamento": "https://www.ieee802.org/3/dj/public/adhoc/optics/0423_OPTX/stassar_3dj_optx_01a_230427.pdf"
     },
     {
-      "nome": "10GBASE-ER", "familia": "Ethernet", "gbps": 10, "onda_nm": 1550,
+      "nome": "10GBASE-ER",
+      "familia": "Ethernet",
+      "gbps": 10,
+      "onda_nm": 1550,
       "alcances": [
-        { "fibra": "OS2", "metros": 40000 }
+        {
+          "fibra": "OS2",
+          "metros": 40000
+        }
       ],
-      "orcamento_db": null, "conector": "LC duplex", "mercado": true,
+      "orcamento_db": null,
+      "conector": "LC duplex",
+      "mercado": true,
       "confianca": "norma",
       "fonte": "https://www.ieee802.org/3/dj/public/adhoc/optics/0423_OPTX/stassar_3dj_optx_01a_230427.pdf",
       "nota": "A mesma fonte dá 15 a 18 dB de orçamento para aplicações de 40 km — um intervalo, não um número; por isso não entra como valor."
     },
     {
-      "nome": "25GBASE-SR", "familia": "Ethernet", "gbps": 25, "onda_nm": 850,
+      "nome": "25GBASE-SR",
+      "familia": "Ethernet",
+      "gbps": 25,
+      "onda_nm": 850,
       "alcances": [
-        { "fibra": "OM3", "metros": 70 },
-        { "fibra": "OM4", "metros": 100 }
+        {
+          "fibra": "OM3",
+          "metros": 70
+        },
+        {
+          "fibra": "OM4",
+          "metros": 100
+        }
       ],
-      "orcamento_db": null, "conector": "LC duplex", "mercado": true,
+      "orcamento_db": null,
+      "conector": "LC duplex",
+      "mercado": true,
       "confianca": "indicativo",
       "fonte": "https://www.l-p.com/blog/knowledge-center/multimode-distance-limits-om3-vs-om4-fiber-standards.htm"
     },
     {
-      "nome": "100GBASE-SR4", "familia": "Ethernet", "gbps": 100, "onda_nm": 850,
+      "nome": "100GBASE-SR4",
+      "familia": "Ethernet",
+      "gbps": 100,
+      "onda_nm": 850,
       "alcances": [
-        { "fibra": "OM3", "metros": 70 },
-        { "fibra": "OM4", "metros": 100 }
+        {
+          "fibra": "OM3",
+          "metros": 70
+        },
+        {
+          "fibra": "OM4",
+          "metros": 100
+        }
       ],
-      "orcamento_db": null, "conector": "MPO-12", "mercado": true,
+      "orcamento_db": null,
+      "conector": "MPO-12",
+      "mercado": true,
       "confianca": "norma",
       "fonte": "https://www.corning.com/data-center/worldwide/en/home/knowledge-center/40-100G-multimode-fiber-connectivity-data-center.html",
       "nota": "Leva 8 fibras (4 pares), não 2 — é MPO e não LC."
     },
     {
-      "nome": "100GBASE-LR4", "familia": "Ethernet", "gbps": 100, "onda_nm": 1310,
+      "nome": "100GBASE-LR4",
+      "familia": "Ethernet",
+      "gbps": 100,
+      "onda_nm": 1310,
       "alcances": [
-        { "fibra": "OS2", "metros": 10000 }
+        {
+          "fibra": "OS2",
+          "metros": 10000
+        }
       ],
-      "orcamento_db": null, "conector": "LC duplex", "mercado": true,
+      "orcamento_db": null,
+      "conector": "LC duplex",
+      "mercado": true,
       "confianca": "norma",
       "fonte": "https://en.wikipedia.org/wiki/100_Gigabit_Ethernet"
     },
     {
-      "nome": "SFP 12G-SDI 1310 nm (10 km)", "familia": "SDI", "gbps": 11.88, "onda_nm": 1310,
+      "nome": "SFP 12G-SDI 1310 nm (10 km)",
+      "familia": "SDI",
+      "gbps": 11.88,
+      "onda_nm": 1310,
       "alcances": [
-        { "fibra": "OS2", "metros": 10000 }
+        {
+          "fibra": "OS2",
+          "metros": 10000
+        }
       ],
-      "orcamento_db": null, "conector": "LC", "mercado": true,
+      "orcamento_db": null,
+      "conector": "LC",
+      "mercado": true,
       "confianca": "fabricante",
       "fonte": "https://www.optcore.net/product/12g-sdi-video-sfp-1310nm-10km-transceiver/",
       "nota": "SMPTE ST 297/2081/2082. Leva também 6G, 3G, HD e SD-SDI."
     },
     {
-      "nome": "SFP 12G-SDI 1310 nm (20 km)", "familia": "SDI", "gbps": 11.88, "onda_nm": 1310,
+      "nome": "SFP 12G-SDI 1310 nm (20 km)",
+      "familia": "SDI",
+      "gbps": 11.88,
+      "onda_nm": 1310,
       "alcances": [
-        { "fibra": "OS2", "metros": 20000 }
+        {
+          "fibra": "OS2",
+          "metros": 20000
+        }
       ],
-      "orcamento_db": null, "conector": "LC", "mercado": true,
+      "orcamento_db": null,
+      "conector": "LC",
+      "mercado": true,
       "confianca": "fabricante",
       "fonte": "https://www.gigalight.com/12g-sdi-sfp-20km.html"
     }
   ],
-
   "conectores_de_terreno": [
     {
-      "nome": "Neutrik opticalCON DUO / DUO LITE", "fibras": 2,
-      "modos": ["multimodo", "monomodo"],
+      "nome": "Neutrik opticalCON DUO / DUO LITE",
+      "fibras": 2,
+      "modos": [
+        "multimodo",
+        "monomodo"
+      ],
       "confianca": "fabricante",
       "fonte": "https://www.neutrik.com/en/product/opticalcon-duo-lite"
     },
     {
-      "nome": "Neutrik opticalCON QUAD / QUAD LITE", "fibras": 4,
-      "modos": ["multimodo", "monomodo"],
+      "nome": "Neutrik opticalCON QUAD / QUAD LITE",
+      "fibras": 4,
+      "modos": [
+        "multimodo",
+        "monomodo"
+      ],
       "confianca": "fabricante",
       "fonte": "https://www.neutrik.com/en/product/opticalcon-quad-lite"
     },
     {
-      "nome": "Neutrik opticalCON MTP", "fibras": 12,
-      "modos": ["multimodo", "monomodo"],
+      "nome": "Neutrik opticalCON MTP",
+      "fibras": 12,
+      "modos": [
+        "multimodo",
+        "monomodo"
+      ],
       "confianca": "fabricante",
       "fonte": "https://www.canford.co.uk/ProductResources/resources/N/Neutrik/OpticalCON/Opticalcon%20Brochure%202017_03%20V19.pdf",
       "nota": "Também existe em 24 fibras."
     },
     {
-      "nome": "Neutrik opticalCON MTP 24", "fibras": 24,
-      "modos": ["multimodo", "monomodo"],
+      "nome": "Neutrik opticalCON MTP 24",
+      "fibras": 24,
+      "modos": [
+        "multimodo",
+        "monomodo"
+      ],
       "confianca": "fabricante",
       "fonte": "https://www.canford.co.uk/ProductResources/resources/N/Neutrik/OpticalCON/Opticalcon%20Brochure%202017_03%20V19.pdf"
     },
     {
-      "nome": "SMPTE 311M / 304M (cabo de câmara)", "fibras": 2,
-      "modos": ["monomodo"],
+      "nome": "SMPTE 311M / 304M (cabo de câmara)",
+      "fibras": 2,
+      "modos": [
+        "monomodo"
+      ],
       "confianca": "indicativo",
       "fonte": "https://remee.com/smpte-cable-311m-hybrid-backbone-of-4k-8k-broadcasting/",
       "nota": "Híbrido: duas fibras monomodo mais cobre para alimentação e controlo. QUEM LIMITA A DISTÂNCIA É O COBRE (queda de tensão), não a fibra — uns 2 a 3 km conforme a corrente. Valor indicativo, a confirmar numa ficha."
     }
-  ]
+  ],
+  "modos": {
+    "_nota": "A diferença entre monomodo e multimodo, para ficar dita uma vez e num sítio só.",
+    "multimodo": {
+      "nome": "Multimodo",
+      "nucleo_um": "50 (OM2–OM5) ou 62,5 (OM1)",
+      "fonte_de_luz": "VCSEL a 850 nm",
+      "onda_tipica_nm": 850,
+      "alcance": "dezenas a centenas de metros",
+      "porque": "O núcleo é largo, e a luz entra por muitos caminhos ao mesmo tempo. Cada caminho demora o seu tempo a chegar, e ao fim de alguns centenas de metros os impulsos já se sobrepõem — chama-se dispersão modal, e é ela que limita a distância, não a perda.",
+      "custo": "ótica mais barata: um VCSEL custa muito menos de fabricar do que um laser.",
+      "confianca": "indicativo",
+      "fonte": "https://www.fs.com/blog/singlemode-vs-multimode-sfp-whats-the-difference-663.html"
+    },
+    "monomodo": {
+      "nome": "Monomodo",
+      "nucleo_um": "8 a 10 (tipicamente 9)",
+      "fonte_de_luz": "laser a 1310 nm ou 1550 nm",
+      "onda_tipica_nm": 1310,
+      "alcance": "quilómetros — 10 km de norma, 40 km e mais com óticas próprias",
+      "porque": "O núcleo é tão estreito que só deixa passar UM caminho de luz. Sem caminhos a competir não há dispersão modal, e o que passa a limitar é a perda — que é o que a conta do orçamento mede.",
+      "custo": "ótica mais cara: precisa de laser, não chega um VCSEL.",
+      "confianca": "indicativo",
+      "fonte": "https://www.fs.com/blog/singlemode-vs-multimode-sfp-whats-the-difference-663.html"
+    }
+  },
+  "custos_de_banda": {
+    "_nota": "Quanto custa em banda cada sinal que se põe a andar. NÃO é uma lista de compras — é o que se tem a correr, para se saber o que cabe numa fibra.",
+    "vídeo": [
+      {
+        "nome": "SD-SDI (ST 259)",
+        "mbps": 270,
+        "confianca": "norma",
+        "fonte": "https://en.wikipedia.org/wiki/Serial_digital_interface"
+      },
+      {
+        "nome": "HD-SDI (ST 292)",
+        "mbps": 1485,
+        "confianca": "norma",
+        "fonte": "https://en.wikipedia.org/wiki/Serial_digital_interface"
+      },
+      {
+        "nome": "3G-SDI (ST 424) — 1080p60",
+        "mbps": 2970,
+        "confianca": "norma",
+        "fonte": "https://en.wikipedia.org/wiki/Serial_digital_interface"
+      },
+      {
+        "nome": "6G-SDI (ST 2081)",
+        "mbps": 5940,
+        "confianca": "norma",
+        "fonte": "https://en.wikipedia.org/wiki/Serial_digital_interface"
+      },
+      {
+        "nome": "12G-SDI (ST 2082) — UHD 2160p60",
+        "mbps": 11880,
+        "confianca": "norma",
+        "fonte": "https://en.wikipedia.org/wiki/Serial_digital_interface"
+      },
+      {
+        "nome": "ST 2110 — 1080p59.94, 10 bit 4:2:2",
+        "mbps": 3000,
+        "aproximado": true,
+        "confianca": "indicativo",
+        "fonte": "https://www.smpte.org/smpte-st-2110-faq",
+        "nota": "2,5 a 3 Gbps conforme o formato exacto. Para o número certo, calcula-se a partir do formato."
+      },
+      {
+        "nome": "ST 2110 — UHD 2160p50/60, 10 bit 4:2:2",
+        "mbps": 12000,
+        "aproximado": true,
+        "confianca": "indicativo",
+        "fonte": "https://www.smpte.org/smpte-st-2110-faq",
+        "nota": "8 a 12 Gbps conforme o formato exacto."
+      }
+    ],
+    "áudio": [
+      {
+        "nome": "Dante / AES67 — 1 canal, 24 bit a 48 kHz",
+        "mbps": 1.152,
+        "confianca": "indicativo",
+        "fonte": "https://digitalaudio.dk/10-things-to-know-about-dante/"
+      },
+      {
+        "nome": "Dante — 64 canais, 24 bit a 48 kHz",
+        "mbps": 74,
+        "confianca": "indicativo",
+        "fonte": "https://digitalaudio.dk/10-things-to-know-about-dante/",
+        "nota": "Um oitavo de uma porta de 1 Gbps. Cabem 512 canais bidirecionais numa porta."
+      },
+      {
+        "nome": "MADI — 64 canais, 24 bit a 48 kHz",
+        "mbps": 98.7,
+        "confianca": "norma",
+        "fonte": "https://en.wikipedia.org/wiki/MADI",
+        "nota": "64×32×48 kbit/s mais o enquadramento. A 96 kHz são 32 canais; a 192 kHz, 16."
+      }
+    ],
+    "iluminação": [
+      {
+        "nome": "DMX512 — 1 universo, no cabo (RS-485)",
+        "mbps": 0.25,
+        "confianca": "norma",
+        "fonte": "https://en.wikipedia.org/wiki/DMX512"
+      },
+      {
+        "nome": "Art-Net ou sACN — 1 universo sobre IP",
+        "mbps": 0.4,
+        "aproximado": true,
+        "confianca": "indicativo",
+        "fonte": "https://support.enttec.com/dmx/edmx-art-net-sacn-networking/edmx-art-net-sacn-control-scheme",
+        "nota": "0,3 a 0,4 Mbps por universo a refrescar ao máximo (uns 44 quadros por segundo)."
+      }
+    ]
+  }
 }

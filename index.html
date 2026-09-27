@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.22</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.23</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2676,6 +2676,33 @@
             <div class="inputgroup"><input id="fib-emendas" type="number" autocomplete="off" inputmode="numeric" value="0" min="0" step="1"><span class="unit">emendas</span></div>
           </div>
           <div id="fib-perdas">—</div>
+        </div>
+      </details>
+
+      <!-- A DIFERENÇA ENTRE MONOMODO E MULTIMODO, dita uma vez e num sítio
+           só. Pedido: *"monta a forte diferença e exemplo explicado da
+           diferença entre single mode e multimode, tanto na fibra em si como
+           na tecnologia do SFP"*. Duas metades porque são mesmo duas coisas:
+           a fibra (o núcleo) e a ótica (a fonte de luz) -- e a segunda é a
+           que explica o preço. -->
+      <details class="card sinal-block" id="fib-modos-card">
+        <summary>Monomodo ou multimodo — a diferença, e porquê</summary>
+        <div class="sinal-block-body">
+          <div id="fib-modos">—</div>
+        </div>
+      </details>
+
+      <!-- QUANTO CUSTA EM BANDA cada sinal. Pedido assim: *"podes incluir
+           uma base de custo de bandwidth para áudio, vídeo e iluminação. Não
+           será para compras, apenas será para o que tenho"* -- por isso esta
+           tabela é sobre os SINAIS que se põem a andar, e não sobre
+           equipamento. Serve para responder a "o que é que me cabe nesta
+           fibra". -->
+      <details class="card sinal-block">
+        <summary>Quanto custa em banda — áudio, vídeo e luz</summary>
+        <div class="sinal-block-body">
+          <div class="hint" style="margin-bottom:10px">O que cada sinal come. Toca num para o pôr no débito lá em cima e ver o que o leva.</div>
+          <div id="fib-custos">—</div>
         </div>
       </details>
 
@@ -9270,6 +9297,84 @@
     if (so) so.addEventListener("change", calcFibra);
   })();
 
+
+  /**
+   * A diferença entre monomodo e multimodo — a fibra e a ótica.
+   *
+   * São mesmo duas coisas, e a confusão entre elas é a que custa dinheiro:
+   * a FIBRA decide quantos caminhos a luz tem, e a ÓTICA decide o que se
+   * paga por a pôr lá dentro. O exemplo no fim é o que faz a diferença
+   * aterrar: a mesma tirada de 80 m e a mesma de 3 km, e o que muda.
+   */
+  function encherModos() {
+    var caixa = document.getElementById("fib-modos");
+    if (!caixa || !FIBRA_DATA || !FIBRA_DATA.modos) return;
+    var mm = FIBRA_DATA.modos.multimodo, sm = FIBRA_DATA.modos.monomodo;
+    if (!mm || !sm) return;
+
+    var linha = function (titulo, a, b) {
+      return '<div class="rowline"><span style="flex:0 0 34%"><b>' + titulo + '</b></span>' +
+        '<span style="flex:1">' + a + '</span><span style="flex:1">' + b + '</span></div>';
+    };
+
+    caixa.innerHTML =
+      '<h2>Na fibra: quantos caminhos tem a luz</h2>' +
+      '<div class="rowline"><span style="flex:0 0 34%"></span>' +
+      '<span style="flex:1"><b>' + escapeXml(mm.nome) + '</b></span>' +
+      '<span style="flex:1"><b>' + escapeXml(sm.nome) + '</b></span></div>' +
+      linha("Núcleo", escapeXml(mm.nucleo_um) + " µm", escapeXml(sm.nucleo_um) + " µm") +
+      linha("Alcance", escapeXml(mm.alcance), escapeXml(sm.alcance)) +
+      '<p class="hint" style="margin-top:10px"><b>Multimodo:</b> ' + escapeXml(mm.porque) + '</p>' +
+      '<p class="hint"><b>Monomodo:</b> ' + escapeXml(sm.porque) + '</p>' +
+
+      '<h2 style="margin-top:16px">Na ótica: o que é preciso para lá meter luz</h2>' +
+      linha("Fonte de luz", escapeXml(mm.fonte_de_luz), escapeXml(sm.fonte_de_luz)) +
+      linha("Custo do SFP", escapeXml(mm.custo), escapeXml(sm.custo)) +
+      '<p class="hint" style="margin-top:10px">É aqui que está o preço, e não na fibra: um <b>VCSEL</b> — o emissor dos 850 nm — é muito mais barato de fabricar do que o <b>laser</b> que o monomodo exige. Por isso o multimodo sai em conta em tiradas curtas, e por isso deixa de sair mal a distância cresce.</p>' +
+
+      '<div class="warn" style="margin-top:14px"><b>Um exemplo, com as duas contas lado a lado.</b>' +
+      '<p style="margin:8px 0 0"><b>80 m entre a régie e o palco, 10 Gbps.</b> Multimodo OM4 chega (400 m) e a ótica é a barata. Perda: 0,08 km × 3,0 dB/km = 0,24 dB, mais 2 pares de conectores a 0,75 = 1,5 dB → <b>1,74 dB</b>, dentro dos 2,9 dB que o 10GBASE-SR aguenta em OM4. <b>Escolhe-se multimodo.</b></p>' +
+      '<p style="margin:8px 0 0"><b>3 km até ao pavilhão ao lado, 10 Gbps.</b> Multimodo não chega — nem por perda, mas por dispersão modal: os caminhos da luz chegam desencontrados e o sinal fecha-se. Monomodo OS2 com 10GBASE-LR faz 10 km. Perda: 3 km × 0,4 dB/km = 1,2 dB, mais 1,5 dB de conectores → <b>2,7 dB</b>, com folga nos 6,3 dB do LR. <b>Escolhe-se monomodo</b>, e paga-se a ótica.</p>' +
+      '<p class="hint" style="margin:8px 0 0">Repara no que muda: na tirada curta a conta que manda é a <b>perda</b>; na longa, o multimodo já nem chega à conta das perdas — sai fora antes, pela <b>dispersão</b>. São dois limites diferentes, e é por isso que não se escolhe fibra só pelos metros.</p>' +
+      '</div>' +
+      '<p class="hint" style="margin-top:10px">' + fibSelo(mm.confianca) + ' ' + srcLinkHtml(mm.fonte) + '</p>';
+  }
+
+  /** Quanto custa em banda cada sinal — e um toque põe-no no débito. */
+  function encherCustos() {
+    var caixa = document.getElementById("fib-custos");
+    if (!caixa || !FIBRA_DATA || !FIBRA_DATA.custos_de_banda) return;
+    var grupos = FIBRA_DATA.custos_de_banda;
+    var html = "";
+    ["vídeo", "áudio", "iluminação"].forEach(function (g) {
+      var linhas = grupos[g];
+      if (!linhas || !linhas.length) return;
+      html += '<div class="divider">' + g.charAt(0).toUpperCase() + g.slice(1) + '</div>';
+      html += '<div class="lensmatch-list">' + linhas.map(function (x) {
+        var gb = x.mbps / 1000;
+        var quanto = x.mbps >= 1000 ? fmt(gb, 2) + " Gbps" : fmt(x.mbps, x.mbps < 10 ? 3 : 1) + " Mbps";
+        return '<button type="button" class="lm-item fib-custo" data-gbps="' + gb + '" ' +
+          'title="Põe este débito no campo lá em cima"><span class="lm-row"><span>' +
+          fibSelo(x.confianca) + '<strong>' + escapeXml(x.nome) + '</strong>' + srcLinkHtml(x.fonte) +
+          '</span><span>' + (x.aproximado ? "≈ " : "") + quanto + '</span></span>' +
+          (x.nota ? '<div class="hint" style="margin-top:4px">' + escapeXml(x.nota) + '</div>' : '') +
+          '</button>';
+      }).join("") + '</div>';
+    });
+    caixa.innerHTML = html;
+    caixa.querySelectorAll(".fib-custo").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var g = parseFloat(b.dataset.gbps);
+        if (isNaN(g) || g <= 0) return;
+        document.getElementById("fib-gbps").value = g;
+        var preset = document.getElementById("fib-preset");
+        if (preset) preset.value = "";
+        calcFibra();
+        document.getElementById("fib-lista").scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+    });
+  }
+
   function encherFibra() {
     if (!FIBRA_DATA) return;
     var preset = document.getElementById("fib-preset");
@@ -9309,6 +9414,8 @@
         '<p>As distâncias são <b>máximos em condições ideais</b>. Com conectores a mais, uma tirada curta pode não passar — é para isso que serve o orçamento de perdas.</p>' +
         '<p class="warn">Os valores de perdas são da <b>TIA-568.3-D</b>. A edição E mudou os valores para conectores de referência — se isto for para uma compra, confirma a edição. ' + srcLinkHtml(FIBRA_DATA.perdas.fonte_aviso) + '</p>';
     }
+    encherModos();
+    encherCustos();
     calcFibra();
   }
 

@@ -14,6 +14,51 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 27 de setembro — monomodo, multimodo, e o custo em banda (v4.23)
+
+> *"monta a forte diferença e exemplo explicado da diferença entre single mode
+> e multimode, tanto na fibra em si como na tecnologia do SFP. E podes incluir
+> uma base de custo de bandwidth para áudio, vídeo e iluminação. Não será para
+> compras, apenas será para o que tenho"*.
+
+**A diferença, em duas metades — porque são mesmo duas coisas.**
+
+- **Na fibra:** o núcleo. Multimodo tem 50 µm (ou 62,5 na OM1) e a luz entra
+  por muitos caminhos; cada um demora o seu tempo e ao fim de umas centenas de
+  metros os impulsos sobrepõem-se. Chama-se **dispersão modal**, e é ela que
+  limita a distância — **não a perda**. Monomodo tem 9 µm e só deixa passar um
+  caminho: sem caminhos a competir, o que passa a limitar é a perda, que é o
+  que o orçamento mede.
+- **Na ótica:** a fonte de luz, e é aqui que está o preço. Multimodo usa um
+  **VCSEL** a 850 nm; monomodo exige um **laser** a 1310 ou 1550 nm, que é
+  muito mais caro de fabricar. O preço está na ótica, não na fibra.
+
+**E o exemplo, com as duas contas lado a lado** — que é o que faz isto
+aterrar:
+
+- **80 m entre a régie e o palco, 10 Gbps.** OM4 chega (400 m). Perda:
+  0,24 dB de fibra + 1,5 dB de conectores = **1,74 dB**, dentro dos 2,9 dB do
+  10GBASE-SR. Multimodo, e a ótica barata.
+- **3 km até ao pavilhão ao lado, 10 Gbps.** Multimodo nem chega à conta das
+  perdas — sai fora antes, por dispersão. OS2 com 10GBASE-LR: 1,2 dB de fibra
+  + 1,5 dB de conectores = **2,7 dB**, com folga nos 6,3 dB. Monomodo, e
+  paga-se a ótica.
+
+São **dois limites diferentes** — e é por isso que não se escolhe fibra só
+pelos metros.
+
+**O custo em banda.** Uma tabela do que cada sinal come, em três grupos:
+vídeo (SDI de SD a 12G, e ST 2110), áudio (Dante por canal e a 64, MADI) e
+iluminação (DMX512 no cabo, Art-Net/sACN por universo). Não é lista de
+compras — é **o que se tem a correr**, para responder a «o que é que me cabe
+nesta fibra». Tocar numa linha põe o débito lá em cima e a lista responde com
+o que o leva.
+
+Doze sinais, todos com fonte e todos a dizer de onde vem o valor. Onde o
+número é aproximado (o ST 2110 depende do formato exacto), está escrito — e a
+app diz que para o número certo se calcula a partir do formato, que é o que a
+aba Sinal já faz.
+
 ## 27 de setembro — a aba da fibra (v4.22)
 
 > *"quero incluir tudo nas calculadoras mesmo sem ter na casa para poder
