@@ -546,5 +546,135 @@
     "medir": "O número em que se confia não é o desta calculadora: é o que sai de uma fonte de luz e de um medidor de potência aplicados à tirada como ela está no chão, no dia, com os conectores todos metidos. Esta conta serve para saber se vale a pena ir montar; a medição é que diz se ficou bom.",
     "confianca": "fabricante",
     "fonte": "https://www.prysmian.com/sites/www.prysmian.com/files/media/products/Prysmian-Enhanced-Single-Mode-G-652-D-Datasheet.pdf"
+  },
+  "fabricantes": {
+    "_nota": "Os fabricantes com opção de fibra que servem de referência, e os módulos e aparelhos que se conseguiu ler nas fichas deles. REGRA: só entra aqui o que foi lido na página do próprio fabricante. Onde o site recusou a ligação ou estava em baixo, o fabricante fica na lista com o que falta por recolher dito em voz alta — uma entrada vazia e honesta vale mais do que uma cheia de números de revendedor.",
+    "lista": [
+      {
+        "nome": "Luminex",
+        "genero": "Switches de rede para AV (GigaCore) e SFPs próprios",
+        "porque_interessa": "É o switch que já anda em digressão, e é o único desta lista que publica a tabela completa dos SFPs dele com as regras de compatibilidade. Serve de referência mesmo para quem não usa GigaCore.",
+        "site": "https://www.luminex.be/products/gigacore/",
+        "confianca": "fabricante",
+        "fonte": "https://support.luminex.be/portal/en/kb/articles/sfp-modules",
+        "modulos": [
+          { "codigo": "LU 90 01116", "descricao": "10GBase-SR SFP+ 850 nm", "modo": "multimodo", "gbps": 10, "metros": 300, "em_cage_de_1g": false },
+          { "codigo": "LU 90 01117", "descricao": "10GBase-LR SFP+ 1310 nm", "modo": "monomodo", "gbps": 10, "metros": 10000, "em_cage_de_1g": false },
+          { "codigo": "LU 90 01125", "descricao": "1000Base-SX SFP 850 nm", "modo": "multimodo", "gbps": 1, "metros": 550, "em_cage_de_1g": true },
+          { "codigo": "LU 90 01126", "descricao": "1000Base-LX SFP 1310 nm", "modo": "monomodo", "gbps": 1, "metros": 10000, "em_cage_de_1g": true },
+          { "codigo": "LU 90 01151", "descricao": "1000/10GBase-SR SFP+ 850 nm (duplo débito)", "modo": "multimodo", "gbps": 10, "metros": 300, "em_cage_de_1g": true },
+          { "codigo": "LU 90 01152", "descricao": "1000/10GBase-LR SFP+ 1310 nm (duplo débito)", "modo": "monomodo", "gbps": 10, "metros": 10000, "em_cage_de_1g": true },
+          { "codigo": "LU 90 01118", "descricao": "10GBase-T SFP+ cobre RJ45", "modo": "cobre", "gbps": 10, "metros": 30, "em_cage_de_1g": false },
+          { "codigo": "LU 90 01127", "descricao": "1000Base-T SFP cobre RJ45", "modo": "cobre", "gbps": 1, "metros": 100, "em_cage_de_1g": true }
+        ],
+        "regras": [
+          "Multimodo e monomodo não se misturam no mesmo link: SFPs, fibra e patches têm de ser todos do mesmo modo.",
+          "Os dois lados têm de andar ao mesmo débito.",
+          "Um SFP de 1 Gbps entra num cage de 10 Gbps. Ao contrário não: um SFP de 10 Gbps não trabalha num cage só de 1 Gbps — excepto os de duplo débito.",
+          "Um SFP de 10 Gbps forçado a 1 Gbps até pode ligar, mas o laser dele não está afinado para isso: não é recomendado, e as ferramentas de medição de fibra podem dar erro.",
+          "Devem cumprir a MSA, ser de gama industrial de temperatura e ter DMI/DOM."
+        ]
+      },
+      {
+        "nome": "Netgear",
+        "genero": "Switches (M4250/M4300 para AV) e transceivers SFP+ próprios",
+        "porque_interessa": "O AXM763 é o que salva uma instalação de OM1 antiga: leva 10 Gbps a 220 m em fibra de 62,5/125, onde um SR normal pára aos 33 m.",
+        "site": "https://www.netgear.com/business/wired/switches/accessories/axm761/",
+        "confianca": "fabricante",
+        "fonte": "https://www.netgear.com/business/wired/switches/accessories/axm761/",
+        "modulos": [
+          { "codigo": "AXM761", "descricao": "10GBase-SR SFP+, LC duplex", "modo": "multimodo", "gbps": 10, "metros": 550, "nota": "550 m em OM4, 300 m em OM3, 33 m em OM1/OM2. Os 550 m em OM4 são da ficha da Netgear e passam os 400 m da norma.", "fonte": "https://www.netgear.com/business/wired/switches/accessories/axm761/" },
+          { "codigo": "AXM762", "descricao": "10GBase-LR SFP+, LC duplex", "modo": "monomodo", "gbps": 10, "metros": 10000, "nota": "Fibra monomodo de 9/125.", "fonte": "https://www.netgear.com/business/wired/switches/accessories/axm762/" },
+          { "codigo": "AXM763", "descricao": "10GBase-LRM SFP+, LC duplex", "modo": "multimodo", "gbps": 10, "metros": 220, "nota": "220 m em OM1/OM2 de 62,5/125 e 260 m em OM3/OM4. É o módulo para aproveitar fibra multimodo antiga a 10 Gbps.", "fonte": "https://www.netgear.com/business/wired/switches/accessories/axm763/" }
+        ]
+      },
+      {
+        "nome": "Kramer",
+        "genero": "Extensores de HDMI sobre fibra, com SFP+ trocável",
+        "porque_interessa": "Leva 4K60 4:4:4 até 33 km, e serve tanto multimodo como monomodo — é só trocar o SFP+.",
+        "site": "https://www1.kramerav.com/us/product/676T",
+        "confianca": "fabricante",
+        "fonte": "https://www1.kramerav.com/us/product/676T",
+        "aparelhos": [
+          { "modelo": "676T / 676R", "descricao": "HDMI 4K60 4:4:4 + RS-232 sobre fibra", "modo": "multimodo ou monomodo", "metros": 33000, "nota": "Traz um SFP+ multimodo; com um SFP+ monomodo vai mais longe. A Kramer avisa que só garante o desempenho com SFP+ certificados por ela. O link ótico é de 10 Gbps: o sinal HDMI acima de 10 G é adaptado por subamostragem de croma — não é transporte transparente dos 18 G." }
+        ]
+      },
+      {
+        "nome": "Extron",
+        "genero": "Extensores de HDMI e de SDI sobre fibra (séries FOX e FOX3)",
+        "porque_interessa": "Faz 4K60 4:4:4 sem compressão quando se lhe dão duas fibras, e sem perda matemática numa só — é a gama a olhar quando não se pode mexer no sinal.",
+        "site": "https://www.extron.com/product/fox3t201",
+        "confianca": "fabricante",
+        "fonte": "https://www.extron.com/product/fox3t201",
+        "aparelhos": [
+          { "modelo": "FOX3 T 201", "descricao": "HDMI + áudio + RS-232 + IR sobre fibra", "modo": "multimodo ou monomodo (versões diferentes)", "metros": null, "nota": "4K60 4:4:4 sem perda matemática numa fibra, ou sem compressão nenhuma em duas. HDMI 2.0 até 18 Gbps. A distância não estava na página do produto e não foi recolhida — vai à ficha antes de planear com ela." },
+          { "modelo": "FOX 3G HD-SDI", "descricao": "3G-SDI sobre uma fibra, até 2,97 Gbps", "modo": "multimodo ou monomodo (versões diferentes)", "metros": null, "nota": "Descontinuado pela Extron. Fica aqui porque ainda anda muito por aí." }
+        ]
+      },
+      {
+        "nome": "Gefen",
+        "genero": "Extensores de HDMI e DisplayPort sobre fibra (hoje Nice North America)",
+        "porque_interessa": "O EXT-UHD600-1SC é o exemplo perfeito do engano dos modos: leva os 18,2 Gbps completos do HDMI 2.0 numa fibra só, mas a ficha diz por escrito que monomodo NÃO é suportado.",
+        "site": "https://gefen.com/pages/video-extenders",
+        "confianca": "fabricante",
+        "fonte": "https://gefen.com/product/4k-ultra-hd-600-mhz-extender-for-hdmi-over-one-fiber-optic-cable/",
+        "aparelhos": [
+          { "modelo": "EXT-UHD600-1SC", "descricao": "HDMI 2.0 18,2 Gbps / 600 MHz numa fibra só", "modo": "multimodo (OM3 ou melhor, 50/125), conector SC", "metros": 200, "nota": "A ficha diz que fibra monomodo NÃO é suportada. Se a casa só tiver monomodo puxada, este aparelho não serve — e é o género de coisa que só se descobre no dia se não se ler antes." }
+        ]
+      },
+      {
+        "nome": "NovaStar",
+        "genero": "Conversores de fibra para LED (séries CVT)",
+        "porque_interessa": "É o que põe o sinal de LED em fibra entre a régie e o palco, com saídas Ethernet Neutrik do outro lado.",
+        "site": "https://www.novastar.tech/",
+        "confianca": "indicativo",
+        "fonte": "https://oss.novastar.tech/uploads/2024/10/CVT4K-S-Fiber-Converter-Specifications-V1.0.6.pdf",
+        "por_confirmar": "As fichas da NovaStar estão no servidor deles (o link acima é o oficial), mas não foi possível ler o texto delas aqui — os números abaixo vieram de resumos, não da ficha em primeira mão. Confirma na ficha antes de decidir uma compra.",
+        "aparelhos": [
+          { "modelo": "CVT4K-S", "descricao": "Conversor de fibra: 16 portas Ethernet Neutrik + 4 portas óticas LC", "modo": "monomodo, 1310 nm", "metros": 10000, "nota": "Módulos óticos trocáveis a quente. Números por confirmar na ficha." },
+          { "modelo": "CVT10-S / CVT10-M", "descricao": "Conversor de fibra: 10 portas RJ45 + 2 portas óticas em SFP trocável", "modo": "CVT10-S monomodo, CVT10-M multimodo", "metros": null, "nota": "Distâncias não recolhidas." }
+        ]
+      },
+      {
+        "nome": "Cisco",
+        "genero": "Transceivers SFP/SFP+ e switches",
+        "porque_interessa": "É a referência de facto dos transceivers, e as fichas dela são das poucas que dizem mais do que a norma — o 1000BASE-LX que a norma dá a 5 km, a Cisco dá a 10 km.",
+        "site": "https://www.cisco.com/c/en/us/products/interfaces-modules/transceiver-modules/datasheet-listing.html",
+        "confianca": "fabricante",
+        "fonte": "https://www.cisco.com/c/en/us/products/interfaces-modules/transceiver-modules/datasheet-listing.html",
+        "por_confirmar": "O site da Cisco recusou a ligação a partir daqui (Access Denied do CDN deles), por isso não se recolheu nada de novo nesta passagem. O valor de 10 km do 1000BASE-LX que já está na tabela das óticas veio de uma ficha da Cisco recolhida antes."
+      },
+      {
+        "nome": "Lightware",
+        "genero": "Extensores e matrizes de AV sobre fibra",
+        "porque_interessa": "Fabricante de gama alta com linha de fibra — fica na lista para se ir ver.",
+        "site": "https://lightware.com/",
+        "confianca": "indicativo",
+        "fonte": "https://lightware.com/",
+        "por_confirmar": "O site da Lightware estava em baixo no dia em que isto se escreveu («the site is temporarily unavailable»), por isso não se recolheu produto nenhum. Não se põe aqui nada de ouvido: fica por fazer."
+      }
+    ],
+    "cores_e_identificacao": {
+      "_nota": "Como se sabe que fibra é aquela, sem medir nada. Da página da Luminex.",
+      "confianca": "fabricante",
+      "fonte": "https://support.luminex.be/portal/en/kb/articles/fiber-type-and-identification-10-5-2019-1",
+      "regra_rapida": "Conector LC azul e cabo amarelo é monomodo; conector bege e cabo laranja, água-marinha, violeta ou verde-lima é multimodo. No transceiver, a patilha metálica de o tirar do cage tem pega azul se for monomodo e preta se for multimodo.",
+      "fibras": [
+        { "id": "OS1/OS2", "modo": "monomodo", "nucleo": "9/125 µm", "cor": "amarelo", "debitos": "1, 10, 40 e 100 Gbps" },
+        { "id": "OM1", "modo": "multimodo", "nucleo": "62,5/125 µm", "cor": "laranja", "debitos": "1 Gbps a 275 m · 10 Gbps a 33 m", "largura_banda": "200 MHz·km a 850 nm" },
+        { "id": "OM2", "modo": "multimodo", "nucleo": "50/125 µm", "cor": "laranja", "debitos": "1 Gbps a 550 m · 10 Gbps a 82 m", "largura_banda": "500 MHz·km" },
+        { "id": "OM3", "modo": "multimodo", "nucleo": "50/125 µm", "cor": "água-marinha ou violeta", "debitos": "10 Gbps a 300 m · 40 e 100 Gbps a 100 m", "largura_banda": "1500 MHz·km a 850 nm" },
+        { "id": "OM4", "modo": "multimodo", "nucleo": "50/125 µm", "cor": "água-marinha ou violeta", "debitos": "10 Gbps a 400 m · 40 e 100 Gbps a 150 m", "largura_banda": "3500 MHz·km a 850 nm" },
+        { "id": "OM5", "modo": "multimodo", "nucleo": "50/125 µm", "cor": "verde-lima", "debitos": "10 Gbps a 400 m · 40 e 100 Gbps a 150 m", "largura_banda": "banda larga, 850 a 950 nm" }
+      ]
+    },
+    "cruzar_as_fibras": {
+      "_nota": "A coisa que mais faz uma fibra não subir quando está tudo certo no papel.",
+      "confianca": "fabricante",
+      "fonte": "https://support.luminex.be/portal/en/kb/articles/gigacore-switches-fiber-optic-cabling",
+      "regra": "O Tx é sempre o lado esquerdo do transceiver, visto de frente com a etiqueta para cima. As fibras têm de ir cruzadas, para o Tx de um lado cair no Rx do outro — é por isso que os patches de fibra são cruzados, e é por isso que dois patches seguidos se anulam e deixam de estar cruzados.",
+      "em_painel": "Nos painéis, o Tx liga sempre ao lado A de trás e o Rx ao lado B. Num opticalCON QUAD (NO4FDW-A), o par de cima é a primeira porta e o par de baixo a segunda.",
+      "conectores_robustos": "Nos switches da Luminex aparecem Neutrik opticalCON DUO e QUAD, FiberFox de 2 e 4 canais, e FibreCo Junior de 2 e 4 canais."
+    }
   }
 }

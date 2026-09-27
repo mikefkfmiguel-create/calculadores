@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.27</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.28</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2740,6 +2740,40 @@
         <summary>Monomodo ou multimodo — a diferença, e porquê</summary>
         <div class="sinal-block-body">
           <div id="fib-modos">—</div>
+        </div>
+      </details>
+
+      <!-- QUE FIBRA É AQUELA. Identificar pela cor é a coisa mais rápida que
+           há em terreno, e não precisa de aparelho nenhum. Da página da
+           Luminex, que é a única desta lista que o publica. -->
+      <details class="card sinal-block" id="fib-cores-card">
+        <summary>Que fibra é aquela? — pela cor</summary>
+        <div class="sinal-block-body">
+          <div id="fib-cores">—</div>
+        </div>
+      </details>
+
+      <!-- AS FIBRAS TÊM DE IR CRUZADAS. É a razão nº 1 para uma fibra não
+           subir com tudo certo no papel, e a Luminex explica-a melhor do que
+           ninguém: dois patches seguidos anulam-se e desfazem o cruzamento. -->
+      <details class="card sinal-block" id="fib-cruzar-card">
+        <summary>⚠ Não sobe? — as fibras têm de ir cruzadas</summary>
+        <div class="sinal-block-body">
+          <div id="fib-cruzar">—</div>
+        </div>
+      </details>
+
+      <!-- OS FABRICANTES COM OPÇÃO DE FIBRA. Pedido: *"usa como referência
+           Cisco, Netgear, Luminex, NovaStar, Lightware, Gefen, Kramer,
+           Extron — todos os fabricantes que têm opção fiber. Inclui uma
+           lista na base de SFP e fibras"*. Cinco deles deram para ler em
+           primeira mão; três não, e isso está escrito em cada um, porque uma
+           entrada honesta e vazia vale mais do que uma cheia de números de
+           revendedor. -->
+      <details class="card sinal-block" id="fib-fabricantes-card">
+        <summary>Fabricantes com opção de fibra</summary>
+        <div class="sinal-block-body">
+          <div id="fib-fabricantes">—</div>
         </div>
       </details>
 
@@ -9541,6 +9575,89 @@
       fibSelo(sm.confianca) + ' ' + srcLinkHtml(sm.fonte) + '</p>';
   }
 
+  /** Que fibra é aquela, sem medir nada: pela cor do cabo e do conector. */
+  function encherCores() {
+    var caixa = document.getElementById("fib-cores");
+    if (!caixa || !FIBRA_DATA || !FIBRA_DATA.fabricantes) return;
+    var c = FIBRA_DATA.fabricantes.cores_e_identificacao;
+    if (!c) return;
+
+    caixa.innerHTML =
+      '<p class="warn"><b>' + escapeXml(c.regra_rapida) + '</b></p>' +
+      '<div class="lensmatch-list" style="margin-top:10px">' + (c.fibras || []).map(function (f) {
+        return '<div class="lm-item"><span class="lm-row"><span>' +
+          '<strong>' + escapeXml(f.id) + '</strong> <span class="lm-model">' + escapeXml(f.cor) + '</span>' +
+          '</span><span>' + escapeXml(f.nucleo) + " · " + escapeXml(f.modo) + '</span></span>' +
+          '<div class="hint" style="margin-top:4px">' + escapeXml(f.debitos) +
+          (f.largura_banda ? " · " + escapeXml(f.largura_banda) : "") + '</div>' +
+          '</div>';
+      }).join("") + '</div>' +
+      '<p class="hint" style="margin-top:10px">' + fibSelo(c.confianca) + ' ' + srcLinkHtml(c.fonte) + '</p>';
+  }
+
+  /** A razão nº 1 para uma fibra não subir com tudo certo no papel. */
+  function encherCruzar() {
+    var caixa = document.getElementById("fib-cruzar");
+    if (!caixa || !FIBRA_DATA || !FIBRA_DATA.fabricantes) return;
+    var x = FIBRA_DATA.fabricantes.cruzar_as_fibras;
+    if (!x) return;
+
+    caixa.innerHTML =
+      '<p class="warn"><b>' + escapeXml(x.regra) + '</b></p>' +
+      '<p style="margin-top:10px">' + escapeXml(x.em_painel) + '</p>' +
+      '<p class="hint" style="margin-top:10px">' + escapeXml(x.conectores_robustos) + '</p>' +
+      '<p class="hint">' + fibSelo(x.confianca) + ' ' + srcLinkHtml(x.fonte) + '</p>';
+  }
+
+  /** Quem faz fibra, o que tem, e o que ficou por confirmar em cada um. */
+  function encherFabricantes() {
+    var caixa = document.getElementById("fib-fabricantes");
+    if (!caixa || !FIBRA_DATA || !FIBRA_DATA.fabricantes) return;
+    var lista = FIBRA_DATA.fabricantes.lista || [];
+
+    caixa.innerHTML = lista.map(function (m) {
+      var corpo = "";
+
+      (m.modulos || []).forEach(function (mo) {
+        corpo += '<div class="lm-item"><span class="lm-row"><span>' +
+          '<strong>' + escapeXml(mo.codigo) + '</strong> <span class="lm-model">' + escapeXml(mo.descricao) + '</span>' +
+          (mo.fonte ? srcLinkHtml(mo.fonte) : "") +
+          '</span><span>' + escapeXml(mo.modo) + " · " + fmt(mo.gbps, mo.gbps % 1 ? 2 : 0) + " Gbps · " +
+          fibMetros(mo.metros) + '</span></span>' +
+          // Esta é a coluna que evita a compra errada: um SFP+ de 10 G
+          // comprado para um switch cujo cage só faz 1 G não serve para nada.
+          (mo.em_cage_de_1g === false
+            ? '<div class="hint" style="margin-top:4px">Não trabalha num cage só de 1 Gbps.</div>' : "") +
+          (mo.nota ? '<div class="hint" style="margin-top:4px">' + escapeXml(mo.nota) + '</div>' : "") +
+          '</div>';
+      });
+
+      (m.aparelhos || []).forEach(function (a) {
+        corpo += '<div class="lm-item"><span class="lm-row"><span>' +
+          '<strong>' + escapeXml(a.modelo) + '</strong> <span class="lm-model">' + escapeXml(a.descricao) + '</span>' +
+          '</span><span>' + escapeXml(a.modo) +
+          (a.metros ? " · " + fibMetros(a.metros) : " · distância não recolhida") + '</span></span>' +
+          (a.nota ? '<div class="hint" style="margin-top:4px">' + escapeXml(a.nota) + '</div>' : "") +
+          '</div>';
+      });
+
+      (m.regras || []).forEach(function (r) {
+        corpo += '<div class="hint" style="margin-top:4px">• ' + escapeXml(r) + '</div>';
+      });
+
+      return '<details class="card" style="margin-bottom:8px"><summary><b>' + escapeXml(m.nome) +
+        '</b> — ' + escapeXml(m.genero) + '</summary><div style="padding:8px 4px">' +
+        '<p>' + escapeXml(m.porque_interessa) + '</p>' +
+        '<p class="hint">' + fibSelo(m.confianca) + ' ' + srcLinkHtml(m.fonte) + '</p>' +
+        // O QUE FALTA, DITO EM CADA UM. Sem isto, um fabricante sem produtos
+        // lê-se como "não tem fibra", que é o contrário do que se passa.
+        (m.por_confirmar
+          ? '<p class="warn" style="margin-top:8px">' + escapeXml(m.por_confirmar) + '</p>' : "") +
+        (corpo ? '<div class="lensmatch-list" style="margin-top:8px">' + corpo + '</div>' : "") +
+        '</div></details>';
+    }).join("");
+  }
+
   /** Porque é que a bobine por estender estraga a conta — e quanto custa a volta. */
   function encherRolo() {
     var caixa = document.getElementById("fib-rolo-texto");
@@ -9698,6 +9815,9 @@
     encherErro();
     encherMonomodo();
     encherRolo();
+    encherCores();
+    encherCruzar();
+    encherFabricantes();
     encherModos();
     encherEquipamento();
     encherCustos();

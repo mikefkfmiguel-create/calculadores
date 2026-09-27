@@ -283,3 +283,83 @@ eletrónicas.
   ser a do inventário e não uma inventada.
 
 Sem os três, isto fica como está: pesquisa.
+
+---
+
+## 7. Fabricantes com opção de fibra — o que se leu, e onde
+
+Pedido: *"usa como referência Cisco, Netgear, Luminex, NovaStar, Lightware,
+Gefen, Kramer, Extron — todos os fabricantes que têm opção fiber. Inclui uma
+lista na base de SFP e fibras"*.
+
+Os oito estão na app. O que muda de um para o outro é **o que se conseguiu
+ler na ficha do próprio fabricante** — e isso está escrito em cada entrada,
+porque uma entrada honesta e vazia vale mais do que uma cheia de números de
+revendedor.
+
+### 7.1 Lidos em primeira mão (cinco)
+
+**Luminex** — o melhor material da lista, e de longe. Publica a tabela
+completa dos SFPs deles (8 módulos, com código, modo, débito e alcance), as
+regras de compatibilidade, a identificação das fibras pela cor, e a regra do
+cruzamento Tx/Rx. Serve de referência mesmo a quem não usa GigaCore.
+[SFP modules](https://support.luminex.be/portal/en/kb/articles/sfp-modules) ·
+[Fiber type and identification](https://support.luminex.be/portal/en/kb/articles/fiber-type-and-identification-10-5-2019-1) ·
+[Fiber optic cabling](https://support.luminex.be/portal/en/kb/articles/gigacore-switches-fiber-optic-cabling)
+
+**Netgear** — AXM761 (SR: 550 m em OM4, 300 m em OM3, 33 m em OM1/OM2),
+AXM762 (LR: 10 km em monomodo) e **AXM763** (LRM: 220 m em OM1/OM2 de
+62,5/125 e 260 m em OM3/OM4). O AXM763 é o achado da recolha: é o módulo que
+aproveita fibra multimodo antiga a 10 Gbps, onde um SR normal pára aos 33 m.
+Nota: os 550 m em OM4 do AXM761 passam os 400 m da norma — é ficha, não norma.
+
+**Kramer** — 676T/676R: 4K60 4:4:4 + RS-232 sobre fibra multimodo ou
+monomodo, até 33 km, com SFP+ trocável (multimodo incluído). Ressalva
+importante e dita pela própria Kramer: o link ótico é de 10 Gbps, e o HDMI
+acima disso é adaptado por **subamostragem de croma** — não é transporte
+transparente dos 18 G.
+
+**Extron** — FOX3 T 201: 4K60 4:4:4 sem perda matemática numa fibra, ou sem
+compressão nenhuma em duas; HDMI 2.0 até 18 Gbps; versões MM e SM. A
+distância não estava na página do produto e **não foi recolhida**. A série
+FOX 3G HD-SDI (3G-SDI numa fibra) está descontinuada mas ainda anda por aí.
+
+**Gefen** (hoje Nice North America) — EXT-UHD600-1SC: os 18,2 Gbps completos
+do HDMI 2.0 numa fibra só, 200 m, conector SC, OM3 ou melhor. E a ficha diz
+por escrito que **monomodo não é suportado** — o engano dos modos visto do
+lado do equipamento, e o género de coisa que só se descobre no dia se não se
+ler antes.
+
+### 7.2 Por confirmar (três), e porquê
+
+**NovaStar** — as fichas estão no servidor deles
+([CVT4K-S](https://oss.novastar.tech/uploads/2024/10/CVT4K-S-Fiber-Converter-Specifications-V1.0.6.pdf),
+[CVT10](https://oss.novastar.tech/uploads/2025/10/CVT10-Fiber-Converter-Specifications-V1.3.5.pdf)),
+mas os PDF usam fontes embebidas de que não se consegue extrair texto aqui.
+Os números que a app mostra (CVT4K-S: 16 Ethernet Neutrik + 4 óticas LC,
+monomodo 1310 nm, 10 km) vieram de resumos, não da ficha em primeira mão, e
+estão marcados como tal.
+
+**Cisco** — o CDN deles responde *Access Denied* a este IP, tanto por `curl`
+como por browser. Não se recolheu nada de novo. O valor de 10 km do
+1000BASE-LX que já está na tabela das óticas veio de uma ficha da Cisco
+recolhida antes.
+
+**Lightware** — o site estava em baixo no dia (*"the site is temporarily
+unavailable"*). Não se pôs nada de ouvido: fica por fazer.
+
+### 7.3 O que isto acrescentou à app, para além da lista
+
+Três coisas de terreno que vieram da Luminex e que não estavam em lado nenhum:
+
+- **identificar a fibra pela cor** — amarelo com conector LC azul é
+  monomodo; laranja, água-marinha, violeta ou verde-lima com conector bege é
+  multimodo. No transceiver, a patilha de o tirar tem pega azul se for
+  monomodo e preta se for multimodo;
+- **as fibras têm de ir cruzadas** — Tx é sempre o lado esquerdo visto de
+  frente com a etiqueta para cima, e dois patches seguidos **anulam-se** e
+  desfazem o cruzamento. É a razão nº 1 para uma fibra não subir com tudo
+  certo no papel;
+- **as regras de compatibilidade dos SFPs** — um de 1 Gbps entra num cage de
+  10; um de 10 não entra num cage só de 1 (a não ser de duplo débito); e um
+  de 10 forçado a 1 até liga, mas com o laser fora da afinação dele.

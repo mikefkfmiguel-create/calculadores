@@ -454,6 +454,65 @@ conferir(/OM3 e OM4 não foi recolhida/.test(cartaoRolo.texto),
 conferir(/medidor de potência/.test(cartaoRolo.texto),
   "e que quem decide no fim é a medição, não esta conta");
 
+console.log("\n== os fabricantes com opção de fibra ==");
+// *"usa como referência Cisco, Netgear, Luminex, NovaStar, Lightware, Gefen,
+// Kramer, Extron — todos os fabricantes que têm opção fiber"*. Os oito estão
+// cá; o que muda de um para o outro é o que se conseguiu ler da ficha deles.
+await pagina.evaluate(() => { document.getElementById("fib-fabricantes-card").open = true; });
+await pagina.waitForTimeout(300);
+const fab = await pagina.evaluate(() => {
+  const e = document.getElementById("fib-fabricantes");
+  const blocos = [...e.querySelectorAll(":scope > details")];
+  blocos.forEach((b) => { b.open = true; });
+  return {
+    nomes: blocos.map((b) => (b.querySelector("summary b") || {}).textContent),
+    texto: e.textContent.replace(/\s+/g, " "),
+    comFonte: blocos.every((b) => !!b.querySelector("a[href^='http']")),
+    // Quem não tem produtos recolhidos TEM de dizer porquê, senão lê-se
+    // como "não faz fibra" — que é o contrário do que se passa.
+    mudos: blocos.filter((b) => !b.querySelector(".lm-item") && !/warn/.test(b.innerHTML))
+                 .map((b) => (b.querySelector("summary b") || {}).textContent)
+  };
+});
+for (const quem of ["Cisco", "Netgear", "Luminex", "NovaStar", "Lightware", "Gefen", "Kramer", "Extron"]) {
+  conferir(fab.nomes.includes(quem), "está lá a " + quem);
+}
+conferir(fab.comFonte, "e cada um traz o link da fonte");
+conferir(fab.mudos.length === 0,
+  fab.mudos.length ? "sem dizer o que falta: " + fab.mudos.join(", ")
+                   : "quem não tem produtos recolhidos diz porquê, e não fica calado");
+// Os dois que não deram para ler, ditos em voz alta e não escondidos.
+conferir(/recusou a ligação/.test(fab.texto), "diz que o site da Cisco recusou a ligação");
+conferir(/estava em baixo/.test(fab.texto), "e que o da Lightware estava em baixo");
+// O achado que muda uma decisão em terreno.
+conferir(/AXM763/.test(fab.texto) && /220 m/.test(fab.texto),
+  "e traz o AXM763, que leva 10 Gbps a 220 m em OM1 velha");
+// O aparelho que recusa monomodo — o engano dos modos, mas do lado do equipamento.
+conferir(/monomodo NÃO é suportada/.test(fab.texto),
+  "e avisa que o extensor da Gefen não aceita monomodo");
+
+console.log("\n== que fibra é aquela, e porque é que não sobe ==");
+await pagina.evaluate(() => {
+  document.getElementById("fib-cores-card").open = true;
+  document.getElementById("fib-cruzar-card").open = true;
+});
+await pagina.waitForTimeout(300);
+const terreno = await pagina.evaluate(() => ({
+  cores: document.getElementById("fib-cores").textContent.replace(/\s+/g, " "),
+  nCores: document.querySelectorAll("#fib-cores .lm-item").length,
+  cruzar: document.getElementById("fib-cruzar").textContent.replace(/\s+/g, " "),
+  comFonte: !!document.querySelector("#fib-cores a[href^='http']") &&
+            !!document.querySelector("#fib-cruzar a[href^='http']")
+}));
+conferir(terreno.nCores >= 6, "a tabela das cores traz " + terreno.nCores + " fibras");
+conferir(/amarelo/.test(terreno.cores) && /água-marinha/.test(terreno.cores),
+  "com as cores que se veem no chão");
+conferir(/pega azul/.test(terreno.cores) && /preta/.test(terreno.cores),
+  "e diz como se conhece o transceiver pela pega");
+conferir(/cruzadas/.test(terreno.cruzar) && /anulam/.test(terreno.cruzar),
+  "e o cartão do cruzamento avisa que dois patches seguidos se anulam");
+conferir(terreno.comFonte, "os dois com fonte");
+
 console.log("\n== sem erros na consola ==");
 conferir(erros.length === 0, erros.length ? erros.join(" | ") : "nenhum");
 
