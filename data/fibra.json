@@ -549,7 +549,7 @@
   },
   "fabricantes": {
     "_nota": "Os fabricantes com opção de fibra que servem de referência, e os módulos e aparelhos que se conseguiu ler nas fichas deles. REGRA: só entra aqui o que foi lido na página do próprio fabricante. Onde o site recusou a ligação ou estava em baixo, o fabricante fica na lista com o que falta por recolher dito em voz alta — uma entrada vazia e honesta vale mais do que uma cheia de números de revendedor.",
-    "duas_familias": "Estes oito não fazem todos a mesma coisa, e misturá-los dá decisões erradas. Uns fazem REDE — switches e SFPs, onde o sinal já vai em IP (Luminex, Netgear, Cisco): aí escolhe-se o módulo e o resto é rede. Outros fazem EXTENSORES — metem um sinal de vídeo direto na fibra sem rede pelo meio (Kramer, Extron, Gefen, Lightware): aí o aparelho já traz a ótica dele, ou o SFP que ele aceita, e a escolha é do aparelho. A NovaStar fica no meio: converte para fibra o sinal de LED que sai das eletrónicas dela. Um extensor não se liga a um switch, e um SFP solto não extende vídeo — é a primeira pergunta a fazer.",
+    "duas_familias": "Estes oito não fazem todos a mesma coisa, e misturá-los dá decisões erradas. Uns fazem REDE — switches e SFPs, onde o sinal já vai em IP (Luminex, Netgear, Cisco): aí escolhe-se o módulo e o resto é rede. Outros fazem EXTENSORES — metem um sinal de vídeo direto na fibra sem rede pelo meio (Kramer, Extron, Gefen, Lightware): aí o aparelho já traz a ótica dele, ou o SFP que ele aceita, e a escolha é do aparelho. E há o LED, que é um mundo à parte: a NovaStar e a PixelHue põem em fibra o sinal que sai das eletrónicas delas, e aí a pergunta não é «quantos metros» mas «quantos píxeis leva cada fibra». Um extensor não se liga a um switch, e um SFP solto não extende vídeo — é a primeira pergunta a fazer.",
     "lista": [
       {
         "nome": "Luminex",
@@ -640,6 +640,20 @@
         "aparelhos": [
           { "modelo": "CVT4K-S", "descricao": "Conversor de fibra: 16 portas Ethernet Neutrik + 4 portas óticas LC", "modo": "monomodo, 1310 nm", "metros": 10000, "nota": "Módulos óticos trocáveis a quente. Números por confirmar na ficha." },
           { "modelo": "CVT10-S / CVT10-M", "descricao": "Conversor de fibra: 10 portas RJ45 + 2 portas óticas em SFP trocável", "modo": "CVT10-S monomodo, CVT10-M multimodo", "metros": null, "nota": "Distâncias não recolhidas." }
+        ]
+      },
+      {
+        "nome": "PixelHue",
+        "genero": "Processamento de vídeo e placas de envio para LED, com saída ótica (série Lumina)",
+        "porque_interessa": "É a que dá o número que falta a quem monta LED: uma porta ótica de 10G vale oito portas Ethernet de carga. Deixa de ser preciso adivinhar quantas fibras são precisas para um ecrã.",
+        "site": "https://proav.pixelhue.com/",
+        "confianca": "fabricante",
+        "fonte": "https://proav.pixelhue.com/product/detail.html?id=78",
+        "aparelhos": [
+          { "modelo": "LU_4×OPT Sending Card", "descricao": "Placa de envio com 4 portas óticas de 10G — até 20 800 000 píxeis", "modo": "monomodo ou multimodo, SFP+ trocável", "metros": 10000, "nota": "10 km com módulo monomodo (10G SFP+ LR) e 300 m com multimodo (10G SFP+ SR). Uma porta ótica carrega o mesmo que oito portas Ethernet — é esta a conta que interessa ao montar. Modos independente, cópia e reserva; 8 e 10 bits; 144 Hz.", "fonte": "https://proav.pixelhue.com/product/detail.html?id=78" },
+          { "modelo": "LU_16×RJ45+2×OPT Sending Card", "descricao": "16 saídas Ethernet Gigabit mais 2 óticas — até 10 400 000 píxeis", "modo": "monomodo ou multimodo", "metros": null, "nota": "As óticas não acrescentam carga: a OPT 1 copia as Ethernet 1 a 8 e a OPT 2 copia as 9 a 16. Serve para levar longe o que já sai em cobre, não para levar mais. Cada porta Ethernet carrega até 650 000 píxeis a 8 bits, ou 320 000 a 10 bits. Distâncias não estavam na página.", "fonte": "https://proav.pixelhue.com/product/detail.html?id=76" },
+          { "modelo": "LU_2×Fiber Input Card", "descricao": "Entrada ótica: 4 portas de 10G, duas principais e duas de reserva", "modo": "monomodo ou multimodo, SFP+ trocável", "metros": null, "nota": "Cada conector aguenta 4096×2160 a 30 Hz. Aceita 10G SFP+ SR ou LR. A porta de reserva tem de receber exactamente a mesma especificação da principal. Distâncias não estavam na página — são as do módulo que se lá puser.", "fonte": "https://proav.pixelhue.com/product/detail.html?id=65" },
+          { "modelo": "LU_1×ST2110 Input Card", "descricao": "Entrada ST 2110 em 2 portas óticas de 25G, uma principal e uma de reserva", "modo": "monomodo ou multimodo (25GBASE-LR ou 25GBASE-SR)", "metros": null, "nota": "SMPTE ST 2110 (-10, -20) e SMPTE 2059 (-1, -2) na principal; ST 2022-7 na reserva. Até 4096×2160 a 60 Hz, 8/10 bits, 4:4:4 ou 4:2:2. A ficha nomeia as normas óticas: 25GBASE-LR (IEEE 802.3cc) e 25GBASE-SR (IEEE 802.3by) — que são precisamente as de 25G que ainda faltam na tabela das óticas desta app. Serve para saber o que pedir; as distâncias delas continuam por recolher.", "fonte": "https://proav.pixelhue.com/product/detail.html?id=67" }
         ]
       },
       {

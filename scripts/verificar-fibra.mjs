@@ -474,7 +474,7 @@ const fab = await pagina.evaluate(() => {
                  .map((b) => (b.querySelector("summary b") || {}).textContent)
   };
 });
-for (const quem of ["Cisco", "Netgear", "Luminex", "NovaStar", "Lightware", "Gefen", "Kramer", "Extron"]) {
+for (const quem of ["Cisco", "Netgear", "Luminex", "NovaStar", "Lightware", "Gefen", "Kramer", "Extron", "PixelHue"]) {
   conferir(fab.nomes.includes(quem), "está lá a " + quem);
 }
 conferir(fab.comFonte, "e cada um traz o link da fonte");
@@ -509,8 +509,9 @@ for (const [marca, minimo] of [["Kramer", 2], ["Extron", 4], ["Gefen", 4], ["Lig
   const m = porMarca(marca);
   conferir(m.n >= minimo, marca + " traz " + m.n + " aparelhos (a gama, não um exemplo)");
 }
-conferir(/rede/i.test(fab.texto) && /extensor/i.test(fab.texto) && /NovaStar fica no meio/.test(fab.texto),
-  "e a app separa quem faz rede de quem faz extensores, antes da lista");
+conferir(/rede/i.test(fab.texto) && /extensor/i.test(fab.texto) &&
+         /NovaStar e a PixelHue/.test(fab.texto) && /quantos píxeis leva cada fibra/.test(fab.texto),
+  "e a app separa, antes da lista, quem faz rede de quem faz extensores e de quem faz LED");
 // Os dois que mudam uma decisão: o conector que não se improvisa, e o único
 // fabricante que publica o orçamento ótico do aparelho.
 conferir(/MPO\/MTP não é LC nem SC/.test(porMarca("Gefen").texto),
@@ -519,6 +520,17 @@ conferir(/150 m em OM1/.test(porMarca("Lightware").texto) && /1100 m em OM4/.tes
   "e a Lightware traz a distância fibra a fibra, de OM1 a OM4");
 conferir(/8 dB para gastar/.test(porMarca("Lightware").texto),
   "com o orçamento ótico do aparelho, que é o que deixa fazer a conta a sério");
+// A PixelHue traz o número que falta a quem monta LED: quanto CARREGA uma
+// fibra, que ali importa mais do que quantos metros anda.
+conferir(porMarca("PixelHue").n >= 4, "PixelHue traz " + porMarca("PixelHue").n + " placas com saída ótica");
+conferir(/oito portas Ethernet/.test(porMarca("PixelHue").texto),
+  "e diz que uma porta ótica de 10G carrega o mesmo que oito Ethernet");
+conferir(/não acrescentam carga/.test(porMarca("PixelHue").texto),
+  "e que na placa de 16+2 as óticas copiam o cobre, não acrescentam carga — que é o engano fácil");
+// Fecha em parte o buraco conhecido dos 25G: não dá as distâncias, mas dá o
+// nome das normas a pedir.
+conferir(/25GBASE-LR/.test(porMarca("PixelHue").texto) && /por recolher/.test(porMarca("PixelHue").texto),
+  "e nomeia as normas de 25G da placa ST 2110, dizendo que as distâncias continuam por recolher");
 
 console.log("\n== que fibra é aquela, e porque é que não sobe ==");
 await pagina.evaluate(() => {

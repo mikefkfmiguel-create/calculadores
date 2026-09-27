@@ -423,3 +423,39 @@ razões que interessam directamente a esta calculadora:
 
 É o género de ficha que se devia exigir a toda a gente. Vale a pena dizer-lhes
 isso.
+
+### 7.5 PixelHue — o lado do LED, e o número que faltava
+
+Pedido dele, a seguir: *"a PixelHue também"*. Lida em primeira mão em
+`proav.pixelhue.com`, e trouxe o dado que faltava a esta app para o lado do
+LED: **quanto CARREGA uma fibra**. Ali a pergunta não é quantos metros anda —
+é quantos píxeis leva.
+
+| Placa (série Lumina) | Ótica | Carga |
+|---|---|---|
+| LU_4×OPT Sending Card | 4× 10G; **10 km** em monomodo (SFP+ LR), **300 m** em multimodo (SFP+ SR) | até 20 800 000 px |
+| LU_16×RJ45+2×OPT Sending Card | 16 RJ45 + 2 óticas, SMF ou MMF | até 10 400 000 px |
+| LU_2×Fiber Input Card | 4× 10G (2 principais + 2 reserva), SFP+ SR ou LR | 4096×2160@30 por conector |
+| LU_1×ST2110 Input Card | 2× **25G** (1 + 1 reserva) | 4096×2160@60 |
+
+Três coisas que valem a pena reter:
+
+**Uma porta ótica de 10G carrega o mesmo que oito portas Ethernet.** É a
+conta que interessa ao montar, e está dita pela própria PixelHue na ficha da
+LU_4×OPT. Deixa de ser preciso adivinhar quantas fibras são precisas para um
+ecrã.
+
+**Na LU_16×RJ45+2×OPT, as óticas NÃO acrescentam carga.** A OPT 1 copia as
+Ethernet 1 a 8 e a OPT 2 copia as 9 a 16. Serve para levar longe o que já sai
+em cobre, não para levar mais — e este é o engano fácil de fazer a olhar para
+"16 + 2".
+
+**A placa ST 2110 fecha em parte um buraco conhecido desta app.** A tabela
+das óticas avisa que faltam as de longo alcance a 25 e 40 Gbps. A ficha desta
+placa nomeia as normas que ela usa — **25GBASE-LR (IEEE 802.3cc)** e
+**25GBASE-SR (IEEE 802.3by)** —, o que já chega para saber o que pedir. As
+distâncias delas continuam por recolher, e isso continua dito.
+
+Vale ainda notar que a PixelHue e a NovaStar entram na mesma família desta
+lista (LED), e é por isso que o texto que separa as famílias passou a
+nomeá-las juntas.
