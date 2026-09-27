@@ -1,11 +1,10 @@
 # Versão estável
 
-**Calculadores v4.12** · commit `6c63869` · dada como estável a 24 de setembro de 2026.
+**Calculadores v4.20** · commit `b12cf56` · dada como estável a 27 de setembro de 2026.
 
-> *"era só para confirmares as versões correctas como estão"* — com as duas
-> apps abertas lado a lado. E a seguir, confirmadas: *"promove as duas"*.
+> *"promovo o par v4.20 / v3.90 a estável?"* — e a resposta: *"Sim"*.
 
-Par: **Preview 3D v3.87** (`ed7b80b` no repositório `preview`). As duas apps
+Par: **Preview 3D v3.90** (`d2e0129` no repositório `preview`). As duas apps
 falam uma com a outra — dar uma como estável sem a outra não quer dizer nada,
 e por isso o par escreve-se aqui e é promovido ao mesmo tempo.
 
@@ -18,53 +17,79 @@ como bom*, com as verificações todas verdes no dia em que se escreveu isto.
 
 ## Medido no dia, neste commit
 
-**17 verificações verdes** em `scripts/`:
+**19 verificações verdes** em `scripts/`:
 
 `abrir-projeto` · `abrir-sem-trancar` · `area-de-visualizacao` ·
 `catalogo-led` · `dsm-do-projeto` · `duas-janelas` · `extensoes` ·
 `ficha-dome` · `ficheiro-da-app` · `folgas` · `foto-encolhe` ·
-`fundo-das-zonas` · `instalar` · `limpeza` · `pitch` · `recado-de-erro`
+`fundo-das-zonas` · `instalar` · `limpeza` · `modelo-novo` ·
+`pesquisa-de-modelos` · `pitch` · `prioridade-eletronicas` · `recado-de-erro`
+
+Três são novas desde a v4.12: `pesquisa-de-modelos`, `modelo-novo` e
+`prioridade-eletronicas`. (A `regra-do-mercado` saiu: a regra que ela guardava
+deixou de existir quando a procura passou a acrescentar sozinha, e um teste a
+guardar uma regra que já não há é pior do que nenhum.)
 
 E `verificar-traducao`: **nada de novo por traduzir** (dívida conhecida: 287
 trechos, em `traducao-por-fazer.json`).
 
-Do outro lado, no Preview v3.87, **18 verificações verdes**: `cena` ·
-`contagem` · `copiar-pecas` · `excecoes-de-lugares` · `ficheiro-da-app` ·
-`fora-das-paredes` · `grupo-no-3d` · `grupos-guardados` · `instalar` ·
-`palco` · `planta-de-volta` · `planta-dxf` · `planta-guardada` · `plateia` ·
-`posicao-bidirecional` · `posicao-real` · `relatorio-ecras` ·
+No **Worker**: **41 testes verdes** (`worker/testes/`), incluindo os do
+`/modelo`, a rota de procura na web que entrou na v4.18.
+
+Do outro lado, no Preview v3.90, **21 verificações verdes**: `barra-de-vista` ·
+`cena` · `comecar-no-deposito` · `contagem` · `copiar-pecas` ·
+`excecoes-de-lugares` · `ficheiro-da-app` · `fora-das-paredes` ·
+`grupo-no-3d` · `grupos-guardados` · `instalar` · `palco` ·
+`planta-de-volta` · `planta-dxf` · `planta-guardada` · `plateia` ·
+`posicao-bidirecional` · `posicao-real` · `relatorio-ecras` · `rodar-palco` ·
 `sincronizacao`.
 
 Correram no commit que esta página nomeia, não no ramo antes de fundir.
 
-## O que mudou desde a v4.11, que foi a estável anterior
+## O que mudou desde a v4.12, que foi a estável anterior
 
-**O peso do Traulux transparente era o dobro** (v4.12). O fabricante dá o peso
-em **kg/m²** e os dois módulos estavam na tabela como se fosse o peso de cada
-painel — uma torre de LED aparecia com o dobro do peso que tem, e é desse
-número que sai a estrutura. Corrigido para 3,75 kg e 7,5 kg, com a fonte
-anotada em cada linha.
+**A pesquisa de modelos deixou de dizer "não encontrado" e ficar por aí.**
+Reportado do telemóvel com uma foto: *"Não encontra"*. Eram oito versões a
+resolver a mesma coisa, por partes:
 
-A cura ficou na raiz: `verificar-catalogo-led` passou a exigir que, quando uma
-nota cita `N kg/m²`, o peso a dividir pela área do painel bata certo com esse
-número (5% de tolerância). Um engano destes não volta a entrar calado.
+- **v4.13** — a procura passou a ser por **palavras** e não por pedaço de
+  texto: escrever "hitachi 55" deixou de esconder o que a AVK tem.
+- **v4.14 e v4.15** — quando a lista não devolve nada, dispara uma procura no
+  mercado, e **diz que está a procurar** enquanto o faz.
+- **v4.16 e v4.17** — a procura deixou de abrir popups e de pedir para ser ele
+  a escrever o que pode estar errado: *"apenas acrescenta automaticamente"*.
+  E deixou de estar presa ao inventário da AVK — *"será para dar todas as
+  opções de mercado"*.
+- **v4.18** — o `/modelo` no Worker procura mesmo na **web**, com a **fonte a
+  servir de prova**: só entra na lista o que vier de uma página que a procura
+  abriu, com diagonal, rácio e resolução dentro do plausível. Nada inventado.
+- **v4.19** — uma **marca não é um modelo**: "Xiaomi" sozinho deixou de
+  entrar na lista como se fosse uma TV.
 
-Do outro lado, o Preview andou da v3.79 à v3.87 no mesmo período: relatório
-com o quadro dos ecrãs, selecção e rotação de conjuntos, cópias de peças,
-grupos guardados com cor, caixa de ajustes que se arrasta, e os números do
-painel a baterem certo com as coordenadas da sala. Está tudo no
-`PARA-CONTINUAR.md` desse repositório.
+**E a prioridade das eletrónicas de LED** (v4.20), a última antes desta
+página. A lista ordenava-se por nº de unidades e o selo saía da percentagem de
+ocupação — duas réguas na mesma linha, com um «Não aconselhado» a vermelho
+acima de um «Possível» a amarelo, e o primeiro da lista a levar «Recomendado»
+mesmo a 94%. Passou a haver uma régua só (`APERTADO_PCT`), e quando nenhuma
+máquina tem folga a sério **não há recomendação nenhuma**, que é a verdade
+desse caso.
+
+Do outro lado, o Preview andou da v3.87 à v3.90: o palco principal passou a
+**rodar**, os interruptores do "ver" saíram do menu para uma **barra no topo
+da janela** (com a grelha desligada à nascença e a escolha guardada), e quem
+escolhe começar um projeto ali aterra em cima do **`+ Ecrã`** em vez de numa
+secção vazia. Está tudo no `PARA-CONTINUAR.md` desse repositório.
 
 ## Como se volta a este ponto
 
 ```
-git checkout 6c63869          # ver como estava
+git checkout b12cf56          # ver como estava
 git revert <commit>           # desfazer uma coisa só, sem perder o resto
 ```
 
-A tag `v4.12` **não** está no GitHub: as credenciais da sessão que escreveu
+A tag `v4.20` **não** está no GitHub: as credenciais da sessão que escreveu
 isto deixam empurrar ramos, não tags (HTTP 403). Se ela fizer falta, cria-se
-na página de *releases* do repositório, apontada a `6c63869`.
+na página de *releases* do repositório, apontada a `b12cf56`.
 
 ## Quando isto deixa de valer
 
