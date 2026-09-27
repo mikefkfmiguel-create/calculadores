@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.19</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.20</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -6147,20 +6147,81 @@
     return { switcher: swVal, pgm: pgmVal || swVal, nota: s.avancadoNota || null };
   }
 
-  // Selo em linguagem simples (para quem não mexe nisto no dia a dia): a
-  // melhor opção de uma lista já ordenada da mais folgada para a mais
-  // apertada fica "Recomendado"; as restantes só dizem "Possível" ou
-  // "Não aconselhado" — sem percentagens nem códigos para decifrar.
+  // Selo em linguagem simples (para quem não mexe nisto no dia a dia):
+  // "Recomendado", "Possível" ou "Não aconselhado" — sem percentagens nem
+  // códigos para decifrar.
+  //
+  // A LINHA ONDE UM APARELHO PASSA A ESTAR APERTADO. Acima disto a app já
+  // dizia "Não aconselhado"; o que faltava era ela própria respeitar a sua
+  // linha nos dois sítios onde a usa. Uma régua só, aqui, para a ordem e o
+  // selo não poderem discordar.
+  var APERTADO_PCT = 80;
+  function estaApertado(x) {
+    var p = parseFloat(x.pct);
+    return !isNaN(p) && p > APERTADO_PCT;
+  }
+  function podeSerRecomendado(x) {
+    var p = parseFloat(x.pct);
+    return !isNaN(p) && p <= APERTADO_PCT;
+  }
+
+  /**
+   * "Recomendado" só cai em cima de uma escolha que NÃO está no limite.
+   *
+   * Era `list[0].isBest = true` — o primeiro da lista, sempre, mesmo a
+   * encher 89% do aparelho. Ficava um "Recomendado" verde em cima de um
+   * aparelho que a linha de baixo, pela mesma régua, chamaria "Não
+   * aconselhado". Passa a procurar o primeiro que tem folga a sério.
+   *
+   * E se nenhum tiver, NÃO HÁ recomendação nenhuma — que é a verdade desse
+   * caso: cabe tudo à justa, escolhe-se com os olhos abertos. Um selo verde
+   * inventado para não deixar a lista sem ele é a pior forma de responder a
+   * isso. (Aparelhos sem capacidade publicada — % nenhuma — também nunca
+   * levam o selo: não se recomenda o que não se sabe medir.)
+   */
   function markBestOption(list) {
-    if (list.length) list[0].isBest = true;
+    for (var i = 0; i < list.length; i++) {
+      if (podeSerRecomendado(list[i])) { list[i].isBest = true; return; }
+    }
   }
   function priorityBadgeHtml(x) {
     if (x.isBest) return '<span class="lm-priority lm-priority-best">Recomendado</span>';
     var p = parseFloat(x.pct);
     if (isNaN(p)) return '';
-    var cls = p <= 80 ? 'lm-priority-mid' : 'lm-priority-tight';
-    var label = p <= 80 ? 'Possível' : 'Não aconselhado';
+    var apertado = estaApertado(x);
+    var cls = apertado ? 'lm-priority-tight' : 'lm-priority-mid';
+    var label = apertado ? 'Não aconselhado' : 'Possível';
     return '<span class="lm-priority ' + cls + '">' + label + '</span>';
+  }
+
+  /**
+   * A ORDEM das eletrónicas de LED — e o selo dizem o mesmo.
+   *
+   * Diziam coisas diferentes, e a lista contradizia-se a si própria. A
+   * ordem era: equipamento da AVK primeiro, depois menos unidades, menos
+   * portas, mais folga. O selo saía só da percentagem. Como a % não tem
+   * nada a ver com o nº de unidades, dava isto: uma máquina a 92% ("Não
+   * aconselhado", a vermelho) aparecia ACIMA de outra a 40% ("Possível", a
+   * amarelo) só por levar menos caixas. Quem lê fica sem saber qual das
+   * duas réguas seguir.
+   *
+   * A chave nova é a segunda: apertado vai para o fim. Dentro de cada
+   * grupo continua a mandar o critério de quem monta — menos unidades
+   * (menos caixas para alugar e transportar), menos portas, mais folga —
+   * que é o que faz sentido em obra e não se toca.
+   *
+   * O que já se TEM continua em primeiro, antes de tudo (regra da casa: ver
+   * sempre o inventário da AVK antes do mercado). É por isso que um
+   * aparelho apertado da AVK ainda pode aparecer acima de um folgado do
+   * mercado — mas esse traz o selo "Mercado" ao lado, que diz que é outra
+   * lista. Dentro da mesma lista, nunca.
+   */
+  function ordemDasEletronicas(a, b) {
+    return (a.p.mercado ? 1 : 0) - (b.p.mercado ? 1 : 0)
+        || (estaApertado(a) ? 1 : 0) - (estaApertado(b) ? 1 : 0)
+        || a.numUnits - b.numUnits
+        || a.p.ports - b.p.ports
+        || a.pctRaw - b.pctRaw;
   }
 
   function marketBadgeHtml(x) {
@@ -6768,14 +6829,15 @@
       var fits = totalMP <= capPgm * SWITCHER_SAFETY_MARGIN;
       var mode = totalMP <= capSwitcher * SWITCHER_SAFETY_MARGIN ? "PGM + Preview" : "só PGM (sem Preview)";
       if (adv) mode += " — modo avançado";
-      return { s: s, fits: fits, mode: mode, cap: capPgm, advancedNota: adv ? adv.nota : null };
+      // A % vem no próprio objeto e não depois de ordenar: é ela que decide
+      // quem pode levar "Recomendado" (ver markBestOption), e calculá-la a
+      // seguir deixava o selo a olhar para um campo ainda vazio.
+      return { s: s, key: itemKey(s.marca, s.modelo), fits: fits, mode: mode, cap: capPgm, pct: capPgm ? fmt((totalMP / capPgm) * 100, 0) : null, advancedNota: adv ? adv.nota : null };
       // Ordenado da maior folga para a menor (capacidade descendente — para
       // um total fixo, é o mesmo que % de utilização ascendente): a 1ª
       // opção é sempre a mais folgada, não a mais pequena que ainda cabe.
     }).filter(function (x) { return x.fits; }).sort(function (a, b) { return (a.s.mercado ? 1 : 0) - (b.s.mercado ? 1 : 0) || b.cap - a.cap; });
     markBestOption(switcherOk);
-
-    switcherOk.forEach(function (x) { x.key = itemKey(x.s.marca, x.s.modelo); x.pct = fmt((totalMP / x.cap) * 100, 0); });
 
     var switcherChosen = switcherOk.filter(function (x) { return selectedSwitcherKeys.has(x.key); });
     var switcherShown = (switcherChosen.length && !projSwitcherListExpanded) ? switcherChosen : switcherOk;
@@ -6818,13 +6880,12 @@
         // projeto misto, a projeção não passa por aqui.
         var numUnits = Math.ceil(ledPixels / unitCapacity);
         var pctRaw = (ledPixels / (numUnits * unitCapacity)) * 100;
-        return { p: p, unitCapacity: unitCapacity, numUnits: numUnits, pctRaw: pctRaw };
-        // Nº de unidades continua a ser o critério principal (menos caixas
-        // a alugar/transportar); folga (% de utilização) só desempata.
-      }).sort(function (a, b) { return (a.p.mercado ? 1 : 0) - (b.p.mercado ? 1 : 0) || a.numUnits - b.numUnits || a.p.ports - b.p.ports || a.pctRaw - b.pctRaw; });
+        // A % calcula-se AQUI e não depois de ordenar: é ela que decide o
+        // lugar na lista e o selo, e as duas coisas têm de olhar para o
+        // mesmo número — o arredondado, que é o que está escrito na linha.
+        return { p: p, key: itemKey(p.marca, p.modelo), unitCapacity: unitCapacity, numUnits: numUnits, pct: fmt(pctRaw, 0), pctRaw: pctRaw };
+      }).sort(ordemDasEletronicas);
       markBestOption(ledProcOk);
-
-      ledProcOk.forEach(function (x) { x.key = itemKey(x.p.marca, x.p.modelo); x.pct = fmt(x.pctRaw, 0); });
 
       var ledProcChosen = ledProcOk.filter(function (x) { return selectedLedProcKeys.has(x.key); });
       var ledProcShown = (ledProcChosen.length && !projLedProcListExpanded) ? ledProcChosen : ledProcOk;
@@ -8443,7 +8504,7 @@
       var tilesPerPort = refTilePx ? Math.floor(pPortCapacity / refTilePx) : null;
       var pctRaw = (totalPx / (numUnits * unitCapacity)) * 100;
       return { p: p, key: itemKey(p.marca, p.modelo), unitCapacity: unitCapacity, numUnits: numUnits, portsUsed: portsUsed, portsAvailable: portsAvailable, tilesPerPort: tilesPerPort, pct: fmt(pctRaw, 0), pctRaw: pctRaw };
-    }).sort(function (a, b) { return (a.p.mercado ? 1 : 0) - (b.p.mercado ? 1 : 0) || a.numUnits - b.numUnits || a.p.ports - b.p.ports || a.pctRaw - b.pctRaw; });
+    }).sort(ordemDasEletronicas);
     markBestOption(ledProcOk);
 
     var ledProcChosen = ledProcOk.filter(function (x) { return selectedSinalLedProcKeys.has(x.key); });

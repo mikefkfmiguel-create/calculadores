@@ -94,7 +94,11 @@ const PREFERENCIAS = {
   "preview-painel": '"aberto"',
   "preview-dobras": '{"sProjeto":true}',
   "preview-largura-painel": '"380"',
-  "preview-edicao-livre": '"1"'
+  "preview-edicao-livre": '"1"',
+  // O que se vê na cena do 3D (a barra do topo, Preview v3.89). É uma
+  // escolha sobre a ferramenta, como o cadeado e a largura do painel:
+  // limpar um projeto não pode voltar a ligar a grelha que ele desligou.
+  "preview-vista-v1": '{"verMedidas":false}'
 };
 
 const { s, porta } = await servidor();
