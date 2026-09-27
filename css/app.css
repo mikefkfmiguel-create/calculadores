@@ -934,7 +934,10 @@
      ao escrever. Quando não há nenhuma correspondência, mostra um link para
      pesquisar o termo no Google numa nova aba (não traz resultados para
      dentro da app — só um atalho externo, tal como as fichas técnicas). */
-  .model-search-wrap { margin-bottom: 6px; }
+  /* A caixa passou para DEBAIXO da lista (ver lzAttachModelSearch): a
+     margem também troca de lado, senão ficava colada à lista e afastada do
+     recado que lhe responde. */
+  .model-search-wrap { margin-top: 6px; }
   .model-search {
     width: 100%;
     border: 1px solid var(--line);
