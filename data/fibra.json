@@ -549,6 +549,7 @@
   },
   "fabricantes": {
     "_nota": "Os fabricantes com opção de fibra que servem de referência, e os módulos e aparelhos que se conseguiu ler nas fichas deles. REGRA: só entra aqui o que foi lido na página do próprio fabricante. Onde o site recusou a ligação ou estava em baixo, o fabricante fica na lista com o que falta por recolher dito em voz alta — uma entrada vazia e honesta vale mais do que uma cheia de números de revendedor.",
+    "duas_familias": "Estes oito não fazem todos a mesma coisa, e misturá-los dá decisões erradas. Uns fazem REDE — switches e SFPs, onde o sinal já vai em IP (Luminex, Netgear, Cisco): aí escolhe-se o módulo e o resto é rede. Outros fazem EXTENSORES — metem um sinal de vídeo direto na fibra sem rede pelo meio (Kramer, Extron, Gefen, Lightware): aí o aparelho já traz a ótica dele, ou o SFP que ele aceita, e a escolha é do aparelho. E há o LED, que é um mundo à parte: a NovaStar e a PixelHue põem em fibra o sinal que sai das eletrónicas delas, e aí a pergunta não é «quantos metros» mas «quantos píxeis leva cada fibra». Um extensor não se liga a um switch, e um SFP solto não extende vídeo — é a primeira pergunta a fazer.",
     "lista": [
       {
         "nome": "Luminex",
@@ -596,7 +597,8 @@
         "confianca": "fabricante",
         "fonte": "https://www1.kramerav.com/us/product/676T",
         "aparelhos": [
-          { "modelo": "676T / 676R", "descricao": "HDMI 4K60 4:4:4 + RS-232 sobre fibra", "modo": "multimodo ou monomodo", "metros": 33000, "nota": "Traz um SFP+ multimodo; com um SFP+ monomodo vai mais longe. A Kramer avisa que só garante o desempenho com SFP+ certificados por ela. O link ótico é de 10 Gbps: o sinal HDMI acima de 10 G é adaptado por subamostragem de croma — não é transporte transparente dos 18 G." }
+          { "modelo": "676T / 676R", "descricao": "HDMI 4K60 4:4:4 + RS-232 sobre fibra", "modo": "multimodo ou monomodo", "metros": 33000, "nota": "Traz um SFP+ multimodo; com um SFP+ monomodo vai mais longe. A Kramer avisa que só garante o desempenho com SFP+ certificados por ela. O link ótico é de 10 Gbps: o sinal HDMI acima de 10 G é adaptado por subamostragem de croma — não é transporte transparente dos 18 G." },
+          { "modelo": "675R/T", "descricao": "Kit emissor + receptor, HDMI 4K60 4:4:4 sobre fibra", "modo": "multimodo ou monomodo", "metros": 33000, "nota": "O mesmo alcance do 676 mas sem o RS-232. Vem com dois SFP+ multimodo no kit; aceita SFP+ monomodo certificado pela Kramer.", "fonte": "https://www1.kramerav.com/us/product/675r/t" }
         ]
       },
       {
@@ -608,6 +610,8 @@
         "fonte": "https://www.extron.com/product/fox3t201",
         "aparelhos": [
           { "modelo": "FOX3 T 201", "descricao": "HDMI + áudio + RS-232 + IR sobre fibra", "modo": "multimodo ou monomodo (versões diferentes)", "metros": null, "nota": "4K60 4:4:4 sem perda matemática numa fibra, ou sem compressão nenhuma em duas. HDMI 2.0 até 18 Gbps. A distância não estava na página do produto e não foi recolhida — vai à ficha antes de planear com ela." },
+          { "modelo": "FOX3 T/R 101 · 201 · 301 · 311", "descricao": "A gama ponto-a-ponto: 101 só HDMI, 201 com áudio e controlo, 301 e 311 com USB", "modo": "multimodo ou monomodo (versões diferentes)", "metros": null, "nota": "Todos com o mesmo princípio: 4K/60 4:4:4 sem perda matemática numa fibra, ou sem compressão em duas. Distâncias não recolhidas — não estão nas páginas de produto.", "fonte": "https://www.extron.com/article/fox3seriesad" },
+          { "modelo": "FOX3 Matrix", "descricao": "Matrizes óticas modulares, de 8×8 até 840×840", "modo": "placas multimodo ou monomodo, trocáveis a quente", "metros": null, "nota": "É o que distingue a Extron nesta lista: não é só extensor ponto-a-ponto, é comutação em fibra à escala de um edifício. As placas de entrada/saída acrescentam-se em obra.", "fonte": "https://www.extron.com/article/fox3seriesad" },
           { "modelo": "FOX 3G HD-SDI", "descricao": "3G-SDI sobre uma fibra, até 2,97 Gbps", "modo": "multimodo ou monomodo (versões diferentes)", "metros": null, "nota": "Descontinuado pela Extron. Fica aqui porque ainda anda muito por aí." }
         ]
       },
@@ -619,7 +623,10 @@
         "confianca": "fabricante",
         "fonte": "https://gefen.com/product/4k-ultra-hd-600-mhz-extender-for-hdmi-over-one-fiber-optic-cable/",
         "aparelhos": [
-          { "modelo": "EXT-UHD600-1SC", "descricao": "HDMI 2.0 18,2 Gbps / 600 MHz numa fibra só", "modo": "multimodo (OM3 ou melhor, 50/125), conector SC", "metros": 200, "nota": "A ficha diz que fibra monomodo NÃO é suportada. Se a casa só tiver monomodo puxada, este aparelho não serve — e é o género de coisa que só se descobre no dia se não se ler antes." }
+          { "modelo": "EXT-UHD600-1SC", "descricao": "HDMI 2.0 18,2 Gbps / 600 MHz numa fibra só", "modo": "multimodo (OM3 ou melhor, 50/125), conector SC", "metros": 200, "nota": "A ficha diz que fibra monomodo NÃO é suportada. Se a casa só tiver monomodo puxada, este aparelho não serve — e é o género de coisa que só se descobre no dia se não se ler antes." },
+          { "modelo": "GF-HD48G-1MPO", "descricao": "HDMI 2.1 8K a 48 Gbps num único cabo MPO/MTP", "modo": "multimodo OM3 50/125, conector MPO/MTP", "metros": 100, "nota": "Atenção ao conector: MPO/MTP não é LC nem SC — é uma fita de fibras num conector só, e não se improvisa em obra. É o único desta lista que leva os 48 Gbps do HDMI 2.1.", "fonte": "https://gefen.com/products/8k-48gbps-hdmi-2-1-optical-fiber-extender-over-a-single-mpo-mtp-cable-100m-330ft-gf-hd48g-1mpo" },
+          { "modelo": "EXT-DP-4K600-1SC", "descricao": "DisplayPort 1.2 a 21,6 Gbps numa fibra só", "modo": "multimodo (OM3 ou melhor, 50/125), conector SC", "metros": 200, "nota": "Como o EXT-UHD600-1SC, mas para DisplayPort. A ficha diz o mesmo: monomodo não é suportado.", "fonte": "https://gefen.com/products/ultra-hd-600-mhz-displayport-1-2-extender-over-one-sc-terminated-fiber-optic-cable-ext-dp-4k600-1sc" },
+          { "modelo": "EXT-DVI-FM1000", "descricao": "DVI sobre uma só fibra", "modo": "multimodo, conector SC", "metros": 1000, "nota": "Dos antigos, e ainda o que leva DVI mais longe desta lista: 1 km.", "fonte": "https://gefen.com/products/dvi-extender-over-single-strand-fiber-optic-cable-1km-ext-dvi-fm1000" }
         ]
       },
       {
@@ -636,6 +643,20 @@
         ]
       },
       {
+        "nome": "PixelHue",
+        "genero": "Processamento de vídeo e placas de envio para LED, com saída ótica (série Lumina)",
+        "porque_interessa": "É a que dá o número que falta a quem monta LED: uma porta ótica de 10G vale oito portas Ethernet de carga. Deixa de ser preciso adivinhar quantas fibras são precisas para um ecrã.",
+        "site": "https://proav.pixelhue.com/",
+        "confianca": "fabricante",
+        "fonte": "https://proav.pixelhue.com/product/detail.html?id=78",
+        "aparelhos": [
+          { "modelo": "LU_4×OPT Sending Card", "descricao": "Placa de envio com 4 portas óticas de 10G — até 20 800 000 píxeis", "modo": "monomodo ou multimodo, SFP+ trocável", "metros": 10000, "nota": "10 km com módulo monomodo (10G SFP+ LR) e 300 m com multimodo (10G SFP+ SR). Uma porta ótica carrega o mesmo que oito portas Ethernet — é esta a conta que interessa ao montar. Modos independente, cópia e reserva; 8 e 10 bits; 144 Hz.", "fonte": "https://proav.pixelhue.com/product/detail.html?id=78" },
+          { "modelo": "LU_16×RJ45+2×OPT Sending Card", "descricao": "16 saídas Ethernet Gigabit mais 2 óticas — até 10 400 000 píxeis", "modo": "monomodo ou multimodo", "metros": null, "nota": "As óticas não acrescentam carga: a OPT 1 copia as Ethernet 1 a 8 e a OPT 2 copia as 9 a 16. Serve para levar longe o que já sai em cobre, não para levar mais. Cada porta Ethernet carrega até 650 000 píxeis a 8 bits, ou 320 000 a 10 bits. Distâncias não estavam na página.", "fonte": "https://proav.pixelhue.com/product/detail.html?id=76" },
+          { "modelo": "LU_2×Fiber Input Card", "descricao": "Entrada ótica: 4 portas de 10G, duas principais e duas de reserva", "modo": "monomodo ou multimodo, SFP+ trocável", "metros": null, "nota": "Cada conector aguenta 4096×2160 a 30 Hz. Aceita 10G SFP+ SR ou LR. A porta de reserva tem de receber exactamente a mesma especificação da principal. Distâncias não estavam na página — são as do módulo que se lá puser.", "fonte": "https://proav.pixelhue.com/product/detail.html?id=65" },
+          { "modelo": "LU_1×ST2110 Input Card", "descricao": "Entrada ST 2110 em 2 portas óticas de 25G, uma principal e uma de reserva", "modo": "monomodo ou multimodo (25GBASE-LR ou 25GBASE-SR)", "metros": null, "nota": "SMPTE ST 2110 (-10, -20) e SMPTE 2059 (-1, -2) na principal; ST 2022-7 na reserva. Até 4096×2160 a 60 Hz, 8/10 bits, 4:4:4 ou 4:2:2. A ficha nomeia as normas óticas: 25GBASE-LR (IEEE 802.3cc) e 25GBASE-SR (IEEE 802.3by) — que são precisamente as de 25G que ainda faltam na tabela das óticas desta app. Serve para saber o que pedir; as distâncias delas continuam por recolher.", "fonte": "https://proav.pixelhue.com/product/detail.html?id=67" }
+        ]
+      },
+      {
         "nome": "Cisco",
         "genero": "Transceivers SFP/SFP+ e switches",
         "porque_interessa": "É a referência de facto dos transceivers, e as fichas dela são das poucas que dizem mais do que a norma — o 1000BASE-LX que a norma dá a 5 km, a Cisco dá a 10 km.",
@@ -646,12 +667,16 @@
       },
       {
         "nome": "Lightware",
-        "genero": "Extensores e matrizes de AV sobre fibra",
-        "porque_interessa": "Fabricante de gama alta com linha de fibra — fica na lista para se ir ver.",
-        "site": "https://lightware.com/",
-        "confianca": "indicativo",
-        "fonte": "https://lightware.com/",
-        "por_confirmar": "O site da Lightware estava em baixo no dia em que isto se escreveu («the site is temporarily unavailable»), por isso não se recolheu produto nenhum. Não se põe aqui nada de ouvido: fica por fazer."
+        "genero": "Extensores de DisplayPort sobre fibra (série DP-OPT)",
+        "porque_interessa": "É a única desta lista que publica a tabela de distâncias fibra a fibra — OM1, OM2, OM3 e OM4 têm cada uma o seu número — e que diz o ORÇAMENTO ÓTICO do aparelho. Com esses dois dados faz-se a conta a sério em vez de se confiar num máximo de catálogo.",
+        "site": "https://www.lightware.com/products/Extenders",
+        "confianca": "fabricante",
+        "fonte": "https://www.lightware.com/en/products/Extenders/dp-opt-tx100",
+        "nota_de_acesso": "O domínio `lightware.com` sem o «www» responde «the site is temporarily unavailable»; o `www.lightware.com` está bom. Foi daí que isto saiu.",
+        "aparelhos": [
+          { "modelo": "DP-OPT-TX100 / RX100", "descricao": "Extensor ótico de DisplayPort", "modo": "multimodo", "metros": 1100, "nota": "A distância depende da fibra E da resolução. A 2560×1600 a 60 Hz e 24 bpp: 150 m em OM1, 350 m em OM2, 800 m em OM3 e 1100 m em OM4. Com fibra OM3e chega aos 2000 m. Orçamento ótico da ficha: emissor −6,25 dBm de OMA no pior caso, sensibilidade do receptor −14,25 dBm — dão 8 dB para gastar em fibra, conectores e emendas.", "fonte": "https://www.lightware.com/en/products/Extenders/dp-opt-tx100" },
+          { "modelo": "DP-OPT-TX150 / RX150", "descricao": "Extensor ótico de DisplayPort, com KVM", "modo": "multimodo", "metros": 1100, "nota": "O mesmo com USB/KVM por cima. 1100 m em OM3e ou OM4.", "fonte": "https://www.lightware.com/en/products/Extenders/dp-opt-tx150" }
+        ]
       }
     ],
     "cores_e_identificacao": {

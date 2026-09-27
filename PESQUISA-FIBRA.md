@@ -345,8 +345,9 @@ como por browser. Não se recolheu nada de novo. O valor de 10 km do
 1000BASE-LX que já está na tabela das óticas veio de uma ficha da Cisco
 recolhida antes.
 
-**Lightware** — o site estava em baixo no dia (*"the site is temporarily
-unavailable"*). Não se pôs nada de ouvido: fica por fazer.
+~~**Lightware** — o site estava em baixo no dia.~~ **Resolvido:** o domínio
+`lightware.com` sem o `www` responde *"the site is temporarily unavailable"*,
+mas o `www.lightware.com` está bom. Ver a secção 7.4.
 
 ### 7.3 O que isto acrescentou à app, para além da lista
 
@@ -363,3 +364,98 @@ Três coisas de terreno que vieram da Luminex e que não estavam em lado nenhum:
 - **as regras de compatibilidade dos SFPs** — um de 1 Gbps entra num cage de
   10; um de 10 não entra num cage só de 1 (a não ser de duplo débito); e um
   de 10 forçado a 1 até liga, mas com o laser fora da afinação dele.
+
+### 7.4 Os extensores de fibra, marca a marca
+
+A primeira recolha trouxe **um modelo por marca, como amostra** — quatro
+extensores ao todo. Reparo dele: *"incluíste os fiber extensores das várias
+marcas?"*. Não, não propriamente. Esta secção é a segunda passagem, agora com
+as gamas. São **14 aparelhos**.
+
+Antes da lista, a distinção que evita a pior confusão: **estes oito não fazem
+todos a mesma coisa.**
+
+| Família | Quem | O que faz |
+|---|---|---|
+| **Rede** | Luminex, Netgear, Cisco | Switches e SFPs. O sinal já vai em IP; escolhe-se o módulo e o resto é rede. |
+| **Extensores** | Kramer, Extron, Gefen, Lightware | Metem vídeo direto na fibra, sem rede pelo meio. O aparelho traz a ótica dele, ou diz que SFP aceita. |
+| **No meio** | NovaStar | Converte para fibra o sinal de LED que sai das eletrónicas dela. |
+
+Um extensor não se liga a um switch, e um SFP solto não estende vídeo. É a
+primeira pergunta a fazer, e é por isso que está escrita no topo do cartão.
+
+**Kramer** — 675R/T (kit Tx+Rx, 4K60 4:4:4, até 33 km, dois SFP+ multimodo
+incluídos) e 676T/676R (o mesmo mais RS-232). Os dois aceitam SFP+ monomodo
+certificado pela Kramer para ir mais longe.
+
+**Extron** — a gama ponto-a-ponto FOX3 T/R **101** (só HDMI), **201** (mais
+áudio e controlo), **301** e **311** (mais USB), em versões multimodo e
+monomodo; e as **matrizes FOX3**, modulares de 8×8 até 840×840, com placas
+multimodo ou monomodo trocáveis a quente. É o que distingue a Extron aqui:
+não é só extensão ponto-a-ponto, é comutação em fibra à escala de um
+edifício. Distâncias não estão nas páginas de produto e **não foram
+recolhidas**.
+
+**Gefen** — quatro, e um deles é o único de 8K da lista:
+
+| Modelo | Sinal | Fibra | Distância |
+|---|---|---|---|
+| GF-HD48G-1MPO | HDMI 2.1, 48 Gbps | OM3 50/125, **MPO/MTP** | 100 m |
+| EXT-UHD600-1SC | HDMI 2.0, 18,2 Gbps | OM3+, SC | 200 m |
+| EXT-DP-4K600-1SC | DisplayPort 1.2, 21,6 Gbps | OM3+, SC | 200 m |
+| EXT-DVI-FM1000 | DVI | multimodo, SC | 1000 m |
+
+Duas coisas a reter: o **MPO/MTP** do 8K não é LC nem SC — é uma fita de
+fibras num conector só, e não se improvisa em obra; e os dois `-1SC` dizem
+por escrito que **monomodo não é suportado**.
+
+**Lightware** — DP-OPT-TX100/RX100 e TX150/RX150 (este com KVM), extensores
+óticos de DisplayPort. É a **melhor ficha das oito marcas**, e por duas
+razões que interessam directamente a esta calculadora:
+
+- publica a **distância fibra a fibra**, e não um máximo de catálogo. A
+  2560×1600 a 60 Hz e 24 bpp: **150 m em OM1, 350 m em OM2, 800 m em OM3 e
+  1100 m em OM4**; com OM3e, 2000 m;
+- publica o **orçamento ótico do aparelho** — emissor −6,25 dBm de OMA no
+  pior caso, sensibilidade do receptor −14,25 dBm — o que dá **8 dB** para
+  gastar em fibra, conectores e emendas. Com este número a conta das perdas
+  desta app deixa de ser indicativa e passa a decidir.
+
+É o género de ficha que se devia exigir a toda a gente. Vale a pena dizer-lhes
+isso.
+
+### 7.5 PixelHue — o lado do LED, e o número que faltava
+
+Pedido dele, a seguir: *"a PixelHue também"*. Lida em primeira mão em
+`proav.pixelhue.com`, e trouxe o dado que faltava a esta app para o lado do
+LED: **quanto CARREGA uma fibra**. Ali a pergunta não é quantos metros anda —
+é quantos píxeis leva.
+
+| Placa (série Lumina) | Ótica | Carga |
+|---|---|---|
+| LU_4×OPT Sending Card | 4× 10G; **10 km** em monomodo (SFP+ LR), **300 m** em multimodo (SFP+ SR) | até 20 800 000 px |
+| LU_16×RJ45+2×OPT Sending Card | 16 RJ45 + 2 óticas, SMF ou MMF | até 10 400 000 px |
+| LU_2×Fiber Input Card | 4× 10G (2 principais + 2 reserva), SFP+ SR ou LR | 4096×2160@30 por conector |
+| LU_1×ST2110 Input Card | 2× **25G** (1 + 1 reserva) | 4096×2160@60 |
+
+Três coisas que valem a pena reter:
+
+**Uma porta ótica de 10G carrega o mesmo que oito portas Ethernet.** É a
+conta que interessa ao montar, e está dita pela própria PixelHue na ficha da
+LU_4×OPT. Deixa de ser preciso adivinhar quantas fibras são precisas para um
+ecrã.
+
+**Na LU_16×RJ45+2×OPT, as óticas NÃO acrescentam carga.** A OPT 1 copia as
+Ethernet 1 a 8 e a OPT 2 copia as 9 a 16. Serve para levar longe o que já sai
+em cobre, não para levar mais — e este é o engano fácil de fazer a olhar para
+"16 + 2".
+
+**A placa ST 2110 fecha em parte um buraco conhecido desta app.** A tabela
+das óticas avisa que faltam as de longo alcance a 25 e 40 Gbps. A ficha desta
+placa nomeia as normas que ela usa — **25GBASE-LR (IEEE 802.3cc)** e
+**25GBASE-SR (IEEE 802.3by)** —, o que já chega para saber o que pedir. As
+distâncias delas continuam por recolher, e isso continua dito.
+
+Vale ainda notar que a PixelHue e a NovaStar entram na mesma família desta
+lista (LED), e é por isso que o texto que separa as famílias passou a
+nomeá-las juntas.
