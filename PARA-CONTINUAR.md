@@ -14,6 +14,207 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 27 de setembro — a ficha do fabricante manda (v4.26)
+
+> *"podes gerar o aviso de quanto um SFP poderá andar em fibra SM. Usa as
+> informações dos fabricantes sempre como base"*.
+
+A segunda frase é uma **regra**, e ele tem razão: **a norma diz o mínimo que
+um módulo tem de cumprir, não o máximo que ele faz**. Quem planeia pela norma
+deita fora metade do alcance que comprou.
+
+O caso de escola está agora na app: o **1000BASE-LX** tem **5 km** na norma e
+**10 km** na ficha da Cisco — o mesmo módulo. A linha passa a mostrar os
+dois: *«10 km (ficha) · norma 5 km»*, e é **pelo número da ficha que a app
+decide** se serve. Isso muda respostas, e é fácil de ver: pedir **1 Gbps a
+8 km** não tinha solução de 1G pela norma; pela ficha, tem.
+
+**Um bloco novo, «Quanto anda um SFP em fibra monomodo»**, com todas as
+óticas de monomodo ordenadas por alcance, e três coisas ditas à cabeça:
+
+- a norma é o **chão garantido**, a ficha é o que se planeia;
+- a distância da ficha é para uma **tirada limpa** — a tua tem conectores e
+  emendas, e é o orçamento de perdas que fecha a conta;
+- **ao contrário não há distância nenhuma a calcular.** Um SFP multimodo de
+  850 nm numa fibra monomodo não é uma ligação mais curta: é uma ligação que
+  **não se faz**. Nem acopla no núcleo de 9 µm nem sobrevive à atenuação
+  nesse comprimento de onda — e não há cabo de condicionamento que resolva,
+  que esse serve para o caso inverso.
+
+Onde a ficha ainda não foi recolhida, a linha di-lo: *«norma; ficha por
+recolher»*. O `_regra_das_fontes` no `data/fibra.json` deixa a regra escrita
+para quem lá mexer a seguir.
+
+## 27 de setembro — o que já sai direto em fibra (v4.25)
+
+> *"lista os SFPs e as fibras a usar com relação ao mercado, as aconselhadas
+> e correctas para os equipamentos. Nas calculadoras temos da lista de
+> switcher e electrónicas de controlo de LED algumas que saem direto em SFP.
+> Inclui isso"*.
+
+E saem mesmo — **a base já sabia quais**. Estava escrito nas notas de cada
+aparelho, com a fonte da ficha: *"2 saídas óticas 10G"*, *"4× saída de
+fibra"*, *"8x SFP ótica 10G"*. Era texto para ler, não campo para usar.
+
+Passou a campo (`optica`), e a aba lista os **14 aparelhos** do nosso
+catálogo que saem direto em fibra — switchers e electrónicas de LED — e, para
+cada um, **que ótica e que fibra lhe pôr à distância pedida**. A 300 m
+aconselha o 10GBASE-SR em OM3; a 4 km, o 10GBASE-LR em OS2. O conselho sai da
+**mesma tabela** que a lista principal usa: duas listas de óticas acabariam a
+discordar no dia em que uma delas mudasse, que é a doença que a v4.20 curou
+nas eletrónicas.
+
+**Três coisas que a construção obrigou a acertar, e valem por si:**
+
+- **A ótica aconselhada é do MESMO débito da porta**, e não «pelo menos». A
+  primeira versão aconselhava um 100GBASE-LR4 à porta de 40G do CX80 Pro —
+  porque «também leva 40». Uma ótica de 100G não encaixa numa porta de 40G. A
+  lista principal responde a *o que me leva isto*; aqui a pergunta é outra:
+  *o que é que esta porta leva*.
+- **Onde não há ótica recolhida para aquele débito, a app diz que não há** em
+  vez de arranjar uma. É o caso das portas de 40G: não temos 40GBASE-SR4 nem
+  LR4 na tabela, e isso está escrito.
+- **E onde o aparelho não tem ficha registada, diz-se.** O `MCTRL500/SD500`
+  não tem `fonte` nenhuma na base — um buraco que já lá estava. Inventar-lhe
+  uma fonte era o pior caminho; escondê-lo era o segundo pior. Leva um selo
+  **«Sem fonte»** e o teste conta quantos estão assim, para não passarem de
+  um sem alguém dar por isso.
+
+Também apanhado a construir: a lista nascia vazia. O `encherFibra()` corria
+**antes** de o `PROCESSORS_DATA` estar atribuído, e encontrava o catálogo por
+carregar — só aparecia quando alguém mexesse num campo. Medido, e movido para
+depois.
+
+## 27 de setembro — o engano que mais custa (v4.24)
+
+> *"marca diferença entre os SFP a usar para cada tipo de fibra e distância.
+> O problema muitas vezes é um SFP SM LR 1310 usado em OM3 MM"*.
+
+É o erro que mais custa nisto, e custa pela pior razão possível: às vezes a
+ligação **até sobe** numa tirada curta, e cai depois — sem nada que diga
+porquê. Um erro que falha logo aprende-se; um que falha mais tarde queima uma
+noite de show.
+
+**A app passa a saber que fibra já lá está.** Um campo novo, «Fibra que já lá
+está», e a partir daí:
+
+- as óticas que **não servem** para essa fibra vêm **marcadas a vermelho**:
+  «Esta linha é para OS2, e a tua fibra é OM3»;
+- as que servem vêm **em primeiro** — de nada vale a opção mais barata se for
+  para outra fibra;
+- e onde só funciona com **cabo de condicionamento de modo** (o 1000BASE-LX
+  em multimodo), está escrito: sem ele, não funciona.
+
+**Entrou o 10GBASE-LRM**, que é a resposta certa para quem tem fibra
+multimodo antiga e precisa de 10 Gbps: é 1310 nm — e por isso *parece*
+monomodo — mas é **feito para multimodo**. Faz 220 m, e em OM1/OM2 precisa do
+cabo de condicionamento; em OM3/OM4 não precisa. É precisamente a excepção
+que torna a regra «1310 = monomodo» perigosa de decorar.
+
+**E um bloco que abre por omissão** a dizer o engano pelo nome: o que
+acontece (o núcleo de 9 µm contra os 50; a luz entra na mesma, por muitos
+caminhos, e dá perda alta, sinal deformado ou ligação que não sobe), quais
+são as duas excepções de 1310 nm que *são* para multimodo, e o que acontece
+ao contrário — um SFP de 850 nm em fibra monomodo não tem salvação nenhuma.
+
+Teste: `scripts/verificar-fibra.mjs` reproduz o caso dele — OM3, 10 Gbps — e
+exige que o 10GBASE-LR apareça **marcado**, que o que serve à OM3 venha
+primeiro, que o LRM esteja lá, e que o 1000BASE-LX em OM2 avise do cabo de
+condicionamento.
+
+## 27 de setembro — monomodo, multimodo, e o custo em banda (v4.23)
+
+> *"monta a forte diferença e exemplo explicado da diferença entre single mode
+> e multimode, tanto na fibra em si como na tecnologia do SFP. E podes incluir
+> uma base de custo de bandwidth para áudio, vídeo e iluminação. Não será para
+> compras, apenas será para o que tenho"*.
+
+**A diferença, em duas metades — porque são mesmo duas coisas.**
+
+- **Na fibra:** o núcleo. Multimodo tem 50 µm (ou 62,5 na OM1) e a luz entra
+  por muitos caminhos; cada um demora o seu tempo e ao fim de umas centenas de
+  metros os impulsos sobrepõem-se. Chama-se **dispersão modal**, e é ela que
+  limita a distância — **não a perda**. Monomodo tem 9 µm e só deixa passar um
+  caminho: sem caminhos a competir, o que passa a limitar é a perda, que é o
+  que o orçamento mede.
+- **Na ótica:** a fonte de luz, e é aqui que está o preço. Multimodo usa um
+  **VCSEL** a 850 nm; monomodo exige um **laser** a 1310 ou 1550 nm, que é
+  muito mais caro de fabricar. O preço está na ótica, não na fibra.
+
+**E o exemplo, com as duas contas lado a lado** — que é o que faz isto
+aterrar:
+
+- **80 m entre a régie e o palco, 10 Gbps.** OM4 chega (400 m). Perda:
+  0,24 dB de fibra + 1,5 dB de conectores = **1,74 dB**, dentro dos 2,9 dB do
+  10GBASE-SR. Multimodo, e a ótica barata.
+- **3 km até ao pavilhão ao lado, 10 Gbps.** Multimodo nem chega à conta das
+  perdas — sai fora antes, por dispersão. OS2 com 10GBASE-LR: 1,2 dB de fibra
+  + 1,5 dB de conectores = **2,7 dB**, com folga nos 6,3 dB. Monomodo, e
+  paga-se a ótica.
+
+São **dois limites diferentes** — e é por isso que não se escolhe fibra só
+pelos metros.
+
+**O custo em banda.** Uma tabela do que cada sinal come, em três grupos:
+vídeo (SDI de SD a 12G, e ST 2110), áudio (Dante por canal e a 64, MADI) e
+iluminação (DMX512 no cabo, Art-Net/sACN por universo). Não é lista de
+compras — é **o que se tem a correr**, para responder a «o que é que me cabe
+nesta fibra». Tocar numa linha põe o débito lá em cima e a lista responde com
+o que o leva.
+
+Doze sinais, todos com fonte e todos a dizer de onde vem o valor. Onde o
+número é aproximado (o ST 2110 depende do formato exacto), está escrito — e a
+app diz que para o número certo se calcula a partir do formato, que é o que a
+aba Sinal já faz.
+
+## 27 de setembro — a aba da fibra (v4.22)
+
+> *"quero incluir tudo nas calculadoras mesmo sem ter na casa para poder
+> decidir se peço para comprar. A ideia é ter um calculador real das
+> capacidades, distâncias e tipologia. Por exemplo que distância e com que
+> tipo de SFP e fibra conseguimos determinado bandwidth"*.
+
+A pergunta é essa, e a aba responde-lhe: **dá-se o débito e a distância, e ela
+diz o que serve**. Com o mercado todo lá dentro — o ponto era precisamente
+poder decidir uma compra, não listar só o que já há em casa.
+
+**Duas metades:**
+
+1. **O que serve.** A lista das combinações ótica + fibra que levam aquele
+   débito àquela distância, ordenadas pelo que é mais barato de levar: menos
+   débito a mais primeiro (uma ótica de 100G para levar 10G é dinheiro
+   deitado fora) e, dentro disso, o alcance mais curto que ainda chega.
+2. **Aguenta? — orçamento de perdas.** A tabela de distâncias é o máximo em
+   condições ideais; quem decide é esta conta. Comprimento × dB/km, mais
+   0,75 dB por par de conectores e 0,3 dB por emenda. Conta pelo comprimento
+   de onda mais curto que a fibra serve, que é o pior caso.
+
+**A regra que manda no `data/fibra.json` é a do catálogo de tiles: nada sem
+fonte.** E mais do que isso — cada linha diz **de onde vem**: `norma`
+(IEEE/TIA/SMPTE, lida em fonte que a cita), `fabricante` (ficha de produto),
+`indicativo` (blogue ou vendedor, a confirmar antes de uma compra). Onde um
+número não foi recolhido fica a `null`, e a app **escreve que não foi** em vez
+de mostrar um valor plausível. É a diferença entre uma ferramenta com que se
+decide uma compra e uma máquina de palpites bem formatados.
+
+**O aviso que impede uma compra errada.** A tabela é uma primeira recolha, e
+uma lista incompleta lida como completa dá conselhos errados: a pedir 25 Gbps
+a 2 km ela responde «100GBASE-LR4», porque o 25GBASE-LR — que existe e faz
+10 km — ainda não foi recolhido com fonte. A aba diz isso à vista: *o que não
+está aqui não é o que não existe*.
+
+**O que falta, e é dele:** saber que SFPs a AVK tem. Enquanto não souber, tudo
+o que está na tabela é mercado — o que serve para decidir compras, mas não
+distingue o que já está na casa. A pesquisa que deu origem a isto está no
+`PESQUISA-FIBRA.md`, com as fontes separadas por qualidade.
+
+Teste novo: `scripts/verificar-fibra.mjs`. A maioria das asserções é sobre a
+**proveniência**, e não sobre a aritmética: que toda a linha tem fonte, que
+todas dizem de onde vêm, que onde o orçamento não foi recolhido a app o diz,
+que o aviso da recolha incompleta está à vista, e que a app nomeia a edição da
+norma (D) e avisa que a E mudou os valores. A conta das perdas confere-se com
+uma soma feita à mão ao lado: 2 km de OS2 + 4 pares + 2 emendas = 4,40 dB.
+
 ## 27 de setembro — a lista primeiro, a procura a seguir (v4.21)
 
 > *"em vez de ter obrigatoriamente de escrever pode dar a lista de
