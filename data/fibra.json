@@ -98,7 +98,8 @@
       "conector": "LC duplex",
       "mercado": true,
       "confianca": "norma",
-      "fonte": "https://en.wikipedia.org/wiki/Gigabit_Ethernet"
+      "fonte": "https://en.wikipedia.org/wiki/Gigabit_Ethernet",
+      "modo": "multimodo"
     },
     {
       "nome": "1000BASE-LX",
@@ -108,7 +109,8 @@
       "alcances": [
         {
           "fibra": "OM2",
-          "metros": 550
+          "metros": 550,
+          "precisa_condicionamento": true
         },
         {
           "fibra": "OS2",
@@ -120,7 +122,8 @@
       "mercado": true,
       "confianca": "norma",
       "fonte": "https://en.wikipedia.org/wiki/Gigabit_Ethernet",
-      "nota": "5 km é o da norma. Há SFPs no mercado que fazem 10 km — é do módulo, não da norma."
+      "nota": "5 km é o da norma; há SFPs no mercado que fazem 10 km — é do módulo, não da norma. Em multimodo só funciona com CABO DE CONDICIONAMENTO DE MODO (mode conditioning patch cord), que desvia a entrada da luz; sem ele, não é para multimodo.",
+      "modo": "monomodo"
     },
     {
       "nome": "10GBASE-SR",
@@ -143,7 +146,8 @@
       "mercado": true,
       "confianca": "norma",
       "fonte": "https://ethernetalliance.org/blog/2012/06/13/10gbe-standardized-to-400-meters-on-om4-fiber/",
-      "fonte_orcamento": "https://www.flukenetworks.com/blog/cabling-chronicles/short-reach-singlemode-puts-reflectance-radar"
+      "fonte_orcamento": "https://www.flukenetworks.com/blog/cabling-chronicles/short-reach-singlemode-puts-reflectance-radar",
+      "modo": "multimodo"
     },
     {
       "nome": "10GBASE-LR",
@@ -162,7 +166,8 @@
       "mercado": true,
       "confianca": "norma",
       "fonte": "https://www.tiafotc.org/ieee-802-3-ethernet-standards-update/singlemode-standards-update/10gbase-lr/",
-      "fonte_orcamento": "https://www.ieee802.org/3/dj/public/adhoc/optics/0423_OPTX/stassar_3dj_optx_01a_230427.pdf"
+      "fonte_orcamento": "https://www.ieee802.org/3/dj/public/adhoc/optics/0423_OPTX/stassar_3dj_optx_01a_230427.pdf",
+      "modo": "monomodo"
     },
     {
       "nome": "10GBASE-ER",
@@ -180,7 +185,8 @@
       "mercado": true,
       "confianca": "norma",
       "fonte": "https://www.ieee802.org/3/dj/public/adhoc/optics/0423_OPTX/stassar_3dj_optx_01a_230427.pdf",
-      "nota": "A mesma fonte dá 15 a 18 dB de orçamento para aplicações de 40 km — um intervalo, não um número; por isso não entra como valor."
+      "nota": "A mesma fonte dá 15 a 18 dB de orçamento para aplicações de 40 km — um intervalo, não um número; por isso não entra como valor.",
+      "modo": "monomodo"
     },
     {
       "nome": "25GBASE-SR",
@@ -201,7 +207,8 @@
       "conector": "LC duplex",
       "mercado": true,
       "confianca": "indicativo",
-      "fonte": "https://www.l-p.com/blog/knowledge-center/multimode-distance-limits-om3-vs-om4-fiber-standards.htm"
+      "fonte": "https://www.l-p.com/blog/knowledge-center/multimode-distance-limits-om3-vs-om4-fiber-standards.htm",
+      "modo": "multimodo"
     },
     {
       "nome": "100GBASE-SR4",
@@ -223,7 +230,8 @@
       "mercado": true,
       "confianca": "norma",
       "fonte": "https://www.corning.com/data-center/worldwide/en/home/knowledge-center/40-100G-multimode-fiber-connectivity-data-center.html",
-      "nota": "Leva 8 fibras (4 pares), não 2 — é MPO e não LC."
+      "nota": "Leva 8 fibras (4 pares), não 2 — é MPO e não LC.",
+      "modo": "multimodo"
     },
     {
       "nome": "100GBASE-LR4",
@@ -240,7 +248,8 @@
       "conector": "LC duplex",
       "mercado": true,
       "confianca": "norma",
-      "fonte": "https://en.wikipedia.org/wiki/100_Gigabit_Ethernet"
+      "fonte": "https://en.wikipedia.org/wiki/100_Gigabit_Ethernet",
+      "modo": "monomodo"
     },
     {
       "nome": "SFP 12G-SDI 1310 nm (10 km)",
@@ -258,7 +267,8 @@
       "mercado": true,
       "confianca": "fabricante",
       "fonte": "https://www.optcore.net/product/12g-sdi-video-sfp-1310nm-10km-transceiver/",
-      "nota": "SMPTE ST 297/2081/2082. Leva também 6G, 3G, HD e SD-SDI."
+      "nota": "SMPTE ST 297/2081/2082. Leva também 6G, 3G, HD e SD-SDI.",
+      "modo": "monomodo"
     },
     {
       "nome": "SFP 12G-SDI 1310 nm (20 km)",
@@ -275,7 +285,41 @@
       "conector": "LC",
       "mercado": true,
       "confianca": "fabricante",
-      "fonte": "https://www.gigalight.com/12g-sdi-sfp-20km.html"
+      "fonte": "https://www.gigalight.com/12g-sdi-sfp-20km.html",
+      "modo": "monomodo"
+    },
+    {
+      "nome": "10GBASE-LRM",
+      "familia": "Ethernet",
+      "gbps": 10,
+      "onda_nm": 1310,
+      "modo": "multimodo",
+      "alcances": [
+        {
+          "fibra": "OM1",
+          "metros": 220,
+          "precisa_condicionamento": true
+        },
+        {
+          "fibra": "OM2",
+          "metros": 220,
+          "precisa_condicionamento": true
+        },
+        {
+          "fibra": "OM3",
+          "metros": 220
+        },
+        {
+          "fibra": "OM4",
+          "metros": 220
+        }
+      ],
+      "orcamento_db": null,
+      "conector": "LC duplex",
+      "mercado": true,
+      "confianca": "indicativo",
+      "fonte": "https://www.fs.com/blog/sfp10gsr-vs-sfp10glrm-vs-sfp10glr-which-to-choose-1177.html",
+      "nota": "É 1310 nm mas é PARA MULTIMODO — feito para aproveitar fibra antiga que já lá está. Em OM1 e OM2 precisa de cabo de condicionamento de modo; em OM3 e OM4 não precisa."
     }
   ],
   "conectores_de_terreno": [
@@ -444,5 +488,14 @@
         "nota": "0,3 a 0,4 Mbps por universo a refrescar ao máximo (uns 44 quadros por segundo)."
       }
     ]
+  },
+  "erro_classico": {
+    "titulo": "Um SFP monomodo numa fibra multimodo",
+    "o_que_acontece": "O núcleo do monomodo tem 9 µm e o do multimodo tem 50: a luz entra na mesma, mas entra por muitos caminhos ao mesmo tempo. O resultado é perda alta, sinal deformado, ou ligação que simplesmente não sobe — e o pior: às vezes sobe em tiradas curtas e cai depois, sem se perceber porquê.",
+    "a_excecao": "Há duas óticas de 1310 nm que SÃO para multimodo: o 1000BASE-LX com cabo de condicionamento de modo, e o 10GBASE-LRM. Fora dessas, 1310 nm quer dizer monomodo.",
+    "ao_contrario": "Ao contrário (SFP multimodo de 850 nm em fibra monomodo) não há salvação nenhuma: o 850 nm nem acopla no núcleo de 9 µm nem sobrevive à atenuação da fibra monomodo nesse comprimento de onda.",
+    "confianca": "indicativo",
+    "fonte": "https://www.router-switch.com/faq/single-mode-vs-multimode-fiber-1300nm-1310nm-sfp.html",
+    "fonte_lrm": "https://www.fs.com/blog/sfp10gsr-vs-sfp10glrm-vs-sfp10glr-which-to-choose-1177.html"
   }
 }

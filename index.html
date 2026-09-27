@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.23</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.24</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2631,6 +2631,15 @@
             <label for="fib-dist">Distância necessária</label>
             <div class="inputgroup"><input id="fib-dist" type="number" autocomplete="off" inputmode="decimal" value="300" min="1" step="1"><span class="unit">m</span></div>
           </div>
+          <!-- A FIBRA QUE JÁ LÁ ESTÁ. Pedido: *"o problema muitas vezes é um
+               SFP SM LR 1310 usado em OM3 MM"*. Sem saber que fibra é, a app
+               não pode apanhar esse erro -- e é o erro que mais custa, porque
+               às vezes a ligação até sobe numa tirada curta e cai depois. -->
+          <div class="field">
+            <label for="fib-tenho">Fibra que já lá está</label>
+            <select id="fib-tenho" class="plain"></select>
+            <div class="hint">Diz qual é, e a app marca as óticas que não servem para ela — é o engano mais caro que há nisto.</div>
+          </div>
           <div class="field">
             <label class="addproject"><input type="checkbox" id="fib-so-serve" checked>Mostrar só o que chega lá</label>
             <div class="hint">Desligado, mostra a tabela toda — serve para ver o que falta para se chegar mais longe.</div>
@@ -2685,6 +2694,13 @@
            na tecnologia do SFP"*. Duas metades porque são mesmo duas coisas:
            a fibra (o núcleo) e a ótica (a fonte de luz) -- e a segunda é a
            que explica o preço. -->
+      <details class="card sinal-block" id="fib-erro-card" open>
+        <summary>⚠ O engano que mais custa</summary>
+        <div class="sinal-block-body">
+          <div id="fib-erro">—</div>
+        </div>
+      </details>
+
       <details class="card sinal-block" id="fib-modos-card">
         <summary>Monomodo ou multimodo — a diferença, e porquê</summary>
         <div class="sinal-block-body">
@@ -9178,7 +9194,7 @@
   }
 
   /** A lista das óticas que levam este débito até esta distância. */
-  function fibOpcoes(gbps, metros) {
+  function fibOpcoes(gbps, metros, tenho) {
     if (!FIBRA_DATA || !FIBRA_DATA.oticas) return [];
     var fora = [];
     FIBRA_DATA.oticas.forEach(function (o) {
@@ -9186,6 +9202,7 @@
       o.alcances.forEach(function (a) {
         fora.push({
           otica: o, fibra: a.fibra, metros: a.metros,
+          condicionamento: !!a.precisa_condicionamento,
           orcamento: a.orcamento_db != null ? a.orcamento_db : o.orcamento_db,
           serve: a.metros >= metros,
           folga: a.metros - metros
@@ -9195,8 +9212,12 @@
     // O que serve primeiro; dentro disso, o mais barato de levar: menos débito
     // a mais (uma ótica de 100G para levar 10G é dinheiro deitado fora) e,
     // a seguir, a distância mais curta que ainda chega — pela mesma razão.
+    // Primeiro o que serve à fibra que JÁ LÁ ESTÁ: de nada vale a opção mais
+    // barata se for para outra fibra. Depois o que chega lá, e só então o
+    // mais barato de levar.
     fora.sort(function (a, b) {
-      return (a.serve ? 0 : 1) - (b.serve ? 0 : 1)
+      return (tenho ? (a.fibra === tenho ? 0 : 1) - (b.fibra === tenho ? 0 : 1) : 0)
+          || (a.serve ? 0 : 1) - (b.serve ? 0 : 1)
           || a.otica.gbps - b.otica.gbps
           || a.metros - b.metros;
     });
@@ -9217,7 +9238,9 @@
     }
 
     var soServe = document.getElementById("fib-so-serve").checked;
-    var todas = fibOpcoes(gbps, metros);
+    var tenhoSel = document.getElementById("fib-tenho");
+    var tenho = tenhoSel && tenhoSel.value ? tenhoSel.value : null;
+    var todas = fibOpcoes(gbps, metros, tenho);
     var mostrar = soServe ? todas.filter(function (x) { return x.serve; }) : todas;
 
     lista.innerHTML = mostrar.length
@@ -9229,6 +9252,18 @@
           var orc = x.orcamento != null
             ? " — orçamento " + fmt(x.orcamento, 1) + " dB"
             : " — orçamento não recolhido";
+          // O DESENCONTRO DE MODO, marcado a vermelho. É o engano que ele
+          // reportou: um SFP monomodo de 1310 metido numa OM3. A luz entra,
+          // a ligação às vezes até sobe numa tirada curta, e cai depois --
+          // que é a pior maneira possível de uma coisa estar errada.
+          var aviso = "";
+          if (tenho && x.fibra !== tenho) {
+            aviso = '<div class="warn" style="margin-top:4px">Esta linha é para <b>' + escapeXml(x.fibra) +
+              '</b>, e a tua fibra é <b>' + escapeXml(tenho) + '</b>.</div>';
+          }
+          if (x.condicionamento) {
+            aviso += '<div class="warn" style="margin-top:4px">Só com <b>cabo de condicionamento de modo</b> — sem ele não funciona.</div>';
+          }
           return '<div class="lm-item"><span class="lm-row"><span>' +
             selo + fibSelo(o.confianca) +
             '<strong>' + escapeXml(o.nome) + '</strong> <span class="lm-model">' + escapeXml(x.fibra) + '</span>' +
@@ -9236,6 +9271,7 @@
             '</span><span>' + fibMetros(x.metros) + " · " + fmtInt(o.onda_nm) + " nm · " +
             escapeXml(o.conector) + " · " + fmt(o.gbps, o.gbps % 1 ? 2 : 0) + " Gbps" + orc +
             '</span></span>' +
+            aviso +
             (o.nota ? '<div class="hint" style="margin-top:4px">' + escapeXml(o.nota) + '</div>' : '') +
             '</div>';
         }).join("")
@@ -9306,6 +9342,20 @@
    * paga por a pôr lá dentro. O exemplo no fim é o que faz a diferença
    * aterrar: a mesma tirada de 80 m e a mesma de 3 km, e o que muda.
    */
+  /** O engano que mais custa — dito à entrada, e não escondido numa ajuda. */
+  function encherErro() {
+    var caixa = document.getElementById("fib-erro");
+    if (!caixa || !FIBRA_DATA || !FIBRA_DATA.erro_classico) return;
+    var e = FIBRA_DATA.erro_classico;
+    caixa.innerHTML =
+      '<h2>' + escapeXml(e.titulo) + '</h2>' +
+      '<p class="hint">' + escapeXml(e.o_que_acontece) + '</p>' +
+      '<p class="warn" style="margin-top:10px"><b>A excepção:</b> ' + escapeXml(e.a_excecao) + '</p>' +
+      '<p class="hint" style="margin-top:10px"><b>Ao contrário:</b> ' + escapeXml(e.ao_contrario) + '</p>' +
+      '<p class="hint" style="margin-top:10px">Diz lá em cima <b>que fibra já lá está</b> e a lista marca as óticas que não servem para ela. ' +
+      fibSelo(e.confianca) + ' ' + srcLinkHtml(e.fonte) + '</p>';
+  }
+
   function encherModos() {
     var caixa = document.getElementById("fib-modos");
     if (!caixa || !FIBRA_DATA || !FIBRA_DATA.modos) return;
@@ -9388,6 +9438,14 @@
         calcFibra();
       });
     }
+    var tenho = document.getElementById("fib-tenho");
+    if (tenho && !tenho.options.length) {
+      tenho.innerHTML = '<option value="">Ainda não sei / vou instalar</option>' +
+        (FIBRA_DATA.fibras || []).map(function (f) {
+          return '<option value="' + f.id + '">' + f.nome + '</option>';
+        }).join("");
+      tenho.addEventListener("change", calcFibra);
+    }
     var tipo = document.getElementById("fib-tipo");
     if (tipo && !tipo.options.length) {
       tipo.innerHTML = (FIBRA_DATA.fibras || []).map(function (f) {
@@ -9414,6 +9472,7 @@
         '<p>As distâncias são <b>máximos em condições ideais</b>. Com conectores a mais, uma tirada curta pode não passar — é para isso que serve o orçamento de perdas.</p>' +
         '<p class="warn">Os valores de perdas são da <b>TIA-568.3-D</b>. A edição E mudou os valores para conectores de referência — se isto for para uma compra, confirma a edição. ' + srcLinkHtml(FIBRA_DATA.perdas.fonte_aviso) + '</p>';
     }
+    encherErro();
     encherModos();
     encherCustos();
     calcFibra();

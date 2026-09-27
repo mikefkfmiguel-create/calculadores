@@ -164,6 +164,72 @@ conferir(!!aviso && aviso.visivel, "o aviso está à vista");
 conferir(!!aviso && /primeira recolha/i.test(aviso.texto) && /não existe/i.test(aviso.texto),
   "e diz que o que não está lá não é o que não existe");
 
+console.log("\n== o engano que ele reportou: SFP monomodo em fibra multimodo ==");
+// *"o problema muitas vezes é um SFP SM LR 1310 usado em OM3 MM"*. É o erro
+// que mais custa porque às vezes a ligação até sobe numa tirada curta e cai
+// depois — a pior maneira de uma coisa estar errada. A app tem de o apanhar.
+const comOM3 = await pagina.evaluate(async () => {
+  const t = document.getElementById("fib-tenho");
+  t.value = "OM3"; t.dispatchEvent(new Event("change", { bubbles: true }));
+  const so = document.getElementById("fib-so-serve");
+  if (so.checked) so.click();
+  const g = document.getElementById("fib-gbps");
+  g.value = "10"; g.dispatchEvent(new Event("input", { bubbles: true }));
+  const d = document.getElementById("fib-dist");
+  d.value = "300"; d.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 600));
+  const itens = [...document.querySelectorAll("#fib-lista .lm-item")];
+  const lr = itens.find((e) => /10GBASE-LR\s/.test(e.textContent));
+  return {
+    primeira: itens[0] ? itens[0].textContent.replace(/\s+/g, " ") : "",
+    lr: lr ? lr.textContent.replace(/\s+/g, " ") : null,
+    lrTemAviso: !!(lr && lr.querySelector(".warn")),
+    temLRM: itens.some((e) => /LRM/.test(e.textContent))
+  };
+});
+conferir(!!comOM3.lr, "o 10GBASE-LR (monomodo) aparece na lista");
+conferir(comOM3.lrTemAviso && /para OS2/.test(comOM3.lr) && /fibra é OM3/.test(comOM3.lr),
+  "e vem marcado: «" + (comOM3.lr || "").replace(/^.*?(Esta linha)/, "$1").slice(0, 60) + "»");
+conferir(/OM3/.test(comOM3.primeira),
+  "e o que serve à fibra que já lá está vem em primeiro");
+conferir(comOM3.temLRM,
+  "o 10GBASE-LRM está lá — é 1310 nm mas PARA multimodo, e é a resposta certa para fibra antiga");
+
+const condicionamento = await pagina.evaluate(async () => {
+  const t = document.getElementById("fib-tenho");
+  t.value = "OM2"; t.dispatchEvent(new Event("change", { bubbles: true }));
+  const g = document.getElementById("fib-gbps");
+  g.value = "1"; g.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 600));
+  const itens = [...document.querySelectorAll("#fib-lista .lm-item")];
+  const lx = itens.find((e) => /1000BASE-LX/.test(e.textContent) && /OM2/.test(e.textContent));
+  return lx ? lx.textContent.replace(/\s+/g, " ") : null;
+});
+conferir(!!condicionamento && /condicionamento de modo/i.test(condicionamento),
+  "e o 1000BASE-LX em OM2 avisa que só funciona com cabo de condicionamento de modo");
+
+// Repor para o resto do teste.
+await pagina.evaluate(async () => {
+  const t = document.getElementById("fib-tenho");
+  t.value = ""; t.dispatchEvent(new Event("change", { bubbles: true }));
+  const so = document.getElementById("fib-so-serve");
+  if (!so.checked) so.click();
+  await new Promise((r) => setTimeout(r, 400));
+});
+
+console.log("\n== e o engano está dito à entrada, não escondido ==");
+const erro = await pagina.evaluate(() => {
+  const e = document.getElementById("fib-erro");
+  const card = document.getElementById("fib-erro-card");
+  return { texto: e.textContent.replace(/\s+/g, " "), aberto: card.open, fonte: !!e.querySelector("a[href^='http']") };
+});
+conferir(erro.aberto, "o bloco abre por omissão");
+conferir(/9 µm/.test(erro.texto) && /50/.test(erro.texto), "explica porquê, com os núcleos");
+conferir(/LRM/.test(erro.texto) && /condicionamento/i.test(erro.texto),
+  "e nomeia as duas excepções de 1310 nm que SÃO para multimodo");
+conferir(/850/.test(erro.texto), "e diz o que acontece ao contrário");
+conferir(erro.fonte, "com fonte");
+
 console.log("\n== monomodo e multimodo: a fibra E a ótica ==");
 // A confusão entre as duas é a que custa dinheiro: a FIBRA decide quantos
 // caminhos a luz tem, a ÓTICA decide o que se paga. Se a explicação só
