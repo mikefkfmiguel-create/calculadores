@@ -54,6 +54,60 @@ E depois compara-se com o **orçamento ótico do transceiver** (a diferença
 entre a potência que ele emite e a sensibilidade do que recebe, que vem na
 ficha do SFP). Se a perda total for maior, não passa.
 
+### 2.0 O `comprimento` da fórmula é de fibra, não de distância
+
+A parcela do comprimento conta **os metros de fibra que estão no caminho**, e
+não os metros entre as duas pontas. Uma bobine de 500 m a servir dois pontos
+a 50 m um do outro é uma tirada de 500 m: o que ficou enrolado continua no
+caminho da luz.
+
+Isto falha das duas maneiras, e a segunda é a que apanha as pessoas:
+
+- **na perda** — 500 m de OM3 a 3,5 dB/km são 1,75 dB, e não os 0,18 dB dos
+  50 m que se veem no chão;
+- **no alcance** — e esta é a que deita a ligação abaixo. O limite de 300 m
+  da OM3 a 10 Gbps não é de perda, é de **dispersão modal**: os modos chegam
+  desencontrados no tempo. E 500 m enrolados desencontram-nos exactamente
+  como 500 m esticados. Com a bobine por estender, os 10 Gbps não sobem —
+  mesmo com as duas pontas encostadas uma à outra.
+
+#### Quanto custa a curva em si
+
+Pouco, num rolo bem enrolado — e é por isso que se pode dizer com todas as
+letras que **o problema é o comprimento, não a bobine**. Medido em mandril,
+das fichas dos fabricantes:
+
+| Fibra | Condições | λ | Perda |
+|---|---|---|---|
+| Monomodo G.652.D | 100 voltas, R = 25 mm | 1310 / 1550 nm | ≤ 0,05 dB |
+| Monomodo G.652.D | 100 voltas, R = 30 mm | 1625 nm | ≤ 0,05 dB |
+| Multimodo OM1 62,5/125 | 100 voltas, R = 37,5 mm | 850 / 1300 nm | ≤ 0,5 dB |
+
+Fontes: fichas Prysmian de agosto de 2024 —
+[Enhanced Single-Mode Fibre ITU-T G.652.D](https://www.prysmian.com/sites/www.prysmian.com/files/media/products/Prysmian-Enhanced-Single-Mode-G-652-D-Datasheet.pdf)
+e [62.5 µm OM1 Multimode Fibre](https://www.prysmian.com/sites/www.prysmian.com/files/media/products/Prysmian-OM1-Datasheet.pdf).
+
+**Por recolher:** a perda de curvatura de OM3 e de OM4, e o raio mínimo de
+curvatura do cabo tático de produção (esse vem da ficha do cabo).
+
+#### O mecanismo, que é ao contrário do que parece
+
+A luz enrolada não reflete *mais* — reflete **menos**, e é por isso que se
+perde. Numa fibra esticada o raio bate na parede do núcleo com um ângulo
+suficientemente rasante para ser todo devolvido para dentro (reflexão total
+interna) e segue. Numa curva esse ângulo abre; a parte do feixe que deixa de
+cumprir a condição já não é devolvida e sai para a bainha. Quanto mais
+apertada a curva, mais luz sai — daí uma volta larga de bobine quase não
+custar, um laço apertado atrás de um rack custar, e nunca se apertar uma
+abraçadeira sobre uma fibra.
+
+#### E no fim, mede-se
+
+O número em que se confia não é o desta calculadora: é o que sai de uma fonte
+de luz e de um medidor de potência aplicados à tirada **como ela está no
+chão, no dia**. A conta serve para saber se vale a pena ir montar; a medição
+diz se ficou bom.
+
 ### 2.1 Atenuação máxima da fibra (TIA-568.3-D)
 
 | Fibra | 850 nm | 1300 nm | 1310 nm | 1550 nm |

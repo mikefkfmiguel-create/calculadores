@@ -400,6 +400,60 @@ const fontes = await pagina.evaluate(() =>
 conferir(/TIA-568\.3-D/.test(fontes) && /edição E/i.test(fontes),
   "a app diz que são da edição D e que a E mudou");
 
+console.log("\n== a fibra conta-se esticada, não em rolo ==");
+// *"a distância possível é medida com a fibra nessa distância e não em rolo,
+// pois aí a conta falha"*. O caso que prova: dois pontos a 50 m, mas 450 m
+// ainda na bobine. São 500 m de fibra — e a OM3 a 10 Gbps pára aos 300.
+const rolo = await pagina.evaluate(async () => {
+  const por = (id, v) => {
+    const e = document.getElementById(id);
+    e.value = String(v); e.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+  por("fib-gbps", 10); por("fib-dist", 50); por("fib-rolo", 0);
+  await new Promise((r) => setTimeout(r, 500));
+  const om3Esticada = [...document.querySelectorAll("#fib-lista .lm-item")]
+    .some((e) => /OM3/.test(e.textContent) && /Chega/.test(e.textContent));
+
+  por("fib-rolo", 450);
+  await new Promise((r) => setTimeout(r, 500));
+  const itens = [...document.querySelectorAll("#fib-lista .lm-item")];
+  return {
+    om3Esticada,
+    om3EmRolo: itens.some((e) => /OM3/.test(e.textContent) && /Chega/.test(e.textContent)),
+    resumo: document.getElementById("fib-resumo").textContent.replace(/\s+/g, " ").trim()
+  };
+});
+conferir(rolo.om3Esticada, "50 m com a fibra toda esticada: a OM3 a 10 Gbps chega lá");
+// A asserção que decide. Sem o campo do rolo, a app dizia que sim aos dois.
+conferir(!rolo.om3EmRolo,
+  "50 m entre pontos mas 450 m na bobine: a OM3 já NÃO chega — são 500 m de fibra, e ela pára aos 300");
+conferir(/500 m de fibra/.test(rolo.resumo),
+  "e a app escreve a soma que usou: " + rolo.resumo.slice(0, 90));
+conferir(/50 m entre pontos/.test(rolo.resumo) && /450 m/.test(rolo.resumo),
+  "com as duas parcelas à vista, para se poder conferir");
+
+await pagina.evaluate(() => { document.getElementById("fib-rolo-card").open = true; });
+await pagina.waitForTimeout(300);
+const cartaoRolo = await pagina.evaluate(() => {
+  const e = document.getElementById("fib-rolo-texto");
+  return {
+    texto: e.textContent.replace(/\s+/g, " "),
+    voltas: e.querySelectorAll(".lm-item").length,
+    comFonte: [...e.querySelectorAll(".lm-item")].every((x) => !!x.querySelector("a[href^='http']"))
+  };
+});
+conferir(cartaoRolo.voltas >= 3, "o cartão traz " + cartaoRolo.voltas + " medições de perda por curvatura");
+conferir(cartaoRolo.comFonte, "todas de ficha de fabricante, com o link");
+// O mecanismo ao contrário: ele disse "a luz enrolada reflete sempre e
+// esticada não". O efeito que ele viu é real, a causa é a inversa — e uma app
+// que ensine a causa trocada não serve para decidir o caso seguinte.
+conferir(/reflete MENOS/.test(cartaoRolo.texto) && /reflexão total/.test(cartaoRolo.texto),
+  "e explica que a luz na curva reflete menos (deixa de haver reflexão total), não mais");
+conferir(/OM3 e OM4 não foi recolhida/.test(cartaoRolo.texto),
+  "e diz que a curvatura de OM3/OM4 não foi recolhida — não inventa o número que falta");
+conferir(/medidor de potência/.test(cartaoRolo.texto),
+  "e que quem decide no fim é a medição, não esta conta");
+
 console.log("\n== sem erros na consola ==");
 conferir(erros.length === 0, erros.length ? erros.join(" | ") : "nenhum");
 

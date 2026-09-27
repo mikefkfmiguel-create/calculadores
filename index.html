@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.26</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.27</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2630,6 +2630,19 @@
           <div class="field">
             <label for="fib-dist">Distância necessária</label>
             <div class="inputgroup"><input id="fib-dist" type="number" autocomplete="off" inputmode="decimal" value="300" min="1" step="1"><span class="unit">m</span></div>
+            <div class="hint">Metros entre os dois pontos, da fibra já esticada.</div>
+          </div>
+          <!-- O ROLO. Pedido: *"a distância possível é medida com a fibra nessa
+               distância e não em rolo, pois aí a conta falha"*. E falha mesmo,
+               das duas maneiras: a perda é aos metros de fibra, e o ALCANCE do
+               débito também -- uma bobine de 500 m a servir 50 m não sobe a 10
+               Gbps em OM3, porque a OM3 pára aos 300 m e os 500 m estão lá
+               todos. Sem este campo a app dava a resposta errada com ar de
+               certa, que é a pior das respostas erradas. -->
+          <div class="field">
+            <label for="fib-rolo">Fibra que fica no rolo</label>
+            <div class="inputgroup"><input id="fib-rolo" type="number" autocomplete="off" inputmode="decimal" value="0" min="0" step="1"><span class="unit">m</span></div>
+            <div class="hint">O que sobra na bobine e não se estende. Conta na mesma: a luz atravessa-o todo.</div>
           </div>
           <!-- A FIBRA QUE JÁ LÁ ESTÁ. Pedido: *"o problema muitas vezes é um
                SFP SM LR 1310 usado em OM3 MM"*. Sem saber que fibra é, a app
@@ -2672,8 +2685,9 @@
             <select id="fib-tipo" class="plain"></select>
           </div>
           <div class="field">
-            <label for="fib-comp">Comprimento</label>
+            <label for="fib-comp">Comprimento de fibra</label>
             <div class="inputgroup"><input id="fib-comp" type="number" autocomplete="off" inputmode="decimal" value="300" min="1" step="1"><span class="unit">m</span></div>
+            <div class="hint">Metros de <b>fibra</b>, não metros entre pontos: soma-lhe o que ficar no rolo.</div>
           </div>
           <div class="field">
             <label for="fib-conect">Pares de conectores</label>
@@ -2698,6 +2712,20 @@
         <summary>⚠ O engano que mais custa</summary>
         <div class="sinal-block-body">
           <div id="fib-erro">—</div>
+        </div>
+      </details>
+
+      <!-- A FIBRA CONTA-SE ESTICADA. Pedido: *"a distância possível é medida
+           com a fibra nessa distância e não em rolo, pois aí a conta falha.
+           A luz enrolada reflete sempre e esticada não"*. O efeito é real e
+           a conclusão dele está certa; o mecanismo é ao contrário do que
+           parece (a luz enrolada reflete MENOS, e é por isso que sai), e
+           está escrito aqui porque uma app que ensina o mecanismo trocado
+           não serve para decidir o caso seguinte. -->
+      <details class="card sinal-block" id="fib-rolo-card" open>
+        <summary>A fibra conta-se esticada</summary>
+        <div class="sinal-block-body">
+          <div id="fib-rolo-texto">—</div>
         </div>
       </details>
 
@@ -9257,12 +9285,19 @@
     if (!FIBRA_DATA) { lista.innerHTML = '<div class="lm-item"><span>A carregar a tabela das óticas…</span></div>'; return; }
 
     var gbps = val("fib-gbps");
-    var metros = val("fib-dist");
-    if (isNaN(gbps) || gbps <= 0 || isNaN(metros) || metros <= 0) {
+    var entrePontos = val("fib-dist");
+    if (isNaN(gbps) || gbps <= 0 || isNaN(entrePontos) || entrePontos <= 0) {
       lista.innerHTML = '<div class="lm-item"><span>Escreve o débito e a distância.</span></div>';
       document.getElementById("fib-resumo").textContent = "";
       return;
     }
+    // A CONTA É AOS METROS DE FIBRA. O que fica no rolo está no caminho da
+    // luz tal como o que está esticado -- e conta para a perda E para o
+    // alcance. Daqui para baixo `metros` são metros de FIBRA, não a
+    // distância entre os pontos.
+    var noRolo = val("fib-rolo");
+    noRolo = isNaN(noRolo) || noRolo < 0 ? 0 : noRolo;
+    var metros = entrePontos + noRolo;
 
     var soServe = document.getElementById("fib-so-serve").checked;
     var tenhoSel = document.getElementById("fib-tenho");
@@ -9312,9 +9347,18 @@
         '. Desliga o "mostrar só o que chega lá" para ver o que há, e quanto falta.</span></div>';
 
     var servem = todas.filter(function (x) { return x.serve; }).length;
-    document.getElementById("fib-resumo").innerHTML = servem
-      ? servem + " de " + todas.length + " combinações levam " + fmt(gbps, 2) + " Gbps a " + fibMetros(metros) + "."
-      : "Nenhuma das " + todas.length + " combinações da tabela lá chega.";
+    // Com rolo, o número que a app usou não é o que ele escreveu na primeira
+    // caixa -- e uma conta que muda sem dizer porquê não se percebe nem se
+    // confere. Por isso a soma aparece escrita.
+    var soma = noRolo > 0
+      ? '<div class="warn" style="margin-bottom:6px">A conta é a <b>' + fibMetros(metros) + ' de fibra</b>: ' +
+        fibMetros(entrePontos) + " entre pontos + " + fibMetros(noRolo) +
+        " que ficam no rolo. O que está enrolado está no caminho na mesma.</div>"
+      : "";
+    document.getElementById("fib-resumo").innerHTML = soma + (servem
+      ? servem + " de " + todas.length + " combinações levam " + fmt(gbps, 2) + " Gbps a " + fibMetros(metros) +
+        (noRolo > 0 ? " de fibra." : ".")
+      : "Nenhuma das " + todas.length + " combinações da tabela lá chega.");
 
     calcFibraPerdas();
     encherEquipamento();
@@ -9354,7 +9398,7 @@
       (fibra.nota ? ' — ' + escapeXml(fibra.nota) : '') + ' ' + srcLinkHtml(fibra.fonte) + '</div>';
   }
 
-  ["fib-gbps", "fib-dist"].forEach(function (id) {
+  ["fib-gbps", "fib-dist", "fib-rolo"].forEach(function (id) {
     var el = document.getElementById(id);
     if (el) el.addEventListener("input", calcFibra);
   });
@@ -9497,6 +9541,31 @@
       fibSelo(sm.confianca) + ' ' + srcLinkHtml(sm.fonte) + '</p>';
   }
 
+  /** Porque é que a bobine por estender estraga a conta — e quanto custa a volta. */
+  function encherRolo() {
+    var caixa = document.getElementById("fib-rolo-texto");
+    if (!caixa || !FIBRA_DATA || !FIBRA_DATA.em_rolo) return;
+    var r = FIBRA_DATA.em_rolo;
+
+    caixa.innerHTML =
+      '<p class="warn"><b>' + escapeXml(r.regra) + '</b></p>' +
+      '<p style="margin-top:10px">' + escapeXml(r.porque_falha) + '</p>' +
+      '<h3 style="margin-top:14px">Quanto custa a volta, medido em mandril</h3>' +
+      '<p class="hint">' + escapeXml(r.o_que_a_volta_custa) + '</p>' +
+      '<div class="lensmatch-list" style="margin-top:8px">' + (r.voltas || []).map(function (v) {
+        return '<div class="lm-item"><span class="lm-row"><span>' +
+          fibSelo(v.confianca) +
+          '<strong>' + escapeXml(v.fibra) + '</strong> <span class="lm-model">' + escapeXml(v.condicoes) + '</span>' +
+          srcLinkHtml(v.fonte) +
+          '</span><span>≤ ' + fmt(v.db, 2) + ' dB · ' + escapeXml(String(v.onda_nm)) + ' nm</span></span></div>';
+      }).join("") + '</div>' +
+      '<p class="warn" style="margin-top:10px">' + escapeXml(r.em_falta) + '</p>' +
+      '<h3 style="margin-top:14px">Porque é que a curva perde luz</h3>' +
+      '<p>' + escapeXml(r.mecanismo) + '</p>' +
+      '<h3 style="margin-top:14px">E no fim, mede-se</h3>' +
+      '<p>' + escapeXml(r.medir) + '</p>';
+  }
+
   function encherErro() {
     var caixa = document.getElementById("fib-erro");
     if (!caixa || !FIBRA_DATA || !FIBRA_DATA.erro_classico) return;
@@ -9628,6 +9697,7 @@
     }
     encherErro();
     encherMonomodo();
+    encherRolo();
     encherModos();
     encherEquipamento();
     encherCustos();

@@ -509,5 +509,42 @@
     "ao_contrario": "Ao contrário não há distância nenhuma a calcular: um SFP multimodo de 850 nm numa fibra monomodo não é uma ligação mais curta, é uma ligação que não se faz. O feixe de 850 nm nem acopla no núcleo de 9 µm nem sobrevive à atenuação da monomodo nesse comprimento de onda. Não há cabo de condicionamento que resolva isto — esse serve para o caso inverso.",
     "confianca": "indicativo",
     "fonte": "https://www.router-switch.com/faq/single-mode-vs-multimode-fiber-1300nm-1310nm-sfp.html"
+  },
+  "em_rolo": {
+    "_nota": "Porque é que a conta tem de ser feita aos metros de fibra e não aos metros entre os dois pontos. As perdas de curvatura são de fichas de fabricante, medidas em mandril — as únicas condições em que este número quer dizer alguma coisa.",
+    "regra": "A distância que conta é o comprimento de fibra que está no caminho, não a distância entre as duas pontas. Uma bobine de 500 m a servir dois pontos a 50 m um do outro é uma tirada de 500 m: para a luz, o que ficou enrolado continua lá, e tem de ser atravessado na mesma.",
+    "porque_falha": "Falha das duas maneiras, e a segunda é a que apanha as pessoas de surpresa. A perda é aos metros de fibra — isso ainda se percebe. Mas o ALCANCE MÁXIMO do débito também é aos metros de fibra: uma OM3 a 10 Gbps pára aos 300 m porque a essa distância os modos já chegam desencontrados no tempo, e 500 m enrolados desencontram-nos tal e qual como 500 m esticados. Com a bobine cheia por estender, a ligação não sobe — mesmo com as duas pontas encostadas uma à outra.",
+    "o_que_a_volta_custa": "A curvatura em si, num rolo bem enrolado, custa pouco — bem menos do que o comprimento. É por isso que a bobine não é o problema: o comprimento é.",
+    "voltas": [
+      {
+        "fibra": "monomodo G.652.D",
+        "condicoes": "100 voltas em mandril de R = 25 mm",
+        "onda_nm": "1310 / 1550",
+        "db": 0.05,
+        "confianca": "fabricante",
+        "fonte": "https://www.prysmian.com/sites/www.prysmian.com/files/media/products/Prysmian-Enhanced-Single-Mode-G-652-D-Datasheet.pdf"
+      },
+      {
+        "fibra": "monomodo G.652.D",
+        "condicoes": "100 voltas em mandril de R = 30 mm",
+        "onda_nm": "1625",
+        "db": 0.05,
+        "confianca": "fabricante",
+        "fonte": "https://www.prysmian.com/sites/www.prysmian.com/files/media/products/Prysmian-Enhanced-Single-Mode-G-652-D-Datasheet.pdf"
+      },
+      {
+        "fibra": "multimodo OM1 62,5/125",
+        "condicoes": "100 voltas em mandril de R = 37,5 mm",
+        "onda_nm": "850 / 1300",
+        "db": 0.5,
+        "confianca": "fabricante",
+        "fonte": "https://www.prysmian.com/sites/www.prysmian.com/files/media/products/Prysmian-OM1-Datasheet.pdf"
+      }
+    ],
+    "em_falta": "A perda de curvatura de OM3 e OM4 não foi recolhida com fonte — a das fichas acima é de monomodo G.652.D e de OM1. O raio mínimo de curvatura do cabo tático que se usa em produção também não: esse vem da ficha do cabo, e é por ela que se deve ir.",
+    "mecanismo": "Ao contrário do que parece, a luz enrolada não reflete mais — reflete MENOS, e é por isso que se perde. Numa fibra esticada o raio bate na parede do núcleo com um ângulo suficientemente rasante para ser todo devolvido para dentro (reflexão total), e segue. Numa curva esse ângulo abre; a parte do feixe que deixa de cumprir a condição já não é devolvida e sai para a bainha, onde se perde. Quanto mais apertada a curva, mais luz sai. Por isso uma volta larga de bobine quase não custa e um laço apertado atrás de um rack custa — e por isso nunca se aperta uma abraçadeira sobre uma fibra.",
+    "medir": "O número em que se confia não é o desta calculadora: é o que sai de uma fonte de luz e de um medidor de potência aplicados à tirada como ela está no chão, no dia, com os conectores todos metidos. Esta conta serve para saber se vale a pena ir montar; a medição é que diz se ficou bom.",
+    "confianca": "fabricante",
+    "fonte": "https://www.prysmian.com/sites/www.prysmian.com/files/media/products/Prysmian-Enhanced-Single-Mode-G-652-D-Datasheet.pdf"
   }
 }
