@@ -253,20 +253,31 @@ function lzAttachModelSearch(select) {
   if (!select || select.dataset.searchAttached) return;
   select.dataset.searchAttached = "1";
 
+  // A LISTA PRIMEIRO, A PROCURA A SEGUIR.
+  //
+  // A caixa de pesquisa estava POR CIMA da lista, e lia-se como se escrever
+  // fosse obrigatório -- a lista, logo a seguir e a dizer "Personalizado…",
+  // parecia vazia. Pedido assim: *"em vez de ter obrigatoriamente de
+  // escrever pode dar a lista de existentes, e a opção de escrever para
+  // procura se não estiver na lista existente por falta de atualização"*.
+  //
+  // Passa a ler-se pela ordem em que se decide: vê-se o que há, e só quem
+  // não encontrar o seu é que escreve. O que a caixa faz não mudou -- filtra
+  // a lista e, não havendo nada, procura no mercado e acrescenta.
   var wrap = document.createElement("div");
   wrap.className = "model-search-wrap";
   var input = document.createElement("input");
   input.type = "text";
   input.className = "model-search";
-  input.placeholder = "Pesquisar modelo…";
+  input.placeholder = "Não está na lista? Procurar…";
   input.setAttribute("autocomplete", "off");
   wrap.appendChild(input);
-  select.parentNode.insertBefore(wrap, select);
 
   var noResult = document.createElement("div");
   noResult.className = "model-search-noresult";
   noResult.style.display = "none";
   select.parentNode.insertBefore(noResult, select.nextSibling);
+  select.parentNode.insertBefore(wrap, noResult);
 
   var noResultUrl = null;
   // O que foi acrescentado SOZINHO para o texto que está escrito agora. Sem

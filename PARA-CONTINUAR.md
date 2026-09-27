@@ -14,6 +14,38 @@ cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
 só entra no menu no dia em que o destino dela passa a responder à chegada.
 
+## 27 de setembro — a lista primeiro, a procura a seguir (v4.21)
+
+> *"em vez de ter obrigatoriamente de escrever pode dar a lista de
+> existentes, e a opção de escrever para procura se não estiver na lista
+> existente por falta de atualização"* — com uma foto do campo **Modelo de
+> referência**.
+
+A lista **sempre lá esteve**: é o `<select>` com os 38 tiles do catálogo. O
+que estava mal era a **ordem de leitura**. A caixa de pesquisa vinha por cima
+dela, e lia-se como se escrever fosse obrigatório; a lista, logo a seguir e a
+dizer «Personalizado…», parecia vazia. Na foto dele a caixa está até com o
+cursor lá dentro — é o que a app parece estar a pedir.
+
+Passa a ler-se pela ordem em que se decide:
+
+1. **a lista**, com o catálogo todo, sem se escrever nada;
+2. **a caixa**, por baixo, a dizer pelo nome para que serve — «Não está na
+   lista? Procurar…».
+
+O que a caixa faz não mudou: filtra a lista e, não havendo nada, procura no
+mercado e acrescenta (v4.13 a v4.19). Mudou só quando é que ela se lê.
+
+A correcção está na função partilhada `lzAttachModelSearch`, e por isso
+apanhou os **14 campos de modelo** da app de uma vez — tiles, TVs,
+projetores, lentes, DSM, delays, cúpula. Consertar só o da foto era deixar
+treze iguais por consertar.
+
+Teste novo: `scripts/verificar-lista-de-modelos.mjs`. Passa por **todos** os
+campos e confere, em cada um, que a caixa vem depois da lista, que a lista já
+traz o catálogo, e que a caixa diz para que serve — e que escrever continua a
+estreitar a lista, que é o que ela faz.
+
 ## 27 de setembro — a ordem e o selo das eletrónicas diziam coisas diferentes (v4.20)
 
 > *"esta prioridade de escolha de electrónicas está errada"* — a olhar para a
