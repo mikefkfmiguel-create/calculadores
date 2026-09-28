@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.32</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.33</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -919,6 +919,17 @@
               <div class="inputgroup"><input id="l-target-h" type="number" autocomplete="off" inputmode="decimal" placeholder="4.5" min="0.1" step="0.1"><span class="unit">m</span></div>
             </div>
           </div>
+          <!-- A ALTURA AO CHÃO, TAMBÉM AQUI (v4.33). É o MESMO valor do campo
+               da aba Ecrã Complexo -- não é um segundo número, é o mesmo
+               visto de outro sítio. Sem isto, quem trabalhasse só nesta aba
+               mandava o ecrã para o 3D a 1 m do chão (o valor por omissão da
+               outra aba) sem ter como o ver nem como o mudar: a altura ia
+               na mesma, mas era invisível. Foi o que ele apanhou. -->
+          <div class="field">
+            <label for="l-base-chao">Base do ecrã acima do chão</label>
+            <div class="inputgroup"><input id="l-base-chao" class="lz-campo-base-chao" type="number" autocomplete="off" inputmode="decimal" value="1" min="0" max="50" step="0.05"><span class="unit">m</span></div>
+            <div class="hint">Do chão à <b>parte de baixo</b> do ecrã. É isto que o põe à altura certa no 3D — e é o mesmo campo da aba «Ecrã Complexo».</div>
+          </div>
           <div class="summary-actions" style="margin:2px 0 10px; flex-wrap:wrap;">
             <button type="button" class="copy bridge-btn" id="l-trazer-preview">Trazer do Preview</button>
           </div>
@@ -1212,7 +1223,7 @@
              uma escolha de ninguém: é o que sobra. -->
         <div class="lz-bulk-toolbar">
           <span class="lz-bulk-label">Base do ecrã acima do chão</span>
-          <div class="inputgroup lz-bulk-input"><input id="lz-base-chao" type="number" autocomplete="off" inputmode="decimal" value="1" min="0" max="50" step="0.05"><span class="unit">m</span></div>
+          <div class="inputgroup lz-bulk-input"><input id="lz-base-chao" class="lz-campo-base-chao" type="number" autocomplete="off" inputmode="decimal" value="1" min="0" max="50" step="0.05"><span class="unit">m</span></div>
           <span class="hint">Do chão à <b>parte de baixo</b> do conjunto. É isto que põe o ecrã à altura certa no 3D.</span>
         </div>
         <div id="lz-list"></div>

@@ -258,6 +258,40 @@ conferir(altura.a24 === 2.4, "2,4 m escritos chegam ao 3D como 2,4 (medido: " + 
 conferir(altura.a0 === 0, "e o ZERO viaja como zero — é o ecrã no chão, não é «não sei»");
 conferir(altura.guardado === "0", "a escolha fica guardada para a próxima vez");
 
+// O MESMO NÚMERO, VISTO DE VÁRIOS SÍTIOS (v4.33). Reparo dele, com uma foto
+// da aba Ecrã LED: o campo só existia na Ecrã Complexo, e quem trabalhasse
+// na do LED mandava o ecrã para o 3D com o valor da outra -- 1 m por
+// omissão -- sem ter onde o ver nem onde o mudar. A altura ia na mesma; era
+// invisível, que é a pior maneira de um número estar certo.
+const partilhado = await pagina.evaluate(async () => {
+  const n = document.querySelectorAll(".lz-campo-base-chao").length;
+  document.querySelector('.tabs .tab[data-mode="led"]').click();
+  await new Promise((r) => setTimeout(r, 700));
+  const noLed = document.getElementById("l-base-chao");
+  if (!noLed) return { n, semCampoNoLed: true };
+  noLed.value = "2.8";
+  noLed.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 900));
+  const ler = () => {
+    try { return (JSON.parse(localStorage.getItem("mikeapps-projeto-v1")) || {}).alturaDoChao; }
+    catch (e) { return null; }
+  };
+  const depoisDoLed = { complexo: document.getElementById("lz-base-chao").value, ponte: ler() };
+  // E ao contrário.
+  const noComplexo = document.getElementById("lz-base-chao");
+  noComplexo.value = "0";
+  noComplexo.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 900));
+  return { n, semCampoNoLed: false, depoisDoLed,
+           depoisDoComplexo: { led: noLed.value, ponte: ler() } };
+});
+conferir(!partilhado.semCampoNoLed, "a aba Ecrã LED também tem o campo da altura");
+conferir(partilhado.n >= 2, "as caixas partilham a mesma classe (" + partilhado.n + ")");
+conferir(partilhado.depoisDoLed.complexo === "2.8" && partilhado.depoisDoLed.ponte === 2.8,
+  "escrever na do LED muda a da Ecrã Complexo e vai para o 3D (2,8)");
+conferir(partilhado.depoisDoComplexo.led === "0" && partilhado.depoisDoComplexo.ponte === 0,
+  "e ao contrário também — é um número só, visto de dois sítios");
+
 conferir(erros.length === 0, erros.length ? "erro de JavaScript: " + erros[0] : "sem erros de JavaScript");
 
 await browser.close();

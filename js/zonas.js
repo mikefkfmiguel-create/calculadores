@@ -89,11 +89,25 @@
    * "zero" — zero é o ecrã pousado no chão.
    */
   var LZ_BASE_CHAO_KEY = "calculadores-base-chao-v1";
+
+  /**
+   * As caixas onde este número aparece. São VÁRIAS e é UMA SÓ: a da aba Ecrã
+   * Complexo, a da janela solta, e a da aba Ecrã LED (v4.33). Quem trabalhava
+   * só na do LED mandava o ecrã para o 3D com o valor da outra aba -- 1 m por
+   * omissão -- sem ter onde o ver nem onde o mudar. A altura ia na mesma; era
+   * invisível, que é a pior maneira de um número estar certo.
+   */
+  function lzCaixasDaBase() {
+    return Array.prototype.slice.call(document.querySelectorAll(".lz-campo-base-chao"));
+  }
+
   function lzBaseAcimaDoChao() {
-    var el = document.getElementById("lz-base-chao");
-    if (!el) return null;
-    var v = parseFloat(el.value);
-    return isNaN(v) || v < 0 ? null : v;
+    var caixas = lzCaixasDaBase();
+    for (var i = 0; i < caixas.length; i++) {
+      var v = parseFloat(caixas[i].value);
+      if (!isNaN(v) && v >= 0) return v;
+    }
+    return null;
   }
 
   /**
@@ -1603,15 +1617,23 @@
   // A altura ao chão: guarda-se e recalcula-se como qualquer outro campo —
   // é o recálculo que reescreve a ponte para o 3D.
   (function () {
-    var base = document.getElementById("lz-base-chao");
-    if (!base) return;
-    try {
-      var guardado = localStorage.getItem(LZ_BASE_CHAO_KEY);
-      if (guardado != null && guardado !== "") base.value = guardado;
-    } catch (e) {}
-    base.addEventListener("input", function () {
-      try { localStorage.setItem(LZ_BASE_CHAO_KEY, base.value); } catch (e) {}
-      calcLedZones();
+    var caixas = lzCaixasDaBase();
+    if (!caixas.length) return;
+    var guardado = null;
+    try { guardado = localStorage.getItem(LZ_BASE_CHAO_KEY); } catch (e) {}
+    if (guardado != null && guardado !== "") {
+      caixas.forEach(function (c) { c.value = guardado; });
+    }
+    caixas.forEach(function (caixa) {
+      caixa.addEventListener("input", function () {
+        try { localStorage.setItem(LZ_BASE_CHAO_KEY, caixa.value); } catch (e) {}
+        // As outras caixas acompanham -- são a mesma coisa vista de sítios
+        // diferentes, e duas que discordassem eram pior do que uma só.
+        caixas.forEach(function (outra) {
+          if (outra !== caixa && outra.value !== caixa.value) outra.value = caixa.value;
+        });
+        calcLedZones();
+      });
     });
   })();
 
