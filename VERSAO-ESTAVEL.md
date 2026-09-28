@@ -1,10 +1,10 @@
 # Versão estável
 
-**Calculadores v4.31** · commit `69195ea` · dada como estável a 28 de setembro de 2026.
+**Calculadores v4.32** · commit `0090d3d` · dada como estável a 28 de setembro de 2026.
 
 > *"publica e promove as duas"*.
 
-Par: **Preview 3D v3.94** (`5d80ef8` no repositório `preview`). As duas apps
+Par: **Preview 3D v3.95** (`79f1891` no repositório `preview`). As duas apps
 falam uma com a outra — dar uma como estável sem a outra não quer dizer nada,
 e por isso o par escreve-se aqui e é promovido ao mesmo tempo. Desta vez andaram os dois, e um
 não funciona sem o outro: o campo da altura é escrito aqui e lido lá.
@@ -35,7 +35,7 @@ trechos, em `traducao-por-fazer.json`).
 No **Worker**: **41 testes verdes** (`worker/testes/`), incluindo os do
 `/modelo`, a rota de procura na web que entrou na v4.18.
 
-Do outro lado, no Preview v3.94, **24 verificações verdes**.
+Do outro lado, no Preview v3.95, **24 verificações verdes**.
 
 Correram no commit que esta página nomeia, não no ramo antes de fundir.
 
@@ -109,8 +109,17 @@ a lista dava a entender que eram.
   + ecrã acima do palco = 1 m), que não é escolha de ninguém. Campo novo nas
   DUAS janelas, porque faltar numa era corrigir metade.
 
-Do outro lado, o Preview foi à v3.94 no mesmo dia, e é o par obrigatório
-desta: é ele que lê o campo. Levou mais três correcções da mesma manhã — a
+- **v4.32** — **o blend plano leva a altura da lente e o shift**. Segunda
+  foto do mesmo dia: *"continua abaixo do chão e não centrado na sala"*. Não
+  era a v4.31: o blend usa **outra ponte** (`mikeapps-projetor-v1`), que o
+  campo da altura nunca toca. Um ecrã CURVO já levava a altura da lente e o
+  shift desde a v3.43 — o comentário que lá está diz *"é o que faz o 3D
+  nascer com a imagem no pano em vez de meio metro abaixo dele"*. Um PLANO
+  nunca levou nenhum dos dois: esta aba dizia lente a 8 m e shift −90%, e o
+  Preview aplicava os 4,5 m e −25% por omissão dele.
+
+Do outro lado, o Preview foi à v3.95 no mesmo dia, e é o par obrigatório
+desta: é ele que lê os campos. Levou mais três correcções da mesma manhã — a
 projeção que só apagava um projetor de cada vez, o material dos Calculadores
 que ficava à espera no depósito em vez de entrar na sala, e o palco, que não
 sabia fazer só a frente redonda e desenhava o "círculo" 6,1% mais gordo nas
@@ -119,13 +128,13 @@ diagonais do que um círculo.
 ## Como se volta a este ponto
 
 ```
-git checkout 69195ea          # ver como estava
+git checkout 0090d3d          # ver como estava
 git revert <commit>           # desfazer uma coisa só, sem perder o resto
 ```
 
-A tag `v4.31` **não** está no GitHub: as credenciais da sessão que escreveu
+A tag `v4.32` **não** está no GitHub: as credenciais da sessão que escreveu
 isto deixam empurrar ramos, não tags (HTTP 403). Se ela fizer falta, cria-se
-na página de *releases* do repositório, apontada a `69195ea`.
+na página de *releases* do repositório, apontada a `0090d3d`.
 
 ## Quando isto deixa de valer
 
