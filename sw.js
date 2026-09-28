@@ -1,4 +1,4 @@
-const CACHE = "calculadores-v423";
+const CACHE = "calculadores-v424";
 const APP_SHELL = [
   "./",
   "./index.html",
