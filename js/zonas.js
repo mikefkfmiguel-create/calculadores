@@ -76,6 +76,27 @@
   function lzTopZona(z) { return z.posY - z.h / 2; }
 
   /**
+   * A BASE DO CONJUNTO ACIMA DO CHÃO, em metros.
+   *
+   * O alçado desta aba mede as zonas umas às outras e mais nada — não tem
+   * chão. Quem monta é que sabe a que altura aquilo fica, e até aqui não
+   * tinha onde o dizer: o 3D acabava a pôr a base do conjunto na altura do
+   * palco, que é o que lhe sobrava.
+   *
+   * Devolve `null` (e não 0) quando o campo não existe: este ficheiro
+   * também corre no ecra-complexo.html, que não tem a barra. `null` no
+   * payload quer dizer "não sei", e do outro lado isso é diferente de
+   * "zero" — zero é o ecrã pousado no chão.
+   */
+  var LZ_BASE_CHAO_KEY = "calculadores-base-chao-v1";
+  function lzBaseAcimaDoChao() {
+    var el = document.getElementById("lz-base-chao");
+    if (!el) return null;
+    var v = parseFloat(el.value);
+    return isNaN(v) || v < 0 ? null : v;
+  }
+
+  /**
    * AS FOLGAS ENTRE ECRÃS.
    *
    * Pedido a olhar para um conjunto de quatro: *"aqui dava jeito saber o
@@ -1034,6 +1055,12 @@
       v: 1,
       origem: "calculadores",
       origemVersao: origemVersao,
+      // A ALTURA AO CHÃO da base do conjunto. Este alçado só sabe posições
+      // relativas entre zonas; é este número que lhe dá um chão, e sem ele o
+      // Preview só podia adivinhar pelo palco. Vai como null quando o campo
+      // não existe (a janela solta não o tem) — e o Preview, com null, faz o
+      // que já fazia, que é o que os projetos antigos esperam.
+      alturaDoChao: lzBaseAcimaDoChao(),
       nome: nomeProjeto || (zones.length
         ? ("Ecrã LED — " + zones.length + " zona(s)")
         : (dome ? "Dome — " + dome.diametro + " m" : "Projeto")),
@@ -1572,6 +1599,21 @@
     var row = e.target.closest(".lz-detail-row[data-zone-id]");
     if (row && row.dataset.zoneId) lzJumpToZoneCard(row.dataset.zoneId);
   });
+
+  // A altura ao chão: guarda-se e recalcula-se como qualquer outro campo —
+  // é o recálculo que reescreve a ponte para o 3D.
+  (function () {
+    var base = document.getElementById("lz-base-chao");
+    if (!base) return;
+    try {
+      var guardado = localStorage.getItem(LZ_BASE_CHAO_KEY);
+      if (guardado != null && guardado !== "") base.value = guardado;
+    } catch (e) {}
+    base.addEventListener("input", function () {
+      try { localStorage.setItem(LZ_BASE_CHAO_KEY, base.value); } catch (e) {}
+      calcLedZones();
+    });
+  })();
 
   document.getElementById("lz-select-all").addEventListener("click", function () {
     lzList.querySelectorAll(".lz-select").forEach(function (cb) { cb.checked = true; });

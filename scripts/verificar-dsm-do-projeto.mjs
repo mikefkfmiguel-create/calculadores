@@ -212,6 +212,52 @@ console.log("   depois de recarregar a janela solta: " + naBancada);
 conferir(parseInt(naBancada, 10) === 3,
   "quem está a trabalhar na janela solta reencontra o DSM onde o deixou");
 
+console.log("\n== a altura do ecrã ao chão vai para o 3D ==");
+// Reparo dele, com uma foto do 3D: *"está a nascer assim quando vem da
+// calculadora e nela não tenho onde dizer a que altura do chão está o ecrã"*.
+// E não tinha: este alçado só sabe posições RELATIVAS entre zonas, não tem
+// chão, e do outro lado só sobrava a altura do palco (1 m por omissão).
+//
+// O campo existe NAS DUAS janelas — a aba Ecrã Complexo e a janela solta.
+// Faltar numa delas era corrigir metade do defeito: quem trabalhasse na
+// outra continuava a mandar o projeto sem altura nenhuma.
+const naJanelaSolta = await pagina.evaluate(() => !!document.getElementById("lz-base-chao"));
+conferir(naJanelaSolta, "a janela solta tem o campo «Base do ecrã acima do chão»");
+
+await pagina.goto(`http://127.0.0.1:${porta}/index.html`, { waitUntil: "networkidle" });
+await pagina.evaluate(() => localStorage.setItem("mikeapps-sincronizacao-v1", JSON.stringify("ligada")));
+await pagina.reload({ waitUntil: "networkidle" });
+await pagina.waitForTimeout(1500);
+
+const altura = await pagina.evaluate(async () => {
+  document.getElementById("btMenuCompleta")?.click();
+  await new Promise((r) => setTimeout(r, 400));
+  document.querySelector('.tabs .tab[data-mode="zonas"]').click();
+  await new Promise((r) => setTimeout(r, 700));
+  const campo = document.getElementById("lz-base-chao");
+  if (!campo) return { semCampo: true };
+  document.getElementById("lz-add").click();
+  await new Promise((r) => setTimeout(r, 900));
+  const ler = () => {
+    try { return (JSON.parse(localStorage.getItem("mikeapps-projeto-v1")) || {}).alturaDoChao; }
+    catch (e) { return "(ponte ilegível)"; }
+  };
+  const por = async (v) => {
+    campo.value = String(v);
+    campo.dispatchEvent(new Event("input", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 800));
+    return ler();
+  };
+  return { semCampo: false, a24: await por(2.4), a0: await por(0),
+           guardado: localStorage.getItem("calculadores-base-chao-v1") };
+});
+conferir(!altura.semCampo, "e a aba Ecrã Complexo também");
+conferir(altura.a24 === 2.4, "2,4 m escritos chegam ao 3D como 2,4 (medido: " + altura.a24 + ")");
+// Zero tem de viajar como zero: é o ecrã pousado no chão, não é "não sei".
+// Com um `||` pelo caminho virava null, e o ecrã saltava para cima do palco.
+conferir(altura.a0 === 0, "e o ZERO viaja como zero — é o ecrã no chão, não é «não sei»");
+conferir(altura.guardado === "0", "a escolha fica guardada para a próxima vez");
+
 conferir(erros.length === 0, erros.length ? "erro de JavaScript: " + erros[0] : "sem erros de JavaScript");
 
 await browser.close();
