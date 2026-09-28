@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.34</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.35</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1856,6 +1856,19 @@
               <div class="inputgroup"><input id="proj-proj-h" type="number" autocomplete="off" inputmode="decimal" value="1.49" min="0.1" step="0.01"><span class="unit">m</span></div>
             </div>
           </div>
+          <!-- VÁRIOS ECRÃS DE PROJEÇÃO NO MESMO PROJETO.
+               Pedido dele: *"preciso poder adicionar mais ecrãs de projeção e
+               projetores neste projeto"*. A regra que está na ajuda desta aba
+               — "um projeto só tem um tipo de ecrã de cada vez" — continua
+               verdadeira para o ecrã que se está a EDITAR; o que muda é que os
+               anteriores deixam de se perder. O relatório sai com todos, e do
+               outro lado o Preview desenha-os lado a lado (v4.00). -->
+          <div class="field" id="proj-ecras-guardados-wrap" style="margin-top:4px">
+            <button type="button" class="btn ghost" id="proj-guardar-ecra">+ Guardar este ecrã e começar outro</button>
+            <div class="hint">Fica na ficha técnica e vai para o 3D ao lado dos outros. Os campos ficam como estão, para o próximo ecrã.</div>
+            <div id="proj-ecras-lista"></div>
+          </div>
+
           <div class="field" id="proj-throwmode-dist-inputs">
             <label for="proj-proj-dist">Distância de projeção disponível (lente ao ecrã)</label>
             <div class="inputgroup"><input id="proj-proj-dist" type="number" autocomplete="off" inputmode="decimal" value="4.0" min="0.1" step="0.01"><span class="unit">m</span></div>
@@ -6595,6 +6608,20 @@
 
   var projType = "led";
   var projLastRes = null;
+
+  // VÁRIOS ECRÃS DE PROJEÇÃO NO MESMO PROJETO.
+  //
+  // Pedido dele: *"preciso poder adicionar mais ecrãs de projeção e projetores
+  // neste projeto"*. A regra escrita na ajuda desta aba -- "um projeto só tem
+  // um tipo de ecrã de cada vez" -- continua verdadeira para o ecrã que se
+  // está a EDITAR; o que muda é que os anteriores deixam de se perder.
+  //
+  // `projEcraVivo` é o que está nos campos, refeito a cada conta. Os guardados
+  // ficam no array, cada um com os CAMPOS (para se poder voltar a mexer-lhes),
+  // o RESUMO (para o relatório) e a CARGA (para o 3D, que os desenha lado a
+  // lado desde a v4.00 do Preview).
+  var projEcraVivo = null;
+  var projEcrasGuardados = [];
   var projLedFields = document.getElementById("proj-led-fields");
   var projProjecaoFields = document.getElementById("proj-projecao-fields");
   var projReportLed = document.getElementById("proj-report-led");
@@ -6663,6 +6690,88 @@
     });
   });
 
+
+  /**
+   * OS CAMPOS DO BLOCO "Ecrã & projetor", tal como estão.
+   *
+   * Serve para poder voltar a mexer num ecrã já guardado: repõem-se estes
+   * campos e a conta refaz-se sozinha. São os mesmos que o estadoDoProjeto()
+   * grava no ficheiro -- e por isso são estes, e não mais nem menos.
+   */
+  function retratoDosCamposDoEcra() {
+    return {
+      projModelName: modelIdxToName(PROJECTORS_DATA, document.getElementById("proj-proj-model").value),
+      blendMode: segActive("proj-blendmode-seg").blendmode,
+      blendRes: fieldVal("proj-blend-res"), blendW: fieldVal("proj-blend-w"), blendH: fieldVal("proj-blend-h"),
+      projRatio: fieldVal("proj-proj-ratio"),
+      sizeMode: segActive("proj-sizemode-seg").sizemode,
+      projDiag: fieldVal("proj-proj-diag"), projW: fieldVal("proj-proj-w"), projH: fieldVal("proj-proj-h"),
+      projDist: fieldVal("proj-proj-dist"),
+      projTmin: fieldVal("proj-proj-tmin"), projTmax: fieldVal("proj-proj-tmax")
+    };
+  }
+
+  /** Repõe nos campos um retrato feito pelo retratoDosCamposDoEcra(). */
+  function reporCamposDoEcra(c) {
+    if (!c) return;
+    setFieldVal("proj-proj-model", modelNameToIdx(PROJECTORS_DATA, c.projModelName));
+    segClick("proj-blendmode-seg", "blendmode", c.blendMode);
+    setFieldVal("proj-blend-res", c.blendRes);
+    setFieldVal("proj-blend-w", c.blendW); setFieldVal("proj-blend-h", c.blendH);
+    setFieldVal("proj-proj-ratio", c.projRatio);
+    segClick("proj-sizemode-seg", "sizemode", c.sizeMode);
+    setFieldVal("proj-proj-diag", c.projDiag);
+    setFieldVal("proj-proj-w", c.projW); setFieldVal("proj-proj-h", c.projH);
+    setFieldVal("proj-proj-dist", c.projDist);
+    setFieldVal("proj-proj-tmin", c.projTmin); setFieldVal("proj-proj-tmax", c.projTmax);
+    calcProjeto();
+  }
+
+  /**
+   * A CARGA DESTE ECRÃ PARA O 3D, na forma que o Preview desenha (v4.00).
+   *
+   * Um projetor único é uma máquina só: o rácio sai da distância a dividir
+   * pela largura do ecrã, e a "forma" é a do ecrã. Um blend é a mesma coisa
+   * repartida: cada célula com a sua posição lateral e o seu degrau de altura,
+   * e o rácio é por CÉLULA -- é o que cada lente tem de cobrir.
+   *
+   * A primeira máquina mora na própria carga (racio/distancia/lateral) e as
+   * restantes no `maquinas`, que é exactamente como o Preview guarda uma
+   * projeção plana. Nada se inventa: tudo sai dos números que esta aba já
+   * calculou e mostra ao lado.
+   */
+  function cargaDoEcraDoProjeto(w, h, dist, isBlend, nh, nv, widthPerProj, overlapM) {
+    if (!(w > 0) || !(h > 0) || !(dist > 0)) return null;
+    var larguraCelula = isBlend ? widthPerProj : w;
+    var alturaCelula = isBlend ? (h / nv) : h;
+    if (!(larguraCelula > 0) || !(alturaCelula > 0)) return null;
+    var passo = larguraCelula - (isBlend ? overlapM : 0);
+    var racio = dist / larguraCelula;
+    var celulas = [];
+    for (var linha = 0; linha < (isBlend ? nv : 1); linha++) {
+      for (var coluna = 0; coluna < (isBlend ? nh : 1); coluna++) {
+        celulas.push({
+          lateral: Math.round((-w / 2 + larguraCelula / 2 + coluna * passo) * 100) / 100,
+          // A linha de cima fica MAIS ALTA na sala: o 0 é o meio do ecrã.
+          alturaOffset: Math.round(((((isBlend ? nv : 1) - 1) / 2 - linha) * alturaCelula) * 100) / 100,
+          largura: Math.round(larguraCelula * 100) / 100,
+          altura: Math.round(alturaCelula * 100) / 100,
+          racio: Math.round(racio * 1000) / 1000,
+          distancia: Math.round(dist * 100) / 100
+        });
+      }
+    }
+    var cabeca = celulas[0];
+    return {
+      ligada: true,
+      racio: cabeca.racio, distancia: cabeca.distancia,
+      altura: 0, lateral: cabeca.lateral, shiftV: 0, shiftH: 0,
+      formato: Math.round((larguraCelula / alturaCelula) * 1000) / 1000,
+      panoX: 0, panoDz: 0,
+      maquinas: celulas.slice(1),
+      curva: null, retro: false
+    };
+  }
 
   function calcProjeto() {
     var nome = document.getElementById("proj-nome").value.trim() || "Projeto sem nome";
@@ -7040,6 +7149,18 @@
         ratioLine +
         "Lentes compatíveis a essa distância" + (isBlend ? " (por projetor)" : "") + ": " + (matches.length ? matches.map(function (l) { return l.marca + " " + l.modelo; }).join(", ") + (matches.length > 1 ? " — melhor: " + matches[0].marca + " " + matches[0].modelo : "") : "nenhuma na base") + "\n" +
         "Luminosidade útil: " + fmtInt(lumensTotal80) + " lm  —  " + fmtInt(lux) + " lux no ecrã";
+
+      // O RETRATO DESTE ECRÃ, para poder ser guardado ao lado dos outros.
+      // Refeito a cada conta: guardar é copiar isto, não voltar a calcular.
+      projEcraVivo = {
+        // "Blend 1x1" não é um blend: é uma máquina só. Dizer o contrário na
+        // ficha técnica mandava alguém levar equipamento a mais para a obra.
+        rotulo: ((isBlend && nh * nv > 1) ? "Blend " + nh + "x" + nv : "Projetor único") +
+                " · " + fmt(w, 2) + " x " + fmt(h, 2) + " m · " + fmt(dist, 2) + " m",
+        resumo: projSumText,
+        campos: retratoDosCamposDoEcra(),
+        carga: cargaDoEcraDoProjeto(w, h, dist, isBlend, nh, nv, widthPerProj, overlapM)
+      };
       }
     }
 
@@ -7200,7 +7321,7 @@
     // O relatório guarda-se em duas metades: esta, que sai dos campos da aba
     // Projeto, e a dos itens marcados noutras calculadoras, que o
     // renderProjectItems() acrescenta a seguir. Ver escreverRelatorioDoProjeto().
-    projSumBase = mainSumText +
+    projSumBase = mainSumText + textoDosEcrasGuardados() +
       "\n\nProcessamento (" + refresh + "Hz, " + colorDepth + "-bit):\n" +
       canvasLabel + ": " + fmtInt(canvasPixels) + " px\n" +
       dsmLine +
@@ -7210,7 +7331,122 @@
       procSumText;
 
     renderProjectItems();
+    renderEcrasGuardados();
   }
+
+  /**
+   * OS ECRÃS GUARDADOS, no relatório.
+   *
+   * A ficha técnica de um evento com três telas tem de dizer as três. Cada uma
+   * entra com o resumo que esta aba já sabia escrever para uma — o mesmo
+   * texto, nem mais curto nem inventado.
+   */
+  function textoDosEcrasGuardados() {
+    if (!projEcrasGuardados.length) return "";
+    return "\n\n— MAIS ECRÃS DE PROJEÇÃO (" + projEcrasGuardados.length + ") —\n" +
+      projEcrasGuardados.map(function (e, i) {
+        return "\n[Ecrã " + (i + 2) + "] " + e.rotulo + "\n" + (e.resumo || "(por preencher)");
+      }).join("\n");
+  }
+
+  /** A lista dos ecrãs guardados, com o que se pode fazer a cada um. */
+  function renderEcrasGuardados() {
+    var lista = document.getElementById("proj-ecras-lista");
+    if (!lista) return;
+    if (!projEcrasGuardados.length) { lista.innerHTML = ""; return; }
+    lista.innerHTML = "";
+    projEcrasGuardados.forEach(function (e, i) {
+      var linha = document.createElement("div");
+      linha.className = "hint";
+      linha.style.display = "flex";
+      linha.style.alignItems = "center";
+      linha.style.gap = "8px";
+      linha.style.marginTop = "4px";
+      var texto = document.createElement("span");
+      texto.style.flex = "1";
+      texto.innerHTML = "<strong>Ecrã " + (i + 2) + "</strong> · " + e.rotulo;
+      linha.appendChild(texto);
+      var editar = document.createElement("button");
+      editar.type = "button";
+      editar.className = "btn ghost";
+      editar.textContent = "editar";
+      editar.title = "Trocar este ecrã com o que está nos campos";
+      editar.addEventListener("click", function () { trocarEcraComOVivo(i); });
+      linha.appendChild(editar);
+      var remover = document.createElement("button");
+      remover.type = "button";
+      remover.className = "btn ghost";
+      remover.textContent = "remover";
+      remover.addEventListener("click", function () {
+        projEcrasGuardados.splice(i, 1);
+        calcProjeto();
+        guardarEcrasParaPreview();
+        showToast("Ecrã removido do projeto.");
+      });
+      linha.appendChild(remover);
+      lista.appendChild(linha);
+    });
+  }
+
+  /**
+   * Guarda o ecrã que está nos campos e deixa-os livres para o seguinte.
+   *
+   * Não limpa os campos: o rácio, a distância e o modelo costumam repetir-se
+   * de uma tela para a outra numa mesma sala, e apagá-los era dar trabalho a
+   * quem está a somar ecrãs. O que muda é que o que lá está deixa de ser o
+   * único -- passa a ser o PRÓXIMO.
+   */
+  function guardarEcraEComecarOutro() {
+    if (!projEcraVivo || !projEcraVivo.carga) {
+      showToast("Ainda não há ecrã de projeção calculado para guardar — preenche o tamanho e a distância.");
+      return;
+    }
+    projEcrasGuardados.push(JSON.parse(JSON.stringify(projEcraVivo)));
+    calcProjeto();
+    guardarEcrasParaPreview();
+    showToast("Ecrã guardado. Os campos ficam para o próximo — o relatório e o 3D levam os dois.");
+  }
+
+  /**
+   * TROCA um ecrã guardado com o que está nos campos.
+   *
+   * Troca e não "carrega por cima": carregar obrigava a decidir o que fazer
+   * com o que lá estava, e a resposta honesta é que não se deita fora o
+   * trabalho de ninguém. É a mesma escolha do lado do Preview.
+   */
+  function trocarEcraComOVivo(i) {
+    var guardado = projEcrasGuardados[i];
+    if (!guardado) return;
+    if (projEcraVivo && projEcraVivo.carga) {
+      projEcrasGuardados[i] = JSON.parse(JSON.stringify(projEcraVivo));
+    } else {
+      projEcrasGuardados.splice(i, 1);
+    }
+    reporCamposDoEcra(guardado.campos);
+    guardarEcrasParaPreview();
+  }
+
+  /**
+   * Os ecrãs guardados viajam na ponte do projetor, ao lado da carga normal.
+   *
+   * O Preview lê-os para `ajustes.projecoesExtra` e desenha-os lado a lado.
+   * Reescreve-se a ponte que já lá está, para não haver duas versões da
+   * verdade -- uma com os ecrãs e outra sem.
+   */
+  function guardarEcrasParaPreview() {
+    if (typeof syncAutoLigada === "function" && !syncAutoLigada()) return;
+    try {
+      var bruto = localStorage.getItem("mikeapps-projetor-v1");
+      if (!bruto) return;
+      var carga = JSON.parse(bruto);
+      carga.projecoesExtra = projEcrasGuardados
+        .map(function (e) { return e.carga; })
+        .filter(Boolean);
+      localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga));
+    } catch (e) {}
+  }
+
+  document.getElementById("proj-guardar-ecra").addEventListener("click", guardarEcraEComecarOutro);
 
   document.querySelectorAll('.panel[data-mode="projeto"] input, .panel[data-mode="projeto"] select').forEach(function (el) {
     el.addEventListener("input", calcProjeto);
@@ -7768,6 +8004,12 @@
       // que esse browser não conhece -- e a lista caía em "Personalizado…"
       // calada, com a medida certa e o modelo perdido. São poucos e pequenos;
       // o ficheiro passa a bastar-se a si próprio.
+      // OS ECRÃS DE PROJEÇÃO GUARDADOS viajam com o projeto: um evento com
+      // três telas tem de reabrir com as três. Guarda-se o retrato inteiro de
+      // cada um (campos, resumo e carga para o 3D) -- reconstruí-lo a partir
+      // dos campos obrigava a refazer a conta de cada um ao abrir, e essa
+      // conta depende de catálogos que podem ter mudado entretanto.
+      ecrasProjecao: projEcrasGuardados,
       modelosMeus: window.meusModelos ? { tv: window.meusModelos.ler("tv") } : null
     };
   }
@@ -8281,7 +8523,12 @@
     projSwitcherListExpanded = false;
     projLedProcListExpanded = false;
 
+    // OS ECRÃS DE PROJEÇÃO GUARDADOS. Um projeto antigo não traz nenhum e
+    // fica com a lista vazia, que é como ele foi gravado.
+    projEcrasGuardados = Array.isArray(state.ecrasProjecao) ? state.ecrasProjecao : [];
+
     calcProjeto();
+    guardarEcrasParaPreview();
   }
 
   // Estado "em branco" — os mesmos valores por omissão com que a aba
@@ -8295,6 +8542,9 @@
       projModelName: null, blendMode: "single", blendRes: "1920x1080", blendW: "1920", blendH: "1080",
       projRatio: "16:9", sizeMode: "diag", projDiag: "120", projW: "2.66", projH: "1.49",
       projDist: "4.0", projTmin: "1.39", projTmax: "1.87",
+      // "Limpar projeto" limpa mesmo: os ecrãs guardados são trabalho deste
+      // projeto e não do seguinte.
+      ecrasProjecao: [],
       dsmCount: "0", dsmRes: "1920x1080", dsmW: "1920", dsmH: "1080",
       delayCount: "0", delayRes: "1920x1080", delayW: "1920", delayH: "1080",
       refresh: "60", colordepth: "8",
