@@ -554,6 +554,124 @@ conferir(/cruzadas/.test(terreno.cruzar) && /anulam/.test(terreno.cruzar),
   "e o cartão do cruzamento avisa que dois patches seguidos se anulam");
 conferir(terreno.comFonte, "os dois com fonte");
 
+console.log("\n== o débito vem das outras abas ==");
+
+// Pedido dele: *"vamos dar a capacidade de ter como entrada de necessidades do
+// resto dos cálculos existentes na calculadora"*. O débito de uma tirada não se
+// adivinha — está calculado nas abas ao lado, e reescrevê-lo à mão é a maneira
+// mais rápida de os dois números discordarem.
+const aba = (m) => pagina.evaluate((x) => {
+  const t = document.querySelector('.tabs .tab[data-mode="' + x + '"]');
+  if (t) t.click();
+}, m);
+const põeCampo = (id, v) => pagina.evaluate((a) => {
+  const e = document.getElementById(a[0]);
+  if (!e) return;
+  e.value = String(a[1]);
+  e.dispatchEvent(new Event("input", { bubbles: true }));
+  e.dispatchEvent(new Event("change", { bubbles: true }));
+}, [id, v]);
+const lerPrecisa = () => pagina.evaluate(() => {
+  const wrap = document.getElementById("fib-precisa-wrap");
+  return {
+    visivel: !!(wrap && wrap.style.display !== "none"),
+    linhas: Array.from(document.querySelectorAll("#fib-precisa .lm-item"))
+      .map((i) => i.textContent.replace(/\s+/g, " ").trim()),
+    nota: (document.getElementById("fib-precisa-nota") || {}).textContent || "",
+    campo: (document.getElementById("fib-gbps") || {}).value
+  };
+});
+
+// A ABA SINAL E A DA FIBRA TÊM DE DIZER O MESMO NÚMERO. É por isso que a conta
+// passou a viver numa função só (debitoGbps): duas cópias da mesma linha
+// acabam sempre a discordar no dia em que uma delas mudar.
+await aba("sinal");
+await pagina.waitForTimeout(600);
+await põeCampo("sg-h", 3840); await põeCampo("sg-v", 2160); await põeCampo("sg-fps", 60);
+await pagina.evaluate(() => {
+  const e = document.getElementById("sg-bits");
+  e.value = "10"; e.dispatchEvent(new Event("change", { bubbles: true }));
+});
+await pagina.waitForTimeout(800);
+const daAbaSinal = await pagina.evaluate(() =>
+  document.getElementById("sg-out-datarate").textContent.replace(/\s+/g, ""));
+await aba("fibra");
+await pagina.waitForTimeout(900);
+const vindo = await lerPrecisa();
+conferir(vindo.visivel && vindo.linhas.length > 0,
+  "a aba da Fibra mostra o que as outras já pedem (" + vindo.linhas.length + " origens)");
+const linhaSinal = vindo.linhas.find((l) => /Sinal & Data Rate/.test(l)) || "";
+conferir(/14,93 Gbps/.test(linhaSinal),
+  "e a linha do Sinal diz o MESMO que a aba Sinal (" + daAbaSinal + ")");
+conferir(/10-bit/.test(linhaSinal) && /4:4:4/.test(linhaSinal) && /60 Hz/.test(linhaSinal),
+  "com os pressupostos à vista — um débito sem eles não se confere, e este decide compras");
+
+// A STALENESS, que foi o primeiro defeito medido: mudar a profundidade de cor
+// na aba Sinal e vir aqui deixava a linha a dizer 8-bit e 11,94 Gbps enquanto a
+// aba ao lado já dizia 14,93. Um número velho com ar de novo é pior do que
+// número nenhum.
+await aba("sinal");
+await pagina.waitForTimeout(500);
+await pagina.evaluate(() => {
+  const e = document.getElementById("sg-bits");
+  e.value = "8"; e.dispatchEvent(new Event("change", { bubbles: true }));
+});
+await pagina.waitForTimeout(700);
+await aba("fibra");
+await pagina.waitForTimeout(900);
+const refeito = await lerPrecisa();
+conferir(/11,94 Gbps/.test(refeito.linhas.find((l) => /Sinal & Data Rate/.test(l)) || ""),
+  "mudar a origem e voltar aqui mostra o número de AGORA, não o da última conta");
+
+// OS BOTÕES. Sem caixas de marcar e sem estado escondido: "usar" põe, "+ somar"
+// acrescenta, e vê-se o número a crescer no campo.
+await pagina.evaluate(async () => {
+  const b = Array.from(document.querySelectorAll("#fib-precisa button"))
+    .find((x) => x.textContent === "usar");
+  if (b) b.click();
+  await new Promise((r) => setTimeout(r, 800));
+});
+const depoisDeUsar = Number((await lerPrecisa()).campo);
+conferir(Math.abs(depoisDeUsar - 11.94) < 0.02,
+  '"usar" põe aquele débito no campo (' + depoisDeUsar + " Gbps)");
+await pagina.evaluate(async () => {
+  const b = Array.from(document.querySelectorAll("#fib-precisa button"))
+    .find((x) => /somar/.test(x.textContent));
+  if (b) b.click();
+  await new Promise((r) => setTimeout(r, 800));
+});
+const depoisDeSomar = Number((await lerPrecisa()).campo);
+conferir(Math.abs(depoisDeSomar - 2 * depoisDeUsar) < 0.02,
+  '"+ somar" acrescenta, para uma tirada que leva mais do que um sinal (' +
+  depoisDeSomar + " Gbps)");
+
+// O QUE NÃO EXISTE NÃO DÁ LINHA. Uma aba por preencher não pode aparecer aqui
+// com um número por omissão que ninguém escolheu.
+conferir(!refeito.linhas.some((l) => /Ecrã Complexo/.test(l)),
+  "sem zonas no Ecrã Complexo, não há linha do Ecrã Complexo");
+
+// E A REPETIÇÃO, DITA ANTES DE ACONTECER: a linha do Projeto já é a soma do que
+// lá está, por isso somá-la com o Ecrã Complexo conta a mesma coisa duas vezes.
+await aba("projeto");
+await pagina.waitForTimeout(700);
+await pagina.evaluate(() => {
+  const b = document.querySelector('#proj-type-seg .seg-btn[data-projtype="projecao"]');
+  if (b) b.click();
+});
+await pagina.waitForTimeout(900);
+await aba("fibra");
+await pagina.waitForTimeout(900);
+const comProjeto = await lerPrecisa();
+conferir(comProjeto.linhas.some((l) => /^Projeto /.test(l)),
+  "a aba Projeto dá a sua linha, que é a soma do que lá está");
+// O MEDIA SERVER é, muitas vezes, quem gera mesmo o sinal que vai na fibra —
+// do servidor para a sala. Frequência própria; profundidade e amostragem, do
+// projeto, porque essa aba não as tem e inventá-las era pior.
+conferir(comProjeto.linhas.some((l) => /Media Server/.test(l) && /tela de/.test(l)),
+  "e o Media Server dá a tela que entrega, que é o sinal que costuma viajar");
+conferir(/duas vezes/.test(comProjeto.nota),
+  "e a app avisa da repetição ANTES de alguém somar a mesma coisa duas vezes");
+
 console.log("\n== sem erros na consola ==");
 conferir(erros.length === 0, erros.length ? erros.join(" | ") : "nenhum");
 

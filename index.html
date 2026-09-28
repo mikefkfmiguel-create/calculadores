@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.35</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.36</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2653,6 +2653,18 @@
       <details class="card sinal-block" open>
         <summary>O que tenho de levar, e até onde</summary>
         <div class="sinal-block-body">
+          <!-- O QUE O RESTO DA CALCULADORA JÁ PEDE.
+               Pedido dele: *"vamos dar a capacidade de ter como entrada de
+               necessidades do resto dos cálculos existentes na calculadora"*.
+               O débito já está calculado noutras abas — escrevê-lo outra vez à
+               mão é a maneira mais rápida de as duas discordarem. Cada linha
+               traz de ONDE vem e com que pressupostos; ver
+               necessidadesDoProjeto(). -->
+          <div class="field" id="fib-precisa-wrap" style="display:none;">
+            <label>O que este projeto já pede</label>
+            <div id="fib-precisa"></div>
+            <div class="hint" id="fib-precisa-nota"></div>
+          </div>
           <div class="field">
             <label for="fib-preset">Débito</label>
             <select id="fib-preset" class="plain"></select>
@@ -3530,6 +3542,14 @@
       if (typeof porExemploNaAba === "function" &&
           ABAS_COM_EXEMPLO.indexOf(tab.dataset.mode) >= 0) porExemploNaAba(tab.dataset.mode);
       if (typeof usoAbaAberta === "function") usoAbaAberta(tab.dataset.mode);
+      // A ABA DA FIBRA LÊ AS OUTRAS, por isso refaz-se ao entrar nela.
+      //
+      // Sem isto mostrava o que as outras abas diziam da última vez que ESTA
+      // contou. Medido: mudar a profundidade de cor na aba Sinal para 10-bit e
+      // vir aqui deixava a linha a dizer 8-bit e 11,94 Gbps, enquanto a aba ao
+      // lado já dizia 14,93. Um número velho com ar de novo é pior do que
+      // número nenhum -- e este decide compras.
+      if (tab.dataset.mode === "fibra" && typeof calcFibra === "function") calcFibra();
     });
   });
   var tabsCurrentEl = document.getElementById("tabs-current");
@@ -8826,12 +8846,29 @@
     return null;
   }
 
+  /**
+   * O DÉBITO DE UM SINAL, EM Gbps. A conta, num sítio só.
+   *
+   * Estava escrita dentro do calcSinal() e era só dele. A aba da Fibra passa a
+   * precisar dela para dizer quanto é que o projeto já pede (ver
+   * necessidadesDoProjeto()), e duas cópias desta linha acabariam a discordar
+   * no dia em que uma mudasse — que é exactamente o defeito que esta app
+   * passa a vida a corrigir.
+   *
+   * `amostras` é o que a aba Sinal chama samplesPerPx: 3 em RGB/4:4:4, 2 em
+   * 4:2:2, 1,5 em 4:2:0.
+   */
+  function debitoGbps(totalPx, fps, bits, amostras) {
+    if (!(totalPx > 0) || !(fps > 0) || !(bits > 0) || !(amostras > 0)) return null;
+    return (bits * amostras * fps * totalPx) / 1e9;
+  }
+
   function calcSinal() {
     var h = val("sg-h"), v = val("sg-v"), fps = val("sg-fps");
     var bits = parseInt(document.getElementById("sg-bits").value, 10);
     var samplesPerPx = parseFloat(document.getElementById("sg-chroma").value);
     var totalPx = h * v;
-    var dataRateGbps = (bits * samplesPerPx * fps * totalPx) / 1e9;
+    var dataRateGbps = debitoGbps(totalPx, fps, bits, samplesPerPx);
     var clockMHz = cvtRb2ClockMHz(h, v, fps);
 
     document.getElementById("sg-out-px").innerHTML = fmtInt(totalPx) + "<small>px</small>";
@@ -9601,7 +9638,180 @@
     return fora;
   }
 
+  /**
+   * O QUE O RESTO DA CALCULADORA JÁ PEDE, em Gbps.
+   *
+   * Pedido dele: *"vamos dar a capacidade de ter como entrada de necessidades
+   * do resto dos cálculos existentes na calculadora"*. O débito de uma tirada
+   * de fibra não se adivinha — está calculado nas abas ao lado, e reescrevê-lo
+   * à mão é a maneira mais rápida de os dois números discordarem.
+   *
+   * REGRAS, as mesmas do resto desta aba:
+   *
+   *   · só aparece o que EXISTE. Uma aba por preencher não dá linha nenhuma,
+   *     em vez de dar uma linha com um número por omissão que ninguém escolheu;
+   *   · a conta é a do `debitoGbps()`, a MESMA que a aba Sinal usa. Não há uma
+   *     segunda fórmula aqui;
+   *   · cada linha diz os pressupostos com que foi feita (frequência,
+   *     profundidade de cor, amostragem) e de onde eles vêm. Um débito sem os
+   *     pressupostos à vista não se pode conferir, e este é um número que
+   *     decide compras.
+   *
+   * A amostragem de cor só existe na aba Sinal (o Projeto não a tem), por isso
+   * é de lá que vem — e diz-se. Por omissão é 4:4:4, que é a que mais pede: um
+   * engano nesta é sempre para o lado seguro.
+   */
+  function necessidadesDoProjeto() {
+    var linhas = [];
+    var fpsProjeto = val("proj-refresh");
+    var bitsProjeto = parseInt(fieldVal("proj-colordepth"), 10);
+    var amostras = parseFloat(fieldVal("sg-chroma"));
+    var rotuloAmostras = (CHROMA_LABELS && CHROMA_LABELS[fieldVal("sg-chroma")]) || "RGB/YCbCr 4:4:4";
+    var comoProjeto = function (px) { return debitoGbps(px, fpsProjeto, bitsProjeto, amostras); };
+    var pressupostosDoProjeto = fmtInt(fpsProjeto) + " Hz, " + bitsProjeto + "-bit, " +
+      rotuloAmostras + " (da aba Projeto; a amostragem, da Sinal)";
+
+    // 1. A ABA SINAL, que tem tudo o que precisa: resolução, frequência,
+    //    profundidade e amostragem, todas escolhidas ali.
+    var sh = val("sg-h"), sv = val("sg-v"), sfps = val("sg-fps");
+    var sbits = parseInt(fieldVal("sg-bits"), 10);
+    var gSinal = debitoGbps(sh * sv, sfps, sbits, amostras);
+    if (gSinal) {
+      linhas.push({ chave: "sinal", origem: "Sinal & Data Rate",
+        descricao: fmtInt(sh) + "x" + fmtInt(sv) + " px",
+        pressupostos: fmtInt(sfps) + " Hz, " + sbits + "-bit, " + rotuloAmostras + " (tudo desta aba)",
+        gbps: gSinal, ehTotal: false });
+    }
+
+    // 2. O PROJETO, que é a soma do que lá está — ecrã LED, blend, ou os dois.
+    //    O `projLastRes` traz o rótulo a dizer qual, e é ele que se mostra.
+    if (typeof projLastRes === "object" && projLastRes && projLastRes.x > 0 && projLastRes.y > 0) {
+      var gProjeto = comoProjeto(projLastRes.x * projLastRes.y);
+      if (gProjeto) {
+        linhas.push({ chave: "projeto", origem: "Projeto",
+          descricao: (projLastRes.label || "total do projeto").replace(/^Projeto — /, "") + " · " +
+            fmtInt(projLastRes.x) + "x" + fmtInt(projLastRes.y) + " px",
+          pressupostos: pressupostosDoProjeto,
+          gbps: gProjeto, ehTotal: true });
+      }
+    }
+
+    // 3. O ECRÃ COMPLEXO, pelos píxeis somados das zonas.
+    if (typeof lzLastTotals === "object" && lzLastTotals && lzLastTotals.totalPixels > 0) {
+      var gZonas = comoProjeto(lzLastTotals.totalPixels);
+      if (gZonas) {
+        var nz = (lzLastTotals.zones || []).length;
+        linhas.push({ chave: "zonas", origem: "Ecrã Complexo",
+          descricao: nz + (nz === 1 ? " zona" : " zonas") + " · " + fmtInt(lzLastTotals.totalPixels) + " px",
+          pressupostos: pressupostosDoProjeto,
+          gbps: gZonas, ehTotal: false });
+      }
+    }
+
+    // 4. O MEDIA SERVER, pela tela que ele entrega -- que é, muitas vezes, o
+    //    sinal que VAI mesmo na fibra, do servidor para a sala. Frequência
+    //    própria (a aba tem-na); profundidade e amostragem, do projeto.
+    var mh = val("ms-h"), mv = val("ms-v"), mfps = val("ms-fps");
+    var gMedia = debitoGbps(mh * mv, mfps, bitsProjeto, amostras);
+    if (gMedia) {
+      linhas.push({ chave: "mediaserver", origem: "Media Server",
+        descricao: "tela de " + fmtInt(mh) + "x" + fmtInt(mv) + " px",
+        pressupostos: fmtInt(mfps) + " Hz (desta aba), " + bitsProjeto + "-bit, " +
+          rotuloAmostras + " (do Projeto e da Sinal)",
+        gbps: gMedia, ehTotal: false });
+    }
+
+    // 5. O BLENDING, pela tela combinada.
+    if (typeof bUltimoBlend === "object" && bUltimoBlend &&
+        bUltimoBlend.totalPxH > 0 && bUltimoBlend.totalPxV > 0) {
+      var gBlend = comoProjeto(bUltimoBlend.totalPxH * bUltimoBlend.totalPxV);
+      if (gBlend) {
+        var nProj = (bUltimoBlend.nh || 1) * (bUltimoBlend.nv || 1);
+        linhas.push({ chave: "blend", origem: "Blending Multi-Projetor",
+          descricao: nProj + (nProj === 1 ? " projetor" : " projetores") + " · " +
+            fmtInt(bUltimoBlend.totalPxH) + "x" + fmtInt(bUltimoBlend.totalPxV) + " px",
+          pressupostos: pressupostosDoProjeto,
+          gbps: gBlend, ehTotal: false });
+      }
+    }
+    return linhas;
+  }
+
+  /**
+   * Escreve essa lista, com um botão para usar e outro para somar.
+   *
+   * SEM CAIXAS DE MARCAR e sem estado escondido: "usar" põe aquele número no
+   * campo, "somar" acrescenta-o ao que lá está. Uma tirada que leva três
+   * sinais faz-se a somar três vezes, e vê-se o número a crescer — em vez de
+   * uma soma que a app faz por trás e ninguém confere.
+   *
+   * O aviso da repetição fica escrito por baixo, porque a linha do Projeto JÁ
+   * É a soma do que lá está: somá-la com a do Ecrã Complexo conta a mesma coisa
+   * duas vezes, e isso tem de se ver antes de acontecer.
+   */
+  function renderNecessidadesDaFibra() {
+    var caixa = document.getElementById("fib-precisa");
+    var wrap = document.getElementById("fib-precisa-wrap");
+    var nota = document.getElementById("fib-precisa-nota");
+    if (!caixa || !wrap) return;
+    var linhas = necessidadesDoProjeto();
+    if (!linhas.length) { wrap.style.display = "none"; caixa.innerHTML = ""; return; }
+    wrap.style.display = "";
+    caixa.innerHTML = "";
+    linhas.forEach(function (l) {
+      var item = document.createElement("div");
+      item.className = "lm-item";
+      var esq = document.createElement("span");
+      esq.innerHTML = "<strong>" + l.origem + "</strong> <span class=\"lm-model\">" +
+        l.descricao + "</span><br><span class=\"hint\" style=\"margin:0\">" +
+        l.pressupostos + "</span>";
+      var dir = document.createElement("span");
+      dir.style.whiteSpace = "nowrap";
+      var valor = document.createElement("strong");
+      valor.textContent = fmt(l.gbps, 2) + " Gbps";
+      dir.appendChild(valor);
+      var usar = document.createElement("button");
+      usar.type = "button";
+      usar.className = "copy";
+      usar.style.marginLeft = "8px";
+      usar.textContent = "usar";
+      usar.title = "Põe este débito no campo, por cima do que lá está";
+      usar.addEventListener("click", function () { porDebitoDaFibra(l.gbps, false); });
+      var somar = document.createElement("button");
+      somar.type = "button";
+      somar.className = "copy";
+      somar.style.marginLeft = "4px";
+      somar.textContent = "+ somar";
+      somar.title = "Acrescenta este débito ao que já está no campo — para uma tirada que leva mais do que um sinal";
+      somar.addEventListener("click", function () { porDebitoDaFibra(l.gbps, true); });
+      dir.appendChild(usar); dir.appendChild(somar);
+      item.appendChild(esq); item.appendChild(dir);
+      caixa.appendChild(item);
+    });
+    if (nota) {
+      nota.textContent = linhas.some(function (l) { return l.ehTotal; })
+        ? "A linha do Projeto já é a SOMA do que lá está — somá-la com o Ecrã Complexo ou o Blending conta a mesma coisa duas vezes. Estes são débitos de vídeo sem compressão: o que passa num cabo é o que aqui está, mais o que a rede lhe acrescentar."
+        : "Estes são débitos de vídeo sem compressão: o que passa num cabo é o que aqui está, mais o que a rede lhe acrescentar.";
+    }
+  }
+
+  /** Põe (ou soma) um débito no campo da fibra e refaz a conta. */
+  function porDebitoDaFibra(gbps, somar) {
+    var campo = document.getElementById("fib-gbps");
+    if (!campo || !(gbps > 0)) return;
+    var atual = somar ? (val("fib-gbps") || 0) : 0;
+    campo.value = String(Math.round((atual + gbps) * 1000) / 1000);
+    campo.dispatchEvent(new Event("input", { bubbles: true }));
+    campo.dispatchEvent(new Event("change", { bubbles: true }));
+    showToast(somar
+      ? "Somado: o campo passa a " + fmt(atual + gbps, 2) + " Gbps."
+      : "Débito posto em " + fmt(gbps, 2) + " Gbps.");
+  }
+
   function calcFibra() {
+    // O que as outras abas já pedem, refeito a cada conta desta: mexer numa
+    // delas e vir aqui tem de mostrar o número de agora, não o de antes.
+    renderNecessidadesDaFibra();
     var lista = document.getElementById("fib-lista");
     if (!lista) return;
     if (!FIBRA_DATA) { lista.innerHTML = '<div class="lm-item"><span>A carregar a tabela das óticas…</span></div>'; return; }
