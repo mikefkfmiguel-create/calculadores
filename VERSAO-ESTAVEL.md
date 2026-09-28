@@ -1,14 +1,13 @@
 # Versão estável
 
-**Calculadores v4.30** · commit `490a73d` · dada como estável a 27 de setembro de 2026.
+**Calculadores v4.31** · commit `69195ea` · dada como estável a 28 de setembro de 2026.
 
 > *"publica e promove as duas"*.
 
-Par: **Preview 3D v3.93** (`07872e7` no repositório `preview`). As duas apps
+Par: **Preview 3D v3.94** (`5d80ef8` no repositório `preview`). As duas apps
 falam uma com a outra — dar uma como estável sem a outra não quer dizer nada,
-e por isso o par escreve-se aqui e é promovido ao mesmo tempo. Desta vez só
-um dos lados andou: o Preview está na mesma v3.93 da promoção anterior, e é
-promovido de novo por ser o par testado com esta.
+e por isso o par escreve-se aqui e é promovido ao mesmo tempo. Desta vez andaram os dois, e um
+não funciona sem o outro: o campo da altura é escrito aqui e lido lá.
 
 ## O que "estável" quer dizer aqui
 
@@ -36,7 +35,7 @@ trechos, em `traducao-por-fazer.json`).
 No **Worker**: **41 testes verdes** (`worker/testes/`), incluindo os do
 `/modelo`, a rota de procura na web que entrou na v4.18.
 
-Do outro lado, no Preview v3.93, **23 verificações verdes**.
+Do outro lado, no Preview v3.94, **24 verificações verdes**.
 
 Correram no commit que esta página nomeia, não no ramo antes de fundir.
 
@@ -102,19 +101,31 @@ Extron, Gefen, Lightware) e LED (NovaStar, PixelHue). Um extensor não se
 liga a um switch e um SFP solto não estende vídeo — não eram comparáveis, e
 a lista dava a entender que eram.
 
-Do outro lado, o Preview não andou neste período: está na v3.93, que foi a
-última coisa que ele deu como boa.
+- **v4.31** — **a altura do ecrã ao chão passa a ser dita aqui**. Reparo
+  dele, com uma foto do 3D: *"está a nascer assim quando vem da calculadora,
+  e nela não tenho onde dizer a que altura do chão está o ecrã"*. E não
+  tinha: este alçado mede as zonas umas às outras e mais nada — não tem
+  chão. Sem esse número, o Preview usava o que tinha à mão (altura do palco
+  + ecrã acima do palco = 1 m), que não é escolha de ninguém. Campo novo nas
+  DUAS janelas, porque faltar numa era corrigir metade.
+
+Do outro lado, o Preview foi à v3.94 no mesmo dia, e é o par obrigatório
+desta: é ele que lê o campo. Levou mais três correcções da mesma manhã — a
+projeção que só apagava um projetor de cada vez, o material dos Calculadores
+que ficava à espera no depósito em vez de entrar na sala, e o palco, que não
+sabia fazer só a frente redonda e desenhava o "círculo" 6,1% mais gordo nas
+diagonais do que um círculo.
 
 ## Como se volta a este ponto
 
 ```
-git checkout 490a73d          # ver como estava
+git checkout 69195ea          # ver como estava
 git revert <commit>           # desfazer uma coisa só, sem perder o resto
 ```
 
-A tag `v4.30` **não** está no GitHub: as credenciais da sessão que escreveu
+A tag `v4.31` **não** está no GitHub: as credenciais da sessão que escreveu
 isto deixam empurrar ramos, não tags (HTTP 403). Se ela fizer falta, cria-se
-na página de *releases* do repositório, apontada a `490a73d`.
+na página de *releases* do repositório, apontada a `69195ea`.
 
 ## Quando isto deixa de valer
 
