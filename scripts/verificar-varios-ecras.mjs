@@ -307,6 +307,60 @@ await pagina.waitForTimeout(900);
 await seg("proj-blendmode-seg", "blendmode", "single");
 await pagina.waitForTimeout(600);
 
+console.log("\n== acrescentar blends DE DENTRO da aba do Blending ==");
+
+// Pedido dele: *"ainda desmancha o outro — o adicionar deve ser dentro da
+// aba de blend e não no projeto"*.
+//
+// E desmanchava. A carga do Blending é sempre a MÁQUINA VIVA, e cada blend
+// novo chegava por cima do anterior: a única forma de ficar com dois era ir
+// ao 3D repor o que tinha sido substituído. Pior ainda, essa escrita -- que
+// corre a cada tecla -- mandava uma carga SEM `projecoesExtra` e levava à
+// frente os ecrãs que a aba Projeto lá tinha posto.
+//
+// Agora as duas abas escrevem a lista inteira, e o blend que já está bom
+// arruma-se onde ele se monta.
+await abrirAba("blend");
+await pagina.evaluate(async () => {
+  const a = document.getElementById("b-addproject");
+  if (a && !a.checked) a.click();
+  await new Promise((r) => setTimeout(r, 900));
+});
+await põe("b-w", 30); await põe("b-h", 8); await põe("b-knowndist", 17.5);
+await pagina.waitForTimeout(1400);
+await pagina.evaluate(async () => {
+  document.getElementById("b-adicionar-ecra").click();
+  await new Promise((r) => setTimeout(r, 900));
+});
+const umBlend = await pagina.evaluate(() => {
+  const j = JSON.parse(localStorage.getItem("mikeapps-projetor-v1") || "{}");
+  return { naPonte: (j.projecoesExtra || []).length,
+           naLista: document.querySelectorAll("#b-ecras-lista button").length,
+           extras: (j.projecoesExtra || []).map((e) => ({ dist: e.distancia, maq: (e.maquinas || []).length + 1 })) };
+});
+conferir(umBlend.naLista === 1, "o botão vive na aba do Blending e acrescenta o blend (" + umBlend.naLista + ")");
+conferir(umBlend.naPonte >= 1, "e ele viaja na ponte do projetor (" + umBlend.naPonte + ")");
+
+// O SEGUNDO: era aqui que o primeiro se desmanchava.
+await põe("b-w", 12); await põe("b-h", 6.75); await põe("b-knowndist", 9);
+await pagina.waitForTimeout(1600);
+const dois = await pagina.evaluate(() => {
+  const j = JSON.parse(localStorage.getItem("mikeapps-projetor-v1") || "{}");
+  return { naPonte: (j.projecoesExtra || []).length,
+           viva: (j.projetores || []).length,
+           // O BLEND É O ÚLTIMO DA LISTA: as secções acima já lá puseram
+           // ecrãs da aba Projeto, e os do Blending entram a seguir a esses.
+           // (O teste começou por olhar para o índice 0 e mediu um ecrã que
+           // não era este.)
+           dist: ((j.projecoesExtra || []).slice(-1)[0] || {}).distancia };
+});
+conferir(dois.naPonte === umBlend.naPonte,
+  "O PRIMEIRO NÃO SE DESMANCHA quando o segundo entra nos campos (" +
+  umBlend.naPonte + " → " + dois.naPonte + ")");
+conferir(Number(dois.dist) === 17.5,
+  "e continua a ser ELE, com a distância dele (" + dois.dist + " m)");
+conferir(dois.viva > 0, "com o blend novo vivo nos campos (" + dois.viva + " máquinas)");
+
 console.log("\n== o que o Blending manda para o projeto ==");
 
 // Reparo dele: *"a distância de projeção não está a viajar da aba de blend para
