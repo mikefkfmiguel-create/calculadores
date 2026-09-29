@@ -220,6 +220,52 @@ conferir(reaberto.linhas.length === 2,
 conferir(reaberto.naPonte === 2,
   "e volta a mandá-los para o 3D sem ninguém ter de carregar em mais nada (" + reaberto.naPonte + ")");
 
+console.log("\n== editar um ecrã não baralha a ordem dos outros ==");
+
+// Pedido dele: *"devia poder adicionar mais que um ecrã de projeção sem ser
+// com o guardar, que parece estar a dar asneira"*.
+//
+// A asneira era esta: "editar" TROCAVA o ecrã que estava nos campos com o que
+// se ia editar, e os dois mudavam de lugar na lista. Com três ecrãs, cada
+// clique baralhava a ordem, e quem estava a somar telas via-as a saltar.
+//
+// Agora cada um tem o seu lugar: o que sai dos campos volta ao lugar dele, e
+// o escolhido vem para os campos. Nada troca de posição.
+await porEcra(20, 11.25, 24);
+await guardar();                       // Ecrã 4
+await pagina.waitForTimeout(700);
+const ordemAntes = await pagina.evaluate(() =>
+  Array.from(document.querySelectorAll("#proj-ecras-lista span")).map((s) => s.textContent.trim()));
+
+await pagina.evaluate(async () => {
+  const b = Array.from(document.querySelectorAll("#proj-ecras-lista button"))
+    .filter((x) => x.textContent === "editar")[0];
+  if (b) b.click();
+  await new Promise((r) => setTimeout(r, 1200));
+});
+const ordemDepois = await pagina.evaluate(() =>
+  Array.from(document.querySelectorAll("#proj-ecras-lista span")).map((s) => s.textContent.trim()));
+
+// A lista pode CRESCER: quando os campos tinham um ecrã que ainda não estava
+// nela, editar outro tem de o arrumar, e arrumá-lo é acrescentá-lo. O que não
+// pode é perder-se nenhum nem trocarem de posição — foi o teste que começou
+// por medir a coisa errada aqui.
+conferir(ordemDepois.length >= ordemAntes.length,
+  "editar não perde ecrãs (" + ordemAntes.length + " → " + ordemDepois.length + ")");
+conferir(ordemAntes.every((x, i) => x.split("·")[1] === ordemDepois[i].split("·")[1]),
+  "E NENHUM DOS QUE LÁ ESTAVAM TROCA DE LUGAR — era isto que baralhava a lista a cada clique");
+conferir(/nos campos/.test(ordemDepois.join(" ")),
+  "e a lista diz qual deles está nos campos, para se saber onde se está a mexer");
+
+const depoisDeEditar = await pagina.evaluate(async () => {
+  document.getElementById("proj-guardar-ecra").click();
+  await new Promise((r) => setTimeout(r, 1100));
+  return document.querySelectorAll("#proj-ecras-lista button").length / 2;
+});
+conferir(depoisDeEditar === ordemDepois.length,
+  "e acrescentar a seguir a editar não duplica o que já lá estava (" +
+  depoisDeEditar + " ecrãs)");
+
 console.log("\n== um ecrã sem altura não inventa projetores ==");
 
 // Reparo dele: *"continua a fazer asneira"*, com a Altura do ecrã a 0.

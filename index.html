@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.39</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.40</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1864,7 +1864,7 @@
                anteriores deixam de se perder. O relatório sai com todos, e do
                outro lado o Preview desenha-os lado a lado (v4.00). -->
           <div class="field" id="proj-ecras-guardados-wrap" style="margin-top:4px">
-            <button type="button" class="btn ghost" id="proj-guardar-ecra">+ Guardar este ecrã e começar outro</button>
+            <button type="button" class="btn ghost" id="proj-guardar-ecra">+ Adicionar outro ecrã de projeção</button>
             <div class="hint">Fica na ficha técnica e vai para o 3D ao lado dos outros. Os campos ficam como estão, para o próximo ecrã.</div>
             <div id="proj-ecras-lista"></div>
           </div>
@@ -6663,6 +6663,12 @@
   // lado desde a v4.00 do Preview).
   var projEcraVivo = null;
   var projEcrasGuardados = [];
+  // QUAL DELES ESTÁ NOS CAMPOS. Um índice na lista, ou null quando o que lá
+  // está é um ecrã novo que ainda não entrou nela. Sem esta pergunta
+  // respondida, "editar" não tinha para onde devolver o ecrã que saía dos
+  // campos, e por isso TROCAVA-O com o que se ia editar -- os dois mudavam de
+  // lugar na lista a cada clique. Reparo dele: *"parece estar a dar asneira"*.
+  var projEcraAtual = null;
   var projLedFields = document.getElementById("proj-led-fields");
   var projProjecaoFields = document.getElementById("proj-projecao-fields");
   var projReportLed = document.getElementById("proj-report-led");
@@ -7442,14 +7448,17 @@
       linha.style.marginTop = "4px";
       var texto = document.createElement("span");
       texto.style.flex = "1";
-      texto.innerHTML = "<strong>Ecrã " + (i + 2) + "</strong> · " + e.rotulo;
+      // QUAL É QUE ESTÁ NOS CAMPOS, dito na lista. Sem isto, mexer nos
+      // números não dizia em qual dos ecrãs se estava a mexer.
+      texto.innerHTML = "<strong>Ecrã " + (i + 2) + "</strong> · " + e.rotulo +
+        (projEcraAtual === i ? " <em>(nos campos)</em>" : "");
       linha.appendChild(texto);
       var editar = document.createElement("button");
       editar.type = "button";
       editar.className = "btn ghost";
       editar.textContent = "editar";
-      editar.title = "Trocar este ecrã com o que está nos campos";
-      editar.addEventListener("click", function () { trocarEcraComOVivo(i); });
+      editar.title = "Trazer este ecrã para os campos, para lhe mexer nos números";
+      editar.addEventListener("click", function () { editarEcra(i); });
       linha.appendChild(editar);
       var remover = document.createElement("button");
       remover.type = "button";
@@ -7457,6 +7466,11 @@
       remover.textContent = "remover";
       remover.addEventListener("click", function () {
         projEcrasGuardados.splice(i, 1);
+        // O índice do que está nos campos anda com a lista: remover um ecrã
+        // ACIMA dele deixava-o a apontar para o vizinho, e a escrita seguinte
+        // ia parar ao ecrã errado.
+        if (projEcraAtual === i) projEcraAtual = null;
+        else if (projEcraAtual !== null && projEcraAtual > i) projEcraAtual -= 1;
         calcProjeto();
         guardarEcrasParaPreview();
         showToast("Ecrã removido do projeto.");
@@ -7474,34 +7488,71 @@
    * quem está a somar ecrãs. O que muda é que o que lá está deixa de ser o
    * único -- passa a ser o PRÓXIMO.
    */
-  function guardarEcraEComecarOutro() {
-    if (!projEcraVivo || !projEcraVivo.carga) {
-      showToast("Ainda não há ecrã de projeção calculado para guardar — preenche o tamanho e a distância.");
-      return;
+  /**
+   * ARRUMA O ECRÃ QUE ESTÁ NOS CAMPOS no lugar que é dele.
+   *
+   * Se veio da lista, volta ao mesmo índice; se é novo, entra no fim. Devolve
+   * o índice onde ficou, ou null se não havia ecrã nenhum para arrumar.
+   *
+   * É esta pergunta -- "de onde é que este veio?" -- que faz a diferença
+   * entre acrescentar um ecrã e trocar dois de sítio.
+   */
+  function arrumarEcraDosCampos() {
+    if (!projEcraVivo || !projEcraVivo.carga) return null;
+    var copia = JSON.parse(JSON.stringify(projEcraVivo));
+    if (projEcraAtual !== null && projEcrasGuardados[projEcraAtual]) {
+      projEcrasGuardados[projEcraAtual] = copia;
+      return projEcraAtual;
     }
-    projEcrasGuardados.push(JSON.parse(JSON.stringify(projEcraVivo)));
-    calcProjeto();
-    guardarEcrasParaPreview();
-    showToast("Ecrã guardado. Os campos ficam para o próximo — o relatório e o 3D levam os dois.");
+    projEcrasGuardados.push(copia);
+    return projEcrasGuardados.length - 1;
   }
 
   /**
-   * TROCA um ecrã guardado com o que está nos campos.
+   * ACRESCENTA OUTRO ECRÃ DE PROJEÇÃO ao projeto.
    *
-   * Troca e não "carrega por cima": carregar obrigava a decidir o que fazer
-   * com o que lá estava, e a resposta honesta é que não se deita fora o
-   * trabalho de ninguém. É a mesma escolha do lado do Preview.
+   * Pedido dele: *"devia poder adicionar mais que um ecrã de projeção sem ser
+   * com o guardar, que parece estar a dar asneira"*. E tinha razão sobre o
+   * nome: "guardar" fazia parecer que o ecrã ia para uma gaveta, quando o que
+   * acontece é que ele fica NO PROJETO e os campos passam a ser do seguinte.
+   * Acrescentar é a acção; arrumar o anterior é só a consequência.
+   *
+   * Não limpa os campos: o rácio, a distância e o modelo costumam repetir-se
+   * de uma tela para a outra na mesma sala, e apagá-los era dar trabalho a
+   * quem está a somar ecrãs.
    */
-  function trocarEcraComOVivo(i) {
-    var guardado = projEcrasGuardados[i];
-    if (!guardado) return;
-    if (projEcraVivo && projEcraVivo.carga) {
-      projEcrasGuardados[i] = JSON.parse(JSON.stringify(projEcraVivo));
-    } else {
-      projEcrasGuardados.splice(i, 1);
+  function adicionarOutroEcra() {
+    if (!projEcraVivo || !projEcraVivo.carga) {
+      showToast("Preenche primeiro o tamanho e a distância deste ecrã — depois acrescenta-se o seguinte.");
+      return;
     }
-    reporCamposDoEcra(guardado.campos);
+    var onde = arrumarEcraDosCampos();
+    // Os campos passam a ser de um ecrã NOVO, que ainda não está na lista.
+    projEcraAtual = null;
+    calcProjeto();
     guardarEcrasParaPreview();
+    showToast("Ecrã " + (onde + 2) + " no projeto. Os campos são agora do seguinte — o relatório e o 3D levam todos.");
+  }
+
+  /**
+   * ESCOLHE um ecrã da lista para mexer nele.
+   *
+   * Antes isto TROCAVA: o ecrã que estava nos campos ia ocupar o lugar do que
+   * se queria editar, e os dois mudavam de sítio na lista. Com dois ou três
+   * ecrãs, cada clique baralhava a ordem -- era a "asneira" que ele reportou.
+   *
+   * Agora cada um tem o seu lugar: o que sai dos campos volta ao lugar dele
+   * (ou entra no fim, se ainda não tinha nenhum), e o escolhido vem para os
+   * campos. Nada troca de posição, e nada se perde.
+   */
+  function editarEcra(i) {
+    var escolhido = projEcrasGuardados[i];
+    if (!escolhido) return;
+    arrumarEcraDosCampos();
+    projEcraAtual = i;
+    reporCamposDoEcra(escolhido.campos);
+    guardarEcrasParaPreview();
+    showToast("A mexer no Ecrã " + (i + 2) + ". Os outros ficam como estão.");
   }
 
   /**
@@ -7524,7 +7575,7 @@
     } catch (e) {}
   }
 
-  document.getElementById("proj-guardar-ecra").addEventListener("click", guardarEcraEComecarOutro);
+  document.getElementById("proj-guardar-ecra").addEventListener("click", adicionarOutroEcra);
 
   document.querySelectorAll('.panel[data-mode="projeto"] input, .panel[data-mode="projeto"] select').forEach(function (el) {
     el.addEventListener("input", calcProjeto);
@@ -8604,6 +8655,7 @@
     // OS ECRÃS DE PROJEÇÃO GUARDADOS. Um projeto antigo não traz nenhum e
     // fica com a lista vazia, que é como ele foi gravado.
     projEcrasGuardados = Array.isArray(state.ecrasProjecao) ? state.ecrasProjecao : [];
+    projEcraAtual = null;
 
     calcProjeto();
     guardarEcrasParaPreview();
