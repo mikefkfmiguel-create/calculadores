@@ -364,7 +364,40 @@ conferir(camposVazios.viva === 0,
   "E A PONTE FICA SEM MÁQUINA VIVA, senão o blend aparecia duas vezes na sala (" +
   camposVazios.viva + ")");
 
-// O SEGUNDO: era aqui que o primeiro se desmanchava.
+// DOIS ACRESCENTADOS, que é o caso que ele fez e eu não tinha testado:
+// acrescentei um e escrevi o segundo nos campos, nunca acrescentei dois.
+//
+// Reparo dele: *"fiz dois e só vejo um"*. E via mesmo um: todos os ecrãs
+// nasciam com `panoX: 0`, ou seja, todos no MEIO da mesma parede. Medido com
+// um pano de 15 x 6 m e outro de 8 x 4,5 m: os dois em x = 0 e z = -24,67 --
+// o pequeno inteiro dentro do grande. Nascer no mesmo sítio não é uma
+// posição: é a falta de uma.
+await põe("b-w", 8); await põe("b-h", 4.5); await põe("b-knowndist", 12);
+await pagina.waitForTimeout(1400);
+await pagina.evaluate(async () => {
+  document.getElementById("b-adicionar-ecra").click();
+  await new Promise((r) => setTimeout(r, 1000));
+});
+const doisAcrescentados = await pagina.evaluate(() => {
+  const j = JSON.parse(localStorage.getItem("mikeapps-projetor-v1") || "{}");
+  const e = j.projecoesExtra || [];
+  return { quantos: e.length, xs: e.map((x) => x.panoX),
+           botao: (document.getElementById("b-adicionar-ecra") || {}).textContent };
+});
+conferir(doisAcrescentados.quantos >= 2,
+  "dois blends acrescentados são dois no projeto (" + doisAcrescentados.quantos + ")");
+const todosNoMesmoSitio = doisAcrescentados.xs.every((x) => x === doisAcrescentados.xs[0]);
+conferir(!todosNoMesmoSitio,
+  "E NÃO NASCEM UNS DENTRO DOS OUTROS: x = " + doisAcrescentados.xs.join(" · ") + " m");
+conferir(/Ecrã \d/.test(doisAcrescentados.botao || ""),
+  "e o botão diz o número que o próximo vai ter, para não se confundir com a caixa (\"" +
+  doisAcrescentados.botao + "\")");
+
+// E ESCREVER OUTRO NOS CAMPOS não pode mexer nos que já foram acrescentados.
+// Era aqui que o primeiro se desmanchava. A linha de base é tirada AGORA, e
+// não lá atrás: o bloco acima acrescentou mais um ecrã, e comparar com a
+// contagem antiga media outra coisa qualquer.
+const antesDeEscrever = doisAcrescentados.quantos;
 await põe("b-w", 12); await põe("b-h", 6.75); await põe("b-knowndist", 9);
 await pagina.waitForTimeout(1600);
 const dois = await pagina.evaluate(() => {
@@ -377,11 +410,11 @@ const dois = await pagina.evaluate(() => {
            // não era este.)
            dist: ((j.projecoesExtra || []).slice(-1)[0] || {}).distancia };
 });
-conferir(dois.naPonte === umBlend.naPonte,
-  "O PRIMEIRO NÃO SE DESMANCHA quando o segundo entra nos campos (" +
-  umBlend.naPonte + " → " + dois.naPonte + ")");
-conferir(Number(dois.dist) === 17.5,
-  "e continua a ser ELE, com a distância dele (" + dois.dist + " m)");
+conferir(dois.naPonte === antesDeEscrever,
+  "OS ACRESCENTADOS NÃO SE DESMANCHAM quando se escreve outro nos campos (" +
+  antesDeEscrever + " → " + dois.naPonte + ")");
+conferir(Number(dois.dist) === 12,
+  "e o último continua a ser o que lá foi posto, com a distância dele (" + dois.dist + " m)");
 conferir(dois.viva > 0, "com o blend novo vivo nos campos (" + dois.viva + " máquinas)");
 
 console.log("\n== o que o Blending manda para o projeto ==");
