@@ -220,6 +220,47 @@ conferir(reaberto.linhas.length === 2,
 conferir(reaberto.naPonte === 2,
   "e volta a mandá-los para o 3D sem ninguém ter de carregar em mais nada (" + reaberto.naPonte + ")");
 
+console.log("\n== um ecrã sem altura não inventa projetores ==");
+
+// Reparo dele: *"continua a fazer asneira"*, com a Altura do ecrã a 0.
+//
+// Medido: a ficha escrevia "Ecrã: 36,00 x 0,00 m (—)" e logo a seguir
+// "Nº de projetores: Infinity x 1 = —". A largura de cada projetor sai da
+// ALTURA da fila (altura x formato); com altura 0 dá 0, e Math.ceil(36 / 0)
+// é Infinity. Daí para baixo a ficha enchia-se de travessões, o "Guardar
+// este ecrã" não guardava nada, e nada dizia o que faltava.
+await seg("proj-blendmode-seg", "blendmode", "blend");
+await pagina.waitForTimeout(600);
+await põe("proj-proj-w", 36);
+await põe("proj-proj-h", 0);
+await põe("proj-proj-dist", 68);
+await pagina.waitForTimeout(1200);
+const semAltura = await pagina.evaluate(() => {
+  const t = document.getElementById("proj-sum").textContent;
+  return { texto: t, temInfinito: /Infinity/.test(t), diz: /falta a altura/.test(t),
+           restoCorre: /Pixel usage total|Processamento/.test(t) };
+});
+conferir(!semAltura.temInfinito,
+  "a ficha não diz 'Infinity projetores' — uma divisão por zero não se deixa correr");
+conferir(semAltura.diz, "diz o que falta, pelo nome: a altura do ecrã");
+conferir(semAltura.restoCorre,
+  "e o resto do projeto continua a contar — um campo por preencher não apaga o resto");
+
+const nadaParaGuardar = await pagina.evaluate(async () => {
+  const antes = document.querySelectorAll("#proj-ecras-lista button").length;
+  document.getElementById("proj-guardar-ecra").click();
+  await new Promise((r) => setTimeout(r, 900));
+  return { antes, depois: document.querySelectorAll("#proj-ecras-lista button").length };
+});
+conferir(nadaParaGuardar.depois === nadaParaGuardar.antes,
+  "e não se guarda um ecrã que não existe (" + nadaParaGuardar.depois + " botões)");
+
+// repor um ecrã a sério para o que vem a seguir
+await põe("proj-proj-h", 8);
+await pagina.waitForTimeout(900);
+await seg("proj-blendmode-seg", "blendmode", "single");
+await pagina.waitForTimeout(600);
+
 console.log("\n== o que o Blending manda para o projeto ==");
 
 // Reparo dele: *"a distância de projeção não está a viajar da aba de blend para
