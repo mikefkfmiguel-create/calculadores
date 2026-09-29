@@ -381,14 +381,35 @@ await pagina.evaluate(async () => {
 const doisAcrescentados = await pagina.evaluate(() => {
   const j = JSON.parse(localStorage.getItem("mikeapps-projetor-v1") || "{}");
   const e = j.projecoesExtra || [];
-  return { quantos: e.length, xs: e.map((x) => x.panoX),
+  return { quantos: e.length,
+           ids: e.map((x) => x.id).filter(Boolean),
+           nomes: e.map((x) => x.nome).filter(Boolean),
+           larguras: e.map((x) => x.larguraDoPano),
+           temPosicao: e.some((x) => x.panoX !== undefined),
            botao: (document.getElementById("b-adicionar-ecra") || {}).textContent };
 });
 conferir(doisAcrescentados.quantos >= 2,
   "dois blends acrescentados são dois no projeto (" + doisAcrescentados.quantos + ")");
-const todosNoMesmoSitio = doisAcrescentados.xs.every((x) => x === doisAcrescentados.xs[0]);
-conferir(!todosNoMesmoSitio,
-  "E NÃO NASCEM UNS DENTRO DOS OUTROS: x = " + doisAcrescentados.xs.join(" · ") + " m");
+
+// O QUE ESTA APP DEVE, E SÓ ISSO.
+//
+// Dito por ele: *"a construção de ecrãs pertence à calculadora quando nela
+// criados, mas a disposição é do 3D sem que a calculadora interfira"*. A
+// v4.43 punha o `panoX` de cada ecrã aqui -- e como esta carga se reescreve a
+// cada tecla, um ecrã arrastado no 3D voltava ao sítio na escrita seguinte.
+// Onde cada um fica passou a ser do 3D (ver verificar-varias-projecoes.mjs);
+// daqui vai a IDENTIDADE, o NOME e a LARGURA, que é o que ele precisa de
+// saber para os arrumar.
+const idsUnicos = new Set(doisAcrescentados.ids);
+conferir(doisAcrescentados.ids.length === doisAcrescentados.quantos &&
+         idsUnicos.size === doisAcrescentados.quantos,
+  "cada ecrã leva um id próprio, como uma zona de LED (" + idsUnicos.size + ")");
+conferir(doisAcrescentados.nomes.length === doisAcrescentados.quantos,
+  "e um nome (" + doisAcrescentados.nomes.slice(-2).join(" · ") + ")");
+conferir(doisAcrescentados.larguras.every((l) => l > 0),
+  "e a largura do pano, que é construção — é com ela que o 3D os arruma");
+conferir(!doisAcrescentados.temPosicao,
+  "E NENHUMA POSIÇÃO: a disposição é do 3D, e esta app não lhe toca");
 conferir(/Ecrã \d/.test(doisAcrescentados.botao || ""),
   "e o botão diz o número que o próximo vai ter, para não se confundir com a caixa (\"" +
   doisAcrescentados.botao + "\")");

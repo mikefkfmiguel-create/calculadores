@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.43</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.44</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -6693,6 +6693,14 @@
   // campos, e por isso TROCAVA-O com o que se ia editar -- os dois mudavam de
   // lugar na lista a cada clique. Reparo dele: *"parece estar a dar asneira"*.
   var projEcraAtual = null;
+  // O id e o nome do ecrã que está nos campos. Nascem com ele e seguem-no
+  // para a lista; voltar a editá-lo traz os dele de volta.
+  var projEcraIdVivo = null, projEcraNomeVivo = "";
+  function projEcraIdAtual() {
+    if (!projEcraIdVivo) projEcraIdVivo = idDeEcra();
+    return projEcraIdVivo;
+  }
+  function projEcraNomeAtual() { return projEcraNomeVivo || ""; }
   var projLedFields = document.getElementById("proj-led-fields");
   var projProjecaoFields = document.getElementById("proj-projecao-fields");
   var projReportLed = document.getElementById("proj-report-led");
@@ -6811,7 +6819,7 @@
    * projeção plana. Nada se inventa: tudo sai dos números que esta aba já
    * calculou e mostra ao lado.
    */
-  function cargaDoEcraDoProjeto(w, h, dist, isBlend, nh, nv, widthPerProj, overlapM) {
+  function cargaDoEcraDoProjeto(w, h, dist, isBlend, nh, nv, widthPerProj, overlapM, id, nome) {
     if (!(w > 0) || !(h > 0) || !(dist > 0)) return null;
     var larguraCelula = isBlend ? widthPerProj : w;
     var alturaCelula = isBlend ? (h / nv) : h;
@@ -6834,6 +6842,7 @@
     }
     var cabeca = celulas[0];
     return {
+      id: id, nome: nome,
       ligada: true,
       racio: cabeca.racio, distancia: cabeca.distancia,
       // A ALTURA NÃO VAI: ninguém aqui sabe onde o pano está pendurado, e
@@ -6843,7 +6852,7 @@
       // projeção que já está montada, que é o único sítio real que conhece.
       altura: null, lateral: cabeca.lateral, shiftV: 0, shiftH: 0,
       formato: Math.round((larguraCelula / alturaCelula) * 1000) / 1000,
-      panoX: 0, panoDz: 0,
+      // Sem panoX nem panoDz: onde o ecrã fica na sala é do 3D.
       larguraDoPano: Math.round(w * 100) / 100,
       maquinas: celulas.slice(1),
       curva: null, retro: false
@@ -7267,7 +7276,10 @@
                 " · " + fmt(w, 2) + " x " + fmt(h, 2) + " m · " + fmt(dist, 2) + " m",
         resumo: projSumText,
         campos: retratoDosCamposDoEcra(),
-        carga: cargaDoEcraDoProjeto(w, h, dist, isBlend, nh, nv, widthPerProj, overlapM)
+        // A identidade é do ecrã guardado, não desta conta: a conta refaz-se a
+        // cada tecla e um id novo a cada tecla não é identidade nenhuma.
+        carga: cargaDoEcraDoProjeto(w, h, dist, isBlend, nh, nv, widthPerProj, overlapM,
+                                    projEcraIdAtual(), projEcraNomeAtual())
       };
       }
       }
@@ -7475,8 +7487,14 @@
       texto.style.flex = "1";
       // QUAL É QUE ESTÁ NOS CAMPOS, dito na lista. Sem isto, mexer nos
       // números não dizia em qual dos ecrãs se estava a mexer.
-      texto.innerHTML = "<strong>Ecrã " + (i + 2) + "</strong> · " + e.rotulo +
-        (projEcraAtual === i ? " <em>(nos campos)</em>" : "");
+      texto.innerHTML = e.rotulo + (projEcraAtual === i ? " <em>(nos campos)</em>" : "");
+      if (!e.nome) e.nome = "Ecrã " + (i + 2);
+      linha.appendChild(campoDeNomeDoEcra(e, function () {
+        if (projEcraAtual === i) projEcraNomeVivo = e.nome;
+        renderEcrasGuardados();
+        guardarEcrasParaPreview();
+        calcProjeto();
+      }));
       linha.appendChild(texto);
       var editar = document.createElement("button");
       editar.type = "button";
@@ -7525,6 +7543,9 @@
   function arrumarEcraDosCampos() {
     if (!projEcraVivo || !projEcraVivo.carga) return null;
     var copia = JSON.parse(JSON.stringify(projEcraVivo));
+    // A identidade vai com ele: é ela que faz o 3D saber que é o mesmo ecrã.
+    copia.id = projEcraIdAtual();
+    copia.nome = projEcraNomeAtual();
     if (projEcraAtual !== null && projEcrasGuardados[projEcraAtual]) {
       projEcrasGuardados[projEcraAtual] = copia;
       return projEcraAtual;
@@ -7552,8 +7573,12 @@
       return;
     }
     var onde = arrumarEcraDosCampos();
-    // Os campos passam a ser de um ecrã NOVO, que ainda não está na lista.
+    // Os campos passam a ser de um ecrã NOVO, que ainda não está na lista --
+    // e portanto com identidade nova. Reaproveitar o id anterior fazia o 3D
+    // pensar que era o mesmo ecrã a mudar de tamanho.
     projEcraAtual = null;
+    projEcraIdVivo = null;
+    projEcraNomeVivo = "";
     calcProjeto();
     guardarEcrasParaPreview();
     showToast("Ecrã " + (onde + 2) + " no projeto. Os campos são agora do seguinte — o relatório e o 3D levam todos.");
@@ -7575,6 +7600,8 @@
     if (!escolhido) return;
     arrumarEcraDosCampos();
     projEcraAtual = i;
+    projEcraIdVivo = escolhido.id || idDeEcra();
+    projEcraNomeVivo = escolhido.nome || "";
     reporCamposDoEcra(escolhido.campos);
     guardarEcrasParaPreview();
     showToast("A mexer no Ecrã " + (i + 2) + ". Os outros ficam como estão.");
@@ -7600,12 +7627,23 @@
    * A carga do blend fala de máquinas; `projecoesExtra` fala de projeções.
    * São a mesma coisa vista de dois lados, e é aqui que se faz a passagem.
    */
-  function blendComoProjecao(carga) {
+  function blendComoProjecao(carga, id, nome) {
     var ps = (carga && carga.projetores) || [];
     if (!ps.length) return null;
     var cabeca = ps[0];
     if (!(cabeca.racio > 0) || !(cabeca.distancia > 0)) return null;
     return {
+      // ID E NOME, como nas zonas de LED.
+      //
+      // Pedido dele: *"podemos tratar os projetores em blend ou simples como
+      // zonas, da mesma forma que no LED... não é perceptível no projeto,
+      // fica escondido ou misturado, temos de dar nomes às coisas"*.
+      //
+      // O ID é o que deixa o 3D reconhecer o MESMO ecrã de uma carga para a
+      // outra -- e é por isso que a posição que ele lhe der lá sobrevive a
+      // esta app ser reescrita a cada tecla. O NOME é para se poder falar
+      // dele: "o ecrã do palco" diz o que "Projeção 2" nunca dirá.
+      id: id, nome: nome,
       ligada: true,
       racio: cabeca.racio, distancia: cabeca.distancia,
       // A ALTURA NÃO VAI (v4.38): onde o pano está pendurado é do Preview,
@@ -7614,7 +7652,6 @@
       lateral: cabeca.lateral || 0,
       shiftV: 0, shiftH: 0,
       formato: (cabeca.altura > 0) ? Math.round((cabeca.largura / cabeca.altura) * 1000) / 1000 : 1.778,
-      panoX: 0, panoDz: 0,
       // A LARGURA DO PANO, para os ecrãs se poderem arrumar lado a lado.
       // Ver arrumarLadoALado(): sem a medida não há posição possível, e uma
       // posição inventada é pior do que nenhuma.
@@ -7640,38 +7677,80 @@
   function todasAsProjecoesExtra() {
     var doProjeto = projEcrasGuardados.map(function (e) { return e.carga; }).filter(Boolean);
     var dosBlends = projBlendsGuardados.map(function (b) { return b.carga; }).filter(Boolean);
-    return arrumarLadoALado(doProjeto.concat(dosBlends));
+    // TODOS COM NOME, mesmo os que ninguém baptizou.
+    //
+    // A carga de um ecrã da aba Projeto constrói-se antes de se saber que
+    // lugar ele vai ocupar na lista, por isso chega aqui sem nome. O número
+    // só existe AQUI, que é onde a lista fica montada. "Ecrã 3" não é um bom
+    // nome, mas é melhor do que nenhum -- e o campo ao lado está lá para lhe
+    // chamarem o que ele é.
+    return doProjeto.concat(dosBlends).map(function (e, i) {
+      if (e && (typeof e.nome !== "string" || !e.nome.trim())) {
+        var copia = {};
+        Object.keys(e).forEach(function (k) { copia[k] = e[k]; });
+        copia.nome = "Ecrã " + (i + 2);
+        return copia;
+      }
+      return e;
+    });
+  }
+
+  /*
+   * A DISPOSIÇÃO NÃO SE DECIDE AQUI.
+   *
+   * Dito por ele: *"a construção de ecrãs pertence à calculadora quando nela
+   * criados, mas a disposição é do 3D sem que a calculadora interfira"*. E
+   * está certo. A v4.43 pôs esta app a calcular o `panoX` de cada ecrã para
+   * eles não nascerem uns dentro dos outros -- resolvia o sintoma no sítio
+   * errado, e pior: como esta carga se reescreve a cada tecla, qualquer ecrã
+   * que ele arrastasse no 3D voltava ao sítio na escrita seguinte. Era a app
+   * a desfazer-lhe o trabalho.
+   *
+   * O que sai daqui é A CONSTRUÇÃO: tamanho, formato, máquinas, lente, curva.
+   * Onde cada ecrã fica na sala é do 3D, e o 3D guarda-o por ID (ver
+   * projecoesExtra no Preview). A `larguraDoPano` continua a ir, porque é
+   * construção -- é com ela que o 3D sabe arrumar um ecrã NOVO ao lado dos
+   * que já lá estão.
+   */
+
+  /** Uma identidade que dura, para o 3D poder reconhecer o mesmo ecrã. */
+  function idDeEcra() {
+    return "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   }
 
   /**
-   * PÕE OS ECRÃS LADO A LADO, e não uns dentro dos outros.
+   * O CAMPO DO NOME DE UM ECRÃ.
    *
-   * Reparo dele: *"fiz dois e só vejo um"*. E via mesmo um: todos nasciam com
-   * `panoX: 0`, ou seja, todos no MEIO da mesma parede. Medido com um pano de
-   * 15 x 6 m e outro de 8 x 4,5 m: os dois em x = 0, z = -24,67 -- o pequeno
-   * inteiro dentro do grande. De frente, um ecrã.
-   *
-   * Nascer no mesmo sítio não é uma posição: é a falta de uma. Arrumam-se em
-   * fila, centrados no conjunto, com um vão entre eles -- que é como duas
-   * telas ficam numa sala. É uma posição de NASCENÇA, à vista e mexível no 3D,
-   * não uma medida técnica: sem a largura de um pano não se lhe inventa sítio
-   * nenhum e fica tudo como estava.
+   * Pedido dele: *"temos de dar nomes às coisas"*. "Ecrã 2" não diz nada a
+   * quem chega à obra; "Palco principal" diz. O mesmo campo serve as duas
+   * listas -- a dos blends e a dos ecrãs do Projeto --, e o que se escrever
+   * viaja na ponte e aparece no 3D.
    */
-  function arrumarLadoALado(lista) {
-    var VAO = 1.5;
-    if (lista.length < 2) return lista;
-    var larguras = lista.map(function (e) { return (e && e.larguraDoPano > 0) ? e.larguraDoPano : 0; });
-    if (larguras.some(function (l) { return !(l > 0); })) return lista;
-    var total = larguras.reduce(function (a, b) { return a + b; }, 0) + VAO * (lista.length - 1);
-    var x = -total / 2;
-    return lista.map(function (e, i) {
-      var meio = x + larguras[i] / 2;
-      x += larguras[i] + VAO;
-      var copia = {};
-      Object.keys(e).forEach(function (k) { copia[k] = e[k]; });
-      copia.panoX = Math.round(meio * 100) / 100;
-      return copia;
+  function campoDeNomeDoEcra(alvo, aoMudar) {
+    var campo = document.createElement("input");
+    campo.type = "text";
+    campo.className = "plain";
+    campo.style.flex = "1";
+    campo.style.minWidth = "0";
+    campo.value = alvo.nome || "";
+    campo.placeholder = "dá-lhe um nome";
+    campo.title = "O nome deste ecrã — é este que aparece na ficha técnica e no 3D";
+    var guardar = function () {
+      var novo = campo.value.trim().slice(0, 40);
+      // Um nome vazio não é um nome: fica o que lá estava.
+      if (!novo) { campo.value = alvo.nome || ""; return; }
+      if (novo === alvo.nome) return;
+      alvo.nome = novo;
+      if (alvo.carga) alvo.carga.nome = novo;
+      aoMudar();
+    };
+    campo.addEventListener("change", guardar);
+    campo.addEventListener("blur", guardar);
+    campo.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); campo.blur(); }
+      e.stopPropagation();
     });
+    return campo;
   }
 
   /** A lista dos blends acrescentados, na aba onde eles se montam. */
@@ -7695,7 +7774,13 @@
       linha.style.marginTop = "4px";
       var texto = document.createElement("span");
       texto.style.flex = "1";
-      texto.innerHTML = "<strong>Blend " + (i + 1) + "</strong> · " + b.rotulo;
+      texto.textContent = b.rotulo;
+      linha.appendChild(campoDeNomeDoEcra(b, function () {
+        renderBlendsGuardados();
+        guardarBlendParaPreview();
+        guardarEcrasParaPreview();
+        calcProjeto();
+      }));
       linha.appendChild(texto);
       var remover = document.createElement("button");
       remover.type = "button";
@@ -7725,10 +7810,14 @@
   function adicionarBlendAoProjeto() {
     var carga = cargaDoBlend();
     if (carga.erro) { showToast(carga.erro); escreverAvisoDaPonte(carga.erro); return; }
-    var projecao = blendComoProjecao(carga);
+    var numero = projEcrasGuardados.length + projBlendsGuardados.length + 2;
+    var id = idDeEcra();
+    var nome = "Ecrã " + numero;
+    var projecao = blendComoProjecao(carga, id, nome);
     if (!projecao) { showToast("Falta calcular o blend primeiro."); return; }
     var quantas = (carga.projetores || []).length;
     projBlendsGuardados.push({
+      id: id, nome: nome,
       rotulo: (quantas > 1 ? quantas + " máquinas" : "1 máquina") +
               " · " + fmt(projecao.distancia, 2) + " m" +
               (carga.curva ? " · ecrã curvo" : ""),
