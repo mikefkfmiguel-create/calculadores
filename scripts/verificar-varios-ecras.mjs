@@ -104,6 +104,12 @@ const põe = (id, v) => pagina.evaluate((a) => {
   e.dispatchEvent(new Event("input", { bubbles: true }));
   e.dispatchEvent(new Event("change", { bubbles: true }));
 }, [id, v]);
+const abrirAba = async (modo) => {
+  await pagina.evaluate((m) => {
+    const t = document.querySelector('.tabs .tab[data-mode="' + m + '"]'); if (t) t.click();
+  }, modo);
+  await pagina.waitForTimeout(700);
+};
 const seg = (c, a, v) => pagina.evaluate((x) => {
   const b = document.querySelector("#" + x[0] + ' .seg-btn[data-' + x[1] + '="' + x[2] + '"]');
   if (b) b.click();
@@ -213,6 +219,41 @@ conferir(reaberto.linhas.length === 2,
   "abrir o ficheiro traz os dois de volta (" + reaberto.linhas.length + ")");
 conferir(reaberto.naPonte === 2,
   "e volta a mandá-los para o 3D sem ninguém ter de carregar em mais nada (" + reaberto.naPonte + ")");
+
+console.log("\n== o que o Blending manda para o projeto ==");
+
+// Reparo dele: *"a distância de projeção não está a viajar da aba de blend para
+// o projeto"*. E não estava: a syncBlendToProject() levava o ecrã, o modelo e a
+// resolução, e deixava a DISTÂNCIA para trás. A aba Projeto ficava nos 4,0 m
+// por omissão -- que não é escolha de ninguém -- e com esse número escolhia
+// outras lentes e outra luminosidade. A syncProjecaoToProject(), ao lado,
+// sempre a levou: era descuido, não decisão.
+await abrirAba("blend");
+await pagina.waitForTimeout(700);
+await põe("b-w", 30);
+await põe("b-h", 8);
+await põe("b-knowndist", 17.5);
+await pagina.waitForTimeout(900);
+await pagina.evaluate(async () => {
+  const a = document.getElementById("b-addproject");
+  if (a && !a.checked) a.click();
+  await new Promise((r) => setTimeout(r, 1600));
+});
+await abrirAba("projeto");
+await pagina.waitForTimeout(1200);
+const doBlend = await pagina.evaluate(() => ({
+  w: (document.getElementById("proj-proj-w") || {}).value,
+  h: (document.getElementById("proj-proj-h") || {}).value,
+  dist: (document.getElementById("proj-proj-dist") || {}).value,
+  modo: (document.querySelector("#proj-blendmode-seg .seg-btn.active") || {}).dataset
+    ? document.querySelector("#proj-blendmode-seg .seg-btn.active").dataset.blendmode : "?"
+}));
+conferir(doBlend.w === "30" && doBlend.h === "8",
+  "o ecrã do blend chega ao projeto (" + doBlend.w + " x " + doBlend.h + " m)");
+conferir(doBlend.modo === "blend", "e o modo também");
+conferir(Number(doBlend.dist) === 17.5,
+  "E A DISTÂNCIA TAMBÉM — era ela que ficava para trás, nos 4,0 m por omissão (" +
+  doBlend.dist + " m)");
 
 conferir(erros.length === 0, erros.length ? "erro de JavaScript: " + erros[0] : "sem erros de JavaScript");
 
