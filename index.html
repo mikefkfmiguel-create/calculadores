@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.38</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.39</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -7047,6 +7047,37 @@
       }
       var area = w * h;
 
+      // UM ECRÃ SEM MEDIDA NÃO É UM ECRÃ, e daqui para baixo tudo o que se
+      // calcular a partir dele é invenção.
+      //
+      // Reparo dele: *"continua a fazer asneira"*, com a Altura do ecrã a 0.
+      // Medido: a app escrevia "Ecrã: 36,00 x 0,00 m (—)" e, logo a seguir,
+      // "Nº de projetores: Infinity x 1 = —". A conta é esta: a largura de
+      // cada projetor sai da ALTURA da fila (altura x formato), e com altura 0
+      // dá 0 -- Math.ceil(36 / 0) é Infinity. Daí para baixo a ficha enchia-se
+      // de travessões, o "Guardar este ecrã" não guardava nada (a carga vinha
+      // nula) e o 3D ficava com o que lá estivesse de antes. Nada disto dizia
+      // o que faltava.
+      //
+      // Uma divisão por zero não se deixa correr para ver no que dá: pergunta-
+      // se a medida que falta. Um campo que aceita um número e finge que
+      // calcula é pior do que um que diz o que precisa.
+      if (!(w > 0) || !(h > 0)) {
+        document.getElementById("proj-out-nproj-wrap").style.display = "none";
+        document.getElementById("proj-out-overlap-wrap").style.display = "none";
+        document.getElementById("proj-out-totalpx-wrap").style.display = "none";
+        projSumText = "Ecrã de projeção por medir: falta " +
+          (!(w > 0) && !(h > 0) ? "a largura e a altura"
+            : !(w > 0) ? "a largura" : "a altura") +
+          " do ecrã. Sem essa medida não há número de projetores, nem overlap, " +
+          "nem lente — e não há nada para guardar nem para mandar ao 3D.";
+        projEcraVivo = null;
+        projPixels = 0;
+      } else {
+      // E SÓ A PROJEÇÃO FICA DE FORA. Sair da função inteira aqui saltava o
+      // ramo "misto" (que ainda tem de escrever o ecrã LED), os totais de
+      // píxeis, o DSM, os delays, o switcher e as necessidades da fibra. Um
+      // campo por preencher numa metade não apaga a outra metade do projeto.
       var nh = 1, nv = 1, widthPerProj = w, overlapM = 0, blendLine = "", blendResPx = null, totalPxLine = "";
       if (isBlend) {
         var blendRes = readResPreset("proj-blend-res", "proj-blend-w", "proj-blend-h");
@@ -7207,6 +7238,7 @@
         campos: retratoDosCamposDoEcra(),
         carga: cargaDoEcraDoProjeto(w, h, dist, isBlend, nh, nv, widthPerProj, overlapM)
       };
+      }
       }
     }
 
