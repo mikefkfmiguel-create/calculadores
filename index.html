@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.40</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.41</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1561,6 +1561,17 @@
               <!-- Porque é que a caixa está marcada e o 3D continua vazio. Só
                    aparece quando há mesmo uma razão — ver escreverAvisoDaPonte(). -->
               <p class="note" id="b-ponte-aviso" style="display:none; flex-basis:100%; margin:4px 0 0;"></p>
+              <!-- ACRESCENTAR OUTRO BLEND AO MESMO PROJETO, daqui.
+                   Pedido dele: *"o adicionar deve ser dentro da aba de blend e
+                   não no projeto"*. E é onde faz sentido: um evento com duas
+                   telas tem dois blends, e os dois montam-se AQUI. Ter o
+                   botão só na aba Projeto obrigava a sair do sítio onde se
+                   está a trabalhar para não perder o que já se fez. -->
+              <div style="flex-basis:100%; margin-top:6px">
+                <button type="button" class="btn ghost" id="b-adicionar-ecra">+ Adicionar este blend ao projeto</button>
+                <div class="hint">Fica no projeto e vai para o 3D ao lado dos outros. Os campos ficam como estão, para o blend seguinte.</div>
+                <div id="b-ecras-lista"></div>
+              </div>
               <button type="button" class="copy bridge-btn" id="b-ver-3d" title="Abre o Preview 3D com todos os projetores do blend montados na sala">Ver no Preview 3D ↗</button>
               <select class="copy" id="b-share" title="Partilhar ou guardar — escolhe o formato e por onde enviar">
                 <option value="" selected>↗ Partilhar/Guardar</option>
@@ -4363,6 +4374,12 @@
     // e um toast a cada tecla era pior do que o silêncio.
     escreverAvisoDaPonte(carga.erro || "");
     if (carga.erro) return;
+    // E LEVA OS QUE JÁ ESTAVAM NO PROJETO. Sem esta linha, esta escrita --
+    // que corre a cada tecla do Blending -- mandava uma carga sem
+    // `projecoesExtra` nenhuma e apagava os ecrãs que a outra aba lá tinha
+    // posto. Duas abas na mesma ponte só funcionam se as duas escreverem a
+    // lista inteira.
+    carga.projecoesExtra = todasAsProjecoesExtra();
     try { localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga)); } catch (e) {}
   }
 
@@ -4393,6 +4410,7 @@
     window.open(endereco, JANELA_DO_PREVIEW);
   }
   document.getElementById("b-ver-3d").addEventListener("click", verNoPreview3DBlend);
+  document.getElementById("b-adicionar-ecra").addEventListener("click", adicionarBlendAoProjeto);
 
   // Distância de Visualização
   var vRatioSel = document.getElementById("v-ratio");
@@ -7562,15 +7580,123 @@
    * Reescreve-se a ponte que já lá está, para não haver duas versões da
    * verdade -- uma com os ecrãs e outra sem.
    */
+  /**
+   * OS BLENDS QUE ELE ACRESCENTOU AO PROJETO, da aba do Blending.
+   *
+   * Vivem ao lado dos ecrãs da aba Projeto e viajam na mesma chave da ponte.
+   */
+  var projBlendsGuardados = [];
+
+  /**
+   * UM BLEND, LIDO COMO PROJEÇÃO -- a forma que o Preview desenha.
+   *
+   * A carga do blend fala de máquinas; `projecoesExtra` fala de projeções.
+   * São a mesma coisa vista de dois lados, e é aqui que se faz a passagem.
+   */
+  function blendComoProjecao(carga) {
+    var ps = (carga && carga.projetores) || [];
+    if (!ps.length) return null;
+    var cabeca = ps[0];
+    if (!(cabeca.racio > 0) || !(cabeca.distancia > 0)) return null;
+    return {
+      ligada: true,
+      racio: cabeca.racio, distancia: cabeca.distancia,
+      // A ALTURA NÃO VAI (v4.38): onde o pano está pendurado é do Preview,
+      // nunca daqui. Ele usa a da projeção que já está montada.
+      altura: null,
+      lateral: cabeca.lateral || 0,
+      shiftV: 0, shiftH: 0,
+      formato: (cabeca.altura > 0) ? Math.round((cabeca.largura / cabeca.altura) * 1000) / 1000 : 1.778,
+      panoX: 0, panoDz: 0,
+      // NUM ECRÃ CURVO VÃO TODAS, a primeira incluída: lá a posição de cada
+      // uma é o ângulo no arco, e deixar a cabeça de fora perdia uma máquina.
+      // Num plano a cabeça já é a projeção, e repeti-la desenhava-a duas vezes.
+      maquinas: carga.curva ? ps.slice() : ps.slice(1),
+      curva: carga.curva || null,
+      retro: !!carga.retro
+    };
+  }
+
+  /**
+   * TUDO O QUE VAI NA CHAVE `projecoesExtra`, venha de onde vier.
+   *
+   * As duas abas escrevem na mesma ponte, e enquanto cada uma montava a sua
+   * lista, a última a escrever apagava a outra -- a do Blending reescrevia a
+   * carga inteira a cada tecla e levava os ecrãs do Projeto à frente. Uma
+   * conta, um sítio.
+   */
+  function todasAsProjecoesExtra() {
+    var doProjeto = projEcrasGuardados.map(function (e) { return e.carga; }).filter(Boolean);
+    var dosBlends = projBlendsGuardados.map(function (b) { return b.carga; }).filter(Boolean);
+    return doProjeto.concat(dosBlends);
+  }
+
+  /** A lista dos blends acrescentados, na aba onde eles se montam. */
+  function renderBlendsGuardados() {
+    var lista = document.getElementById("b-ecras-lista");
+    if (!lista) return;
+    lista.innerHTML = "";
+    projBlendsGuardados.forEach(function (b, i) {
+      var linha = document.createElement("div");
+      linha.className = "hint";
+      linha.style.display = "flex";
+      linha.style.alignItems = "center";
+      linha.style.gap = "8px";
+      linha.style.marginTop = "4px";
+      var texto = document.createElement("span");
+      texto.style.flex = "1";
+      texto.innerHTML = "<strong>Blend " + (i + 1) + "</strong> · " + b.rotulo;
+      linha.appendChild(texto);
+      var remover = document.createElement("button");
+      remover.type = "button";
+      remover.className = "btn ghost";
+      remover.textContent = "remover";
+      remover.addEventListener("click", function () {
+        projBlendsGuardados.splice(i, 1);
+        renderBlendsGuardados();
+        guardarBlendParaPreview();
+        guardarEcrasParaPreview();
+        showToast("Blend removido do projeto.");
+      });
+      linha.appendChild(remover);
+      lista.appendChild(linha);
+    });
+  }
+
+  /**
+   * ACRESCENTA O BLEND QUE ESTÁ NOS CAMPOS ao projeto.
+   *
+   * Reparo dele: *"ainda desmancha o outro"*. E desmanchava: a carga do
+   * Blending é sempre a MÁQUINA VIVA, e cada nova chegava por cima da
+   * anterior -- a única forma de ficar com duas era ir ao 3D repor a que
+   * tinha sido substituída. Agora o blend que já está bom arruma-se aqui, e
+   * os campos ficam livres para o seguinte sem lhe tocar.
+   */
+  function adicionarBlendAoProjeto() {
+    var carga = cargaDoBlend();
+    if (carga.erro) { showToast(carga.erro); escreverAvisoDaPonte(carga.erro); return; }
+    var projecao = blendComoProjecao(carga);
+    if (!projecao) { showToast("Falta calcular o blend primeiro."); return; }
+    var quantas = (carga.projetores || []).length;
+    projBlendsGuardados.push({
+      rotulo: (quantas > 1 ? quantas + " máquinas" : "1 máquina") +
+              " · " + fmt(projecao.distancia, 2) + " m" +
+              (carga.curva ? " · ecrã curvo" : ""),
+      carga: projecao
+    });
+    renderBlendsGuardados();
+    guardarBlendParaPreview();
+    guardarEcrasParaPreview();
+    showToast("Blend " + projBlendsGuardados.length + " no projeto. Os campos ficam para o seguinte — o 3D leva todos.");
+  }
+
   function guardarEcrasParaPreview() {
     if (typeof syncAutoLigada === "function" && !syncAutoLigada()) return;
     try {
       var bruto = localStorage.getItem("mikeapps-projetor-v1");
       if (!bruto) return;
       var carga = JSON.parse(bruto);
-      carga.projecoesExtra = projEcrasGuardados
-        .map(function (e) { return e.carga; })
-        .filter(Boolean);
+      carga.projecoesExtra = todasAsProjecoesExtra();
       localStorage.setItem("mikeapps-projetor-v1", JSON.stringify(carga));
     } catch (e) {}
   }
@@ -8139,6 +8265,9 @@
       // dos campos obrigava a refazer a conta de cada um ao abrir, e essa
       // conta depende de catálogos que podem ter mudado entretanto.
       ecrasProjecao: projEcrasGuardados,
+      // Os blends acrescentados da aba do Blending — um projeto que reabre
+      // sem eles é um projeto que perdeu telas.
+      blendsProjecao: projBlendsGuardados,
       modelosMeus: window.meusModelos ? { tv: window.meusModelos.ler("tv") } : null
     };
   }
@@ -8656,6 +8785,8 @@
     // fica com a lista vazia, que é como ele foi gravado.
     projEcrasGuardados = Array.isArray(state.ecrasProjecao) ? state.ecrasProjecao : [];
     projEcraAtual = null;
+    projBlendsGuardados = Array.isArray(state.blendsProjecao) ? state.blendsProjecao : [];
+    renderBlendsGuardados();
 
     calcProjeto();
     guardarEcrasParaPreview();
