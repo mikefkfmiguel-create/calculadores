@@ -341,6 +341,29 @@ const umBlend = await pagina.evaluate(() => {
 conferir(umBlend.naLista === 1, "o botão vive na aba do Blending e acrescenta o blend (" + umBlend.naLista + ")");
 conferir(umBlend.naPonte >= 1, "e ele viaja na ponte do projetor (" + umBlend.naPonte + ")");
 
+// Pedido dele, logo a seguir: *"agora devia ter um campo novo vazio para
+// criar o novo ecrã"*. Deixar lá as medidas do blend que acabou de ser
+// arrumado não poupava escrita nenhuma -- só deixava a dúvida de se aquilo
+// ainda era o ecrã antigo ou já o novo.
+const camposVazios = await pagina.evaluate(() => {
+  const g = (i) => (document.getElementById(i) || {}).value;
+  const j = JSON.parse(localStorage.getItem("mikeapps-projetor-v1") || "{}");
+  return { w: g("b-w"), h: g("b-h"), dist: g("b-knowndist"),
+           modelo: (document.getElementById("b-projmodel") || {}).value,
+           viva: (j.projetores || []).length };
+});
+conferir(camposVazios.w === "" && camposVazios.h === "" && camposVazios.dist === "",
+  "os campos do ecrã ficam VAZIOS para o seguinte");
+conferir(camposVazios.modelo !== "" && camposVazios.modelo !== undefined,
+  "mas o equipamento fica — numa sala o projetor repete-se de tela para tela");
+// E A MÁQUINA VIVA SAI DA PONTE. Com os campos vazios a carga dá erro e a
+// escrita saía sem escrever: ficava lá a anterior, com o mesmo blend a ser
+// AO MESMO TEMPO a máquina viva e uma projeção guardada -- o mesmo pano
+// desenhado a dobrar no 3D.
+conferir(camposVazios.viva === 0,
+  "E A PONTE FICA SEM MÁQUINA VIVA, senão o blend aparecia duas vezes na sala (" +
+  camposVazios.viva + ")");
+
 // O SEGUNDO: era aqui que o primeiro se desmanchava.
 await põe("b-w", 12); await põe("b-h", 6.75); await põe("b-knowndist", 9);
 await pagina.waitForTimeout(1600);
