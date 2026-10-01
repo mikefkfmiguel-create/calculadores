@@ -9,6 +9,93 @@ convenções da casa) e o `.github/copilot-instructions.md` (arquitectura,
 Assistente de Projeto, o motor de sugestão de dimensionamento, o popup de
 alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
+---
+
+## 1 de outubro — ESTADO ACTUAL, PARA QUEM PEGAR NISTO A SEGUIR
+
+**Calculadores v4.44 · Preview v4.15**, as duas no ar. As secções mais abaixo
+nesta página pararam a 14 de setembro: o que está escrito aqui é mais recente
+do que tudo o que vem depois.
+
+### A regra de arquitectura que ele estabeleceu, e que manda nas duas apps
+
+Dito por ele, em três partes, e é a coisa mais importante desta página:
+
+> *"Podemos tratar os projetores em blend ou simples como zonas, da mesma
+> forma que no LED."*
+> *"Não é perceptível no projeto, fica escondido ou misturado — temos de dar
+> nomes às coisas."*
+> *"A construção de ecrãs pertence à calculadora quando nela criados, mas a
+> **disposição é do 3D sem que a calculadora interfira**."*
+
+Em código:
+
+- **Daqui sai CONSTRUÇÃO**: tamanho, formato, máquinas, lente, curva, nome,
+  largura do pano. Nunca `panoX`, `panoDz` nem `panoRot`.
+- **Cada ecrã leva um `id`** (`idDeEcra()`), como uma zona de LED. É ele que
+  deixa o 3D reconhecer o mesmo ecrã de uma carga para a outra.
+- **O 3D guarda a disposição por id** e devolve-a a cada carga nova
+  (`casarProjecoesPorId` do lado de lá).
+
+Porquê isto importa: a carga desta app **reescreve-se a cada tecla**. Na v4.43
+cheguei a calcular o `panoX` aqui — e qualquer ecrã que ele arrastasse no 3D
+voltava ao sítio na escrita seguinte. A app a desfazer-lhe o trabalho. Se
+alguma vez apetecer pôr uma posição nesta carga: não.
+
+### A outra regra, da mesma família
+
+**As duas abas escrevem a ponte INTEIRA.** A aba Blending e a aba Projeto
+escrevem ambas em `mikeapps-projetor-v1`. Enquanto cada uma montava a sua
+lista, a última a escrever apagava a outra — e a do Blending corre a cada
+tecla. Há uma função só, `todasAsProjecoesExtra()`, e é por ela que as duas
+passam. Se acrescentares uma terceira origem de ecrãs, junta-a lá.
+
+### O que mudou nesta sessão (v4.37 → v4.44)
+
+| | |
+|---|---|
+| v4.37 | a distância de projeção viaja do Blending para o Projeto (ficava nos 4,0 m por omissão e escolhia lentes com o número errado) |
+| v4.38 | a altura do pano deixa de ir como `0`: esta app não sabe onde ele está pendurado, e um zero que quer dizer "não sei" desenhava-se no chão |
+| v4.39 | ecrã sem medida deixa de inventar `Infinity` projetores; diz o que falta |
+| v4.40 | "+ Adicionar outro ecrã"; o "editar" deixa de TROCAR dois ecrãs de lugar |
+| v4.41 | acrescentar blends **de dentro da aba do Blending**, que é onde eles se montam |
+| v4.42 | campos do ecrã ficam vazios depois de acrescentar; ponte escrita com a máquina viva vazia |
+| v4.43 | ecrãs lado a lado (**revertido na v4.44** — era no sítio errado) |
+| v4.44 | id e nome por ecrã; a disposição passa para o 3D |
+
+### Por fazer, do lado de cá
+
+1. **O nome do ecrã na ficha técnica.** O campo existe nas duas listas e o nome
+   viaja na ponte, mas o resumo impresso ainda não o usa em todo o lado.
+2. **`VERSAO-ESTAVEL.md` está velho** — nomeia versões de setembro. Só se
+   reescreve quando ele aprovar um par estável.
+3. **As etiquetas `v4.xx` não estão no GitHub.** As credenciais desta sessão
+   empurram ramos, não etiquetas (HTTP 403).
+4. **`ANTHROPIC_API_KEY` do Worker** — ele apanhou um `503 credential
+   validation failed` do Assistente. É chave, não código, e é do lado dele. O
+   valor vai da consola direto para o secret, **nunca por chat nem ficheiro**.
+
+### Como se trabalha aqui (custou tempo a aprender, nesta sessão)
+
+**Medir antes de falar.** Todas as avarias desta sessão caíram à primeira
+quando reproduzi no Playwright; as voltas a mais foram as vezes em que tentei
+adivinhar pela fotografia. Há repros a sério em `scripts/verificar-*.mjs`.
+
+**O caso por testar é o simétrico do testado.** Duas vezes nesta sessão: testei
+acrescentar UM ecrã e escrever o segundo nos campos, nunca acrescentar DOIS — e
+era aí que estavam os dois panos no mesmo sítio. Antes disso, um teste de
+renomear que disparava `change` por código e nunca clicava, e por isso passava
+com a app avariada.
+
+**Um teste que mede a app errada falha com razão.** Quando a disposição passou
+para o 3D, a asserção sobre `panoX` tinha de mudar de ficheiro, não de valor.
+
+**Estado partilhado entre secções de um teste mede outra coisa.** Mais de uma
+vez uma secção herdou campos da anterior. Quando o cenário precisa de ser
+limpo, ficheiro próprio.
+
+---
+
 **Combinado e ainda por fazer:** o `PLANO-MENU.md` — um ecrã de boas-vindas com
 cinco escolhas, para quem *"está no terreno e quer apenas fazer uma conta"*.
 Cinco fases, cada uma publicável sozinha, e uma regra que as manda: uma porta
