@@ -973,6 +973,10 @@
     "Número esquecido. A app passa a contar como nova.": "Number forgotten. The app now counts as new.",
 
     // Sinal & Data Rate e aba Projeto (v3.89)
+    // Relatório simplificado (v4.45)
+    "Completo": "Full",
+    "Simplificado": "Simplified",
+
     "Sem cabine de referência — contar só em píxeis": "No reference cabinet — count in pixels only",
     " escolhe uma cabine": " choose a cabinet",
   };
