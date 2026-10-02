@@ -1643,6 +1643,15 @@
     color: var(--ink-soft);
   }
   .summary-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  /* Completo / Simplificado — o mesmo resumo, mais curto. Ver js/relatorio-simples.js */
+  .rel-modo { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; padding: 2px; gap: 2px; background: var(--paper); }
+  .rel-modo-btn { font-family: inherit; font-size: 12px; font-weight: 500; color: var(--ink-soft); background: none; border: none; border-radius: 6px; padding: 5px 9px; cursor: pointer; }
+  .rel-modo-btn.active { background: var(--paper-raised); color: var(--ink); box-shadow: var(--shadow); }
+  .rel-modo-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .summary-head { flex-wrap: wrap; gap: 8px; }
+  pre.sumbox.sumbox-simples { display: none; }
+  body.rel-simples pre.sumbox[id] { display: none; }
+  body.rel-simples pre.sumbox.sumbox-simples { display: block; }
   .addproject {
     display: flex;
     align-items: center;
