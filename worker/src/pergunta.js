@@ -29,7 +29,10 @@ const PESQUISA = { type: "web_search_20250305", name: "web_search", max_uses: 4 
 
 const CONHECIMENTO_OMISSAO = "https://mikefkfmiguel-create.github.io/calculadores/conhecimento/";
 const NOTAS_MAX_CARACTERES = 60000;
-const PERGUNTA_MAX = 4000;
+// Largo de propósito: colar um email inteiro na caixa tem de caber.
+const PERGUNTA_MAX = 20000;
+const ANEXO_TEXTO_MAX = 30000;
+const PDF_MAX_BASE64 = 14 * 1024 * 1024; // ~10 MB de PDF
 const HISTORICO_MAX = 3;
 const HISTORICO_TEXTO_MAX = 3000;
 const IMAGEM_MAX_BASE64 = 7 * 1024 * 1024; // ~5 MB de imagem
@@ -105,6 +108,7 @@ function instrucoes(notas, nome) {
     "REGRAS:",
     "- Nunca inventes valores técnicos (specs, limites, nomes de menus). Se não tens a certeza, diz que é preciso confirmar no equipamento.",
     "- Se houver foto, lê o que lá está escrito (valores, menus) e usa-o; não estimes medidas a partir de fotos.",
+    "- Se houver um PDF ou texto anexado (ex.: um email, um briefing, um manual), lê-o todo e responde com base nele; se pedirem um resumo, resume em pontos curtos o que é pedido, datas, equipamento e pendentes.",
     "- Se a pergunta for perigosa para equipamento ou pessoas (eletricidade, rigging), avisa e manda confirmar com o responsável.",
     "",
     "FORMATO, obrigatório:",
@@ -177,7 +181,13 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
   const imagem = typeof body.imageBase64 === "string" ? body.imageBase64 : "";
   const tipoImagem = TIPOS_IMAGEM.includes(body.imageMediaType) ? body.imageMediaType : "";
   const temImagem = !!(imagem && tipoImagem);
-  if (!pergunta && !temImagem) return json({ ok: false, motivo: "Escreve a pergunta ou junta uma foto." }, 400, cors);
+  const pdf = typeof body.pdfBase64 === "string" ? body.pdfBase64 : "";
+  const anexoTexto = typeof body.anexoTexto === "string" ? body.anexoTexto.trim() : "";
+  const anexoNome = typeof body.anexoNome === "string" ? body.anexoNome.replace(/[\u0000-\u001f<>"]/g, "").slice(0, 120) : "";
+  const temAnexo = !!(pdf || anexoTexto);
+  if (!pergunta && !temImagem && !temAnexo) return json({ ok: false, motivo: "Escreve a pergunta ou junta uma foto, um PDF ou um texto." }, 400, cors);
+  if (pdf.length > PDF_MAX_BASE64) return json({ ok: false, motivo: "PDF demasiado grande (máx. ~10 MB)." }, 400, cors);
+  if (anexoTexto.length > ANEXO_TEXTO_MAX) return json({ ok: false, motivo: "Texto anexado demasiado longo (máx. " + ANEXO_TEXTO_MAX + " caracteres)." }, 400, cors);
   if (pergunta.length > PERGUNTA_MAX) return json({ ok: false, motivo: "Pergunta demasiado longa (máx. " + PERGUNTA_MAX + " caracteres)." }, 400, cors);
   if (imagem.length > IMAGEM_MAX_BASE64) return json({ ok: false, motivo: "Foto demasiado grande." }, 400, cors);
 
@@ -195,8 +205,12 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
     messages.push({ role: "assistant", content: x.r });
   });
   const blocos = [];
+  if (pdf) blocos.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf }, title: anexoNome || "documento.pdf" });
+  if (anexoTexto) blocos.push({ type: "text", text: "Texto anexado" + (anexoNome ? " (" + anexoNome + ")" : "") + ":\n<<<\n" + anexoTexto + "\n>>>" });
   if (temImagem) blocos.push({ type: "image", source: { type: "base64", media_type: tipoImagem, data: imagem } });
-  blocos.push({ type: "text", text: pergunta || "O que é que esta foto mostra, e o que devo verificar ou ajustar?" });
+  blocos.push({ type: "text", text: pergunta || (temAnexo
+    ? "Resume o que está anexado e diz o que é pedido, o que é preciso fazer e o que devo verificar."
+    : "O que é que esta foto mostra, e o que devo verificar ou ajustar?") });
   messages.push({ role: "user", content: blocos });
 
   let res;
@@ -246,7 +260,8 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
   if (env.REGISTOS && ctx) {
     const quando = new Date().toISOString();
     const registo = {
-      quando, tipo: "pergunta", nome, pergunta, temImagem,
+      quando, tipo: "pergunta", nome, pergunta: pergunta.slice(0, 4000), temImagem, temPdf: !!pdf,
+      anexoNome: anexoNome || null, temAnexoTexto: !!anexoTexto,
       resposta: resposta.slice(0, 4000), origem, notasUsadas: saida.notasUsadas, fontes: saida.fontes,
     };
     ctx.waitUntil(env.REGISTOS.put(quando + "-pergunta-" + crypto.randomUUID(), JSON.stringify(registo),
@@ -262,7 +277,7 @@ export async function proporNota(request, env, origin, deps) {
   if (!env.REGISTOS) return json({ ok: false, motivo: "Worker sem armazenamento configurado." }, 200, cors);
   let body;
   try { body = await request.json(); } catch (_) { body = null; }
-  const pergunta = body && typeof body.pergunta === "string" ? body.pergunta.trim().slice(0, PERGUNTA_MAX) : "";
+  const pergunta = body && typeof body.pergunta === "string" ? body.pergunta.trim().slice(0, 4000) : "";
   const resposta = body && typeof body.resposta === "string" ? body.resposta.trim().slice(0, 8000) : "";
   const comentario = body && typeof body.comentario === "string" ? body.comentario.trim().slice(0, 2000) : "";
   if (!resposta) return json({ ok: false, motivo: "Falta a resposta a propor." }, 400, cors);

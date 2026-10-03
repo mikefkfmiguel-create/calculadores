@@ -221,3 +221,33 @@ test("o nome de quem pergunta vai para as instruções e para o registo", async 
     assert.equal(reg.nome, "João Silva");
   } finally { repor(); }
 });
+
+test("PDF e texto anexado vão como blocos; sem pergunta pede-se um resumo", async () => {
+  const visto = {};
+  const repor = trocarFetch({ content: [{ type: "text", text: "ORIGEM: geral\nNOTAS: nenhuma\n\nResumo." }] }, visto);
+  try {
+    const env = ambiente();
+    esperas.length = 0;
+    const d = await (await worker.fetch(pedido("/pergunta", {
+      pdfBase64: "JVBERi0=", anexoTexto: "Olá, para o evento de dia 10 precisamos de...", anexoNome: "email.txt",
+    }), env, ctx)).json();
+    await Promise.all(esperas);
+    assert.equal(d.ok, true);
+    const blocos = visto.corpo.messages.at(-1).content;
+    assert.equal(blocos[0].type, "document");
+    assert.equal(blocos[0].source.media_type, "application/pdf");
+    assert.match(blocos[1].text, /Texto anexado \(email\.txt\)/);
+    assert.match(blocos.at(-1).text, /Resume/);
+    const reg = JSON.parse([...env.REGISTOS.dados.values()][0]);
+    assert.equal(reg.temPdf, true);
+    assert.equal(reg.anexoNome, "email.txt");
+  } finally { repor(); }
+});
+
+test("um email colado na caixa (longo) cabe na pergunta", async () => {
+  const repor = trocarFetch({ content: [{ type: "text", text: "ORIGEM: geral\nNOTAS: nenhuma\n\nOk." }] });
+  try {
+    const r = await worker.fetch(pedido("/pergunta", { pergunta: "x".repeat(15000) }), ambiente(), ctx);
+    assert.equal(r.status, 200);
+  } finally { repor(); }
+});
