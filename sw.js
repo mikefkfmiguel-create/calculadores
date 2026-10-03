@@ -1,4 +1,4 @@
-const CACHE = "calculadores-v451";
+const CACHE = "calculadores-v452";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -32,7 +32,8 @@ const DATA_FILES = [
   // nova aparecer logo com rede e a última cópia continuar a abrir sem rede.
   "./conhecimento/indice.json",
   "./conhecimento/novastar-mctrl4k-a8s-10bit-50hz.md",
-  "./conhecimento/solucoes-proprias-mike-apps.md"
+  "./conhecimento/solucoes-proprias-mike-apps.md",
+  "./conhecimento/perguntas-e-respostas.md"
 ];
 
 self.addEventListener("install", (event) => {

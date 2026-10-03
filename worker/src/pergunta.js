@@ -29,6 +29,11 @@ const PESQUISA = { type: "web_search_20250305", name: "web_search", max_uses: 4 
 
 const CONHECIMENTO_OMISSAO = "https://mikefkfmiguel-create.github.io/calculadores/conhecimento/";
 const NOTAS_MAX_CARACTERES = 60000;
+// "Mike virtual": a forma de pensar do mike, lida em TODAS as perguntas.
+// Fica fora do indice.json de propósito: não compete com as notas pelo tecto
+// de caracteres e nunca conta como fonte ("notas").
+export const PERFIL_FICHEIRO = "perfil-mike.md";
+const PERFIL_MAX_CARACTERES = 6000;
 // Largo de propósito: colar um email inteiro na caixa tem de caber.
 const PERGUNTA_MAX = 20000;
 const ANEXO_TEXTO_MAX = 30000;
@@ -90,6 +95,16 @@ async function lerNotas(env, pergunta) {
     total += n.texto.length;
   }
   return out;
+}
+
+/** O perfil do mike (conhecimento/perfil-mike.md). Sem ele, responde-se na mesma. */
+async function lerPerfil(env) {
+  const base = (env.CONHECIMENTO_URL || CONHECIMENTO_OMISSAO).replace(/\/?$/, "/");
+  try {
+    const r = await fetch(base + PERFIL_FICHEIRO, { cf: { cacheTtl: 300 } });
+    if (!r.ok) return "";
+    return (await r.text()).slice(0, PERFIL_MAX_CARACTERES);
+  } catch (_) { return ""; }
 }
 
 // ------------------------------------------------ o que a calculadora conhece
@@ -204,7 +219,7 @@ function limpaNome(n) {
   return typeof n === "string" ? n.replace(/[\u0000-\u001f<>"]/g, "").replace(/\s+/g, " ").trim().slice(0, 60) : "";
 }
 
-function instrucoes(notas, nome, inventario, meusModelos) {
+function instrucoes(notas, nome, inventario, meusModelos, perfil) {
   const blocoNotas = notas.length
     ? notas.map((n) => "<nota ficheiro=\"" + n.ficheiro + "\" titulo=\"" + n.titulo.replace(/"/g, "'") + "\">\n" + n.texto + "\n</nota>").join("\n\n")
     : "(não há notas sobre este tema)";
@@ -213,6 +228,9 @@ function instrucoes(notas, nome, inventario, meusModelos) {
     "Respondes a técnicos no terreno, em português de Portugal, de forma direta e prática: primeiro a resposta, depois os passos ou valores. Curto: o técnico está a ler no telemóvel.",
     nome ? "Quem pergunta chama-se " + nome + ". Começa a resposta pelo nome (ex.: \"" + nome + ", ...\"), sem cerimónias." : "",
     "",
+    perfil
+      ? "COMO O MIKE PENSA (és o \"Mike virtual\": decide e responde como ele, seguindo isto; não é uma nota nem uma fonte, não o cites):\n<perfil>\n" + perfil + "\n</perfil>\n"
+      : "",
     "FONTES, por esta ordem:",
     "1. As NOTAS da equipa (abaixo) -- foram confirmadas no terreno. Se respondem à pergunta, usa-as e não as contradigas.",
     "2. A PESQUISA na web, quando as notas não chegam ou para confirmar dados de fabricante (manuais, fichas). Prefere sites do fabricante.",
@@ -332,7 +350,7 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
   }
 
   const nome = limpaNome(body.nome);
-  const [notas, inventario] = await Promise.all([lerNotas(env, pergunta), lerInventario(env)]);
+  const [notas, inventario, perfil] = await Promise.all([lerNotas(env, pergunta), lerInventario(env), lerPerfil(env)]);
   const meusModelos = limpaMeusModelos(body.meusModelos);
   const messages = [];
   limpaHistorico(body.historico).forEach((x) => {
@@ -361,7 +379,7 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
         model: MODELO_PERGUNTA,
         // Um pedido de projeto leva várias opções lado a lado.
         max_tokens: 3000,
-        system: instrucoes(notas, nome, inventario, meusModelos),
+        system: instrucoes(notas, nome, inventario, meusModelos, perfil),
         tools: [PESQUISA],
         messages,
       }),
