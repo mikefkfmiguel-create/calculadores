@@ -36,8 +36,9 @@
   <nav class="bcm-cab-acoes">
     <a class="copy" href="../">📐 Calculadoras completas</a>
     <a class="copy" href="https://mikefkfmiguel-create.github.io/preview/" target="mikeapps-preview">🧊 Preview 3D</a>
-    <button type="button" class="copy" id="bcm-instalar" hidden>⬇ Instalar</button>
+    <button type="button" class="copy" id="bcm-instalar">⤓ Instalar a app</button>
   </nav>
+  <p class="bcm-meta bcm-instalar-recado" id="bcm-instalar-recado" role="status" aria-live="polite"></p>
 
   <main class="bcm-app">
     <div class="card">
@@ -108,19 +109,14 @@
 
 <script src="../js/conhecimento.js"></script>
 <script src="../js/perguntar.js"></script>
+<script src="../js/instalar.js"></script>
 <script>
-  // Instalar como app própria (ícone "Better call Mike"), onde o browser deixar.
+  // Instalar como app própria (ícone "Better call Mike"). A página de entrada
+  // (AV Planner) liga para aqui com "#instalar" e o pedido abre-se sozinho --
+  // ver ../js/instalar.js, o mesmo das outras apps.
   (function () {
-    var pedido = null, botao = document.getElementById("bcm-instalar");
-    window.addEventListener("beforeinstallprompt", function (e) {
-      e.preventDefault(); pedido = e; botao.hidden = false;
-    });
-    botao.addEventListener("click", function () {
-      if (!pedido) return;
-      pedido.prompt();
-      pedido.userChoice.then(function () { pedido = null; botao.hidden = true; });
-    });
-    window.addEventListener("appinstalled", function () { botao.hidden = true; });
+    var recado = document.getElementById("bcm-instalar-recado");
+    window.mikeappsInstalar.ligarBotao("bcm-instalar", function (t) { recado.textContent = t; });
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
     }
