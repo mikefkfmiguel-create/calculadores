@@ -41,6 +41,40 @@ case a melhor solução encontrada com o equipamento que temos (e diga quando
 a melhor solução pede algo que não temos). Manter as regras: a origem é
 verificada no Worker; nunca inventar specs; a conta continua a ser da app.
 
+**A visão completa, explicada pelo mike às 23:42 — "event planner total":**
+
+> *"Se eu for apenas um comercial que recebe um pedido para orçamento de um
+> evento com tais exigências, o que poderia apresentar como solução com base
+> no que temos na calculadora, cruzando com o que será possível fazer e com
+> que opções no mercado total, dando um exemplo ou vários. Um event planner
+> total, mesmo saindo fora do existente e dando possibilidades extra, pois
+> por vezes temos de quebrar algumas regras de origem."*
+
+O que isto pede, em funcionalidade (proposta, a validar com ele):
+
+- **Quem usa**: um comercial, não um técnico. Entra um briefing (texto,
+  email, PDF), sai uma **proposta de solução** que ele possa apresentar.
+- **Várias opções, não uma**: ex. A) só com o nosso stock; B) stock + aluguer
+  /mercado para ficar melhor; C) a solução "ideal" sem limites. Cada uma com
+  o que leva (equipamento, quantidades vindas das contas da app), o que
+  ganha e o que custa a mais em complexidade.
+- **Cruzar três fontes**: o inventário da app (`data/*.json`, badges de posse
+  já existentes), as contas das calculadoras (tamanhos, tiles, projetores,
+  lentes, processadores, fibra), e o mercado (pesquisa web, com fonte).
+- **"Quebrar regras"** = sair do que temos e do formato habitual (outra
+  tecnologia, forma, montagem, aluguer), dito às claras como opção extra.
+  **Não** quer dizer inventar specs: dados de mercado só com fonte, e o que
+  não está confirmado vai marcado como tal (regra da casa no CLAUDE.md).
+- **Formato de saída**: algo apresentável ao cliente/chefia (resumo por
+  opção, lista de equipamento, prós/contras, pendentes a confirmar), com
+  "Levar para os cálculos / 3D" por opção.
+- Liga com o que já existe: a conversa do Better call Mike (perguntas do que
+  falta), o caso único (cada pedido limpo), o Preview 3D por opção, e a
+  ideia futura da versão "global" (motor genérico vs. stock AVK).
+
+Ainda NÃO iniciado — o mike fechou a sessão. Começar por conversar com ele
+sobre o formato da proposta e as opções A/B/C antes de mexer em código.
+
 ---
 
 ## 3 de outubro (noite) — cada caso é único: reset ao levar um caso novo (v4.62) — ESTADO ACTUAL
