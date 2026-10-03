@@ -212,6 +212,7 @@
 
   var ETIQUETAS = {
     notas: ["✅ Das notas da equipa", "bcm-o-notas"],
+    stock: ["📦 Com o nosso inventário", "bcm-o-stock"],
     web: ["🌐 Da web, com fontes", "bcm-o-web"],
     geral: ["⚠️ Resposta geral, sem fonte — confirma no equipamento", "bcm-o-geral"]
   };
@@ -293,6 +294,23 @@
     }
   }
 
+  // Os modelos que a pessoa acrescentou à lista na app (js/meus-modelos.js):
+  // fazem parte do que "a calculadora já conhece" neste aparelho.
+  function meusModelos() {
+    var out = [];
+    try {
+      var todos = JSON.parse(localStorage.getItem("mikeapps-meus-modelos-v1") || "{}");
+      Object.keys(todos).forEach(function (tipo) {
+        (Array.isArray(todos[tipo]) ? todos[tipo] : []).forEach(function (m) {
+          if (!m || typeof m.modelo !== "string") return;
+          var resumo = [m.diag ? m.diag + '"' : "", m.ratio || ""].filter(Boolean).join(" ");
+          out.push({ tipo: tipo, modelo: m.modelo, resumo: resumo });
+        });
+      });
+    } catch (_) {}
+    return out.slice(0, 40);
+  }
+
   // ------------------------------------------- guardar neste aparelho
   function guardarConversa() {
     var dados = {
@@ -336,6 +354,13 @@
       ? '<p class="bcm-meta">Notas usadas: ' + d.notasUsadas.map(function (n) { return esc(n.titulo); }).join(", ") +
         ' — abre-as na aba <a href="#" data-bcm-ir="conhecimento">Conhecimento</a>.</p>'
       : "";
+    // O equipamento da lista da app que a resposta nomeia (verificado no
+    // Worker): nosso ou só de mercado, como as etiquetas da calculadora.
+    var equipamento = (d.equipamento || []).length
+      ? '<p class="bcm-meta">Equipamento da lista: ' + d.equipamento.map(function (m) {
+          return esc(m.nome) + (m.avk ? " <b>(nosso)</b>" : " <i>(mercado)</i>");
+        }).join(", ") + "</p>"
+      : "";
     var fontes = (d.fontes || []).length
       ? '<div class="bcm-fontes"><strong>Fontes da web</strong><ol>' + d.fontes.map(function (f) {
           var href = /^https?:\/\//i.test(f.url) ? f.url : "#";
@@ -348,7 +373,7 @@
       '<p class="bcm-pergunta">' + esc(pergunta || "(foto)") + "</p>" +
       '<div class="bcm-origens">' + origem + "</div>" +
       '<div class="bcm-resposta" translate="no">' + render(d.resposta) + "</div>" +
-      notas + fontes +
+      notas + equipamento + fontes +
       '<div class="bcm-seguir-sitio"></div>' +
       '<div class="bcm-acoes">' +
         '<button type="button" class="copy" data-bcm-propor>📘 Propor como nota</button>' +
@@ -376,7 +401,7 @@
     Array.prototype.forEach.call(el.conversa.querySelectorAll(".bcm-seguir"), function (c) { c.remove(); });
     bloco.querySelector(".bcm-seguir-sitio").appendChild(caixaDeSeguir(d.resposta));
     el.conversa.appendChild(bloco);
-    trocas.push({ pergunta: pergunta, d: { resposta: d.resposta, origem: d.origem, notasUsadas: d.notasUsadas, fontes: d.fontes } });
+    trocas.push({ pergunta: pergunta, d: { resposta: d.resposta, origem: d.origem, notasUsadas: d.notasUsadas, fontes: d.fontes, equipamento: d.equipamento } });
     if (trocas.length > TROCAS_GUARDADAS) trocas.shift();
     ultima = { pergunta: pergunta, resposta: d.resposta };
     if (!aRepor) bloco.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -396,7 +421,7 @@
     if (!pergunta && !foto && !anexo) { estado("Escreve a pergunta ou junta uma foto, um PDF ou um texto."); el.texto.focus(); return; }
     if (!navigator.onLine) { estado("Sem rede. O Better call Mike precisa de ligação."); return; }
     if (!caso) caso = novoCaso();
-    var corpo = { pergunta: pergunta, nome: nomeAtual(), historico: historico.slice(-HISTORICO_MAX) };
+    var corpo = { pergunta: pergunta, nome: nomeAtual(), historico: historico.slice(-HISTORICO_MAX), meusModelos: meusModelos() };
     if (foto) { corpo.imageBase64 = foto.base64; corpo.imageMediaType = foto.tipo; }
     if (anexo) {
       corpo.anexoNome = anexo.nome;

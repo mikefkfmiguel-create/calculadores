@@ -42,7 +42,10 @@ const TIPOS_IMAGEM = ["image/png", "image/jpeg"];
 const REGISTO_VALIDADE = 30 * 24 * 60 * 60;
 const PROPOSTA_VALIDADE = 120 * 24 * 60 * 60;
 const PROPOSTAS_POR_IP_DIA = 20;
-const ORIGENS = ["notas", "web", "geral"];
+const ORIGENS = ["notas", "stock", "web", "geral"];
+// O inventário da app (data/*.json), resumido para caber no pedido.
+const INVENTARIO_MAX_CARACTERES = 20000;
+const MEUS_MODELOS_MAX = 40;
 
 function json(corpo, status, cors) {
   return new Response(JSON.stringify(corpo), { status, headers: { "Content-Type": "application/json", ...cors } });
@@ -89,11 +92,119 @@ async function lerNotas(env, pergunta) {
   return out;
 }
 
+// ------------------------------------------------ o que a calculadora conhece
+//
+// Pedido do mike: o motor de busca vai a todo o lado à procura da melhor
+// solução, "combinada com o que já temos visto na calculadora". O inventário
+// é o mesmo que a app usa (data/*.json no GitHub Pages): sem `mercado: true`
+// é equipamento da AVK, com ele é só referência de mercado (a mesma regra
+// das etiquetas "Mercado" na app).
+
+function baseDados(env) {
+  return (env.CONHECIMENTO_URL || CONHECIMENTO_OMISSAO).replace(/\/?$/, "/").replace(/conhecimento\/$/, "data/");
+}
+
+async function lerJson(url) {
+  try {
+    const r = await fetch(url, { cf: { cacheTtl: 300 } });
+    return r.ok ? await r.json() : null;
+  } catch (_) { return null; }
+}
+
+function n(v, casas) {
+  return typeof v === "number" && isFinite(v) ? String(Math.round(v * Math.pow(10, casas || 0)) / Math.pow(10, casas || 0)) : "";
+}
+
+/** Texto compacto do inventário + lista de modelos para o crivo do "stock". */
+export function resumoInventario(d) {
+  const linhas = [];
+  const modelos = [];
+  const posse = (x) => (x && x.mercado ? "MERCADO" : "AVK");
+  const junta = (nome, x) => { if (nome) modelos.push({ nome: String(nome), avk: !(x && x.mercado) }); };
+
+  const tiles = Array.isArray(d.tiles) ? d.tiles : [];
+  if (tiles.length) {
+    linhas.push("## Painéis LED (modelo | pitch mm | painel mm | px | kg | posse)");
+    tiles.forEach((t) => {
+      const pitch = t.mw && t.rx ? n(t.mw / t.rx, 2) : "";
+      linhas.push([t.modelo, pitch, n(t.mw) + "×" + n(t.mh), n(t.rx) + "×" + n(t.ry), n(t.weight, 1), posse(t)].join(" | "));
+      junta(t.modelo, t);
+    });
+  }
+  const proj = Array.isArray(d.projetores) ? d.projetores : [];
+  if (proj.length) {
+    linhas.push("## Projetores (modelo | lúmens | resolução | posse)");
+    proj.forEach((p) => {
+      const r = p.resolucao && p.resolucao.rx ? p.resolucao.rx + "×" + p.resolucao.ry : "";
+      linhas.push([p.modelo, n(p.lumens), r, posse(p)].join(" | "));
+      junta(p.modelo, p);
+    });
+  }
+  const lentes = Array.isArray(d.lentes) ? d.lentes : [];
+  if (lentes.length) {
+    linhas.push("## Lentes (marca modelo | throw ratio mín–máx)");
+    lentes.forEach((l) => linhas.push([(l.marca || "") + " " + (l.modelo || ""), n(l.min, 2) + "–" + n(l.max, 2)].join(" | ")));
+  }
+  const pr = d.processadores || {};
+  [["switchers", "Switchers/processadores de vídeo (marca modelo | MP | entradas/saídas | posse)"],
+   ["ledProcessors", "Processadores LED (marca modelo | portas | posse)"],
+   ["mediaServers", "Media servers (marca modelo | MP máx | saídas | posse)"]].forEach(([k, titulo]) => {
+    const lista = Array.isArray(pr[k]) ? pr[k] : [];
+    if (!lista.length) return;
+    linhas.push("## " + titulo);
+    lista.forEach((x) => {
+      const nome = ((x.marca || "") + " " + (x.modelo || "")).trim();
+      const extra = k === "switchers" ? [n(x.maxMPSwitcher), (x.inputs || "?") + "/" + (x.outputs || "?")]
+        : k === "ledProcessors" ? [n(x.ports)] : [n(x.maxMP), n(x.maxOutputs)];
+      const dono = x.mercado ? "MERCADO" : (x.unitsOwned ? "AVK ×" + x.unitsOwned : "AVK");
+      linhas.push([nome].concat(extra, [dono]).join(" | "));
+      junta(nome, x);
+      if (x.modelo && String(x.modelo).length >= 4) junta(x.modelo, x);
+    });
+  });
+  const tvs = Array.isArray(d.tvs) ? d.tvs : [];
+  if (tvs.length) {
+    linhas.push("## TVs/monitores (modelo | polegadas | posse)");
+    tvs.forEach((t) => { linhas.push([t.modelo, n(t.diag), posse(t)].join(" | ")); junta(t.modelo, t); });
+  }
+  let texto = linhas.join("\n");
+  if (texto.length > INVENTARIO_MAX_CARACTERES) texto = texto.slice(0, INVENTARIO_MAX_CARACTERES) + "\n(… cortado)";
+  return { texto, modelos };
+}
+
+async function lerInventario(env) {
+  const base = baseDados(env);
+  const [tiles, projetores, lentes, processadores, tvs] = await Promise.all(
+    ["led-tiles.json", "projectors.json", "lenses.json", "processors.json", "tvs.json"].map((f) => lerJson(base + f)));
+  return resumoInventario({ tiles, projetores, lentes, processadores, tvs });
+}
+
+/** Os modelos que a pessoa acrescentou na app (ficam no aparelho dela). */
+function limpaMeusModelos(m) {
+  if (!Array.isArray(m)) return [];
+  return m.slice(0, MEUS_MODELOS_MAX).filter((x) => x && typeof x.modelo === "string")
+    .map((x) => ({ tipo: String(x.tipo || "").slice(0, 20), modelo: x.modelo.replace(/[\u0000-\u001f<>]/g, "").slice(0, 80),
+      resumo: typeof x.resumo === "string" ? x.resumo.replace(/[\u0000-\u001f<>]/g, "").slice(0, 120) : "" }));
+}
+
+/** Os modelos do inventário que a resposta nomeia (verificado aqui). */
+export function modelosCitados(resposta, modelos) {
+  const t = (resposta || "").toLowerCase();
+  const vistos = new Set();
+  const out = [];
+  (modelos || []).forEach((m) => {
+    const nome = m.nome.trim();
+    if (nome.length < 4 || vistos.has(nome.toLowerCase())) return;
+    if (t.indexOf(nome.toLowerCase()) !== -1) { vistos.add(nome.toLowerCase()); out.push(m); }
+  });
+  return out;
+}
+
 function limpaNome(n) {
   return typeof n === "string" ? n.replace(/[\u0000-\u001f<>"]/g, "").replace(/\s+/g, " ").trim().slice(0, 60) : "";
 }
 
-function instrucoes(notas, nome) {
+function instrucoes(notas, nome, inventario, meusModelos) {
   const blocoNotas = notas.length
     ? notas.map((n) => "<nota ficheiro=\"" + n.ficheiro + "\" titulo=\"" + n.titulo.replace(/"/g, "'") + "\">\n" + n.texto + "\n</nota>").join("\n\n")
     : "(não há notas sobre este tema)";
@@ -113,6 +224,16 @@ function instrucoes(notas, nome) {
     "- Se houver um PDF ou texto anexado (ex.: um email, um briefing, um manual), lê-o todo e responde com base nele; se pedirem um resumo, resume em pontos curtos o que é pedido, datas, equipamento e pendentes.",
     "- Se a pergunta for perigosa para equipamento ou pessoas (eletricidade, rigging), avisa e manda confirmar com o responsável.",
     "",
+    "INVENTÁRIO DA AVK E O QUE A CALCULADORA CONHECE (abaixo): é o equipamento que a app usa nas contas. \"AVK\" = é nosso; \"MERCADO\" = só referência, não é nosso. Quando o equipamento entra na resposta, diz se é nosso ou de mercado, e escreve o modelo exatamente como está na lista.",
+    "",
+    "PEDIDOS DE PROJETO / ORÇAMENTO (um evento, um briefing, \"o que propomos?\"): pensa como um event planner completo, para um comercial apresentar. Depois de perceber o pedido (ou de perguntar o que falta), propõe opções lado a lado:",
+    "  A) Só com o que é nosso (AVK + as Mike Apps que se apliquem).",
+    "  B) O nosso + mercado/aluguer para ficar melhor (diz o que se aluga e porquê).",
+    "  C) A melhor solução sem limites, mesmo fora do habitual (outra tecnologia, forma ou montagem) — diz às claras que sai das regras de origem.",
+    "  Para cada opção: o que leva, o que ganha, o que complica, e o que falta confirmar. Quantidades e tamanhos exatos fazem-se na app: diz para levar o projeto aos Cálculos/Preview 3D, não inventes contas.",
+    "- SOLUÇÕES PRÓPRIAS: a nota \"Soluções próprias — as Mike Apps\" lista as ferramentas do mike. Quando uma cobre uma necessidade do pedido, sugere-a primeiro e compara com uma alternativa de mercado (com fonte da web).",
+    "- Dados de mercado (modelos, specs) só com fonte da pesquisa. O que não estiver confirmado diz-se que está por confirmar.",
+    "",
     "CONVERSA:",
     "- Isto é uma conversa: a pessoa responde por baixo da tua resposta, e as mensagens anteriores vêm antes desta.",
     "- Se faltar informação essencial, adianta primeiro o que já dá para dizer e acaba com no máximo 4 perguntas curtas, numeradas (1., 2., ...), uma por linha, cada uma a terminar em \"?\". A app transforma cada uma num campo de resposta.",
@@ -125,6 +246,12 @@ function instrucoes(notas, nome) {
     "",
     "NOTAS DA EQUIPA:",
     blocoNotas,
+    "",
+    "INVENTÁRIO (data/*.json da app):",
+    inventario && inventario.texto ? inventario.texto : "(inventário indisponível agora — não afirmes o que temos em stock)",
+    meusModelos && meusModelos.length
+      ? "\nMODELOS ACRESCENTADOS PELA PESSOA NESTE APARELHO (não confirmados no inventário):\n" + meusModelos.map((m) => "- " + (m.tipo ? m.tipo + ": " : "") + m.modelo + (m.resumo ? " (" + m.resumo + ")" : "")).join("\n")
+      : "",
   ].join("\n");
 }
 
@@ -205,7 +332,8 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
   }
 
   const nome = limpaNome(body.nome);
-  const notas = await lerNotas(env, pergunta);
+  const [notas, inventario] = await Promise.all([lerNotas(env, pergunta), lerInventario(env)]);
+  const meusModelos = limpaMeusModelos(body.meusModelos);
   const messages = [];
   limpaHistorico(body.historico).forEach((x) => {
     messages.push({ role: "user", content: x.p });
@@ -231,8 +359,9 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
       },
       body: JSON.stringify({
         model: MODELO_PERGUNTA,
-        max_tokens: 1800,
-        system: instrucoes(notas, nome),
+        // Um pedido de projeto leva várias opções lado a lado.
+        max_tokens: 3000,
+        system: instrucoes(notas, nome, inventario, meusModelos),
         tools: [PESQUISA],
         messages,
       }),
@@ -253,8 +382,13 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
   // ---- O CRIVO da origem: só fica o que tem prova ----------------------
   const origem = [];
   if (notasUsadas.length) origem.push("notas");
+  // "stock" só quando a resposta nomeia MESMO um modelo da AVK da lista.
+  const citados = modelosCitados(resposta, inventario.modelos);
+  const citadosAvk = citados.filter((m) => m.avk);
+  if (citadosAvk.length) origem.push("stock");
   if (lida.fontes.length) origem.push("web");
-  if (!origem.length || pedida.includes("geral")) origem.push("geral");
+  // Ter equipamento nosso nomeado não faz do conselho uma resposta com fonte.
+  if (!(notasUsadas.length || lida.fontes.length) || pedida.includes("geral")) origem.push("geral");
 
   const saida = {
     ok: true,
@@ -262,6 +396,7 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
     origem,
     notasUsadas: notasUsadas.map((n) => ({ ficheiro: n.ficheiro, titulo: n.titulo })),
     fontes: lida.fontes.slice(0, 8),
+    equipamento: citados.slice(0, 20).map((m) => ({ nome: m.nome, avk: m.avk })),
   };
 
   if (env.REGISTOS && ctx) {

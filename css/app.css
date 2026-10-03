@@ -1996,6 +1996,7 @@
   .bcm-origem { font-size: 0.82em; padding: 3px 8px; border-radius: 999px; border: 1px solid transparent; }
   .bcm-o-notas { background: var(--green-100); color: var(--green-600); border-color: var(--green-200); }
   .bcm-o-web { background: var(--blue-100); color: var(--blue-600); border-color: var(--blue-200); }
+  .bcm-o-stock { background: var(--paper-raised); color: var(--cyan-500); border-color: var(--cyan-500); }
   .bcm-o-geral { background: var(--amber-100); color: var(--amber-600); border-color: var(--amber-200); }
   .bcm-resposta p, .bcm-resposta li { line-height: 1.55; }
   .bcm-resposta ul, .bcm-resposta ol { padding-left: 20px; }
