@@ -1,0 +1,11 @@
+{
+  "notas": [
+    {
+      "ficheiro": "novastar-mctrl4k-a8s-10bit-50hz.md",
+      "pdf": "novastar-mctrl4k-a8s-10bit-50hz.pdf",
+      "titulo": "NovaStar MCTRL4K + A8s — sinal 10-bit a 50Hz",
+      "resumo": "Parâmetros do NovaLCT (Receiving Card), gradientes de grayscale a 100% e a 50% de brilho, validação com rampa e checklist.",
+      "atualizado": "2026-10-03"
+    }
+  ]
+}

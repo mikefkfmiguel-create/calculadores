@@ -17,6 +17,14 @@ Notas técnicas de afinação guardadas a pedido do mike, para responder a pergu
 
 Isto são notas práticas, não fichas do fabricante: não usar estes valores como dados de inventário em `data/*.json`.
 
+**Como cresce (regra combinada com o mike):** sempre que numa conversa surgir algo novo sobre um tema destas notas (um valor que funcionou no terreno, um problema e a solução, outro módulo/processador), propor no fim acrescentá-lo — e só gravar com o ok dele. Nunca acrescentar palpites nem valores não confirmados.
+
+**Para acrescentar ou criar uma nota:**
+1. Editar/criar `conhecimento/<tema>.md` (e o `.pdf` se fizer sentido).
+2. Atualizar `conhecimento/indice.json` (`ficheiro`, `pdf` opcional, `titulo`, `resumo`, `atualizado`). É daqui que a aba **Conhecimento** da app lê a lista.
+3. Nota nova: acrescentar o `.md` a `DATA_FILES` em `sw.js`, para abrir sem rede.
+4. Bump de versão (index.html + sw.js), como em qualquer alteração visível.
+
 ## Ideias futuras (por explorar, não iniciar sem pedido explícito)
 
 - **Versão "global" para venda**: separar o motor de pesquisa/cálculo (throw ratio, pixel pitch, data rate, etc. — genérico, reutilizável) do inventário/stock específico da AVK (equipamento próprio, badges "Mercado"/"Estimado", filtros de posse). Uma edição para venda a outras empresas manteria só os motores de pesquisa e cálculo, sem os filtros de stock da AVK, com versões traduzidas para outras línguas.
