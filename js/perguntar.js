@@ -349,10 +349,20 @@
     var texto = entradas.map(function (e) { return e.texto; }).filter(Boolean).join("\n\n").slice(0, 20000);
     var ficheiro = null;
     for (var i = entradas.length - 1; i >= 0 && !ficheiro; i--) ficheiro = entradas[i].ficheiro;
-    var campo = $("asst-text"), input = $("asst-pdf"), analisar = $("asst-analyze");
-    var aba = document.querySelector('.tab[data-mode="assistente"]');
-    if (!campo || !input || !analisar || !aba) return;
     if (!texto && !ficheiro) { estado("Não há pedido para levar para os cálculos."); return; }
+
+    // NA APP SEPARADA (mike/) não há cálculos nesta página: o pedido fica
+    // guardado neste aparelho e abre-se a app completa, que o vai buscar
+    // (ver receberDaApp). Mesma origem, por isso o mesmo armazenamento.
+    if (!$("asst-text")) {
+      estado("A abrir os cálculos…");
+      guardarPassagem({ destino: destino, texto: texto, ficheiro: ficheiro, quando: Date.now() }).then(function () {
+        location.href = (document.body.dataset.calculadoras || "../") + "#levar=" + encodeURIComponent(destino);
+      }, function () {
+        estado("Não consegui passar o pedido para os cálculos neste browser.");
+      });
+      return;
+    }
 
     // A janela do 3D abre-se JÁ, no toque: depois da análise o telemóvel já
     // não a deixaria abrir. Fica em branco até haver endereço.
@@ -360,6 +370,13 @@
     if (destino === "preview") {
       try { janela3d = window.open("", "mikeapps-preview"); } catch (_) {}
     }
+    executarNosCalculos(destino, texto, ficheiro, janela3d, false);
+  }
+
+  function executarNosCalculos(destino, texto, ficheiro, janela3d, veioDaApp) {
+    var campo = $("asst-text"), input = $("asst-pdf"), analisar = $("asst-analyze");
+    var aba = document.querySelector('.tab[data-mode="assistente"]');
+    if (!campo || !input || !analisar || !aba) return;
 
     campo.value = texto;
     campo.dispatchEvent(new Event("input", { bubbles: true }));
@@ -372,6 +389,7 @@
       } catch (_) { /* browser sem DataTransfer: segue só o texto */ }
       input.dispatchEvent(new Event("change", { bubbles: true }));
     }
+    if (typeof window.mostrarMenu === "function") window.mostrarMenu(false);
     aba.click();
     window.scrollTo(0, 0);
     setTimeout(function () {
@@ -381,7 +399,7 @@
         voltas++;
         if (cartao && cartao.style.display === "block") {
           clearInterval(vigia);
-          seguirPara(destino, janela3d);
+          seguirPara(destino, janela3d, veioDaApp);
         } else if (voltas > 240 || (estadoAsst && /^Erro/.test(estadoAsst.textContent))) {
           clearInterval(vigia);
           if (janela3d) { try { janela3d.close(); } catch (_) {} }
@@ -389,6 +407,65 @@
         }
       }, 250);
     }, 300);
+  }
+
+  // ------------------------------------- passagem entre a app e os cálculos
+  //
+  // IndexedDB e não localStorage: um PDF ou uma foto não cabem nos ~5 MB de
+  // texto do localStorage, e aqui guardam-se como ficheiro. Fica uma só
+  // passagem pendente, apagada assim que os cálculos a leem.
+  var PASSAGEM_DB = "mikeapps-bcm", PASSAGEM_STORE = "passagem", PASSAGEM_VALIDADE_MS = 10 * 60 * 1000;
+
+  function abrirDb() {
+    return new Promise(function (ok, falha) {
+      if (!window.indexedDB) { falha(new Error("sem IndexedDB")); return; }
+      var r = indexedDB.open(PASSAGEM_DB, 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore(PASSAGEM_STORE); };
+      r.onsuccess = function () { ok(r.result); };
+      r.onerror = function () { falha(r.error); };
+    });
+  }
+
+  function guardarPassagem(dados) {
+    return abrirDb().then(function (db) {
+      return new Promise(function (ok, falha) {
+        var tx = db.transaction(PASSAGEM_STORE, "readwrite");
+        tx.objectStore(PASSAGEM_STORE).put(dados, "pendente");
+        tx.oncomplete = function () { db.close(); ok(); };
+        tx.onerror = function () { db.close(); falha(tx.error); };
+      });
+    });
+  }
+
+  function tirarPassagem() {
+    return abrirDb().then(function (db) {
+      return new Promise(function (ok, falha) {
+        var tx = db.transaction(PASSAGEM_STORE, "readwrite");
+        var st = tx.objectStore(PASSAGEM_STORE);
+        var g = st.get("pendente");
+        var dados = null;
+        g.onsuccess = function () { dados = g.result || null; st.delete("pendente"); };
+        tx.oncomplete = function () { db.close(); ok(dados); };
+        tx.onerror = function () { db.close(); falha(tx.error); };
+      });
+    });
+  }
+
+  // Nos cálculos: chegou "#levar=<destino>" da app separada.
+  function receberDaApp() {
+    var m = /^#levar=(calculos|led|projecao|preview)$/.exec(location.hash);
+    if (!m || !$("asst-text")) return;
+    var destino = m[1];
+    history.replaceState(null, "", location.pathname + location.search);
+    try { sessionStorage.setItem("bcm-veio-da-app", "1"); } catch (_) {}
+    tirarPassagem().then(function (dados) {
+      if (!dados || Date.now() - (dados.quando || 0) > PASSAGEM_VALIDADE_MS) return;
+      var f = dados.ficheiro || null;
+      if (f && !(f instanceof File)) {
+        try { f = new File([f], f.name || "anexo", { type: f.type || "" }); } catch (_) {}
+      }
+      executarNosCalculos(destino, dados.texto || "", f, null, true);
+    }, function () {});
   }
 
   function num(id) {
@@ -404,7 +481,7 @@
     if (cartao) cartao.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function seguirPara(destino, janela3d) {
+  function seguirPara(destino, janela3d, veioDaApp) {
     var cartao = $("asst-results-card");
     var sugerido = typeof window.mikeappsTamanhoSugerido === "function" ? window.mikeappsTamanhoSugerido() : null;
     var lido = (num("asst-largura") && num("asst-altura")) ? { largura: num("asst-largura"), altura: num("asst-altura") } : null;
@@ -423,6 +500,9 @@
       }
       var url = window.mikeappsUrlPreviewDeEcra(t.largura, t.altura);
       if (janela3d && !janela3d.closed) janela3d.location.href = url;
+      // Vindo da app separada não houve toque nesta página: uma janela nova
+      // seria bloqueada, por isso o Preview abre aqui mesmo.
+      else if (veioDaApp) { location.href = url; return; }
       else window.open(url, "mikeapps-preview");
       if (cartao) cartao.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
@@ -518,14 +598,31 @@
         e.preventDefault();
         var aba = document.querySelector('.tab[data-mode="' + e.target.closest("[data-bcm-ir]").dataset.bcmIr + '"]');
         if (aba) aba.click();
+        else abrirNotas();
       }
     });
     var voltar = $("bcm-voltar");
     if (voltar) voltar.addEventListener("click", function () {
+      var veio = false;
+      try { veio = sessionStorage.getItem("bcm-veio-da-app") === "1"; } catch (_) {}
+      if (veio) { location.href = "mike/"; return; }
       var aba = document.querySelector('.tab[data-mode="perguntar"]');
       if (aba) aba.click();
     });
+    var notas = $("bcm-notas");
+    if (notas) notas.addEventListener("toggle", function () { if (notas.open && window.kbCarregar) window.kbCarregar(); });
     atualizarContacto();
+    // Depois de a app completa repor a última aba e os rascunhos (que, antes,
+    // escreviam por cima do que acabava de chegar -- ver trazerBriefingDoPreview).
+    setTimeout(receberDaApp, 1000);
+  }
+
+  function abrirNotas() {
+    var d = $("bcm-notas");
+    if (!d) return;
+    d.open = true;
+    if (window.kbCarregar) window.kbCarregar();
+    d.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ligar);

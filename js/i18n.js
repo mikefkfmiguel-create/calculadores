@@ -38,6 +38,7 @@
     "Conhecimento": "Knowledge",
     "Dúvidas técnicas do terreno: escreve a pergunta ou tira uma foto ao ecrã do software. A resposta usa as notas da equipa e pesquisa na web, e diz sempre de onde vem.": "Technical questions from the field: type the question or take a photo of the software screen. The answer uses the team's notes and a web search, and always says where it comes from.",
     "📷 Câmara": "📷 Camera",
+    "📲 Também há a app Better call Mike, só para perguntar e de arranque rápido — instala-a no telemóvel →": "📲 There is also the Better call Mike app, just for asking and quick to start — install it on your phone →",
     "🖼 Galeria": "🖼 Gallery",
     "📎 PDF / texto": "📎 PDF / text",
     "Também podes colar aqui o texto de um email, ou anexar um PDF/ficheiro de texto e pedir um resumo.": "You can also paste an email's text here, or attach a PDF/text file and ask for a summary.",
