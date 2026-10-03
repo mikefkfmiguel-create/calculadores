@@ -84,13 +84,18 @@ async function lerNotas(env, pergunta) {
   return out;
 }
 
-function instrucoes(notas) {
+function limpaNome(n) {
+  return typeof n === "string" ? n.replace(/[\u0000-\u001f<>"]/g, "").replace(/\s+/g, " ").trim().slice(0, 60) : "";
+}
+
+function instrucoes(notas, nome) {
   const blocoNotas = notas.length
     ? notas.map((n) => "<nota ficheiro=\"" + n.ficheiro + "\" titulo=\"" + n.titulo.replace(/"/g, "'") + "\">\n" + n.texto + "\n</nota>").join("\n\n")
     : "(não há notas sobre este tema)";
   return [
     "És o \"Better call Mike\", o apoio técnico de uma equipa de produção audiovisual (AVK Portugal): LED, processadores (NovaStar, Brompton, etc.), projeção, media servers, sinal de vídeo, redes AV.",
     "Respondes a técnicos no terreno, em português de Portugal, de forma direta e prática: primeiro a resposta, depois os passos ou valores. Curto: o técnico está a ler no telemóvel.",
+    nome ? "Quem pergunta chama-se " + nome + ". Começa a resposta pelo nome (ex.: \"" + nome + ", ...\"), sem cerimónias." : "",
     "",
     "FONTES, por esta ordem:",
     "1. As NOTAS da equipa (abaixo) -- foram confirmadas no terreno. Se respondem à pergunta, usa-as e não as contradigas.",
@@ -182,6 +187,7 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
     return json({ ok: false, motivo: corpo.error || "Limite de pedidos atingido." }, travado.status, cors);
   }
 
+  const nome = limpaNome(body.nome);
   const notas = await lerNotas(env, pergunta);
   const messages = [];
   limpaHistorico(body.historico).forEach((x) => {
@@ -205,7 +211,7 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
       body: JSON.stringify({
         model: MODELO_PERGUNTA,
         max_tokens: 1800,
-        system: instrucoes(notas),
+        system: instrucoes(notas, nome),
         tools: [PESQUISA],
         messages,
       }),
@@ -240,7 +246,7 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
   if (env.REGISTOS && ctx) {
     const quando = new Date().toISOString();
     const registo = {
-      quando, tipo: "pergunta", pergunta, temImagem,
+      quando, tipo: "pergunta", nome, pergunta, temImagem,
       resposta: resposta.slice(0, 4000), origem, notasUsadas: saida.notasUsadas, fontes: saida.fontes,
     };
     ctx.waitUntil(env.REGISTOS.put(quando + "-pergunta-" + crypto.randomUUID(), JSON.stringify(registo),
@@ -274,7 +280,8 @@ export async function proporNota(request, env, origin, deps) {
   const fontes = Array.isArray(body.fontes) ? body.fontes.slice(0, 8).filter((f) => f && typeof f.url === "string")
     .map((f) => ({ titulo: String(f.titulo || f.url).slice(0, 200), url: f.url.slice(0, 500) })) : [];
   const quando = new Date().toISOString();
-  const proposta = { quando, tipo: "proposta-nota", pergunta, resposta, comentario, origem, fontes };
+  const nome = limpaNome(body.nome);
+  const proposta = { quando, tipo: "proposta-nota", nome, pergunta, resposta, comentario, origem, fontes };
   await env.REGISTOS.put(quando + "-proposta-" + crypto.randomUUID(), JSON.stringify(proposta), { expirationTtl: PROPOSTA_VALIDADE });
   return json({ ok: true }, 200, cors);
 }

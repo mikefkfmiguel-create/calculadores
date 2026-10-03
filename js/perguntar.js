@@ -24,6 +24,7 @@
   var URL_WORKER_CHAVE = "calculadores-assistente-worker-url";
   var URL_WORKER_OMISSAO = "https://calculadores-assistente.avkvideoshare.workers.dev";
   var CODIGO_CHAVE = "bcm-codigo-v1";
+  var NOME_CHAVE = "bcm-nome-v1";
   var HISTORICO_MAX = 3;
   var LADO_MAX_FOTO = 1600;
 
@@ -50,6 +51,15 @@
     c = "BCM-" + Array.prototype.map.call(b, function (x) { return alfabeto[x % alfabeto.length]; }).join("");
     try { localStorage.setItem(CODIGO_CHAVE, c); } catch (_) {}
     return c;
+  }
+
+  function nomeAtual() {
+    return (el.nome && el.nome.value || "").replace(/\s+/g, " ").trim().slice(0, 60);
+  }
+
+  function identificacao() {
+    var n = nomeAtual();
+    return (n ? n + " · " : "") + codigoDaApp();
   }
 
   function esc(s) {
@@ -143,9 +153,12 @@
 
   function perguntar() {
     var pergunta = el.texto.value.trim();
+    // O nome é pedido uma vez e fica neste aparelho: serve para a resposta
+    // tratar a pessoa pelo nome e para o Mike saber quem pergunta/liga.
+    if (!nomeAtual()) { estado("Escreve primeiro o teu nome."); el.nome.focus(); return; }
     if (!pergunta && !foto) { estado("Escreve a pergunta ou junta uma foto."); el.texto.focus(); return; }
     if (!navigator.onLine) { estado("Sem rede. O Better call Mike precisa de ligação."); return; }
-    var corpo = { pergunta: pergunta, historico: historico.slice(-HISTORICO_MAX) };
+    var corpo = { pergunta: pergunta, nome: nomeAtual(), historico: historico.slice(-HISTORICO_MAX) };
     if (foto) { corpo.imageBase64 = foto.base64; corpo.imageMediaType = foto.tipo; }
     el.enviar.disabled = true;
     estado("A pensar… (com pesquisa na web pode demorar até um minuto)");
@@ -190,7 +203,7 @@
     fetch(enderecoDoWorker() + "/pergunta/propor", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pergunta: d.pergunta, resposta: d.resposta, origem: d.origem, fontes: d.fontes,
+      body: JSON.stringify({ nome: nomeAtual(), pergunta: d.pergunta, resposta: d.resposta, origem: d.origem, fontes: d.fontes,
         comentario: caixa.querySelector("textarea").value.trim() })
     }).then(function (r) { return r.json(); }).then(function (r) {
       if (r && r.ok) {
@@ -217,10 +230,10 @@
     var n = numeroLimpo();
     if (!n) { el.contacto.hidden = true; return; }
     el.contacto.hidden = false;
-    var codigo = codigoDaApp();
-    el.codigo.textContent = codigo;
+    var id = identificacao();
+    el.codigo.textContent = id;
     el.ligar.href = "tel:" + n;
-    var msg = "Better call Mike · " + codigo + "\n";
+    var msg = "Better call Mike · " + id + "\n";
     if (ultima) {
       msg += "\nPergunta: " + (ultima.pergunta || "(foto)") + "\n\nResposta da app (resumo):\n" + ultima.resposta.slice(0, 600);
       if (ultima.resposta.length > 600) msg += "…";
@@ -244,6 +257,12 @@
     el.ligar = $("bcm-ligar");
     el.whatsapp = $("bcm-whatsapp");
     el.codigo = $("bcm-codigo");
+    el.nome = $("bcm-nome");
+    try { el.nome.value = localStorage.getItem(NOME_CHAVE) || ""; } catch (_) {}
+    el.nome.addEventListener("input", function () {
+      try { localStorage.setItem(NOME_CHAVE, nomeAtual()); } catch (_) {}
+      atualizarContacto();
+    });
     el.texto.dataset.placeholderOriginal = el.texto.placeholder;
 
     el.enviar.addEventListener("click", perguntar);

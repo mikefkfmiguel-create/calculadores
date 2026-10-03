@@ -1678,7 +1678,9 @@
     letter-spacing: 0.05em;
     margin: 0 0 6px;
   }
-  button.copy {
+  button.copy, a.copy, label.copy {
+    display: inline-block;
+    text-decoration: none;
     font-family: "IBM Plex Sans", sans-serif;
     font-size: 12.5px;
     font-weight: 600;
@@ -1689,7 +1691,7 @@
     padding: 5px 10px;
     cursor: pointer;
   }
-  button.copy:hover { color: var(--ink); border-color: var(--ink-faint); }
+  button.copy:hover, a.copy:hover, label.copy:hover { color: var(--ink); border-color: var(--ink-faint); }
   button.copy:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
   button.copy:disabled { opacity: 0.4; cursor: not-allowed; }
   button.copy:disabled:hover { color: var(--ink-soft); border-color: var(--line); }
@@ -2017,3 +2019,13 @@
   .bcm-contacto a.copy { display: inline-block; text-decoration: none; }
   .bcm-ligar { font-weight: 600; }
   .bcm-fontes a, .bcm-meta a, .kb-visor a:not(.copy), .bcm-resposta a { color: var(--blue-600); }
+  .bcm-nome-label { display: block; margin-top: 10px; font-size: 0.9em; color: var(--ink-soft); }
+  .bcm-nome {
+    width: 100%; box-sizing: border-box; margin-top: 4px; padding: 8px 12px; font: inherit; color: var(--ink);
+    background: var(--paper-raised); border: 1px solid var(--line); border-radius: 8px;
+  }
+  .bcm-contacto .bcm-ligar, .bcm-barra .bcm-enviar {
+    font-size: 14px; padding: 9px 14px; color: #fff; background: var(--amber-500); border-color: var(--amber-500);
+  }
+  .bcm-contacto .bcm-ligar:hover, .bcm-barra .bcm-enviar:hover { color: #fff; border-color: var(--amber-600); }
+  .bcm-barra .copy, .bcm-contacto a.copy { font-size: 14px; padding: 9px 14px; }

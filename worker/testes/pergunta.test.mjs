@@ -207,3 +207,17 @@ test("interpretar sem cabeçalho devolve o texto todo", () => {
   assert.equal(r.resposta, "Só texto.");
   assert.deepEqual(r.origem, []);
 });
+
+test("o nome de quem pergunta vai para as instruções e para o registo", async () => {
+  const visto = {};
+  const repor = trocarFetch({ content: [{ type: "text", text: "ORIGEM: geral\nNOTAS: nenhuma\n\nJoão, sim." }] }, visto);
+  try {
+    const env = ambiente();
+    esperas.length = 0;
+    await worker.fetch(pedido("/pergunta", { pergunta: "x?", nome: "  João <Silva>  " }), env, ctx);
+    await Promise.all(esperas);
+    assert.match(visto.corpo.system, /chama-se João Silva\./);
+    const reg = JSON.parse([...env.REGISTOS.dados.values()][0]);
+    assert.equal(reg.nome, "João Silva");
+  } finally { repor(); }
+});
