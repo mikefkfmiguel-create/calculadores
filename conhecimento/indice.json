@@ -12,6 +12,12 @@
       "titulo": "Soluções próprias — as Mike Apps",
       "resumo": "As ferramentas do mike (cálculo, 3D, régie, show control, conteúdo, ativações) e o que cada uma resolve num evento — sugeridas antes do mercado.",
       "atualizado": "2026-10-03"
+    },
+    {
+      "ficheiro": "perguntas-e-respostas.md",
+      "titulo": "Perguntas e respostas aprovadas pelo mike",
+      "resumo": "O que o Better call Mike vai aprendendo: perguntas reais que se repetem, com a resposta certa e a fonte, só depois do ok do mike.",
+      "atualizado": "2026-10-04"
     }
   ]
 }

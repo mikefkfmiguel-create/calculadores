@@ -11,7 +11,51 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
-## 3 de outubro, ~00:00 — "conjuga isso tudo": event planner no Better call Mike (v4.63) — ESTADO ACTUAL
+## 4 de outubro, ~00:45 — "Mike virtual": o Better call Mike pensa como o mike e aprende com aprovação (v4.64) — ESTADO ACTUAL
+
+**Calculadores v4.64** (sw `calculadores-v452`) · `mike/` sem mudanças · o
+Worker muda (`worker/src/pergunta.js`) e é publicado pelo workflow no merge.
+
+O mike pediu *"como se fosse uma ai do Mike, em que as questões são pensadas
+com base no que te tenho exposto e podes ir aprendendo juntando perguntas e
+respostas que encontras"*, e escolheu evoluir o Better call Mike em vez de
+fazer uma app à parte.
+
+### O que ficou feito
+
+- **`conhecimento/perfil-mike.md`**: a forma de pensar do mike (show no ar
+  primeiro, nunca inventar dados, offline, simples, cada caso é único, Mike
+  Apps antes do mercado, como responde). Tirado da análise dos 26 repos dele.
+  **Fora do `indice.json`** de propósito.
+- **Worker**: `lerPerfil()` lê o perfil em todas as perguntas e põe-no no
+  system como "COMO O MIKE PENSA"; nunca conta como fonte "notas" (não está
+  no índice). Sem perfil publicado, responde como antes.
+  3 testes novos (`worker/testes/perfil.test.mjs`); `node --test
+  "worker/testes/*.test.mjs"`: 63/63.
+- **`conhecimento/perguntas-e-respostas.md`** (+ `indice.json`, + `sw.js`):
+  a nota onde entram as fichas aprendidas. Começa vazia, com o formato.
+  Aparece na aba Conhecimento (verificado em browser).
+- **Skill `.claude/skills/aprender-mike`**: revisão dos `/registos`
+  (perguntas + propostas "📘 Propor como nota"), junta as dúvidas que se
+  repetem, propõe fichas ao mike e **só grava com o ok dele**.
+- `CLAUDE.md` atualizado (perfil + nota + skill).
+
+### Por fazer / por confirmar com o mike
+
+- Rever o `perfil-mike.md` com ele (é público no Pages; não tem nada
+  pessoal, mas é a voz dele).
+- Primeira revisão com a skill `aprender-mike` quando houver registos: pede o
+  `ASSISTENTE_ADMIN_TOKEN` (nunca no repo).
+- Se ele quiser, uma tarefa agendada semanal para a revisão.
+
+### Publicar
+
+PR para `main` (merge). O Pages serve o perfil e a nota; o workflow publica o
+Worker.
+
+---
+
+## 3 de outubro, ~00:00 — "conjuga isso tudo": event planner no Better call Mike (v4.63)
 
 **Calculadores v4.63** (sw `calculadores-v451`) · `mike/` sw `bcm-v4` · Worker
 publicado pelo workflow. Mais recente do que tudo o que vem abaixo.

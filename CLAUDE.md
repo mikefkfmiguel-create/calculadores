@@ -18,7 +18,11 @@ Notas técnicas de afinação guardadas a pedido do mike, para responder a pergu
 
 - `conhecimento/solucoes-proprias-mike-apps.md`: as **Mike Apps** (as ferramentas do mike: cálculo, 3D, régie, show control, conteúdo, ativações) e o que cada uma resolve num evento — escrito a partir dos README de cada repo. O Better call Mike sugere-as antes do mercado. Uma app nova ou mudada → atualizar aqui.
 
+- `conhecimento/perguntas-e-respostas.md`: o que o **Mike virtual** vai aprendendo — perguntas reais que se repetem, com a resposta certa e a fonte, **só depois do ok do mike**. Revisão e gravação pela skill `.claude/skills/aprender-mike`.
+
 Isto são notas práticas, não fichas do fabricante: não usar estes valores como dados de inventário em `data/*.json`.
+
+**Mike virtual (pedido do mike, 4 out 2026):** o Better call Mike responde como o mike pensaria. `conhecimento/perfil-mike.md` (a forma de pensar dele) é lido pelo Worker em TODAS as perguntas (`lerPerfil`, `PERFIL_FICHEIRO` em `worker/src/pergunta.js`) e fica **fora** do `indice.json` de propósito: não compete com as notas pelo tecto de caracteres e nunca conta como fonte "notas". Só se muda a pedido do mike.
 
 **Como cresce (regra combinada com o mike):** sempre que numa conversa surgir algo novo sobre um tema destas notas (um valor que funcionou no terreno, um problema e a solução, outro módulo/processador), propor no fim acrescentá-lo — e só gravar com o ok dele. Nunca acrescentar palpites nem valores não confirmados.
 
