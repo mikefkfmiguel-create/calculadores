@@ -537,7 +537,7 @@
   .tab[data-mode="tv"] .swatch, .tabs-current[data-mode="tv"] .swatch { background: var(--orange-500); }
   .tab[data-mode="dome"] .swatch, .tabs-current[data-mode="dome"] .swatch { background: var(--violet-500); }
   .tab[data-mode="grafismo"] .swatch, .tabs-current[data-mode="grafismo"] .swatch { background: var(--orange-500); }
-  .tab[data-mode="perguntar"] .swatch, .tabs-current[data-mode="perguntar"] .swatch { background: var(--amber-500); }
+  .tab[data-mode="perguntar"] .swatch, .tabs-current[data-mode="perguntar"] .swatch { background: var(--cyan-500); }
   .tab[data-mode="conhecimento"] .swatch, .tabs-current[data-mode="conhecimento"] .swatch { background: var(--blue-500); }
   .tab[data-mode="ajuda"] .swatch, .tabs-current[data-mode="ajuda"] .swatch { background: var(--ink-faint); }
   .tab[aria-selected="true"] { color: var(--ink); }
@@ -550,7 +550,7 @@
   .tab[data-mode="tv"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
   .tab[data-mode="dome"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
   .tab[data-mode="grafismo"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
-  .tab[data-mode="perguntar"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
+  .tab[data-mode="perguntar"][aria-selected="true"] { border-bottom-color: var(--cyan-500); }
   .tab[data-mode="conhecimento"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
   .tab[data-mode="ajuda"][aria-selected="true"] { border-bottom-color: var(--ink-faint); }
   .tab[data-mode="projeto"][aria-selected="true"] { border-bottom-color: var(--green-500); }
@@ -2025,22 +2025,34 @@
     background: var(--paper-raised); border: 1px solid var(--line); border-radius: 8px;
   }
   .bcm-contacto .bcm-ligar, .bcm-barra .bcm-enviar {
-    font-size: 14px; padding: 9px 14px; color: #fff; background: var(--amber-500); border-color: var(--amber-500);
+    font-size: 14px; padding: 9px 14px; color: #E6F4FA; background: #0F2433; border-color: #2E9FBB;
   }
-  .bcm-contacto .bcm-ligar:hover, .bcm-barra .bcm-enviar:hover { color: #fff; border-color: var(--amber-600); }
+  .bcm-contacto .bcm-ligar:hover, .bcm-barra .bcm-enviar:hover { color: #fff; border-color: #4ABDD6; box-shadow: 0 0 10px rgba(74,189,214,0.3); }
   .bcm-barra .copy, .bcm-contacto a.copy { font-size: 14px; padding: 9px 14px; }
   .copy[hidden], .bcm-contacto[hidden], .bcm-foto-prev[hidden] { display: none !important; }
+  /* Escuro "tech" e igual nos dois temas: destaca-se sem gritar. */
   .bcm-topo {
+    position: relative; overflow: hidden;
     display: flex; align-items: center; gap: 14px; width: 100%; margin: 0 0 22px; padding: 16px 18px;
-    text-align: left; font: inherit; color: #fff; cursor: pointer;
-    background: var(--amber-500); border: 1px solid var(--amber-600); border-radius: 12px;
+    text-align: left; font: inherit; color: #E6F4FA; cursor: pointer;
+    background:
+      linear-gradient(rgba(74,189,214,0.07) 1px, transparent 1px) 0 0 / 100% 14px,
+      linear-gradient(90deg, rgba(74,189,214,0.07) 1px, transparent 1px) 0 0 / 14px 100%,
+      linear-gradient(135deg, #0B1621 0%, #0F2433 60%, #12303F 100%);
+    border: 1px solid rgba(74,189,214,0.45); border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset, 0 6px 18px rgba(8,30,44,0.25);
   }
-  .bcm-topo:hover { filter: brightness(1.05); }
+  .bcm-topo:hover { border-color: #4ABDD6; box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset, 0 0 16px rgba(74,189,214,0.25); }
   .bcm-topo:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-  .bcm-topo-icone { font-size: 26px; line-height: 1; }
+  .bcm-topo::after { content: "›"; margin-left: auto; font-size: 26px; line-height: 1; color: #4ABDD6; }
+  .bcm-topo-icone {
+    flex: 0 0 auto; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
+    font-size: 20px; line-height: 1; background: rgba(74,189,214,0.12); border: 1px solid rgba(74,189,214,0.5);
+    box-shadow: 0 0 12px rgba(74,189,214,0.25);
+  }
   .bcm-topo-texto { display: flex; flex-direction: column; gap: 2px; }
-  .bcm-topo-nome { font-size: 1.15em; font-weight: 700; }
-  .bcm-topo-sub { font-size: 0.9em; opacity: 0.92; }
+  .bcm-topo-nome { font-size: 1.12em; font-weight: 700; letter-spacing: 0.01em; }
+  .bcm-topo-sub { font-size: 0.88em; color: #9CC3D2; }
 
   /* ---- Better call Mike: o corredor enquanto se procura ---- */
   .bcm-loader { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 14px; }
@@ -2048,7 +2060,7 @@
   .bcm-corredor { overflow: hidden; }
   .bcm-corredor line, .bcm-corredor path { stroke: var(--ink); stroke-width: 4; stroke-linecap: round; fill: none; }
   .bcm-corredor .bcm-chao line { stroke: var(--line); stroke-width: 3; }
-  .bcm-tronco { fill: var(--amber-500); }
+  .bcm-tronco { fill: var(--cyan-500); }
   .bcm-cabeca { fill: var(--paper-raised); stroke: var(--ink); stroke-width: 3; }
   .bcm-corredor .bcm-headset { stroke: var(--blue-500); stroke-width: 3; }
   .bcm-auricular { fill: var(--blue-500); }
