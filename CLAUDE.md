@@ -25,6 +25,8 @@ Isto são notas práticas, não fichas do fabricante: não usar estes valores co
 3. Nota nova: acrescentar o `.md` a `DATA_FILES` em `sw.js`, para abrir sem rede.
 4. Bump de versão (index.html + sw.js), como em qualquer alteração visível.
 
+**Better call Mike** (aba `perguntar`, `js/perguntar.js` + `worker/src/pergunta.js`): perguntas técnicas com texto/foto. O Worker lê as notas de `conhecimento/` do GitHub Pages e responde com Sonnet + pesquisa web; a origem (notas/web/geral) é verificada no Worker, nunca confiada ao modelo. As propostas "📘 Propor como nota" chegam à rota `/registos` com `tipo: "proposta-nota"` (guardadas 120 dias) — rever com o mike e, com o ok dele, passar a nota pelos passos acima. O número de "Ligar ao Mike" é a constante `MIKE_TELEFONE` em `js/perguntar.js` (vazia = botões escondidos).
+
 ## Ideias futuras (por explorar, não iniciar sem pedido explícito)
 
 - **Versão "global" para venda**: separar o motor de pesquisa/cálculo (throw ratio, pixel pitch, data rate, etc. — genérico, reutilizável) do inventário/stock específico da AVK (equipamento próprio, badges "Mercado"/"Estimado", filtros de posse). Uma edição para venda a outras empresas manteria só os motores de pesquisa e cálculo, sem os filtros de stock da AVK, com versões traduzidas para outras línguas.

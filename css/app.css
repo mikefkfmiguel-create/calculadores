@@ -537,6 +537,7 @@
   .tab[data-mode="tv"] .swatch, .tabs-current[data-mode="tv"] .swatch { background: var(--orange-500); }
   .tab[data-mode="dome"] .swatch, .tabs-current[data-mode="dome"] .swatch { background: var(--violet-500); }
   .tab[data-mode="grafismo"] .swatch, .tabs-current[data-mode="grafismo"] .swatch { background: var(--orange-500); }
+  .tab[data-mode="perguntar"] .swatch, .tabs-current[data-mode="perguntar"] .swatch { background: var(--amber-500); }
   .tab[data-mode="conhecimento"] .swatch, .tabs-current[data-mode="conhecimento"] .swatch { background: var(--blue-500); }
   .tab[data-mode="ajuda"] .swatch, .tabs-current[data-mode="ajuda"] .swatch { background: var(--ink-faint); }
   .tab[aria-selected="true"] { color: var(--ink); }
@@ -549,6 +550,7 @@
   .tab[data-mode="tv"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
   .tab[data-mode="dome"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
   .tab[data-mode="grafismo"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
+  .tab[data-mode="perguntar"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
   .tab[data-mode="conhecimento"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
   .tab[data-mode="ajuda"][aria-selected="true"] { border-bottom-color: var(--ink-faint); }
   .tab[data-mode="projeto"][aria-selected="true"] { border-bottom-color: var(--green-500); }
@@ -1968,3 +1970,50 @@
   .kb-tabela th { background: var(--paper); font-weight: 600; }
   .kb-pdf { margin: 0 0 12px; }
   .kb-pdf-link { display: inline-block; text-decoration: none; }
+
+  /* ---- Aba Better call Mike ---- */
+  .bcm-texto {
+    width: 100%; box-sizing: border-box; margin-top: 10px; padding: 10px 12px;
+    font: inherit; color: var(--ink); background: var(--paper-raised);
+    border: 1px solid var(--line); border-radius: 8px; resize: vertical;
+  }
+  .bcm-barra { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+  .bcm-barra .copy, .bcm-acoes .copy, .bcm-propor .copy { margin: 0; }
+  .bcm-foto-btn { cursor: pointer; }
+  .bcm-enviar { font-weight: 600; }
+  .bcm-estado { min-height: 1.2em; margin: 8px 0 0; color: var(--ink-soft); }
+  .bcm-foto-prev { position: relative; margin-top: 10px; max-width: 220px; }
+  .bcm-foto-prev img { display: block; width: 100%; border-radius: 8px; border: 1px solid var(--line); }
+  .bcm-tirar {
+    position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%;
+    border: none; background: rgba(0,0,0,0.6); color: #fff; cursor: pointer; font-size: 14px;
+  }
+  .bcm-conversa .bcm-troca { margin-top: 16px; }
+  .bcm-pergunta { margin: 0 0 8px; font-weight: 600; white-space: pre-wrap; }
+  .bcm-origens { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .bcm-origem { font-size: 0.82em; padding: 3px 8px; border-radius: 999px; border: 1px solid transparent; }
+  .bcm-o-notas { background: var(--green-100); color: var(--green-600); border-color: var(--green-200); }
+  .bcm-o-web { background: var(--blue-100); color: var(--blue-600); border-color: var(--blue-200); }
+  .bcm-o-geral { background: var(--amber-100); color: var(--amber-600); border-color: var(--amber-200); }
+  .bcm-resposta p, .bcm-resposta li { line-height: 1.55; }
+  .bcm-resposta ul, .bcm-resposta ol { padding-left: 20px; }
+  .bcm-resposta table { border-collapse: collapse; width: 100%; font-size: 0.92em; }
+  .bcm-resposta th, .bcm-resposta td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+  .bcm-meta { font-size: 0.88em; color: var(--ink-soft); }
+  .bcm-fontes { font-size: 0.88em; margin-top: 8px; }
+  .bcm-fontes ol { padding-left: 20px; margin: 4px 0 0; }
+  .bcm-fontes a { word-break: break-word; }
+  .bcm-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .bcm-propor { margin-top: 10px; display: grid; gap: 6px; }
+  .bcm-propor[hidden] { display: none; }
+  .bcm-propor label { font-size: 0.9em; color: var(--ink-soft); }
+  .bcm-propor textarea {
+    width: 100%; box-sizing: border-box; padding: 8px 10px; font: inherit; color: var(--ink);
+    background: var(--paper-raised); border: 1px solid var(--line); border-radius: 8px;
+  }
+  .bcm-propor-estado { font-size: 0.88em; color: var(--ink-soft); }
+  .bcm-ok { color: var(--green-600); margin: 0; }
+  .bcm-contacto { margin-top: 16px; }
+  .bcm-contacto a.copy { display: inline-block; text-decoration: none; }
+  .bcm-ligar { font-weight: 600; }
+  .bcm-fontes a, .bcm-meta a, .kb-visor a:not(.copy), .bcm-resposta a { color: var(--blue-600); }
