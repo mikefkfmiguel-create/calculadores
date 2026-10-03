@@ -128,15 +128,15 @@ test("foto vai como bloco de imagem; sem texto também serve", async () => {
   } finally { repor(); }
 });
 
-test("histórico entra como conversa, limitado às últimas 3 trocas", async () => {
+test("histórico entra como conversa, limitado às últimas 8 trocas", async () => {
   const visto = {};
   const repor = trocarFetch({ content: [{ type: "text", text: "ORIGEM: geral\nNOTAS: nenhuma\n\nOk." }] }, visto);
   try {
-    const historico = [1, 2, 3, 4, 5].map((i) => ({ p: "p" + i, r: "r" + i }));
+    const historico = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) => ({ p: "p" + i, r: "r" + i }));
     await worker.fetch(pedido("/pergunta", { pergunta: "e agora?", historico }), ambiente(), ctx);
     const m = visto.corpo.messages;
-    assert.equal(m.length, 7);
-    assert.equal(m[0].content, "p3");
+    assert.equal(m.length, 17);
+    assert.equal(m[0].content, "p4");
     assert.equal(m[1].role, "assistant");
   } finally { repor(); }
 });

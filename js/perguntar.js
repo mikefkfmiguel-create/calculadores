@@ -25,7 +25,14 @@
   var URL_WORKER_OMISSAO = "https://calculadores-assistente.avkvideoshare.workers.dev";
   var CODIGO_CHAVE = "bcm-codigo-v1";
   var NOME_CHAVE = "bcm-nome-v1";
-  var HISTORICO_MAX = 3;
+  // Trocas que seguem para a IA como conversa. Tem de bater com o
+  // HISTORICO_MAX do Worker (worker/src/pergunta.js), que corta o resto.
+  var HISTORICO_MAX = 8;
+  // A conversa fica guardada NESTE aparelho (só texto, sem fotos nem PDFs),
+  // para quem fecha a app a meio de responder às perguntas a encontrar lá.
+  var CONVERSA_CHAVE = "bcm-conversa-v1";
+  var CONVERSA_VALIDADE_MS = 7 * 24 * 60 * 60 * 1000;
+  var TROCAS_GUARDADAS = 10;
   var LADO_MAX_FOTO = 1600;
 
   var historico = []; // [{p, r}] desta sessão, para perguntas de seguimento
@@ -35,6 +42,7 @@
   // pedido diz, a conta é feita na app).
   var entradas = []; // [{texto, ficheiro}]
   var ultima = null;  // a última resposta mostrada (para propor como nota)
+  var trocas = [];    // [{pergunta, d}] o que está no ecrã, para repor
   var foto = null;    // {base64, tipo, url}
   var anexo = null;   // {nome, pdfBase64} ou {nome, texto}
   var PDF_MAX_BYTES = 10 * 1024 * 1024;
@@ -196,7 +204,116 @@
     geral: ["⚠️ Resposta geral, sem fonte — confirma no equipamento", "bcm-o-geral"]
   };
 
-  function mostrarResposta(pergunta, d) {
+  // ------------------------------------------------ continuar a conversa
+  //
+  // Quando a IA pede mais informação, a resposta acaba com perguntas
+  // numeradas ("1. As medidas são em metros?"). A caixa de responder fica
+  // logo por baixo da ÚLTIMA resposta -- a caixa de cima ficava fora do
+  // ecrã e parecia que a conversa acabava ali. Cada pergunta numerada ganha
+  // o seu campo curto; o que se escreve segue como uma mensagem só.
+  function perguntasDaResposta(md) {
+    var out = [];
+    String(md || "").split(/\n/).forEach(function (linha) {
+      var m = /^\s*(\d{1,2})[.)]\s+(.+)$/.exec(linha);
+      if (!m || m[2].indexOf("?") < 0) return;
+      var t = m[2].replace(/\*\*|__|`/g, "").replace(/\s+/g, " ").trim();
+      if (t.length > 160) t = t.slice(0, 157) + "…";
+      out.push({ n: m[1], texto: t });
+    });
+    return out.slice(0, 6);
+  }
+
+  function caixaDeSeguir(resposta) {
+    var qs = perguntasDaResposta(resposta);
+    var campos = qs.map(function (q, i) {
+      return '<label class="bcm-seguir-q"><span>' + esc(q.n + ". " + q.texto) + "</span>" +
+        '<input type="text" maxlength="500" data-bcm-q="' + i + '" placeholder="A tua resposta"></label>';
+    }).join("");
+    var div = document.createElement("div");
+    div.className = "bcm-seguir";
+    div._perguntas = qs;
+    div.innerHTML =
+      '<p class="bcm-seguir-titulo">' + (qs.length ? "Responde ao que falta" : "Continuar a conversa") + "</p>" +
+      campos +
+      '<textarea rows="2" maxlength="20000" placeholder="' +
+        (qs.length ? "Mais alguma coisa? (opcional)" : "Responde ou pergunta mais… (ex.: e se for exterior?)") + '"></textarea>' +
+      '<div class="bcm-barra">' +
+        '<button type="button" class="copy bcm-enviar" data-bcm-responder>Enviar resposta</button>' +
+        '<button type="button" class="copy" data-bcm-nova>Nova conversa</button>' +
+      "</div>" +
+      '<p class="bcm-dica">Para juntar uma foto ou um PDF, usa a caixa lá em cima: segue com esta resposta.</p>';
+    return div;
+  }
+
+  function textoDaCaixa(caixa) {
+    var partes = [];
+    (caixa._perguntas || []).forEach(function (q, i) {
+      var c = caixa.querySelector('[data-bcm-q="' + i + '"]');
+      var v = c ? c.value.trim() : "";
+      if (v) partes.push(q.n + ". " + q.texto + " → " + v);
+    });
+    var livre = caixa.querySelector("textarea").value.trim();
+    if (livre) partes.push(livre);
+    return partes.join("\n");
+  }
+
+  function responderNaCaixa(caixa) {
+    var t = textoDaCaixa(caixa);
+    if (!t && !foto && !anexo) {
+      colocarEstado(caixa);
+      estado("Escreve pelo menos uma resposta.");
+      var primeiro = caixa.querySelector("input, textarea");
+      if (primeiro) primeiro.focus();
+      return;
+    }
+    perguntar({ texto: t, caixa: caixa });
+  }
+
+  // O corredor e a linha de estado mudam-se para junto de quem perguntou:
+  // a responder lá em baixo, não se vê o que acontece lá em cima.
+  function colocarEstado(caixa) {
+    if (caixa) {
+      caixa.appendChild(el.loader);
+      caixa.appendChild(el.estado);
+    } else if (el.estadoCasa) {
+      el.estadoCasa.insertBefore(el.estado, el.estadoDepois);
+      el.estadoCasa.insertBefore(el.loader, el.estado);
+    }
+  }
+
+  // ------------------------------------------- guardar neste aparelho
+  function guardarConversa() {
+    var dados = {
+      quando: Date.now(),
+      historico: historico,
+      entradas: entradas.map(function (e) { return { texto: e.texto }; }),
+      trocas: trocas.slice(-TROCAS_GUARDADAS)
+    };
+    try { localStorage.setItem(CONVERSA_CHAVE, JSON.stringify(dados)); }
+    catch (_) {
+      // Cheio: fica só a última troca no ecrã; o histórico para a IA mantém-se.
+      try { dados.trocas = trocas.slice(-1); localStorage.setItem(CONVERSA_CHAVE, JSON.stringify(dados)); } catch (__) {}
+    }
+  }
+
+  function apagarConversaGuardada() {
+    try { localStorage.removeItem(CONVERSA_CHAVE); } catch (_) {}
+  }
+
+  function reporConversa() {
+    var g = null;
+    try { g = JSON.parse(localStorage.getItem(CONVERSA_CHAVE) || "null"); } catch (_) {}
+    if (!g || !Array.isArray(g.trocas) || !g.trocas.length) return;
+    if (Date.now() - (g.quando || 0) > CONVERSA_VALIDADE_MS) { apagarConversaGuardada(); return; }
+    historico = Array.isArray(g.historico) ? g.historico.slice(-HISTORICO_MAX) : [];
+    entradas = Array.isArray(g.entradas) ? g.entradas.map(function (e) { return { texto: String(e && e.texto || ""), ficheiro: null }; }) : [];
+    g.trocas.forEach(function (t) {
+      if (t && t.d && typeof t.d.resposta === "string") mostrarResposta(t.pergunta, t.d, true);
+    });
+    el.texto.placeholder = "Pergunta de seguimento… (ex.: e se o brilho for 30%?)";
+  }
+
+  function mostrarResposta(pergunta, d, aRepor) {
     var origem = (d.origem || []).map(function (o) {
       var e = ETIQUETAS[o];
       return e ? '<span class="bcm-origem ' + e[1] + '">' + e[0] + "</span>" : "";
@@ -218,6 +335,7 @@
       '<div class="bcm-origens">' + origem + "</div>" +
       '<div class="bcm-resposta" translate="no">' + render(d.resposta) + "</div>" +
       notas + fontes +
+      '<div class="bcm-seguir-sitio"></div>' +
       '<div class="bcm-acoes">' +
         '<button type="button" class="copy" data-bcm-propor>📘 Propor como nota</button>' +
         '<button type="button" class="copy" data-bcm-copiar>Copiar resposta</button>' +
@@ -239,17 +357,28 @@
         '<span class="bcm-propor-estado"></span>' +
       "</div>";
     bloco._dados = { pergunta: pergunta, resposta: d.resposta, origem: d.origem, fontes: d.fontes };
+    // Só a última resposta tem a caixa de responder.
+    colocarEstado(null);
+    Array.prototype.forEach.call(el.conversa.querySelectorAll(".bcm-seguir"), function (c) { c.remove(); });
+    bloco.querySelector(".bcm-seguir-sitio").appendChild(caixaDeSeguir(d.resposta));
     el.conversa.appendChild(bloco);
-    bloco.scrollIntoView({ behavior: "smooth", block: "start" });
+    trocas.push({ pergunta: pergunta, d: { resposta: d.resposta, origem: d.origem, notasUsadas: d.notasUsadas, fontes: d.fontes } });
+    if (trocas.length > TROCAS_GUARDADAS) trocas.shift();
+    ultima = { pergunta: pergunta, resposta: d.resposta };
+    if (!aRepor) bloco.scrollIntoView({ behavior: "smooth", block: "start" });
     el.novo.hidden = false;
     atualizarContacto();
   }
 
-  function perguntar() {
-    var pergunta = el.texto.value.trim();
+  // Sem argumento: a caixa de cima. Com {texto, caixa}: a resposta escrita
+  // na caixa por baixo da última resposta.
+  function perguntar(daCaixa) {
+    var caixa = daCaixa && daCaixa.caixa || null;
+    colocarEstado(caixa);
+    var pergunta = caixa ? daCaixa.texto : el.texto.value.trim();
     // O nome é pedido uma vez e fica neste aparelho: serve para a resposta
     // tratar a pessoa pelo nome e para o Mike saber quem pergunta/liga.
-    if (!nomeAtual()) { estado("Escreve primeiro o teu nome."); el.nome.focus(); return; }
+    if (!nomeAtual()) { colocarEstado(null); estado("Escreve primeiro o teu nome."); el.nome.focus(); return; }
     if (!pergunta && !foto && !anexo) { estado("Escreve a pergunta ou junta uma foto, um PDF ou um texto."); el.texto.focus(); return; }
     if (!navigator.onLine) { estado("Sem rede. O Better call Mike precisa de ligação."); return; }
     var corpo = { pergunta: pergunta, nome: nomeAtual(), historico: historico.slice(-HISTORICO_MAX) };
@@ -264,7 +393,9 @@
       texto: [pergunta, anexo && anexo.texto ? anexo.texto : ""].filter(Boolean).join("\n\n"),
       ficheiro: (anexo && anexo.ficheiro) || (foto && foto.ficheiro) || null
     };
+    var botaoCaixa = caixa && caixa.querySelector("[data-bcm-responder]");
     el.enviar.disabled = true;
+    if (botaoCaixa) botaoCaixa.disabled = true;
     estado("");
     aProcurar(true);
     fetch(enderecoDoWorker() + "/pergunta", {
@@ -275,23 +406,30 @@
       if (!d || !d.ok) { estado((d && (d.motivo || d.error)) || "Não foi possível responder."); return; }
       estado("");
       entradas.push(entrada);
-      ultima = { pergunta: rotuloPergunta, resposta: d.resposta };
       historico.push({ p: rotuloPergunta, r: d.resposta });
       if (historico.length > HISTORICO_MAX) historico.shift();
       mostrarResposta(rotuloPergunta, d);
-      el.texto.value = "";
+      guardarConversa();
+      if (!caixa) el.texto.value = "";
       tirarAnexo();
       el.texto.placeholder = "Pergunta de seguimento… (ex.: e se o brilho for 30%?)";
       tirarFoto();
     }).catch(function () {
       estado("Não consegui falar com o servidor. Verifica a rede e tenta outra vez.");
-    }).then(function () { el.enviar.disabled = false; aProcurar(false); });
+    }).then(function () {
+      el.enviar.disabled = false;
+      if (botaoCaixa) botaoCaixa.disabled = false;
+      aProcurar(false);
+    });
   }
 
   function novaConversa() {
+    colocarEstado(null);
     historico = [];
     entradas = [];
+    trocas = [];
     ultima = null;
+    apagarConversaGuardada();
     el.conversa.innerHTML = "";
     el.novo.hidden = true;
     el.texto.placeholder = el.texto.dataset.placeholderOriginal || "";
@@ -552,6 +690,8 @@
     el.estado = $("bcm-estado");
     el.loader = $("bcm-loader");
     el.loaderTexto = $("bcm-loader-texto");
+    el.estadoCasa = el.estado.parentNode;
+    el.estadoDepois = el.estado.nextSibling;
     el.conversa = $("bcm-conversa");
     el.novo = $("bcm-novo");
     el.fotoInput = $("bcm-foto");
@@ -584,7 +724,11 @@
     el.conversa.addEventListener("click", function (e) {
       var bloco = e.target.closest(".bcm-troca");
       if (!bloco) return;
-      if (e.target.closest("[data-bcm-propor]")) {
+      if (e.target.closest("[data-bcm-responder]")) {
+        responderNaCaixa(e.target.closest(".bcm-seguir"));
+      } else if (e.target.closest("[data-bcm-nova]")) {
+        novaConversa();
+      } else if (e.target.closest("[data-bcm-propor]")) {
         var caixa = bloco.querySelector(".bcm-propor");
         caixa.hidden = !caixa.hidden;
         if (!caixa.hidden) caixa.querySelector("textarea").focus();
@@ -601,6 +745,15 @@
         else abrirNotas();
       }
     });
+    el.conversa.addEventListener("keydown", function (e) {
+      var caixa = e.target.closest && e.target.closest(".bcm-seguir");
+      if (!caixa) return;
+      // Enter num campo curto, ou Ctrl/⌘+Enter na caixa grande, envia.
+      if (e.key === "Enter" && (e.target.tagName === "INPUT" || e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        responderNaCaixa(caixa);
+      }
+    });
     var voltar = $("bcm-voltar");
     if (voltar) voltar.addEventListener("click", function () {
       var veio = false;
@@ -611,6 +764,7 @@
     });
     var notas = $("bcm-notas");
     if (notas) notas.addEventListener("toggle", function () { if (notas.open && window.kbCarregar) window.kbCarregar(); });
+    reporConversa();
     atualizarContacto();
     // Depois de a app completa repor a última aba e os rascunhos (que, antes,
     // escreviam por cima do que acabava de chegar -- ver trazerBriefingDoPreview).

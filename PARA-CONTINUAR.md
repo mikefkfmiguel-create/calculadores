@@ -11,6 +11,71 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
+## 3 de outubro — Better call Mike passa a ser uma conversa (v4.61) — ESTADO ACTUAL
+
+**Calculadores v4.61** (sw `calculadores-v449`) · app separada `mike/` com sw
+`bcm-v2`. O que está aqui é mais recente do que a secção de 1 de outubro.
+
+### O problema que o mike apontou
+
+A IA respondia "preciso de mais informação: 1. as medidas são em metros?
+2. …" e a conversa parecia acabar ali. O seguimento já existia por baixo
+(histórico de 3 trocas), mas a caixa de escrever estava **lá em cima**, fora
+do ecrã do telemóvel, e nada dizia que se podia responder. Nas palavras dele:
+*"se pedes mais info para ajudar temos de poder continuar a conversa sobre
+tal"*.
+
+### O que mudou
+
+- **Caixa "Responde ao que falta" por baixo da ÚLTIMA resposta** (`js/perguntar.js`,
+  `caixaDeSeguir`). Só a última resposta a tem; as anteriores perdem-na.
+- **Cada pergunta numerada da IA vira um campo curto** (`perguntasDaResposta`:
+  linhas `1.`/`1)` que contêm `?`, máx. 6). O que se escreve segue como UMA
+  mensagem: `1. <pergunta> → <resposta>`, uma por linha, mais o texto livre.
+  Enter num campo curto envia; Ctrl/⌘+Enter na caixa grande também.
+- **O corredor e a linha de estado mudam-se para a caixa** de quem respondeu
+  (`colocarEstado`) e voltam ao sítio depois — a responder lá em baixo não se
+  via nada a acontecer lá em cima.
+- Foto/PDF: continuam a juntar-se na caixa de cima e seguem com a próxima
+  mensagem, venha ela de cima ou da caixa de baixo.
+- **Histórico 3 → 8 trocas**, nos DOIS lados: `HISTORICO_MAX` em
+  `js/perguntar.js` e em `worker/src/pergunta.js` (têm de bater; o Worker corta).
+- **A conversa fica guardada neste aparelho** (`localStorage`
+  `bcm-conversa-v1`, só texto, 7 dias, últimas 10 trocas). Fechar a app a
+  meio de responder já não perde nada. "Nova conversa" (em cima e na caixa de
+  baixo) apaga-a.
+- **Instruções do Worker**, bloco novo "CONVERSA": adiantar o que já dá,
+  acabar com no máximo 4 perguntas curtas numeradas terminadas em "?", não
+  voltar a perguntar o que já foi respondido.
+- Teste do Worker actualizado (8 trocas). `node --test "worker/testes/*.test.mjs"`: 55/55.
+- Testado em browser (Playwright, ecrã de telemóvel) com o Worker simulado:
+  campos aparecem, resposta segue com histórico, recarregar repõe a conversa,
+  "Nova conversa" limpa.
+
+### Ligação aos cálculos — continua a regra da casa
+
+As respostas escritas nos campos são da PESSOA, por isso entram em `entradas`
+e seguem no "Levar este projeto para:" (Cálculos / LED / Projeção / Preview).
+A resposta da IA continua a NÃO seguir. Depois de recarregar, o texto volta
+mas os ficheiros anexados não (não se guardam).
+
+### O que ficou por fazer (falado com o mike, não iniciado)
+
+- Guardar a conversa **dentro do projeto** (botão Guardar / Sincronizar), e
+  não só no aparelho.
+- Pedir à IA um bloco JSON com os parâmetros quando já tem o suficiente, para
+  um "Enviar para calculadoras / Preview 3D" sem passar pelo Analisar. Atenção
+  à regra: a IA extrai, a conta é feita na app — isto teria de passar pelo
+  mesmo crivo do Assistente, não aplicar números da IA directamente.
+
+### Publicar
+
+O Worker publica-se sozinho quando `worker/**` entra em `main`
+(`.github/workflows/deploy-worker.yml`). Sem ele no ar, a app nova funciona
+na mesma (só com 3 trocas de histórico e sem as instruções novas).
+
+---
+
 ## 1 de outubro — ESTADO ACTUAL, PARA QUEM PEGAR NISTO A SEGUIR
 
 **Calculadores v4.44 · Preview v4.15**, as duas no ar. As secções mais abaixo

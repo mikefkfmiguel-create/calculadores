@@ -2006,6 +2006,20 @@
   .bcm-fontes ol { padding-left: 20px; margin: 4px 0 0; }
   .bcm-fontes a { word-break: break-word; }
   .bcm-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  /* Continuar a conversa: a caixa de responder por baixo da última resposta. */
+  .bcm-seguir {
+    margin-top: 14px; padding: 12px; border-radius: 10px; display: grid; gap: 8px;
+    background: var(--paper-raised); border: 1px solid #2E9FBB;
+  }
+  .bcm-seguir-titulo { margin: 0; font-size: 0.85em; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cyan-500, #4ABDD6); }
+  .bcm-seguir-q { display: grid; gap: 4px; font-size: 0.92em; color: var(--ink); }
+  .bcm-seguir input, .bcm-seguir textarea {
+    width: 100%; box-sizing: border-box; padding: 8px 10px; font: inherit; color: var(--ink);
+    background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+  }
+  .bcm-seguir textarea { resize: vertical; }
+  .bcm-seguir .bcm-barra { margin-top: 2px; }
+  .bcm-seguir .bcm-dica { margin: 0; }
   .bcm-propor { margin-top: 10px; display: grid; gap: 6px; }
   .bcm-propor[hidden] { display: none; }
   .bcm-propor label { font-size: 0.9em; color: var(--ink-soft); }
