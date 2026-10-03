@@ -2030,3 +2030,14 @@
   .bcm-contacto .bcm-ligar:hover, .bcm-barra .bcm-enviar:hover { color: #fff; border-color: var(--amber-600); }
   .bcm-barra .copy, .bcm-contacto a.copy { font-size: 14px; padding: 9px 14px; }
   .copy[hidden], .bcm-contacto[hidden], .bcm-foto-prev[hidden] { display: none !important; }
+  .bcm-topo {
+    display: flex; align-items: center; gap: 14px; width: 100%; margin: 0 0 22px; padding: 16px 18px;
+    text-align: left; font: inherit; color: #fff; cursor: pointer;
+    background: var(--amber-500); border: 1px solid var(--amber-600); border-radius: 12px;
+  }
+  .bcm-topo:hover { filter: brightness(1.05); }
+  .bcm-topo:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .bcm-topo-icone { font-size: 26px; line-height: 1; }
+  .bcm-topo-texto { display: flex; flex-direction: column; gap: 2px; }
+  .bcm-topo-nome { font-size: 1.15em; font-weight: 700; }
+  .bcm-topo-sub { font-size: 0.9em; opacity: 0.92; }
