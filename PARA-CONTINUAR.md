@@ -11,6 +11,23 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
+## 3 de outubro, 23:24 — SESSÃO FECHADA PELO MIKE ("fechado por agora")
+
+Tudo o que foi feito hoje está em `main` e no ar (Calculadores v4.62,
+Worker publicado; Preview sem alterações, v4.15). Nada a meio, nenhum ramo
+por fundir. As duas secções abaixo explicam o quê e porquê.
+
+**Pendente, à espera de decisão do mike (não iniciar sem ele pedir):**
+1. Preview desenhar ecrãs **cilíndricos** (ex.: 12 m Ø × 4 m, virado para
+   fora, LED ou projeção) — hoje chegam como ecrã plano.
+2. Guardar a conversa do Better call Mike **dentro do projeto** (Guardar /
+   Sincronizar), não só no aparelho.
+3. JSON de parâmetros da IA → "Enviar para calculadoras / Preview 3D"
+   sem passar pelo Analisar (respeitando a regra: a IA extrai, a conta é da app).
+4. Alinhar `js/limpeza.js` do repo preview com o daqui (`manterTambem`).
+
+---
+
 ## 3 de outubro (noite) — cada caso é único: reset ao levar um caso novo (v4.62) — ESTADO ACTUAL
 
 **Calculadores v4.62** (sw `calculadores-v450`) · `mike/` sw `bcm-v3`. O
