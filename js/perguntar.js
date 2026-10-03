@@ -29,6 +29,11 @@
   var LADO_MAX_FOTO = 1600;
 
   var historico = []; // [{p, r}] desta sessão, para perguntas de seguimento
+  // O que a PESSOA escreveu/anexou nesta conversa, por ordem. É só isto que
+  // segue para os cálculos -- nunca a resposta da IA, que aconselha e pode
+  // propor medidas que ninguém pediu (a regra da casa: a IA extrai o que o
+  // pedido diz, a conta é feita na app).
+  var entradas = []; // [{texto, ficheiro}]
   var ultima = null;  // a última resposta mostrada (para propor como nota)
   var foto = null;    // {base64, tipo, url}
   var anexo = null;   // {nome, pdfBase64} ou {nome, texto}
@@ -89,7 +94,7 @@
         c.height = Math.round(img.height * esc_);
         c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
         var url = c.toDataURL("image/jpeg", 0.85);
-        foto = { base64: url.split(",")[1], tipo: "image/jpeg", url: url };
+        foto = { base64: url.split(",")[1], tipo: "image/jpeg", url: url, ficheiro: ficheiro };
         el.fotoPrev.innerHTML = '<img src="' + url + '" alt="Foto anexada"><button type="button" class="bcm-tirar" aria-label="Tirar foto">✕</button>';
         el.fotoPrev.hidden = false;
       };
@@ -119,7 +124,7 @@
     if (ehPdf) {
       if (ficheiro.size > PDF_MAX_BYTES) { estado("PDF demasiado grande (máx. 10 MB)."); return; }
       leitor.onload = function () {
-        anexo = { nome: ficheiro.name, pdfBase64: String(leitor.result).split(",")[1] };
+        anexo = { nome: ficheiro.name, pdfBase64: String(leitor.result).split(",")[1], ficheiro: ficheiro };
         mostrarAnexo("📄 " + ficheiro.name);
       };
       leitor.readAsDataURL(ficheiro);
@@ -215,6 +220,7 @@
       '<div class="bcm-acoes">' +
         '<button type="button" class="copy" data-bcm-propor>📘 Propor como nota</button>' +
         '<button type="button" class="copy" data-bcm-copiar>Copiar resposta</button>' +
+        '<button type="button" class="copy bcm-calculos" data-bcm-calculos>📐 Levar para os cálculos</button>' +
       "</div>" +
       '<div class="bcm-propor" hidden>' +
         '<label>Confirmaste isto no terreno? Onde, e com que equipamento? (opcional)</label>' +
@@ -244,6 +250,10 @@
       if (anexo.texto) corpo.anexoTexto = anexo.texto;
     }
     var rotuloPergunta = pergunta || (anexo ? "Resumo de " + anexo.nome : "(foto)");
+    var entrada = {
+      texto: [pergunta, anexo && anexo.texto ? anexo.texto : ""].filter(Boolean).join("\n\n"),
+      ficheiro: (anexo && anexo.ficheiro) || (foto && foto.ficheiro) || null
+    };
     el.enviar.disabled = true;
     estado("");
     aProcurar(true);
@@ -254,6 +264,7 @@
     }).then(function (r) { return r.json(); }).then(function (d) {
       if (!d || !d.ok) { estado((d && (d.motivo || d.error)) || "Não foi possível responder."); return; }
       estado("");
+      entradas.push(entrada);
       ultima = { pergunta: rotuloPergunta, resposta: d.resposta };
       historico.push({ p: rotuloPergunta, r: d.resposta });
       if (historico.length > HISTORICO_MAX) historico.shift();
@@ -269,6 +280,7 @@
 
   function novaConversa() {
     historico = [];
+    entradas = [];
     ultima = null;
     el.conversa.innerHTML = "";
     el.novo.hidden = true;
@@ -307,6 +319,52 @@
     var t = bloco._dados.resposta;
     var ok = function () { botao.textContent = "Copiado ✓"; setTimeout(function () { botao.textContent = "Copiar resposta"; }, 1500); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, function () {});
+  }
+
+  // ------------------------------------------------- levar para os cálculos
+  //
+  // Passa o pedido para a aba de cálculos (o antigo Assistente de Projeto),
+  // que extrai os requisitos, sugere as opções de tamanho e aplica às
+  // calculadoras. Reaproveita-a tal como está: o texto e o ficheiro entram
+  // nos campos dela e carrega-se em "Analisar".
+  function levarParaCalculos() {
+    var texto = entradas.map(function (e) { return e.texto; }).filter(Boolean).join("\n\n").slice(0, 20000);
+    var ficheiro = null;
+    for (var i = entradas.length - 1; i >= 0 && !ficheiro; i--) ficheiro = entradas[i].ficheiro;
+    var campo = $("asst-text"), input = $("asst-pdf"), analisar = $("asst-analyze");
+    var aba = document.querySelector('.tab[data-mode="assistente"]');
+    if (!campo || !input || !analisar || !aba) return;
+    if (!texto && !ficheiro) { estado("Não há pedido para levar para os cálculos."); return; }
+
+    campo.value = texto;
+    campo.dispatchEvent(new Event("input", { bubbles: true }));
+    input.value = "";
+    if (ficheiro) {
+      try {
+        var dt = new DataTransfer();
+        dt.items.add(ficheiro);
+        input.files = dt.files;
+      } catch (_) { /* browser sem DataTransfer: segue só o texto */ }
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    aba.click();
+    window.scrollTo(0, 0);
+    setTimeout(function () {
+      analisar.click();
+      // Quando os resultados aparecerem, leva a pessoa até eles: é para lá
+      // que ela vinha, e ficam abaixo do formulário.
+      var cartao = $("asst-results-card"), estadoAsst = $("asst-status"), voltas = 0;
+      var vigia = setInterval(function () {
+        voltas++;
+        if (cartao && cartao.style.display === "block") {
+          clearInterval(vigia);
+          cartao.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (voltas > 240 || (estadoAsst && /^Erro/.test(estadoAsst.textContent))) {
+          clearInterval(vigia);
+          if (estadoAsst) estadoAsst.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 250);
+    }, 300);
   }
 
   // ------------------------------------------------------- ligar ao Mike
@@ -374,6 +432,8 @@
         if (!caixa.hidden) caixa.querySelector("textarea").focus();
       } else if (e.target.closest("[data-bcm-enviar]")) {
         propor(bloco);
+      } else if (e.target.closest("[data-bcm-calculos]")) {
+        levarParaCalculos();
       } else if (e.target.closest("[data-bcm-copiar]")) {
         copiar(bloco, e.target.closest("[data-bcm-copiar]"));
       } else if (e.target.closest("[data-bcm-ir]")) {
@@ -381,6 +441,11 @@
         var aba = document.querySelector('.tab[data-mode="' + e.target.closest("[data-bcm-ir]").dataset.bcmIr + '"]');
         if (aba) aba.click();
       }
+    });
+    var voltar = $("bcm-voltar");
+    if (voltar) voltar.addEventListener("click", function () {
+      var aba = document.querySelector('.tab[data-mode="perguntar"]');
+      if (aba) aba.click();
     });
     atualizarContacto();
   }
