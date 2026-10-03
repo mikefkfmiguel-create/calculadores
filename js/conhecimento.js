@@ -12,6 +12,8 @@
 (function () {
   "use strict";
 
+  // Relativa à página. A app Better call Mike (mike/) diz a dela no
+  // data-pasta da lista ("../conhecimento/").
   var PASTA = "conhecimento/";
   var carregado = false;
   var lista, visor;
@@ -142,6 +144,7 @@
     lista = document.getElementById("kb-lista");
     visor = document.getElementById("kb-visor");
     if (!lista || !visor) return;
+    if (lista.dataset.pasta) PASTA = lista.dataset.pasta;
     fetch(PASTA + "indice.json", { cache: "no-cache" })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (indice) {
@@ -177,4 +180,5 @@
   });
 
   window.kbMarkdown = markdown;
+  window.kbCarregar = carregar;
 })();
