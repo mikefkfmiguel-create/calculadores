@@ -109,6 +109,7 @@
     el.fotoPrev.innerHTML = "";
     el.fotoPrev.hidden = true;
     el.fotoInput.value = "";
+    if (el.galeria) el.galeria.value = "";
   }
 
   // --------------------------------------------- anexo (PDF ou texto)
@@ -497,6 +498,8 @@
     });
     el.novo.addEventListener("click", novaConversa);
     el.fotoInput.addEventListener("change", function () { lerFoto(el.fotoInput.files && el.fotoInput.files[0]); });
+    el.galeria = $("bcm-galeria");
+    el.galeria.addEventListener("change", function () { lerFoto(el.galeria.files && el.galeria.files[0]); });
     el.fotoPrev.addEventListener("click", function (e) { if (e.target.closest(".bcm-tirar")) tirarFoto(); });
     el.conversa.addEventListener("click", function (e) {
       var bloco = e.target.closest(".bcm-troca");
