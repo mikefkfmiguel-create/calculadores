@@ -26,6 +26,21 @@ por fundir. As duas secções abaixo explicam o quê e porquê.
    sem passar pelo Analisar (respeitando a regra: a IA extrai, a conta é da app).
 4. Alinhar `js/limpeza.js` do repo preview com o daqui (`manterTambem`).
 
+**Princípio lembrado pelo mike depois do fecho (23:35) — orienta o próximo
+trabalho no Better call Mike:**
+
+> *"O motor de busca disto vai a todo o lado sempre procurando a melhor
+> situação e solução, combinada com o que já temos visto na calculadora."*
+
+Hoje o Worker (`worker/src/pergunta.js`) só junta as notas de `conhecimento/`
+e a pesquisa web. **Ainda não sabe** o que a app já conhece: o inventário
+(`data/led-tiles.json`, `projectors.json`, `lenses.json`, `processors.json`,
+`tvs.json`, `fibra.json`) nem o que está aberto nas calculadoras. O passo
+lógico, quando o mike pedir: dar ao Worker esse contexto para que a resposta
+case a melhor solução encontrada com o equipamento que temos (e diga quando
+a melhor solução pede algo que não temos). Manter as regras: a origem é
+verificada no Worker; nunca inventar specs; a conta continua a ser da app.
+
 ---
 
 ## 3 de outubro (noite) — cada caso é único: reset ao levar um caso novo (v4.62) — ESTADO ACTUAL
