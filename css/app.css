@@ -2029,3 +2029,4 @@
   }
   .bcm-contacto .bcm-ligar:hover, .bcm-barra .bcm-enviar:hover { color: #fff; border-color: var(--amber-600); }
   .bcm-barra .copy, .bcm-contacto a.copy { font-size: 14px; padding: 9px 14px; }
+  .copy[hidden], .bcm-contacto[hidden], .bcm-foto-prev[hidden] { display: none !important; }
