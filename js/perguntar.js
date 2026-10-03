@@ -220,8 +220,17 @@
       '<div class="bcm-acoes">' +
         '<button type="button" class="copy" data-bcm-propor>📘 Propor como nota</button>' +
         '<button type="button" class="copy" data-bcm-copiar>Copiar resposta</button>' +
-        '<button type="button" class="copy bcm-calculos" data-bcm-calculos>📐 Levar para os cálculos</button>' +
+
       "</div>" +
+      '<div class="bcm-levar">' +
+        '<span class="bcm-levar-titulo">Levar este projeto para:</span>' +
+        '<div class="bcm-levar-opcoes">' +
+          '<button type="button" class="bcm-opcao" data-bcm-levar="calculos"><span class="bcm-opcao-ic">📐</span>Cálculos</button>' +
+          '<button type="button" class="bcm-opcao" data-bcm-levar="led"><span class="bcm-opcao-ic">💡</span>Ecrã LED</button>' +
+          '<button type="button" class="bcm-opcao" data-bcm-levar="projecao"><span class="bcm-opcao-ic">📽</span>Projeção</button>' +
+          '<button type="button" class="bcm-opcao" data-bcm-levar="preview"><span class="bcm-opcao-ic">🧊</span>Preview 3D</button>' +
+        '</div>' +
+      '</div>' +
       '<div class="bcm-propor" hidden>' +
         '<label>Confirmaste isto no terreno? Onde, e com que equipamento? (opcional)</label>' +
         '<textarea rows="2" maxlength="2000" placeholder="Ex.: confirmado no evento X com A8s e MCTRL4K"></textarea>' +
@@ -327,7 +336,15 @@
   // que extrai os requisitos, sugere as opções de tamanho e aplica às
   // calculadoras. Reaproveita-a tal como está: o texto e o ficheiro entram
   // nos campos dela e carrega-se em "Analisar".
-  function levarParaCalculos() {
+  //
+  // Os destinos:
+  //   calculos  -- fica nos resultados (medidas lidas, opções, Aplicar);
+  //   led/projecao -- aplica a sugestão de tamanho (ou as medidas lidas, se
+  //               o pedido as der) na calculadora certa;
+  //   preview   -- abre o Preview 3D com um ecrã desse tamanho.
+  // Sem tamanho nenhum (nem sugerido nem lido) fica nos resultados, a dizer
+  // o que falta -- nunca se inventa uma medida para poder seguir.
+  function levarParaCalculos(destino) {
     var texto = entradas.map(function (e) { return e.texto; }).filter(Boolean).join("\n\n").slice(0, 20000);
     var ficheiro = null;
     for (var i = entradas.length - 1; i >= 0 && !ficheiro; i--) ficheiro = entradas[i].ficheiro;
@@ -335,6 +352,13 @@
     var aba = document.querySelector('.tab[data-mode="assistente"]');
     if (!campo || !input || !analisar || !aba) return;
     if (!texto && !ficheiro) { estado("Não há pedido para levar para os cálculos."); return; }
+
+    // A janela do 3D abre-se JÁ, no toque: depois da análise o telemóvel já
+    // não a deixaria abrir. Fica em branco até haver endereço.
+    var janela3d = null;
+    if (destino === "preview") {
+      try { janela3d = window.open("", "mikeapps-preview"); } catch (_) {}
+    }
 
     campo.value = texto;
     campo.dispatchEvent(new Event("input", { bubbles: true }));
@@ -351,20 +375,71 @@
     window.scrollTo(0, 0);
     setTimeout(function () {
       analisar.click();
-      // Quando os resultados aparecerem, leva a pessoa até eles: é para lá
-      // que ela vinha, e ficam abaixo do formulário.
       var cartao = $("asst-results-card"), estadoAsst = $("asst-status"), voltas = 0;
       var vigia = setInterval(function () {
         voltas++;
         if (cartao && cartao.style.display === "block") {
           clearInterval(vigia);
-          cartao.scrollIntoView({ behavior: "smooth", block: "start" });
+          seguirPara(destino, janela3d);
         } else if (voltas > 240 || (estadoAsst && /^Erro/.test(estadoAsst.textContent))) {
           clearInterval(vigia);
+          if (janela3d) { try { janela3d.close(); } catch (_) {} }
           if (estadoAsst) estadoAsst.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 250);
     }, 300);
+  }
+
+  function num(id) {
+    var e = $(id);
+    var v = e ? parseFloat(String(e.value).replace(",", ".")) : NaN;
+    return isFinite(v) && v > 0 ? v : null;
+  }
+
+  function avisoNosResultados(txt) {
+    var st = $("asst-status");
+    if (st) st.textContent = txt;
+    var cartao = $("asst-results-card");
+    if (cartao) cartao.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function seguirPara(destino, janela3d) {
+    var cartao = $("asst-results-card");
+    var sugerido = typeof window.mikeappsTamanhoSugerido === "function" ? window.mikeappsTamanhoSugerido() : null;
+    var lido = (num("asst-largura") && num("asst-altura")) ? { largura: num("asst-largura"), altura: num("asst-altura") } : null;
+
+    if (destino === "calculos") {
+      if (cartao) cartao.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    if (destino === "preview") {
+      var t = lido || sugerido;
+      if (!t || typeof window.mikeappsUrlPreviewDeEcra !== "function") {
+        if (janela3d) { try { janela3d.close(); } catch (_) {} }
+        avisoNosResultados("Para o 3D falta um tamanho de ecrã: o pedido não diz as medidas nem a distância do público. Completa os valores abaixo e usa \"Ver em 3D ↗\".");
+        return;
+      }
+      var url = window.mikeappsUrlPreviewDeEcra(t.largura, t.altura);
+      if (janela3d && !janela3d.closed) janela3d.location.href = url;
+      else window.open(url, "mikeapps-preview");
+      if (cartao) cartao.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    // led / projecao
+    var tipo = destino === "led" ? "led" : "projecao";
+    if (!lido && sugerido) {
+      var botao = $(tipo === "led" ? "asst-rec-use-led" : "asst-rec-use-proj");
+      if (botao) { botao.click(); return; }
+    }
+    if (lido || num("asst-diagonal")) {
+      var sel = $("asst-tipoecra");
+      if (sel && sel.value !== tipo) { sel.value = tipo; sel.dispatchEvent(new Event("change", { bubbles: true })); }
+      var aplicar = $("asst-apply");
+      if (aplicar) { aplicar.click(); return; }
+    }
+    avisoNosResultados("Falta um tamanho de ecrã para aplicar: o pedido não diz as medidas nem a distância do público. Completa os valores abaixo e carrega em \"Aplicar à calculadora\".");
   }
 
   // ------------------------------------------------------- ligar ao Mike
@@ -432,8 +507,8 @@
         if (!caixa.hidden) caixa.querySelector("textarea").focus();
       } else if (e.target.closest("[data-bcm-enviar]")) {
         propor(bloco);
-      } else if (e.target.closest("[data-bcm-calculos]")) {
-        levarParaCalculos();
+      } else if (e.target.closest("[data-bcm-levar]")) {
+        levarParaCalculos(e.target.closest("[data-bcm-levar]").dataset.bcmLevar);
       } else if (e.target.closest("[data-bcm-copiar]")) {
         copiar(bloco, e.target.closest("[data-bcm-copiar]"));
       } else if (e.target.closest("[data-bcm-ir]")) {
