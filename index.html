@@ -48,7 +48,7 @@
     <button type="button" class="mark topbtn" id="btInstalar"
             title="Instalar esta app no computador ou no telemóvel — fica com ícone próprio e abre sem barra de browser">⤓ Instalar</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.47</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.48</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -163,6 +163,10 @@
 
     <div class="menu-bloco">
       <div class="menu-portas menu-portas-leves">
+        <button type="button" class="menu-porta menu-porta-leve" data-porta="perguntar">
+          <span class="menu-porta-nome">📞 Better call Mike</span>
+          <span class="menu-porta-sub">Dúvidas técnicas do terreno, com texto ou foto</span>
+        </button>
         <button type="button" class="menu-porta menu-porta-leve" data-porta="conhecimento">
           <span class="menu-porta-nome">📘 Consultar notas técnicas</span>
           <span class="menu-porta-sub">Afinações guardadas para o terreno (ex.: NovaStar 10-bit)</span>
@@ -196,6 +200,7 @@
       <button class="tab" data-mode="projeto" role="tab" aria-selected="false"><span class="swatch"></span>Projeto</button>
       <button class="tab" data-mode="lentes" role="tab" aria-selected="false"><span class="swatch"></span>Lentes</button>
       <button class="tab" data-mode="grafismo" role="tab" aria-selected="false"><span class="swatch"></span>Grafismo px↔cm</button>
+      <button class="tab" data-mode="perguntar" role="tab" aria-selected="false"><span class="swatch"></span>Better call Mike</button>
       <button class="tab" data-mode="conhecimento" role="tab" aria-selected="false"><span class="swatch"></span>Conhecimento</button>
       <button class="tab" data-mode="ajuda" role="tab" aria-selected="false"><span class="swatch"></span>Ajuda</button>
     </div>
@@ -2990,6 +2995,31 @@
     </div>
   </section>
 
+  <!-- BETTER CALL MIKE -->
+  <section class="panel" data-mode="perguntar">
+    <div class="card">
+      <h2>Better call Mike</h2>
+      <p>Dúvidas técnicas do terreno: escreve a pergunta ou tira uma foto ao ecrã do software. A resposta usa as notas da equipa e pesquisa na web, e diz sempre de onde vem.</p>
+      <textarea id="bcm-texto" class="bcm-texto" rows="4" maxlength="4000" placeholder="Ex.: Como configuro a A8s para sinal 10-bit a 50% de brilho?"></textarea>
+      <div class="bcm-foto-prev" id="bcm-foto-prev" hidden></div>
+      <div class="bcm-barra">
+        <label class="copy bcm-foto-btn">📷 Foto<input type="file" id="bcm-foto" accept="image/png,image/jpeg" capture="environment" hidden></label>
+        <button type="button" class="copy bcm-enviar" id="bcm-enviar">Perguntar</button>
+        <button type="button" class="copy" id="bcm-novo" hidden>Nova conversa</button>
+      </div>
+      <p class="bcm-estado" id="bcm-estado" role="status" aria-live="polite"></p>
+    </div>
+    <div id="bcm-conversa" class="bcm-conversa"></div>
+    <div class="card bcm-contacto" id="bcm-contacto" hidden>
+      <h2>Ainda com dúvidas?</h2>
+      <p>Liga ou manda mensagem ao Mike. Diz o teu código: <strong id="bcm-codigo"></strong></p>
+      <div class="bcm-barra">
+        <a class="copy bcm-ligar" id="bcm-ligar" href="#">📞 Ligar ao Mike</a>
+        <a class="copy" id="bcm-whatsapp" href="#" target="_blank" rel="noopener">💬 WhatsApp com a pergunta</a>
+      </div>
+    </div>
+  </section>
+
   <!-- CONHECIMENTO -->
   <section class="panel" data-mode="conhecimento">
     <div class="card">
@@ -3017,6 +3047,7 @@
         <li><strong>Projeto</strong> — junta tudo numa ficha técnica única para um evento.</li>
         <li><strong>Sinal &amp; Data Rate</strong> — largura de banda e ligação mínima para um sinal de vídeo.</li>
         <li><strong>Grafismo px↔cm</strong> — referência física para criação de grafismo: dada a resolução e o DPI do ecrã, converte píxeis ↔ centímetros para criar apresentações e layouts à medida real do ecrã.</li>
+        <li><strong>Better call Mike</strong> — dúvidas técnicas do terreno (texto ou foto), respondidas com as notas da equipa e pesquisa na web, sempre com a origem indicada.</li>
         <li><strong>Conhecimento</strong> — notas técnicas de afinação guardadas (ex.: NovaStar MCTRL4K + A8s com sinal 10-bit), para consultar no terreno.</li>
       </ul>
     </div>
@@ -3075,6 +3106,7 @@
 <script src="js/i18n.js"></script>
 <script src="js/calc-widget.js"></script>
 <script src="js/conhecimento.js"></script>
+<script src="js/perguntar.js"></script>
 <script>
   function describeRatio(w, h) {
     if (!w || !h) return "—";
