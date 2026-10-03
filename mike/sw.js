@@ -4,7 +4,7 @@
 // precisam sempre de rede, e assim um código novo (o perguntar.js é
 // partilhado com a app completa) aparece logo, sem versões a acertar à mão.
 // Sem rede, a app ainda abre e as notas já vistas continuam a abrir.
-const CACHE = "bcm-v1";
+const CACHE = "bcm-v2";
 const BASE = [
   "./", "./index.html", "./manifest.json",
   "./icons/icon-192.png", "./icons/icon-512.png",

@@ -33,7 +33,9 @@ const NOTAS_MAX_CARACTERES = 60000;
 const PERGUNTA_MAX = 20000;
 const ANEXO_TEXTO_MAX = 30000;
 const PDF_MAX_BASE64 = 14 * 1024 * 1024; // ~10 MB de PDF
-const HISTORICO_MAX = 3;
+// Trocas anteriores que entram como conversa. Tem de bater com o
+// HISTORICO_MAX de js/perguntar.js.
+const HISTORICO_MAX = 8;
 const HISTORICO_TEXTO_MAX = 3000;
 const IMAGEM_MAX_BASE64 = 7 * 1024 * 1024; // ~5 MB de imagem
 const TIPOS_IMAGEM = ["image/png", "image/jpeg"];
@@ -110,6 +112,11 @@ function instrucoes(notas, nome) {
     "- Se houver foto, lê o que lá está escrito (valores, menus) e usa-o; não estimes medidas a partir de fotos.",
     "- Se houver um PDF ou texto anexado (ex.: um email, um briefing, um manual), lê-o todo e responde com base nele; se pedirem um resumo, resume em pontos curtos o que é pedido, datas, equipamento e pendentes.",
     "- Se a pergunta for perigosa para equipamento ou pessoas (eletricidade, rigging), avisa e manda confirmar com o responsável.",
+    "",
+    "CONVERSA:",
+    "- Isto é uma conversa: a pessoa responde por baixo da tua resposta, e as mensagens anteriores vêm antes desta.",
+    "- Se faltar informação essencial, adianta primeiro o que já dá para dizer e acaba com no máximo 4 perguntas curtas, numeradas (1., 2., ...), uma por linha, cada uma a terminar em \"?\". A app transforma cada uma num campo de resposta.",
+    "- Nas mensagens seguintes usa o que já foi respondido; não voltes a perguntar o que já se sabe. Quando já tiveres o suficiente, responde por inteiro.",
     "",
     "FORMATO, obrigatório:",
     "Linha 1: ORIGEM: <uma ou mais de: notas, web, geral, separadas por vírgula>",
