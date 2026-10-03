@@ -19,7 +19,7 @@
 
   // Número para "Ligar ao Mike", em formato internacional (ex.: "+351912345678").
   // Vazio = os botões de contacto não aparecem.
-  var MIKE_TELEFONE = "";
+  var MIKE_TELEFONE = "+351910213260";
 
   var URL_WORKER_CHAVE = "calculadores-assistente-worker-url";
   var URL_WORKER_OMISSAO = "https://calculadores-assistente.avkvideoshare.workers.dev";
