@@ -2133,3 +2133,5 @@
   .bcm-notas { margin-top: 16px; }
   .bcm-notas > summary { cursor: pointer; font-weight: 600; }
   .bcm-rodape { margin-top: 24px; font-size: 0.8em; color: var(--ink-faint); text-align: center; }
+  .bcm-instalar-recado { margin: -8px 0 14px; }
+  .bcm-instalar-recado:empty { display: none; }

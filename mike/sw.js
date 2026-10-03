@@ -8,7 +8,7 @@ const CACHE = "bcm-v1";
 const BASE = [
   "./", "./index.html", "./manifest.json",
   "./icons/icon-192.png", "./icons/icon-512.png",
-  "../css/app.css", "../js/perguntar.js", "../js/conhecimento.js",
+  "../css/app.css", "../js/perguntar.js", "../js/conhecimento.js", "../js/instalar.js",
   "../conhecimento/indice.json"
 ];
 
