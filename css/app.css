@@ -2041,3 +2041,41 @@
   .bcm-topo-texto { display: flex; flex-direction: column; gap: 2px; }
   .bcm-topo-nome { font-size: 1.15em; font-weight: 700; }
   .bcm-topo-sub { font-size: 0.9em; opacity: 0.92; }
+
+  /* ---- Better call Mike: o corredor enquanto se procura ---- */
+  .bcm-loader { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 14px; }
+  .bcm-loader[hidden] { display: none; }
+  .bcm-corredor { overflow: hidden; }
+  .bcm-corredor line, .bcm-corredor path { stroke: var(--ink); stroke-width: 4; stroke-linecap: round; fill: none; }
+  .bcm-corredor .bcm-chao line { stroke: var(--line); stroke-width: 3; }
+  .bcm-tronco { fill: var(--amber-500); }
+  .bcm-cabeca { fill: var(--paper-raised); stroke: var(--ink); stroke-width: 3; }
+  .bcm-corredor .bcm-headset { stroke: var(--blue-500); stroke-width: 3; }
+  .bcm-auricular { fill: var(--blue-500); }
+  .bcm-olho { fill: var(--ink); }
+  .bcm-lupa { fill: var(--blue-100); stroke: var(--ink); stroke-width: 2.5; }
+  .bcm-corredor .bcm-lupa-cabo { stroke-width: 3; }
+  .bcm-loader-texto { margin: 0; font-size: 0.95em; color: var(--ink-soft); text-align: center; }
+
+  .bcm-perna, .bcm-braco { transform-box: view-box; }
+  .bcm-perna { transform-origin: 59px 52px; }
+  .bcm-braco { transform-origin: 61px 34px; }
+  .bcm-perna-frente { animation: bcm-passo 0.5s ease-in-out infinite alternate; }
+  .bcm-perna-tras { animation: bcm-passo 0.5s ease-in-out infinite alternate-reverse; }
+  .bcm-braco-frente { animation: bcm-balanco 0.5s ease-in-out infinite alternate-reverse; }
+  .bcm-braco-tras { animation: bcm-balanco 0.5s ease-in-out infinite alternate; }
+  .bcm-boneco { animation: bcm-salto 0.25s ease-in-out infinite alternate; }
+  .bcm-chao { animation: bcm-chao 0.5s linear infinite; }
+  @keyframes bcm-passo { from { transform: rotate(-28deg); } to { transform: rotate(28deg); } }
+  @keyframes bcm-balanco { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
+  @keyframes bcm-salto { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+  @keyframes bcm-chao { from { transform: translateX(0); } to { transform: translateX(-34px); } }
+  @media (prefers-reduced-motion: reduce) {
+    .bcm-perna, .bcm-braco, .bcm-boneco, .bcm-chao { animation: none; }
+  }
+  .bcm-dica { margin: 6px 0 0; font-size: 0.85em; color: var(--ink-faint); }
+  .bcm-anexo { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 6px 8px 6px 12px;
+    border: 1px solid var(--line); border-radius: 999px; background: var(--paper); font-size: 0.9em; max-width: 100%; }
+  .bcm-anexo[hidden] { display: none; }
+  .bcm-anexo-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bcm-anexo-tirar { border: none; background: var(--line-soft); color: var(--ink); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; }

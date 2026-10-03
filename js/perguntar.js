@@ -31,6 +31,9 @@
   var historico = []; // [{p, r}] desta sessão, para perguntas de seguimento
   var ultima = null;  // a última resposta mostrada (para propor como nota)
   var foto = null;    // {base64, tipo, url}
+  var anexo = null;   // {nome, pdfBase64} ou {nome, texto}
+  var PDF_MAX_BYTES = 10 * 1024 * 1024;
+  var TEXTO_MAX = 30000;
   var el = {};
 
   function $(id) { return document.getElementById(id); }
@@ -103,8 +106,83 @@
     el.fotoInput.value = "";
   }
 
+  // --------------------------------------------- anexo (PDF ou texto)
+  //
+  // Um PDF vai inteiro (a IA lê-o como documento); um .txt/.md/.eml vai
+  // como texto. O anexo só segue com a pergunta em que foi juntado -- nas de
+  // seguimento já não, para não se pagar o mesmo documento várias vezes; a
+  // resposta anterior vai no histórico.
+  function lerAnexo(ficheiro) {
+    if (!ficheiro) return;
+    var ehPdf = ficheiro.type === "application/pdf" || /\.pdf$/i.test(ficheiro.name);
+    var leitor = new FileReader();
+    if (ehPdf) {
+      if (ficheiro.size > PDF_MAX_BYTES) { estado("PDF demasiado grande (máx. 10 MB)."); return; }
+      leitor.onload = function () {
+        anexo = { nome: ficheiro.name, pdfBase64: String(leitor.result).split(",")[1] };
+        mostrarAnexo("📄 " + ficheiro.name);
+      };
+      leitor.readAsDataURL(ficheiro);
+    } else {
+      leitor.onload = function () {
+        var t = String(leitor.result || "");
+        // Um .eml traz cabeçalhos técnicos em cima; fica o que vem depois
+        // da primeira linha em branco, que é onde começa a mensagem.
+        if (/\.eml$/i.test(ficheiro.name)) {
+          var assunto = (/^Subject:\s*(.*)$/im.exec(t) || [])[1];
+          var corpo = t.split(/\r?\n\r?\n/).slice(1).join("\n\n");
+          t = (assunto ? "Assunto: " + assunto + "\n\n" : "") + corpo;
+        }
+        t = t.trim();
+        if (!t) { estado("Esse ficheiro está vazio."); return; }
+        var cortado = t.length > TEXTO_MAX;
+        anexo = { nome: ficheiro.name, texto: t.slice(0, TEXTO_MAX) };
+        mostrarAnexo("📝 " + ficheiro.name + (cortado ? " (só o início)" : ""));
+      };
+      leitor.readAsText(ficheiro);
+    }
+  }
+
+  function mostrarAnexo(rotulo) {
+    el.anexo.innerHTML = '<span class="bcm-anexo-nome">' + esc(rotulo) + '</span><button type="button" class="bcm-anexo-tirar" aria-label="Tirar anexo">✕</button>';
+    el.anexo.hidden = false;
+    estado("");
+  }
+
+  function tirarAnexo() {
+    anexo = null;
+    el.anexo.innerHTML = "";
+    el.anexo.hidden = true;
+    el.ficheiro.value = "";
+  }
+
   // ------------------------------------------------------------ perguntar
   function estado(txt) { el.estado.textContent = txt || ""; }
+
+  // O corredor e as frases que vão mudando enquanto o Worker trabalha. As
+  // frases descrevem o que pode estar a acontecer, por esta ordem; não são
+  // um relatório do que o Worker fez (isso vem na origem da resposta).
+  var FRASES = [
+    "A ler as notas da equipa…",
+    "A procurar na web…",
+    "A confirmar nas fontes…",
+    "A juntar a resposta…",
+    "Quase… as pesquisas na web demoram um pouco."
+  ];
+  var relogioFrases = null;
+
+  function aProcurar(sim) {
+    clearInterval(relogioFrases);
+    el.loader.hidden = !sim;
+    if (!sim) return;
+    var i = 0;
+    el.loaderTexto.textContent = FRASES[0];
+    relogioFrases = setInterval(function () {
+      i = Math.min(i + 1, FRASES.length - 1);
+      el.loaderTexto.textContent = FRASES[i];
+      if (i === FRASES.length - 1) clearInterval(relogioFrases);
+    }, 4000);
+  }
 
   var ETIQUETAS = {
     notas: ["✅ Das notas da equipa", "bcm-o-notas"],
@@ -156,12 +234,19 @@
     // O nome é pedido uma vez e fica neste aparelho: serve para a resposta
     // tratar a pessoa pelo nome e para o Mike saber quem pergunta/liga.
     if (!nomeAtual()) { estado("Escreve primeiro o teu nome."); el.nome.focus(); return; }
-    if (!pergunta && !foto) { estado("Escreve a pergunta ou junta uma foto."); el.texto.focus(); return; }
+    if (!pergunta && !foto && !anexo) { estado("Escreve a pergunta ou junta uma foto, um PDF ou um texto."); el.texto.focus(); return; }
     if (!navigator.onLine) { estado("Sem rede. O Better call Mike precisa de ligação."); return; }
     var corpo = { pergunta: pergunta, nome: nomeAtual(), historico: historico.slice(-HISTORICO_MAX) };
     if (foto) { corpo.imageBase64 = foto.base64; corpo.imageMediaType = foto.tipo; }
+    if (anexo) {
+      corpo.anexoNome = anexo.nome;
+      if (anexo.pdfBase64) corpo.pdfBase64 = anexo.pdfBase64;
+      if (anexo.texto) corpo.anexoTexto = anexo.texto;
+    }
+    var rotuloPergunta = pergunta || (anexo ? "Resumo de " + anexo.nome : "(foto)");
     el.enviar.disabled = true;
-    estado("A pensar… (com pesquisa na web pode demorar até um minuto)");
+    estado("");
+    aProcurar(true);
     fetch(enderecoDoWorker() + "/pergunta", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -169,16 +254,17 @@
     }).then(function (r) { return r.json(); }).then(function (d) {
       if (!d || !d.ok) { estado((d && (d.motivo || d.error)) || "Não foi possível responder."); return; }
       estado("");
-      ultima = { pergunta: pergunta, resposta: d.resposta };
-      historico.push({ p: pergunta || "(foto)", r: d.resposta });
+      ultima = { pergunta: rotuloPergunta, resposta: d.resposta };
+      historico.push({ p: rotuloPergunta, r: d.resposta });
       if (historico.length > HISTORICO_MAX) historico.shift();
-      mostrarResposta(pergunta, d);
+      mostrarResposta(rotuloPergunta, d);
       el.texto.value = "";
+      tirarAnexo();
       el.texto.placeholder = "Pergunta de seguimento… (ex.: e se o brilho for 30%?)";
       tirarFoto();
     }).catch(function () {
       estado("Não consegui falar com o servidor. Verifica a rede e tenta outra vez.");
-    }).then(function () { el.enviar.disabled = false; });
+    }).then(function () { el.enviar.disabled = false; aProcurar(false); });
   }
 
   function novaConversa() {
@@ -188,6 +274,7 @@
     el.novo.hidden = true;
     el.texto.placeholder = el.texto.dataset.placeholderOriginal || "";
     tirarFoto();
+    tirarAnexo();
     estado("");
     atualizarContacto();
     el.texto.focus();
@@ -249,10 +336,16 @@
     if (!el.texto) return;
     el.enviar = $("bcm-enviar");
     el.estado = $("bcm-estado");
+    el.loader = $("bcm-loader");
+    el.loaderTexto = $("bcm-loader-texto");
     el.conversa = $("bcm-conversa");
     el.novo = $("bcm-novo");
     el.fotoInput = $("bcm-foto");
     el.fotoPrev = $("bcm-foto-prev");
+    el.ficheiro = $("bcm-ficheiro");
+    el.anexo = $("bcm-anexo");
+    el.ficheiro.addEventListener("change", function () { lerAnexo(el.ficheiro.files && el.ficheiro.files[0]); });
+    el.anexo.addEventListener("click", function (e) { if (e.target.closest(".bcm-anexo-tirar")) tirarAnexo(); });
     el.contacto = $("bcm-contacto");
     el.ligar = $("bcm-ligar");
     el.whatsapp = $("bcm-whatsapp");
