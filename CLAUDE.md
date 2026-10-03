@@ -32,4 +32,5 @@ Isto são notas práticas, não fichas do fabricante: não usar estes valores co
 
 ## Ideias futuras (por explorar, não iniciar sem pedido explícito)
 
+- **"Event planner total" para comerciais** (visão do mike, 3 out): de um briefing de orçamento, propor várias soluções (só stock / stock + mercado / ideal sem limites), cruzando inventário, contas das calculadoras e mercado (web, com fonte), incluindo opções fora do habitual. Detalhe em `PARA-CONTINUAR.md` (secção de 3 de outubro, fecho).
 - **Versão "global" para venda**: separar o motor de pesquisa/cálculo (throw ratio, pixel pitch, data rate, etc. — genérico, reutilizável) do inventário/stock específico da AVK (equipamento próprio, badges "Mercado"/"Estimado", filtros de posse). Uma edição para venda a outras empresas manteria só os motores de pesquisa e cálculo, sem os filtros de stock da AVK, com versões traduzidas para outras línguas.
