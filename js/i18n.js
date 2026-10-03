@@ -56,7 +56,7 @@
     "Enviar para revisão": "Send for review",
     "Enviado para revisão. Fica nota oficial depois de confirmada.": "Sent for review. It becomes an official note once confirmed.",
     "Fontes da web": "Web sources",
-    "Ex.: Como configuro a A8s para sinal 10-bit a 50% de brilho?": "E.g. How do I set up the A8s for a 10-bit signal at 50% brightness?",
+    "Como faço este projeto acontecer?": "How do I make this project happen?",
     "Pergunta de seguimento… (ex.: e se o brilho for 30%?)": "Follow-up question… (e.g. what if brightness is 30%?)",
     "Ex.: confirmado no evento X com A8s e MCTRL4K": "E.g. confirmed at event X with A8s and MCTRL4K",
     "Notas usadas:": "Notes used:",
