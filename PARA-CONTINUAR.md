@@ -72,6 +72,14 @@ O que isto pede, em funcionalidade (proposta, a validar com ele):
   falta), o caso único (cada pedido limpo), o Preview 3D por opção, e a
   ideia futura da versão "global" (motor genérico vs. stock AVK).
 
+- **Quarta fonte, acrescentada pelo mike (23:43)**: *"podemos sempre
+  adicionar soluções das minhas que existem na mesma página e usar como
+  sugestão em comparação com o que o mercado tem"*. Ou seja, um catálogo das
+  **soluções próprias do mike** (casos já feitos e provados), que entram nas
+  propostas como sugestão e se comparam com as opções do mercado. Por
+  confirmar com ele: onde vivem hoje essas soluções (uma página/site dele?
+  notas? histórico de projetos da app?) e em que formato se guardam.
+
 Ainda NÃO iniciado — o mike fechou a sessão. Começar por conversar com ele
 sobre o formato da proposta e as opções A/B/C antes de mexer em código.
 
