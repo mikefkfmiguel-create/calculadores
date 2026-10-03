@@ -6,6 +6,12 @@
       "titulo": "NovaStar MCTRL4K + A8s — sinal 10-bit a 50Hz",
       "resumo": "Parâmetros do NovaLCT (Receiving Card), gradientes de grayscale a 100% e a 50% de brilho, validação com rampa e checklist.",
       "atualizado": "2026-10-03"
+    },
+    {
+      "ficheiro": "solucoes-proprias-mike-apps.md",
+      "titulo": "Soluções próprias — as Mike Apps",
+      "resumo": "As ferramentas do mike (cálculo, 3D, régie, show control, conteúdo, ativações) e o que cada uma resolve num evento — sugeridas antes do mercado.",
+      "atualizado": "2026-10-03"
     }
   ]
 }

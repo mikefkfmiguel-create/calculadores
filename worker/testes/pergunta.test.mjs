@@ -251,3 +251,78 @@ test("um email colado na caixa (longo) cabe na pergunta", async () => {
     assert.equal(r.status, 200);
   } finally { repor(); }
 });
+
+// ---- O que a calculadora conhece: inventário + crivo do "stock" ----------
+
+const DATA = BASE.replace(/conhecimento\/$/, "data/");
+const TILES = [
+  { modelo: "YESTECH MG6S P3.91", mw: 500, mh: 500, rx: 128, ry: 128, weight: 6 },
+  { modelo: "ROE Black Pearl BP2V2", mw: 500, mh: 500, rx: 176, ry: 176, weight: 9.4, mercado: true },
+];
+const PROJ = [{ modelo: "Panasonic PT-RZ21K", lumens: 20000, resolucao: { rx: 1920, ry: 1200 } }];
+
+function trocarFetchComInventario(respostaIA, registo = {}) {
+  const repor = trocarFetch(respostaIA, registo);
+  const anterior = globalThis.fetch;
+  globalThis.fetch = async (url, opts) => {
+    const u = String(url);
+    if (u === DATA + "led-tiles.json") return new Response(JSON.stringify(TILES), { status: 200 });
+    if (u === DATA + "projectors.json") return new Response(JSON.stringify(PROJ), { status: 200 });
+    return anterior(url, opts);
+  };
+  return repor;
+}
+
+test("inventário vai nas instruções, com posse AVK/MERCADO, e o modo planner A/B/C", async () => {
+  const visto = {};
+  const repor = trocarFetchComInventario({ content: [{ type: "text", text: "ORIGEM: geral\nNOTAS: nenhuma\n\nOk." }] }, visto);
+  try {
+    await worker.fetch(pedido("/pergunta", { pergunta: "orçamento para um evento" }), ambiente(), ctx);
+    const s = visto.corpo.system;
+    assert.match(s, /YESTECH MG6S P3\.91 \| 3\.91 \| 500×500 \| 128×128 \| 6 \| AVK/);
+    assert.match(s, /ROE Black Pearl BP2V2 .*\| MERCADO/);
+    assert.match(s, /Panasonic PT-RZ21K \| 20000 \| 1920×1200 \| AVK/);
+    assert.match(s, /A\) Só com o que é nosso/);
+    assert.match(s, /SOLUÇÕES PRÓPRIAS/);
+  } finally { repor(); }
+});
+
+test("'stock' só quando a resposta nomeia um modelo NOSSO da lista; mercado não conta", async () => {
+  const txt = "ORIGEM: geral\nNOTAS: nenhuma\n\nOpção A: YESTECH MG6S P3.91. Opção B: ROE Black Pearl BP2V2 alugado.";
+  const repor = trocarFetchComInventario({ content: [{ type: "text", text: txt }] });
+  try {
+    const r = await worker.fetch(pedido("/pergunta", { pergunta: "LED 6x3" }), ambiente(), ctx);
+    const d = await r.json();
+    assert.deepEqual(d.origem, ["stock", "geral"]);
+    assert.deepEqual(d.equipamento, [{ nome: "YESTECH MG6S P3.91", avk: true }, { nome: "ROE Black Pearl BP2V2", avk: false }]);
+  } finally { repor(); }
+});
+
+test("só equipamento de mercado nomeado: não há 'stock'", async () => {
+  const txt = "ORIGEM: geral\nNOTAS: nenhuma\n\nAluga-se ROE Black Pearl BP2V2.";
+  const repor = trocarFetchComInventario({ content: [{ type: "text", text: txt }] });
+  try {
+    const d = await (await worker.fetch(pedido("/pergunta", { pergunta: "LED" }), ambiente(), ctx)).json();
+    assert.deepEqual(d.origem, ["geral"]);
+  } finally { repor(); }
+});
+
+test("os modelos acrescentados pela pessoa entram limpos e marcados como não confirmados", async () => {
+  const visto = {};
+  const repor = trocarFetchComInventario({ content: [{ type: "text", text: "ORIGEM: geral\nNOTAS: nenhuma\n\nOk." }] }, visto);
+  try {
+    const meusModelos = [{ tipo: "tv", modelo: "Xiaomi 55<script>", resumo: "55\"" }, { nada: 1 }];
+    await worker.fetch(pedido("/pergunta", { pergunta: "TVs", meusModelos }), ambiente(), ctx);
+    assert.match(visto.corpo.system, /não confirmados no inventário\):\n- tv: Xiaomi 55script/);
+  } finally { repor(); }
+});
+
+test("sem inventário acessível responde na mesma e não afirma stock", async () => {
+  const visto = {};
+  const repor = trocarFetch({ content: [{ type: "text", text: "ORIGEM: geral\nNOTAS: nenhuma\n\nOk." }] }, visto);
+  try {
+    const d = await (await worker.fetch(pedido("/pergunta", { pergunta: "x" }), ambiente(), ctx)).json();
+    assert.equal(d.ok, true);
+    assert.match(visto.corpo.system, /inventário indisponível agora/);
+  } finally { repor(); }
+});

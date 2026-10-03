@@ -11,6 +11,60 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
+## 3 de outubro, ~00:00 — "conjuga isso tudo": event planner no Better call Mike (v4.63) — ESTADO ACTUAL
+
+**Calculadores v4.63** (sw `calculadores-v451`) · `mike/` sw `bcm-v4` · Worker
+publicado pelo workflow. Mais recente do que tudo o que vem abaixo.
+
+O mike reabriu depois do fecho e pediu: *"conjuga isso tudo"* (inventário,
+notas, os modelos que ele acrescentou, mercado e as soluções próprias) e
+*"vai também servir para analisar das apps que tenho vindo a fazer"*.
+
+### O que ficou feito
+
+- **`conhecimento/solucoes-proprias-mike-apps.md`** (+ `indice.json`, + `sw.js`):
+  catálogo das Mike Apps, escrito a partir dos README/LEIA-ME de cada repo
+  (calculadores, preview, AvPlanner, Testpatern-generador, comparador-pdfs,
+  MyCueTimer/AVKtimer, cue4all-prompter, CueLight, ShowPresenter,
+  live-overlay-engine + módulo Companion, w7control, virtual-remote,
+  Edid-Simple-manager, QuickVideoPlayer (+Android), MySignage, Mconverter,
+  fotowall, raceclock; internos: things-on, video-team). **Gaby Draw não tem
+  README** — ficou "a descrever com o mike". Aparece na aba Conhecimento.
+- **Worker (`worker/src/pergunta.js`)**:
+  - lê o inventário `data/*.json` do Pages (`lerInventario`, `resumoInventario`):
+    LED, projetores, lentes, switchers, processadores LED, media servers, TVs,
+    cada um com **AVK** ou **MERCADO** (mesma regra das etiquetas da app);
+  - recebe os **modelos acrescentados** pela pessoa (`meusModelos`, do
+    `mikeapps-meus-modelos-v1`), marcados como não confirmados;
+  - instruções novas: **modo event planner** para pedidos de projeto/orçamento
+    — opções **A** só o nosso (+ Mike Apps), **B** nosso + mercado/aluguer,
+    **C** sem limites (dito às claras); soluções próprias primeiro, comparadas
+    com mercado com fonte; quantidades exatas ficam para os Cálculos/3D;
+  - origem nova **`stock`** ("📦 Com o nosso inventário"), só quando a
+    resposta nomeia um modelo AVK da lista (`modelosCitados`); devolve
+    `equipamento` (nosso/mercado) que a app mostra por baixo da resposta;
+  - "geral" passa a depender só de notas/web (ter equipamento nomeado não é fonte);
+  - `max_tokens` 1800 → 3000 (várias opções).
+  - 5 testes novos; `node --test "worker/testes/*.test.mjs"`: 60/60.
+- **App (`js/perguntar.js`, `css/app.css`, `index.html`, `mike/index.html`)**:
+  envia `meusModelos`, mostra a etiqueta stock e a linha "Equipamento da
+  lista: … (nosso) / (mercado)", e uma dica "Pedido de orçamento?" na caixa.
+  Testado em browser (Playwright).
+
+### Por fazer / por confirmar com o mike
+
+- Rever o catálogo das Mike Apps com ele (estado/versão de cada uma, o que
+  pode ir a clientes, a Gaby Draw).
+- O histórico de projetos (`calculadores-historico-v1`) NÃO entra no Worker:
+  são estados crus de 5 projetos; se ele quiser "casos já feitos" como
+  soluções, melhor uma nota própria com casos descritos.
+- Formato de saída apresentável (PDF/proposta) e "Levar para Cálculos/3D"
+  por opção A/B/C — ainda não.
+- Os pendentes da secção de baixo continuam (cilindro no Preview, conversa
+  no projeto, limpeza.js do preview).
+
+---
+
 ## 3 de outubro, 23:24 — SESSÃO FECHADA PELO MIKE ("fechado por agora")
 
 Tudo o que foi feito hoje está em `main` e no ar (Calculadores v4.62,
