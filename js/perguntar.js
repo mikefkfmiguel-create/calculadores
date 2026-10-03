@@ -33,6 +33,18 @@
   var CONVERSA_CHAVE = "bcm-conversa-v1";
   var CONVERSA_VALIDADE_MS = 7 * 24 * 60 * 60 * 1000;
   var TROCAS_GUARDADAS = 10;
+  // CADA CASO É ÚNICO. Uma conversa = um caso, com id próprio. Ao levar um
+  // caso para os cálculos/3D pela primeira vez, as duas apps são limpas a
+  // fundo antes (js/limpeza.js): nada do caso anterior -- um pano, um DSM,
+  // um projetor, o nome do projeto -- vem colado atrás. Levar o MESMO caso
+  // outra vez (ex.: primeiro Ecrã LED, depois Preview) não limpa.
+  // Pedido do mike, depois de um 3D abrir com o "HR Excellence Awards 2024"
+  // e um pano de outro dia: *"cada caso seja único e tenha reset do que
+  // possa trazer de outro atrás"*.
+  var CASO_LEVADO_CHAVE = "bcm-caso-levado-v1"; // prefixo bcm-: a limpeza não lhe toca
+  // Isto não é do caso anterior, é da pessoa: fica.
+  var MANTER_NO_CASO_NOVO = ["calculadores-historico-v1", "mikeapps-meus-modelos-v1", "calc-relatorio-modo"];
+  var caso = null;
   var LADO_MAX_FOTO = 1600;
 
   var historico = []; // [{p, r}] desta sessão, para perguntas de seguimento
@@ -285,6 +297,7 @@
   function guardarConversa() {
     var dados = {
       quando: Date.now(),
+      caso: caso,
       historico: historico,
       entradas: entradas.map(function (e) { return { texto: e.texto }; }),
       trocas: trocas.slice(-TROCAS_GUARDADAS)
@@ -305,6 +318,7 @@
     try { g = JSON.parse(localStorage.getItem(CONVERSA_CHAVE) || "null"); } catch (_) {}
     if (!g || !Array.isArray(g.trocas) || !g.trocas.length) return;
     if (Date.now() - (g.quando || 0) > CONVERSA_VALIDADE_MS) { apagarConversaGuardada(); return; }
+    caso = typeof g.caso === "string" ? g.caso : novoCaso();
     historico = Array.isArray(g.historico) ? g.historico.slice(-HISTORICO_MAX) : [];
     entradas = Array.isArray(g.entradas) ? g.entradas.map(function (e) { return { texto: String(e && e.texto || ""), ficheiro: null }; }) : [];
     g.trocas.forEach(function (t) {
@@ -381,6 +395,7 @@
     if (!nomeAtual()) { colocarEstado(null); estado("Escreve primeiro o teu nome."); el.nome.focus(); return; }
     if (!pergunta && !foto && !anexo) { estado("Escreve a pergunta ou junta uma foto, um PDF ou um texto."); el.texto.focus(); return; }
     if (!navigator.onLine) { estado("Sem rede. O Better call Mike precisa de ligação."); return; }
+    if (!caso) caso = novoCaso();
     var corpo = { pergunta: pergunta, nome: nomeAtual(), historico: historico.slice(-HISTORICO_MAX) };
     if (foto) { corpo.imageBase64 = foto.base64; corpo.imageMediaType = foto.tipo; }
     if (anexo) {
@@ -423,8 +438,32 @@
     });
   }
 
+  function novoCaso() {
+    var b = new Uint8Array(6);
+    (window.crypto || window.msCrypto).getRandomValues(b);
+    return "caso-" + Date.now().toString(36) + "-" + Array.prototype.map.call(b, function (x) { return x.toString(16); }).join("");
+  }
+
+  function casoJaLevado() {
+    try { return !!caso && localStorage.getItem(CASO_LEVADO_CHAVE) === caso; } catch (_) { return false; }
+  }
+
+  // Limpa as duas apps (partilham localStorage) e marca este caso como o que
+  // está nos cálculos. Devolve false se a pessoa desistiu.
+  function limparParaCasoNovo() {
+    if (!window.mikeappsLimpeza) return true;
+    if (typeof window.mikeappsPorGuardar === "function" && window.mikeappsPorGuardar()) {
+      if (!confirm("Caso novo.\n\nO projeto que está agora nas calculadoras e no 3D tem alterações por guardar e vai ser limpo, para nada passar para este caso.\n\nContinuar?")) return false;
+    }
+    if (typeof window.mikeappsEsquecerPorGuardar === "function") window.mikeappsEsquecerPorGuardar();
+    window.mikeappsLimpeza.limpezaProfunda({ manterTambem: MANTER_NO_CASO_NOVO });
+    try { localStorage.setItem(CASO_LEVADO_CHAVE, caso); } catch (_) {}
+    return true;
+  }
+
   function novaConversa() {
     colocarEstado(null);
+    caso = null;
     historico = [];
     entradas = [];
     trocas = [];
@@ -488,16 +527,36 @@
     var ficheiro = null;
     for (var i = entradas.length - 1; i >= 0 && !ficheiro; i--) ficheiro = entradas[i].ficheiro;
     if (!texto && !ficheiro) { estado("Não há pedido para levar para os cálculos."); return; }
+    if (!caso) caso = novoCaso();
+    var casoNovo = !casoJaLevado();
 
     // NA APP SEPARADA (mike/) não há cálculos nesta página: o pedido fica
     // guardado neste aparelho e abre-se a app completa, que o vai buscar
     // (ver receberDaApp). Mesma origem, por isso o mesmo armazenamento.
     if (!$("asst-text")) {
-      estado("A abrir os cálculos…");
-      guardarPassagem({ destino: destino, texto: texto, ficheiro: ficheiro, quando: Date.now() }).then(function () {
+      if (casoNovo && !limparParaCasoNovo()) return;
+      estado(casoNovo ? "Caso novo: a limpar o anterior e a abrir os cálculos…" : "A abrir os cálculos…");
+      guardarPassagem({ destino: destino, texto: texto, ficheiro: ficheiro, quando: Date.now(), daApp: "mike" }).then(function () {
         location.href = (document.body.dataset.calculadoras || "../") + "#levar=" + encodeURIComponent(destino);
       }, function () {
         estado("Não consegui passar o pedido para os cálculos neste browser.");
+      });
+      return;
+    }
+
+    // NA APP COMPLETA, CASO NOVO: o que está em memória nesta página (campos,
+    // zonas, projetor) também é do caso anterior, e voltava a ser gravado ao
+    // primeiro toque. Limpa-se, guarda-se o pedido como na app separada e
+    // recarrega-se -- a mesma decisão do "Limpar tudo" -- e receberDaApp()
+    // segue com ele numa página que nasce vazia.
+    if (casoNovo) {
+      if (!limparParaCasoNovo()) return;
+      estado("Caso novo: a limpar o anterior…");
+      guardarPassagem({ destino: destino, texto: texto, ficheiro: ficheiro, quando: Date.now(), daApp: "completa" }).then(function () {
+        history.replaceState(null, "", location.pathname + location.search + "#levar=" + encodeURIComponent(destino));
+        location.reload();
+      }, function () {
+        estado("Não consegui passar o pedido depois de limpar. Volta a tocar no destino.");
       });
       return;
     }
@@ -595,9 +654,13 @@
     if (!m || !$("asst-text")) return;
     var destino = m[1];
     history.replaceState(null, "", location.pathname + location.search);
-    try { sessionStorage.setItem("bcm-veio-da-app", "1"); } catch (_) {}
     tirarPassagem().then(function (dados) {
       if (!dados || Date.now() - (dados.quando || 0) > PASSAGEM_VALIDADE_MS) return;
+      // Só a app separada é que tem para onde "voltar"; um caso novo dentro
+      // da app completa recarrega-se a si mesma e o Voltar fica cá.
+      if (dados.daApp !== "completa") {
+        try { sessionStorage.setItem("bcm-veio-da-app", "1"); } catch (_) {}
+      }
       var f = dados.ficheiro || null;
       if (f && !(f instanceof File)) {
         try { f = new File([f], f.name || "anexo", { type: f.type || "" }); } catch (_) {}
