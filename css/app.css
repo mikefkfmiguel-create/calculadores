@@ -2095,3 +2095,17 @@
   .bcm-ponte { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
   .bcm-ponte p { margin: 0; flex: 1 1 220px; color: var(--ink-soft); font-size: 0.92em; }
   .bcm-calculos { font-weight: 600; }
+  .bcm-levar {
+    margin-top: 14px; padding: 12px; border-radius: 10px;
+    background: linear-gradient(135deg, #0B1621 0%, #0F2433 100%); border: 1px solid rgba(74,189,214,0.35);
+  }
+  .bcm-levar-titulo { display: block; margin-bottom: 8px; font-size: 0.85em; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #9CC3D2; }
+  .bcm-levar-opcoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 560px) { .bcm-levar-opcoes { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .bcm-opcao {
+    display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px;
+    font: inherit; font-size: 0.92em; font-weight: 600; color: #E6F4FA; cursor: pointer;
+    background: rgba(74,189,214,0.08); border: 1px solid rgba(74,189,214,0.4); border-radius: 8px;
+  }
+  .bcm-opcao:hover, .bcm-opcao:focus-visible { border-color: #4ABDD6; background: rgba(74,189,214,0.16); box-shadow: 0 0 10px rgba(74,189,214,0.25); outline: none; }
+  .bcm-opcao-ic { font-size: 1.3em; line-height: 1; }
