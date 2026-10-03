@@ -11,7 +11,57 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
-## 3 de outubro — Better call Mike passa a ser uma conversa (v4.61) — ESTADO ACTUAL
+## 3 de outubro (noite) — cada caso é único: reset ao levar um caso novo (v4.62) — ESTADO ACTUAL
+
+**Calculadores v4.62** (sw `calculadores-v450`) · `mike/` sw `bcm-v3`. O
+Preview NÃO mudou (continua v4.15). Mais recente do que a secção de baixo.
+
+### O que aconteceu
+
+No telemóvel, depois de levar o caso do cilindro, o 3D abriu com o projeto
+"HR Excellence Awards 2024" e um pano de outro dia fora das paredes. Não era
+cache (as duas apps estavam na última versão): era o localStorage partilhado
+pelas duas apps, com o projeto antigo. O mike: *"preciso que cada caso seja
+único e tenha reset do que possa trazer de outro atrás"*.
+
+### Como ficou (`js/perguntar.js`)
+
+- Cada conversa do Better call Mike é um **caso** com id próprio (`caso`,
+  guardado em `bcm-conversa-v1`; "Nova conversa" começa outro).
+- A **primeira vez** que um caso é levado ("Levar este projeto para:"), as
+  duas apps são limpas a fundo com `mikeappsLimpeza.limpezaProfunda()` — a
+  mesma do "Limpar tudo" — e o id fica em `bcm-caso-levado-v1`.
+- Levar o **mesmo caso** outra vez (ex.: LED e depois Preview) NÃO limpa.
+- Ficam no caso novo, além da lista `MANTER` de `js/limpeza.js`:
+  `calculadores-historico-v1`, `mikeapps-meus-modelos-v1`, `calc-relatorio-modo`
+  (`MANTER_NO_CASO_NOVO`) — são da pessoa, não do caso anterior.
+  `js/limpeza.js` ganhou `limpezaProfunda({ manterTambem: [...] })` para isso.
+- As chaves `bcm-*` (conversa, nome, caso) não têm os prefixos da limpeza e
+  sobrevivem — a conversa continua lá depois do reset.
+- **Na app completa**, caso novo = limpa, guarda o pedido na passagem
+  (IndexedDB, `daApp: "completa"`) e **recarrega** com `#levar=<destino>`;
+  `receberDaApp()` segue numa página vazia. Se houver trabalho por guardar
+  (`window.mikeappsPorGuardar()`, exposto em `index.html`), pergunta antes;
+  depois esquece o aviso de saída para não perguntar duas vezes.
+- **Na app separada** (`mike/`), limpa e abre os cálculos como antes
+  (`mike/index.html` passou a carregar `../js/limpeza.js`).
+- O "← Voltar ao Better call Mike" só aponta para `mike/` quando se veio de lá.
+
+Testado em browser (Playwright): caso novo apaga projetor/projeto/DSM antigos
+e mantém o histórico; o mesmo caso não apaga; "Nova conversa" + levar volta a
+limpar; o mesmo vindo da app `mike/`.
+
+### Por fazer
+
+- A cópia de `js/limpeza.js` no repo **preview** não tem o `manterTambem`
+  (não precisa, é compatível; os ficheiros deixaram de ser iguais).
+- O Preview só desenha ecrãs planos: um cilindro (ex.: 12 m Ø × 4 m virado
+  para fora) chega lá como ecrã plano. Proposto ao mike, não iniciado.
+- Ainda do dia: guardar a conversa no projeto; JSON de parâmetros (ver abaixo).
+
+---
+
+## 3 de outubro — Better call Mike passa a ser uma conversa (v4.61)
 
 **Calculadores v4.61** (sw `calculadores-v449`) · app separada `mike/` com sw
 `bcm-v2`. O que está aqui é mais recente do que a secção de 1 de outubro.
