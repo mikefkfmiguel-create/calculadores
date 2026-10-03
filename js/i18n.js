@@ -27,6 +27,16 @@
     "TVs": "TVs",
     "Grafismo px↔cm": "Graphics px↔cm",
     "Ajuda": "Help",
+    "Conhecimento": "Knowledge",
+    "Notas técnicas de afinação confirmadas no terreno, para consultar durante um trabalho. São notas práticas, não fichas do fabricante: confirma sempre no equipamento.": "Field-tested tuning notes to check during a job. These are practical notes, not manufacturer datasheets: always confirm on the equipment.",
+    "notas técnicas de afinação guardadas (ex.: NovaStar MCTRL4K + A8s com sinal 10-bit), para consultar no terreno.": "saved tuning notes (e.g. NovaStar MCTRL4K + A8s with a 10-bit signal), to check in the field.",
+    "A carregar…": "Loading…",
+    "Ainda não há notas.": "No notes yet.",
+    "Abrir PDF": "Open PDF",
+    "📘 Consultar notas técnicas": "📘 Check technical notes",
+    "Afinações guardadas para o terreno (ex.: NovaStar 10-bit)": "Saved field tuning notes (e.g. NovaStar 10-bit)",
+    "Atualizado em": "Updated",
+    "Não foi possível carregar a lista de notas. Tenta outra vez com rede.": "Could not load the list of notes. Try again with a connection.",
     "Calculadores — ferramenta interna, valores para conferência antes de envio ao cliente.": "Calculators — internal tool, values for review before sending to the client.",
 
     // ---- Ações / botões comuns ----
@@ -1069,7 +1079,7 @@
   }
 
   function shouldSkip(el) {
-    return !!(el && (el.closest("script") || el.closest("style")));
+    return !!(el && (el.closest("script") || el.closest("style") || el.closest('[translate="no"]')));
   }
 
   function translateNode(node) {

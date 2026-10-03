@@ -537,6 +537,7 @@
   .tab[data-mode="tv"] .swatch, .tabs-current[data-mode="tv"] .swatch { background: var(--orange-500); }
   .tab[data-mode="dome"] .swatch, .tabs-current[data-mode="dome"] .swatch { background: var(--violet-500); }
   .tab[data-mode="grafismo"] .swatch, .tabs-current[data-mode="grafismo"] .swatch { background: var(--orange-500); }
+  .tab[data-mode="conhecimento"] .swatch, .tabs-current[data-mode="conhecimento"] .swatch { background: var(--blue-500); }
   .tab[data-mode="ajuda"] .swatch, .tabs-current[data-mode="ajuda"] .swatch { background: var(--ink-faint); }
   .tab[aria-selected="true"] { color: var(--ink); }
   .tab[data-mode="projecao"][aria-selected="true"] { border-bottom-color: var(--amber-500); }
@@ -548,6 +549,7 @@
   .tab[data-mode="tv"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
   .tab[data-mode="dome"][aria-selected="true"] { border-bottom-color: var(--violet-500); }
   .tab[data-mode="grafismo"][aria-selected="true"] { border-bottom-color: var(--orange-500); }
+  .tab[data-mode="conhecimento"][aria-selected="true"] { border-bottom-color: var(--blue-500); }
   .tab[data-mode="ajuda"][aria-selected="true"] { border-bottom-color: var(--ink-faint); }
   .tab[data-mode="projeto"][aria-selected="true"] { border-bottom-color: var(--green-500); }
   .tab[data-mode="assistente"][aria-selected="true"] { border-bottom-color: var(--green-500); }
@@ -1934,3 +1936,35 @@
   }
   .exemplo-texto { flex: 1 1 260px; color: var(--ink); }
   .exemplo-botoes { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ---- Aba Conhecimento (notas em conhecimento/*.md) ---- */
+  .panel[data-mode="conhecimento"] .stripe { background: var(--blue-500); }
+  .kb-lista { display: grid; gap: 8px; margin-top: 12px; }
+  .kb-item {
+    display: flex; flex-direction: column; gap: 2px; text-align: left;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--paper-raised); color: var(--ink); font: inherit; cursor: pointer;
+  }
+  .kb-item[aria-pressed="true"] { border-color: var(--blue-500); background: var(--blue-100); }
+  .kb-titulo { font-weight: 600; }
+  .kb-resumo { font-size: 0.9em; color: var(--ink-soft); }
+  .kb-data { font-size: 0.8em; color: var(--ink-faint); }
+  .kb-aviso { color: var(--ink-soft); }
+  .kb-visor:empty { display: none; }
+  .kb-visor h2, .kb-visor h3, .kb-visor h4 { margin: 18px 0 8px; }
+  .kb-visor h2:first-child, .kb-visor .kb-pdf + h2 { margin-top: 0; }
+  .kb-visor p, .kb-visor li { line-height: 1.55; }
+  .kb-visor ul, .kb-visor ol { padding-left: 20px; margin: 6px 0 10px; }
+  .kb-visor blockquote {
+    margin: 10px 0; padding: 8px 12px; border-left: 3px solid var(--amber-500);
+    background: var(--amber-100); color: var(--ink);
+  }
+  .kb-visor code { font-size: 0.9em; padding: 1px 4px; border-radius: 4px; background: var(--line-soft); }
+  .kb-visor .kb-tarefa { list-style: none; margin-left: -20px; }
+  .kb-visor .kb-caixa { color: var(--ink-soft); }
+  .kb-tabela { overflow-x: auto; margin: 8px 0 12px; }
+  .kb-tabela table { border-collapse: collapse; width: 100%; font-size: 0.92em; }
+  .kb-tabela th, .kb-tabela td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+  .kb-tabela th { background: var(--paper); font-weight: 600; }
+  .kb-pdf { margin: 0 0 12px; }
+  .kb-pdf-link { display: inline-block; text-decoration: none; }
