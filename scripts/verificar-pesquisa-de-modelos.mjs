@@ -4,7 +4,7 @@
  * Reportado com uma fotografia da aba TVs, com "Xiaomi tv" escrito no campo:
  * *"não encontra"*.
  *
- * Nesse caso não havia nada a encontrar — a AVK não tem Xiaomi nenhum, e o
+ * Nesse caso não havia nada a encontrar — o inventário não tem Xiaomi nenhum, e o
  * link para o mercado é a saída certa. Mas ao medir a lista a sério apareceu
  * um defeito maior, que escondia equipamento que a casa TEM: a pesquisa
  * procurava o texto escrito INTEIRO dentro da etiqueta da opção. A etiqueta é
@@ -72,7 +72,7 @@ async function carregarPlaywright() {
 }
 
 // A CONTA DE CONTROLO SAI DO CATÁLOGO, não de um número escrito aqui. Um
-// número à mão envelhece no dia em que a AVK comprar outra TV, e um teste que
+// número à mão envelhece no dia em que se comprar outra TV, e um teste que
 // envelhece assim é pior do que teste nenhum.
 const normal = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const tvs = JSON.parse(await readFile(join(RAIZ, "data/tvs.json"), "utf8"));
@@ -148,7 +148,7 @@ conferir(a.visiveis === b.visiveis && a.visiveis > 1,
 
 console.log("\n== o que a casa não tem continua a não aparecer ==");
 const x = await procurar("Xiaomi tv");
-conferir(x.visiveis === 0, "«Xiaomi tv» → 0 modelos (a AVK não tem Xiaomi)");
+conferir(x.visiveis === 0, "«Xiaomi tv» → 0 modelos (o inventário não tem Xiaomi)");
 conferir(x.link, "e o link para procurar no mercado está à vista");
 conferir(!!x.recado && /xiaomi/i.test(x.recado),
   "o recado diz qual é a palavra que não existe: “" + (x.recado || "").trim() + "”");

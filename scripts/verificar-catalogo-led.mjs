@@ -323,7 +323,7 @@ for (const L of linhas) {
   //    por fazer, não avaria.
   if (!t || t.weight == null) falta("em falta", "sem peso — o total sai «—» em vez de um número");
   if (!t || t.amp == null) falta("em falta", "sem amperagem — o total sai «—» em vez de um número");
-  if (!t || !t.fonte) falta("fonte", "sem fonte" + (t && /AVK/i.test(t.label || "") ? " (stock AVK, origem dita no rótulo)" : ""));
+  if (!t || !t.fonte) falta("fonte", "sem fonte");
   if (!t || (t.nitsMin == null && t.nitsMax == null)) falta("nits", "sem brilho declarado");
 }
 

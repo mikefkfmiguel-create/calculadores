@@ -577,12 +577,12 @@
     "Vai à aba": "Go to the",
 
     // ---- TVs / Lentes tab extras ----
-    "Escolhe um modelo de TV do inventário da AVK (ou personaliza a diagonal) para saberes o tamanho do ecrã e a distância de visualização ideal. Nem todos os modelos têm a resolução confirmada — quando não tiver, ajusta à mão se precisares para o relatório.": "Choose a TV model from the AVK inventory (or customize the diagonal) to find out the screen size and the ideal viewing distance. Not every model has a confirmed resolution — when it doesn't, adjust it by hand if you need to for the report.",
-    "Escolhe um modelo do inventário da AVK para preencher o formato e a diagonal abaixo.": "Choose a model from the AVK inventory to fill in the aspect ratio and diagonal below.",
+    "Escolhe um modelo de TV da lista (ou personaliza a diagonal) para saberes o tamanho do ecrã e a distância de visualização ideal. Nem todos os modelos têm a resolução confirmada — quando não tiver, ajusta à mão se precisares para o relatório.": "Choose a TV model from the list (or customize the diagonal) to find out the screen size and the ideal viewing distance. Not every model has a confirmed resolution — when it doesn't, adjust it by hand if you need to for the report.",
+    "Escolhe um modelo da lista para preencher o formato e a diagonal abaixo.": "Choose a model from the list to fill in the aspect ratio and diagonal below.",
     "Estes modelos também ficam disponíveis para escolher nos ecrãs DSM/delay da aba Projeto, e como atalho na aba Distância de Visualização.": "These models are also available to choose from on the Project tab's DSM/delay screens, and as a shortcut on the Viewing Distance tab.",
-    "Inventário da AVK — escolher preenche a diagonal (e a resolução, quando confirmada) abaixo.": "AVK inventory — choosing one fills in the diagonal (and the resolution, when confirmed) below.",
-    "Inventário da AVK — escolher preenche a diagonal (e a resolução, quando confirmada) abaixo. O que a lista não tiver, acrescenta-se ao procurar.": "AVK inventory — choosing one fills in the diagonal (and the resolution, when confirmed) below. Whatever the list is missing can be added while searching.",
-    "Inventário da AVK — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.": "AVK inventory — fills in the resolution when confirmed; if it doesn't have one, adjust it by hand below.",
+    "Lista de modelos — escolher preenche a diagonal (e a resolução, quando confirmada) abaixo.": "Model list — choosing one fills in the diagonal (and the resolution, when confirmed) below.",
+    "Lista de modelos — escolher preenche a diagonal (e a resolução, quando confirmada) abaixo. O que a lista não tiver, acrescenta-se ao procurar.": "Model list — choosing one fills in the diagonal (and the resolution, when confirmed) below. Whatever the list is missing can be added while searching.",
+    "Lista de modelos — preenche a resolução quando confirmada; se não tiver, ajusta à mão abaixo.": "Model list — fills in the resolution when confirmed; if it doesn't have one, adjust it by hand below.",
     "não confirmada": "not confirmed",
 
     // ---- Grafismo px↔cm ----
@@ -641,7 +641,7 @@
     "— junta tudo numa ficha técnica única para um evento.": "— puts everything together into a single spec sheet for an event.",
     "— lista de TVs/monitores da empresa com diagonal, resolução (quando confirmada) e distância de visualização ideal; serve também de atalho para preencher DSM/delay na aba Projeto.": "— list of the company's TVs/monitors with diagonal, resolution (when confirmed) and ideal viewing distance; also serves as a shortcut to fill in DSM/delay screens on the Project tab.",
     "nos menus é o que a empresa já tem — prioriza sempre que der.": "in the menus is what the company already owns — always prioritize it when possible.",
-    "Não é equipamento da AVK — mostrado só como referência de mercado": "Not AVK equipment — shown only as a market reference",
+    "Não está no teu inventário — mostrado só como referência de mercado": "Not in your inventory — shown only as a market reference",
     "Capacidade estimada, não é um teto de hardware fixo publicado pelo fabricante — depende da configuração real (ex: GPU da máquina). Ver nota.": "Estimated capacity, not a fixed hardware ceiling published by the manufacturer — it depends on the actual configuration (e.g. the machine's GPU). See note.",
 
     // ---- Zonas — títulos avançados ----
@@ -730,7 +730,6 @@
     "usado o menor": "used the lower value",
     "fonte oficial": "official source",
     "ficha oficial": "official datasheet",
-    "existe no grupo AVK": "exists within the AVK group",
     "grupo Euro Algarve": "Euro Algarve group",
     "grupo Global Espanha": "Global Espanha group",
     "no lote": "in the batch",

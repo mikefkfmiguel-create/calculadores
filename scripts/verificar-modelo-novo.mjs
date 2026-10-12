@@ -66,7 +66,7 @@ async function carregarPlaywright() {
   process.exit(2);
 }
 
-// Uma TV que a AVK não tem, conferido contra o catálogo — senão isto media o
+// Uma TV que o inventário não tem, conferido contra o catálogo — senão isto media o
 // vazio, que já aconteceu neste ficheiro.
 const tvs = JSON.parse(await readFile(join(RAIZ, "data/tvs.json"), "utf8"));
 const MARCA = "Xiaomi";

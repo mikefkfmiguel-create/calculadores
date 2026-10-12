@@ -279,7 +279,7 @@ eletrónicas.
 - confirmar os valores da TIA-568.3 na **edição** certa (D ou E — mudaram);
 - decidir se as distâncias são as da **norma** ou as das **óticas do
   mercado**, e dizê-lo na app;
-- saber que transceivers/SFPs a AVK tem, para a lista de orçamentos óticos
+- saber que transceivers/SFPs há no inventário, para a lista de orçamentos óticos
   ser a do inventário e não uma inventada.
 
 Sem os três, isto fica como está: pesquisa.

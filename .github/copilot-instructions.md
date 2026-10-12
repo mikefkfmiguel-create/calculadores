@@ -1,12 +1,12 @@
 # Calculadores (Mike Apps Calculadores) — contexto para o Copilot
 
-PWA estática para cálculos de AV/produção de eventos, uso interno da AVK Portugal, publicada no GitHub Pages. Lê também `/CLAUDE.md` na raiz — as convenções aí (bump de versão, nunca inventar dados técnicos, publicar sempre via PR para `main`) aplicam-se da mesma forma aqui.
+PWA estática para cálculos de AV/produção de eventos, uso interno, publicada no GitHub Pages. Lê também `/CLAUDE.md` na raiz — as convenções aí (bump de versão, nunca inventar dados técnicos, publicar sempre via PR para `main`) aplicam-se da mesma forma aqui.
 
 ## Arquitetura
 
 - `index.html` — a app quase toda: HTML de todas as calculadoras (tabs) + um `<script>` gigante no fundo com toda a lógica JS. Funções e `var` de topo (não dentro de nenhuma IIFE) são partilhadas por closure com o resto do ficheiro, incluindo com a IIFE do Assistente de Projeto perto do fim do ficheiro.
 - `sw.js` — service worker. `CACHE = "calculadores-vNN"` tem de subir sempre que `index.html` muda visivelmente para o utilizador, em sincronia com o `<span class="mark">vX.Y</span>` perto da linha 28 de `index.html`. Cache-first para a app shell, network-first para `data/*.json`.
-- `data/*.json` — inventário real (LED tiles, TVs, projetores, lentes, processadores/switchers) usado por todas as calculadoras. Nunca inventar valores aqui; entradas de mercado (não são propriedade da AVK) têm `"mercado": true`, entradas próprias da AVK omitem esse campo — convenção única nos 4 ficheiros com essa distinção (`led-tiles.json`, `tvs.json`, `projectors.json`, `processors.json`). O `modelo` em si é só o nome/designação do equipamento, sem "(stock)" nem outras anotações — a distinção azul/negrito nos menus e a prioridade nas buscas do Assistente vêm sempre de `!item.mercado` (ver `addOption`/`stockFirstIndices` em `js/utils.js`), nunca de sniffing de texto no nome.
+- `data/*.json` — inventário real (LED tiles, TVs, projetores, lentes, processadores/switchers) usado por todas as calculadoras. Nunca inventar valores aqui; o catálogo é NEUTRO (sem o campo `mercado` e sem nomes de empresas): quem decide o que é «de mercado» é o inventário do utilizador, importado por ficheiro e guardado no navegador (`js/meu-inventario.js`). Nunca pôr de volta marcas de posse nem nomes de empresas nos ficheiros de dados. O `modelo` em si é só o nome/designação do equipamento, sem "(stock)" nem outras anotações — a distinção azul/negrito nos menus e a prioridade nas buscas do Assistente vêm sempre de `!item.mercado` (ver `addOption`/`stockFirstIndices` em `js/utils.js`), nunca de sniffing de texto no nome.
 - `worker/src/index.js` — Cloudflare Worker que faz de proxy seguro para a API da Anthropic (a chave nunca pode estar no código estático). **Importante: não há deploy automático.** Sempre que este ficheiro muda, tem de se dar o conteúdo completo ao utilizador para ele colar manualmente no dashboard da Cloudflare (Edit code → colar tudo → Save and deploy). Nunca assumir que uma alteração aqui já está "live" só por ter sido commitada.
 
 ## Assistente de Projeto (a feature mais ativa deste repo)
@@ -57,7 +57,7 @@ Pedido original do utilizador foi genérico ("cria popups sempre que ouves dúvi
 
 ## Marca (rebranding — Mike Apps)
 
-A app foi rebrandada de "AVK Calculadores" para "Mike Apps Calculadores" (`index.html`, `ecra-complexo.html`, `manifest.json`, `CLAUDE.md`, título e cabeçalho).
+A app foi rebrandada para "Mike Apps Calculadores" (`index.html`, `ecra-complexo.html`, `manifest.json`, `CLAUDE.md`, título e cabeçalho).
 
 **O kit oficial da marca chegou** (commit "A marca Mike Apps: o logotipo e as regras de o usar", pasta `marca/` — SVGs vetoriais, `.ico`, PNGs em várias variantes/tamanhos, `marca/LEIA-ME.md` com a tabela "qual ficheiro usar" e as 3 regras de uso, `marca/prova.html` com o manual visual). Isto **substituiu** a primeira versão do ícone, que tinha sido uma reconstrução em SVG feita só a partir de uma especificação escrita (o ficheiro oficial nunca tinha chegado como anexo real até esse commit). Os ficheiros de produção em `icons/` (`mike-logo.png`, `favicon-16/32.png`, `apple-touch-icon.png`, `icon-192/512(-maskable).png`) foram gerados a partir dos PNGs oficiais em `marca/png/`, não da reconstrução:
 
@@ -66,7 +66,7 @@ A app foi rebrandada de "AVK Calculadores" para "Mike Apps Calculadores" (`index
 - `apple-touch-icon.png` — a partir de `marca/png/icone-1024-branco.png`, que é o ficheiro que o próprio kit designa para "onde a transparência não serve" (fundo branco opaco; o resto dos PNGs do kit é transparente).
 - `icon-192-maskable.png`/`icon-512-maskable.png` — não há equivalente maskable no kit (é um conceito específico de PWA/Android, não de brand kit genérico), por isso continuam a ser compostos localmente: símbolo (`marca/png/simbolo-2048.png`, versão sem padding) sobre fundo escuro `#0E1418` (o `background_color`/`theme_color` do `manifest.json`), à escala mínima que garante que a forma inteira (incluindo os cantos quase-retos do quadrado, rx=30) cabe dentro do "safe circle" de raio 0.4×canvas exigido pelos adaptive icons — a escala é calculada a partir do raio máximo real dos pixels com alfa da imagem recortada, não de um valor fixo. Ver o script usado (histórico do commit) se for preciso regenerar a outro tamanho.
 
-**Deliberadamente mantido "AVK"** nos sítios que descrevem equipamento/inventário real da empresa — isso é facto de negócio (de quem é o equipamento), não identidade visual da app: hints "Inventário da AVK" nas calculadoras, badge "Mercado" (`item && item.mercado`), notas "existe no grupo AVK" em `led-tiles.json`. Nunca "despromover" essas referências ao mexer na marca — só a identidade visual (nome, logo, ícone, título) muda.
+**Sem nomes de empresas.** A app e os dados são neutros: as listas dizem «O meu inventário» e «Mercado», e a posse vem do ficheiro que cada utilizador importa (`js/meu-inventario.js`, botão «📦 Inventário»). Não reintroduzir nomes de empresas, clientes ou unidades em textos, notas ou dados.
 
 ## TVs — integração no Projeto e posição da aba
 

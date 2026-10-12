@@ -352,12 +352,11 @@ de incomodar quem não precisa delas, e continuam a uma porta de distância.
 
 ## Não confundir com a edição "global"
 
-O `CLAUDE.md` guarda a ideia de separar o motor de cálculo do inventário da
-AVK, para uma edição de venda. **É um eixo diferente deste:** este é *quanto se
+O `CLAUDE.md` guarda a ideia de separar o motor de cálculo do inventário próprio, para uma edição de venda. **É um eixo diferente deste:** este é *quanto se
 vê*; esse é *o que se leva*. Tratados como o mesmo, dão quatro combinações e
 nenhuma bem feita.
 
-Há uma sobreposição útil, ainda assim: perceber o que é motor e o que é AVK
+Há uma sobreposição útil, ainda assim: perceber o que é motor e o que é inventário
 serve os dois, e fazer o menu primeiro deixa esse corte meio feito.
 
 ## O que me faria parar

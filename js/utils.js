@@ -187,7 +187,7 @@ function normalizeSearch(s) {
  * PESQUISA POR PALAVRAS, n\u00e3o por peda\u00e7o de texto.
  *
  * Reportado com uma fotografia do campo dos modelos: *"n\u00e3o encontra"*. Nesse
- * caso era verdade \u2014 a AVK n\u00e3o tem Xiaomi nenhum, e o link para o mercado \u00e9
+ * caso era verdade \u2014 o inventário n\u00e3o tem Xiaomi nenhum, e o link para o mercado \u00e9
  * exactamente a sa\u00edda certa. Mas ao medir a lista a s\u00e9rio apareceu um defeito
  * maior, que escondia equipamento que a casa TEM:
  *

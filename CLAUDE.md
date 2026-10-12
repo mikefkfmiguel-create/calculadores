@@ -1,6 +1,6 @@
 # Calculadores (Mike Apps Calculadores)
 
-PWA estática para cálculos de AV/produção de eventos, uso interno da AVK Portugal.
+PWA estática para cálculos de AV/produção de eventos, uso interno.
 
 ## Convenções
 
@@ -11,4 +11,4 @@ PWA estática para cálculos de AV/produção de eventos, uso interno da AVK Por
 
 ## Ideias futuras (por explorar, não iniciar sem pedido explícito)
 
-- **Versão "global" para venda**: separar o motor de pesquisa/cálculo (throw ratio, pixel pitch, data rate, etc. — genérico, reutilizável) do inventário/stock específico da AVK (equipamento próprio, badges "Mercado"/"Estimado", filtros de posse). Uma edição para venda a outras empresas manteria só os motores de pesquisa e cálculo, sem os filtros de stock da AVK, com versões traduzidas para outras línguas.
+- **Versão "global" para venda**: separar o motor de pesquisa/cálculo (throw ratio, pixel pitch, data rate, etc. — genérico, reutilizável) do inventário/stock específico de uma casa (equipamento próprio, badges "Mercado"/"Estimado", filtros de posse). Uma edição para venda a outras empresas manteria só os motores de pesquisa e cálculo, sem os filtros de stock de uma casa, com versões traduzidas para outras línguas.

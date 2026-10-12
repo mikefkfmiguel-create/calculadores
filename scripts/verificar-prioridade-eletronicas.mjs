@@ -108,7 +108,7 @@ const lerLista = (id) => pagina.evaluate((alvo) => {
 /**
  * As três regras, sobre uma lista lida do ecrã.
  *
- * A monotonia confere-se DENTRO de cada grupo de posse: o inventário da AVK
+ * A monotonia confere-se DENTRO de cada grupo de posse: o meu inventário
  * vem sempre primeiro (regra da casa), por isso um apertado da casa pode
  * ficar acima de um folgado do mercado — mas esse traz o selo "Mercado" ao
  * lado, a dizer que é outra lista.
@@ -141,7 +141,7 @@ function conferirLista(linhas, onde) {
       }
     }
     conferir(mau === null,
-      onde + " · " + (grupo === "mercado" ? "mercado" : "da AVK") +
+      onde + " · " + (grupo === "mercado" ? "mercado" : "do inventário") +
       ": o selo nunca piora e volta a melhorar" + (mau ? " — " + mau : ""));
   });
 }

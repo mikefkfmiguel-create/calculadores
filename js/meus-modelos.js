@@ -24,7 +24,7 @@
  *
  * ONDE ISTO VIVE, e porque não é o `data/tvs.json`:
  *
- *   · o catálogo é o INVENTÁRIO DA AVK e está no repositório — uma app
+ *   · o catálogo é o INVENTÁRIO DE REFERÊNCIA e está no repositório — uma app
  *     estática não lhe pode escrever, e não devia: o que está lá é o que a
  *     casa tem, conferido;
  *   · o que se acrescenta aqui fica no browser (aparece na lista sempre que
