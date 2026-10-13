@@ -405,11 +405,12 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
     body: JSON.stringify({ model: modelo, ...corpoBase }),
   });
   let res;
+  let modeloUsado = MODELO_PERGUNTA;
   try {
     res = await chamar(MODELO_PERGUNTA);
     if (!res.ok && (res.status === 400 || res.status === 404) && MODELO_RESERVA !== MODELO_PERGUNTA) {
       const alt = await chamar(MODELO_RESERVA);
-      if (alt.ok) res = alt;
+      if (alt.ok) { res = alt; modeloUsado = MODELO_RESERVA; }
     }
   } catch (e) {
     return json({ ok: false, motivo: "Não consegui chegar à IA: " + e.message }, 200, cors);
@@ -438,6 +439,7 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
   const saida = {
     ok: true,
     resposta,
+    modelo: modeloUsado,
     origem,
     notasUsadas: notasUsadas.map((n) => ({ ficheiro: n.ficheiro, titulo: n.titulo })),
     fontes: lida.fontes.slice(0, 8),

@@ -102,6 +102,7 @@ test("modelo novo recusado pela API (400): tenta uma vez com o modelo anterior e
     const d = await (await worker.fetch(pedido("/pergunta", { pergunta: "Teste de reserva?" }), ambiente(), ctx)).json();
     assert.equal(d.ok, true);
     assert.deepEqual(modelos, [MODELO_PERGUNTA, MODELO_RESERVA]);
+    assert.equal(d.modelo, MODELO_RESERVA);
     assert.match(d.resposta, /modelo anterior/);
   } finally { globalThis.fetch = original; }
 });
@@ -114,6 +115,7 @@ test("modelo novo aceite: não chama o de reserva", async () => {
     assert.equal(d.ok, true);
     assert.equal(visto.corpo.model, MODELO_PERGUNTA);
     assert.notEqual(MODELO_PERGUNTA, MODELO_RESERVA);
+    assert.equal(d.modelo, MODELO_PERGUNTA);
   } finally { repor(); }
 });
 
