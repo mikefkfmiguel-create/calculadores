@@ -131,19 +131,27 @@ function n(v, casas) {
 }
 
 /** Texto compacto do inventário + lista de modelos para o crivo do "stock". */
-export function resumoInventario(d) {
+export function resumoInventario(d, tenho) {
   const linhas = [];
   const modelos = [];
-  const posse = (x) => (x && x.mercado ? "MERCADO" : "NOSSO");
-  const junta = (nome, x) => { if (nome) modelos.push({ nome: String(nome), nosso: !(x && x.mercado) }); };
+  // `tenho` = Set de «<ficheiro do catálogo>|<modelo>» que a pessoa diz ter (vem da app dela; null = não importou).
+  // Sem inventário próprio o catálogo não diz de quem é o equipamento: «CATÁLOGO» (nem nosso, nem de mercado).
+  const posseDe = (x, ficheiro) => {
+    if (x && x.mercado) return "MERCADO";
+    if (!tenho) return "CATÁLOGO";
+    return tenho.has(ficheiro + "|" + (x && x.modelo)) ? "NOSSO" : "MERCADO";
+  };
+  const posse = (x, ficheiro) => posseDe(x, ficheiro);
+  const junta = (nome, estado) => { if (nome) modelos.push({ nome: String(nome), nosso: String(estado).indexOf("NOSSO") === 0 }); };
 
   const tiles = Array.isArray(d.tiles) ? d.tiles : [];
   if (tiles.length) {
     linhas.push("## Painéis LED (modelo | pitch mm | painel mm | px | kg | posse)");
     tiles.forEach((t) => {
       const pitch = t.mw && t.rx ? n(t.mw / t.rx, 2) : "";
-      linhas.push([t.modelo, pitch, n(t.mw) + "×" + n(t.mh), n(t.rx) + "×" + n(t.ry), n(t.weight, 1), posse(t)].join(" | "));
-      junta(t.modelo, t);
+      const p = posse(t, "led-tiles");
+      linhas.push([t.modelo, pitch, n(t.mw) + "×" + n(t.mh), n(t.rx) + "×" + n(t.ry), n(t.weight, 1), p].join(" | "));
+      junta(t.modelo, p);
     });
   }
   const proj = Array.isArray(d.projetores) ? d.projetores : [];
@@ -151,8 +159,9 @@ export function resumoInventario(d) {
     linhas.push("## Projetores (modelo | lúmens | resolução | posse)");
     proj.forEach((p) => {
       const r = p.resolucao && p.resolucao.rx ? p.resolucao.rx + "×" + p.resolucao.ry : "";
-      linhas.push([p.modelo, n(p.lumens), r, posse(p)].join(" | "));
-      junta(p.modelo, p);
+      const po = posse(p, "projectors");
+      linhas.push([p.modelo, n(p.lumens), r, po].join(" | "));
+      junta(p.modelo, po);
     });
   }
   const lentes = Array.isArray(d.lentes) ? d.lentes : [];
@@ -171,27 +180,38 @@ export function resumoInventario(d) {
       const nome = ((x.marca || "") + " " + (x.modelo || "")).trim();
       const extra = k === "switchers" ? [n(x.maxMPSwitcher), (x.inputs || "?") + "/" + (x.outputs || "?")]
         : k === "ledProcessors" ? [n(x.ports)] : [n(x.maxMP), n(x.maxOutputs)];
-      const dono = x.mercado ? "MERCADO" : (x.unitsOwned ? "NOSSO ×" + x.unitsOwned : "NOSSO");
+      const base = posse(x, "processors");
+      const dono = base === "NOSSO" && x.unitsOwned ? "NOSSO ×" + x.unitsOwned : base;
       linhas.push([nome].concat(extra, [dono]).join(" | "));
-      junta(nome, x);
-      if (x.modelo && String(x.modelo).length >= 4) junta(x.modelo, x);
+      junta(nome, dono);
+      if (x.modelo && String(x.modelo).length >= 4) junta(x.modelo, dono);
     });
   });
   const tvs = Array.isArray(d.tvs) ? d.tvs : [];
   if (tvs.length) {
     linhas.push("## TVs/monitores (modelo | polegadas | posse)");
-    tvs.forEach((t) => { linhas.push([t.modelo, n(t.diag), posse(t)].join(" | ")); junta(t.modelo, t); });
+    tvs.forEach((t) => { const p = posse(t, "tvs"); linhas.push([t.modelo, n(t.diag), p].join(" | ")); junta(t.modelo, p); });
   }
   let texto = linhas.join("\n");
   if (texto.length > INVENTARIO_MAX_CARACTERES) texto = texto.slice(0, INVENTARIO_MAX_CARACTERES) + "\n(… cortado)";
   return { texto, modelos };
 }
 
-async function lerInventario(env) {
+async function lerInventario(env, tenho) {
   const base = baseDados(env);
   const [tiles, projetores, lentes, processadores, tvs] = await Promise.all(
     ["led-tiles.json", "projectors.json", "lenses.json", "processors.json", "tvs.json"].map((f) => lerJson(base + f)));
-  return resumoInventario({ tiles, projetores, lentes, processadores, tvs });
+  return resumoInventario({ tiles, projetores, lentes, processadores, tvs }, tenho);
+}
+
+/** O inventário que a pessoa importou na app («<ficheiro>|<modelo>»); null se não houver. */
+export function limpaInventarioDaPessoa(itens) {
+  if (!Array.isArray(itens) || !itens.length) return null;
+  const s = new Set();
+  itens.slice(0, 2000).forEach((x) => {
+    if (typeof x === "string" && x.indexOf("|") > 0) s.add(x.replace(/[ -<>]/g, "").slice(0, 160));
+  });
+  return s.size ? s : null;
 }
 
 /** Os modelos que a pessoa acrescentou na app (ficam no aparelho dela). */
@@ -242,7 +262,7 @@ function instrucoes(notas, nome, inventario, meusModelos, perfil) {
     "- Se houver um PDF ou texto anexado (ex.: um email, um briefing, um manual), lê-o todo e responde com base nele; se pedirem um resumo, resume em pontos curtos o que é pedido, datas, equipamento e pendentes.",
     "- Se a pergunta for perigosa para equipamento ou pessoas (eletricidade, rigging), avisa e manda confirmar com o responsável.",
     "",
-    "INVENTÁRIO DA EQUIPA E O QUE A CALCULADORA CONHECE (abaixo): é o equipamento que a app usa nas contas. \"NOSSO\" = é nosso; \"MERCADO\" = só referência, não é nosso. Quando o equipamento entra na resposta, diz se é nosso ou de mercado, e escreve o modelo exatamente como está na lista.",
+    "INVENTÁRIO DA EQUIPA E O QUE A CALCULADORA CONHECE (abaixo): é o equipamento que a app usa nas contas. \"NOSSO\" = é nosso; \"MERCADO\" = só referência, não é nosso; \"CATÁLOGO\" = a app ainda não sabe de quem é (a pessoa não importou o inventário): não afirmes que é nosso nem que é de mercado. Quando o equipamento entra na resposta, diz se é nosso ou de mercado, e escreve o modelo exatamente como está na lista.",
     "",
     "PEDIDOS DE PROJETO / ORÇAMENTO (um evento, um briefing, \"o que propomos?\"): pensa como um event planner completo, para um comercial apresentar. Depois de perceber o pedido (ou de perguntar o que falta), propõe opções lado a lado:",
     "  A) Só com o que é nosso (NOSSO + as Mike Apps que se apliquem).",
@@ -350,7 +370,7 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
   }
 
   const nome = limpaNome(body.nome);
-  const [notas, inventario, perfil] = await Promise.all([lerNotas(env, pergunta), lerInventario(env), lerPerfil(env)]);
+  const [notas, inventario, perfil] = await Promise.all([lerNotas(env, pergunta), lerInventario(env, limpaInventarioDaPessoa(body.meuInventario)), lerPerfil(env)]);
   const meusModelos = limpaMeusModelos(body.meusModelos);
   const messages = [];
   limpaHistorico(body.historico).forEach((x) => {

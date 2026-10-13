@@ -422,6 +422,10 @@
     if (!navigator.onLine) { estado("Sem rede. O Better call Mike precisa de ligação."); return; }
     if (!caso) caso = novoCaso();
     var corpo = { pergunta: pergunta, nome: nomeAtual(), historico: historico.slice(-HISTORICO_MAX), meusModelos: meusModelos() };
+    try {
+      var inv = window.MeuInventario && window.MeuInventario.ler();
+      if (inv && inv.itens && inv.itens.length) corpo.meuInventario = inv.itens.slice(0, 2000);
+    } catch (_) {}
     if (foto) { corpo.imageBase64 = foto.base64; corpo.imageMediaType = foto.tipo; }
     if (anexo) {
       corpo.anexoNome = anexo.nome;
