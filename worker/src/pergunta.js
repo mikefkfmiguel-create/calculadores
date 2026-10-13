@@ -24,7 +24,9 @@
 
 // Sonnet e não Haiku: aqui a resposta É o produto (explicar parâmetros, ler
 // uma foto do NovaLCT), e não uma extracção para validar a seguir.
-export const MODELO_PERGUNTA = "claude-sonnet-4-5";
+export const MODELO_PERGUNTA = "claude-sonnet-5-5";
+// Se a API recusar o modelo novo (id ou parâmetro não aceite), uma tentativa com o anterior: o Assistente não fica calado.
+export const MODELO_RESERVA = "claude-sonnet-4-5";
 const PESQUISA = { type: "web_search_20250305", name: "web_search", max_uses: 4 };
 
 const CONHECIMENTO_OMISSAO = "https://mikefkfmiguel-create.github.io/calculadores/conhecimento/";
@@ -386,24 +388,29 @@ export async function responderPergunta(request, env, origin, ctx, deps) {
     : "O que é que esta foto mostra, e o que devo verificar ou ajustar?") });
   messages.push({ role: "user", content: blocos });
 
+  const corpoBase = {
+    // Um pedido de projeto leva várias opções lado a lado.
+    max_tokens: 3000,
+    system: instrucoes(notas, nome, inventario, meusModelos, perfil),
+    tools: [PESQUISA],
+    messages,
+  };
+  const chamar = (modelo) => fetch(deps.ANTHROPIC_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": env.ANTHROPIC_API_KEY,
+      "anthropic-version": deps.ANTHROPIC_VERSION,
+    },
+    body: JSON.stringify({ model: modelo, ...corpoBase }),
+  });
   let res;
   try {
-    res = await fetch(deps.ANTHROPIC_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": env.ANTHROPIC_API_KEY,
-        "anthropic-version": deps.ANTHROPIC_VERSION,
-      },
-      body: JSON.stringify({
-        model: MODELO_PERGUNTA,
-        // Um pedido de projeto leva várias opções lado a lado.
-        max_tokens: 3000,
-        system: instrucoes(notas, nome, inventario, meusModelos, perfil),
-        tools: [PESQUISA],
-        messages,
-      }),
-    });
+    res = await chamar(MODELO_PERGUNTA);
+    if (!res.ok && (res.status === 400 || res.status === 404) && MODELO_RESERVA !== MODELO_PERGUNTA) {
+      const alt = await chamar(MODELO_RESERVA);
+      if (alt.ok) res = alt;
+    }
   } catch (e) {
     return json({ ok: false, motivo: "Não consegui chegar à IA: " + e.message }, 200, cors);
   }

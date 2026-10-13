@@ -13,7 +13,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/index.js";
-import { interpretar, MODELO_PERGUNTA } from "../src/pergunta.js";
+import { interpretar, MODELO_PERGUNTA, MODELO_RESERVA } from "../src/pergunta.js";
 
 const ORIGEM = "https://mikefkfmiguel-create.github.io";
 const BASE = "https://notas.teste/conhecimento/";
@@ -80,6 +80,40 @@ test("resposta das notas: origem 'notas' quando nomeia uma nota real, e a nota v
     assert.match(visto.corpo.system, /18bit\+ ligado a 50%/);
     assert.equal(visto.corpo.model, MODELO_PERGUNTA);
     assert.equal(visto.corpo.tools[0].type, "web_search_20250305");
+  } finally { repor(); }
+});
+
+test("modelo novo recusado pela API (400): tenta uma vez com o modelo anterior e responde", async () => {
+  const modelos = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url, opts) => {
+    const u = String(url);
+    if (u === BASE + "indice.json") return new Response(JSON.stringify(INDICE), { status: 200 });
+    if (u === BASE + "novastar.md") return new Response(NOTA, { status: 200 });
+    if (u.startsWith("https://api.anthropic.com")) {
+      const m = JSON.parse(opts.body).model;
+      modelos.push(m);
+      if (m === MODELO_PERGUNTA) return new Response(JSON.stringify({ error: { type: "invalid_request_error", message: "modelo" } }), { status: 400 });
+      return new Response(JSON.stringify({ content: [{ type: "text", text: "ORIGEM: geral\nNOTAS: nenhuma\n\nResposta do modelo anterior." }] }), { status: 200 });
+    }
+    return new Response("não", { status: 404 });
+  };
+  try {
+    const d = await (await worker.fetch(pedido("/pergunta", { pergunta: "Teste de reserva?" }), ambiente(), ctx)).json();
+    assert.equal(d.ok, true);
+    assert.deepEqual(modelos, [MODELO_PERGUNTA, MODELO_RESERVA]);
+    assert.match(d.resposta, /modelo anterior/);
+  } finally { globalThis.fetch = original; }
+});
+
+test("modelo novo aceite: não chama o de reserva", async () => {
+  const visto = {};
+  const repor = trocarFetch({ content: [{ type: "text", text: "ORIGEM: geral\nNOTAS: nenhuma\n\nOk." }] }, visto);
+  try {
+    const d = await (await worker.fetch(pedido("/pergunta", { pergunta: "Teste?" }), ambiente(), ctx)).json();
+    assert.equal(d.ok, true);
+    assert.equal(visto.corpo.model, MODELO_PERGUNTA);
+    assert.notEqual(MODELO_PERGUNTA, MODELO_RESERVA);
   } finally { repor(); }
 });
 
