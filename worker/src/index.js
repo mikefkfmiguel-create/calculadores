@@ -317,7 +317,7 @@ async function listarRegistos(request, env) {
 //
 // O QUE ISTO NÃO RESOLVE, e é preciso estar escrito: quem tiver muitos
 // endereços contorna a primeira -- é uma lomba, não um cadeado. E do lado de
-// dentro há a tensão oposta: toda a gente no escritório da AVK sai com o
+// dentro há a tensão oposta: toda a gente no escritório sai com o
 // MESMO endereço, e para o Worker são uma pessoa só. Por isso o limite por IP
 // é largo; a trava a sério é a do total.
 //

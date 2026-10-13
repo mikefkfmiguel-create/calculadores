@@ -69,7 +69,7 @@ notas, os modelos que ele acrescentou, mercado e as soluções próprias) e
 - **`conhecimento/solucoes-proprias-mike-apps.md`** (+ `indice.json`, + `sw.js`):
   catálogo das Mike Apps, escrito a partir dos README/LEIA-ME de cada repo
   (calculadores, preview, AvPlanner, Testpatern-generador, comparador-pdfs,
-  MyCueTimer/AVKtimer, cue4all-prompter, CueLight, ShowPresenter,
+  MyCueTimer, cue4all-prompter, CueLight, ShowPresenter,
   live-overlay-engine + módulo Companion, w7control, virtual-remote,
   Edid-Simple-manager, QuickVideoPlayer (+Android), MySignage, Mconverter,
   fotowall, raceclock; internos: things-on, video-team). **Gaby Draw não tem
@@ -77,7 +77,7 @@ notas, os modelos que ele acrescentou, mercado e as soluções próprias) e
 - **Worker (`worker/src/pergunta.js`)**:
   - lê o inventário `data/*.json` do Pages (`lerInventario`, `resumoInventario`):
     LED, projetores, lentes, switchers, processadores LED, media servers, TVs,
-    cada um com **AVK** ou **MERCADO** (mesma regra das etiquetas da app);
+    cada um com **NOSSO** ou **MERCADO** (mesma regra das etiquetas da app);
   - recebe os **modelos acrescentados** pela pessoa (`meusModelos`, do
     `mikeapps-meus-modelos-v1`), marcados como não confirmados;
   - instruções novas: **modo event planner** para pedidos de projeto/orçamento
@@ -85,7 +85,7 @@ notas, os modelos que ele acrescentou, mercado e as soluções próprias) e
     **C** sem limites (dito às claras); soluções próprias primeiro, comparadas
     com mercado com fonte; quantidades exatas ficam para os Cálculos/3D;
   - origem nova **`stock`** ("📦 Com o nosso inventário"), só quando a
-    resposta nomeia um modelo AVK da lista (`modelosCitados`); devolve
+    resposta nomeia um modelo do inventário da lista (`modelosCitados`); devolve
     `equipamento` (nosso/mercado) que a app mostra por baixo da resposta;
   - "geral" passa a depender só de notas/web (ter equipamento nomeado não é fonte);
   - `max_tokens` 1800 → 3000 (várias opções).
@@ -168,7 +168,7 @@ O que isto pede, em funcionalidade (proposta, a validar com ele):
   "Levar para os cálculos / 3D" por opção.
 - Liga com o que já existe: a conversa do Better call Mike (perguntas do que
   falta), o caso único (cada pedido limpo), o Preview 3D por opção, e a
-  ideia futura da versão "global" (motor genérico vs. stock AVK).
+  ideia futura da versão "global" (motor genérico vs. stock de uma casa).
 
 - **Quarta fonte, acrescentada pelo mike (23:43)**: *"podemos sempre
   adicionar soluções das minhas que existem na mesma página e usar como
@@ -577,7 +577,7 @@ a 2 km ela responde «100GBASE-LR4», porque o 25GBASE-LR — que existe e faz
 10 km — ainda não foi recolhido com fonte. A aba diz isso à vista: *o que não
 está aqui não é o que não existe*.
 
-**O que falta, e é dele:** saber que SFPs a AVK tem. Enquanto não souber, tudo
+**O que falta, e é dele:** saber que SFPs há no inventário. Enquanto não souber, tudo
 o que está na tabela é mercado — o que serve para decidir compras, mas não
 distingue o que já está na casa. A pesquisa que deu origem a isto está no
 `PESQUISA-FIBRA.md`, com as fontes separadas por qualidade.
@@ -654,7 +654,7 @@ mandar nas duas coisas:
 - **`ordemDasEletronicas`** manda o apertado para o fim, como segunda chave.
   Dentro de cada grupo continua a mandar o critério de montagem: menos
   unidades, menos portas, mais folga. O que já se **tem** continua em primeiro
-  de tudo (regra da casa) — por isso um apertado da AVK ainda pode ficar acima
+  de tudo (regra da casa) — por isso um apertado do inventário ainda pode ficar acima
   de um folgado do mercado, mas esse traz o selo «Mercado» ao lado a dizer que
   é outra lista. Dentro da mesma lista, nunca.
 
@@ -763,12 +763,12 @@ procura interceptada pelo Playwright.
 à API mais as pesquisas, faturadas à parte. `LIMITE_IA_POR_IP` (30) e
 `LIMITE_IA_POR_DIA` (200) são partilhados com o Assistente.
 
-## 24 de setembro — a lista acrescenta-se sozinha, e deixa de ser só a AVK (v4.17)
+## 24 de setembro — a lista acrescenta-se sozinha, e deixa de ser só o inventário de uma casa (v4.17)
 
 > *"devia procurar para adicionar e não pedir para ser eu a introduzir o que
 > pode ser errado (…) se não existe na lista dispara procura mas sem abrir
 > popups, apenas acrescenta automaticamente, tornando-se inteligente e
-> autónomo (…) não precisa ficar agarrado a listas do inventário da AVK, será
+> autónomo (…) não precisa ficar agarrado a listas do inventário, será
 > para dar todas as opções de mercado"*.
 
 **A terceira frase é a que resolve as outras duas.** Uma TV só precisa de
@@ -864,8 +864,8 @@ dispositivo + dentro do projeto**, e **só TVs para já**.
 - o campo da **fonte** existe para separar uma medida de um palpite, e fica
   agarrado ao modelo (aparece o "Referenciado ↗" como nos do catálogo).
 
-**Onde vive, e porque não é o `data/tvs.json`:** o catálogo é o inventário da
-AVK e está no repositório — uma app estática não lhe pode escrever, e não
+**Onde vive, e porque não é o `data/tvs.json`:** o catálogo é o inventário de
+referência e está no repositório — uma app estática não lhe pode escrever, e não
 devia. O que se acrescenta fica no browser, entra nas **quatro** listas de
 TVs marcado como **· meu** (a verde: nem o roxo do stock, nem "(mercado)",
 que seria mentira), e **viaja dentro do `.cal`** — um projeto aberto noutro
@@ -955,7 +955,7 @@ toca"*. O botão fica lá; um toque abre sempre, porque aí é um gesto.
 sem abrir separadores a sério.
 
 **Dois defeitos do meu próprio teste, apanhados a medir:** usei "hitachi" para
-provar que o Enter ainda abre, e a AVK **tem** duas Hitachi — não havia recado
+provar que o Enter ainda abre, e o inventário **tem** duas Hitachi — não havia recado
 nenhum, e a verificação media o vazio. O mesmo com "55" para a regra das
 letras (21 modelos) e "panasonic" para o foco (1 modelo). Trocados por marcas
 que a casa não tem (xiaomi, hisense, grundig, sharp) e, sobretudo, cada
@@ -969,7 +969,7 @@ chegado a considerá-la.
 > campo dos modelos.
 
 **Nesse caso não havia nada a encontrar.** As 88 TVs do `data/tvs.json` são o
-inventário da AVK e não há Xiaomi nenhuma — o link *"procurar no mercado ↗"* é
+inventário e não há Xiaomi nenhuma — o link *"procurar no mercado ↗"* é
 a saída certa, e não se inventa uma ficha para calar a queixa
 (`CLAUDE.md`: nunca inventar dados técnicos).
 
@@ -1003,7 +1003,7 @@ processadores) — é uma função só, em `js/utils.js`.
 
 `scripts/verificar-pesquisa-de-modelos.mjs` mede isto contra a app a sério, e
 o número de controlo sai do `data/tvs.json` e não de um número escrito à mão:
-um teste com o "13" lá dentro envelhecia no dia em que a AVK comprasse outra
+um teste com o "13" lá dentro envelhecia no dia em que se comprasse outra
 TV.
 
 ## 15 de setembro — contar quantos, nunca quem (v3.91)
@@ -1961,7 +1961,7 @@ está vazio ou ainda tem exactamente o que o assistente lá pôs da última vez.
 Quem corrigiu o nome no destino fica com a correção.
 
 Confirmado que a cadeia toda continua inteira, com a resposta da IA simulada:
-`asst-nome` → "Aplicar" → `proj-nome` → ponte do Preview ("Gala AVK 2026").
+`asst-nome` → "Aplicar" → `proj-nome` → ponte do Preview ("Gala 2026").
 
 ## 14 de setembro — o shift também viaja (v3.68)
 
@@ -3235,7 +3235,7 @@ Pode ficar a par, não colide.
   que é o que justifica cobrar.
 - **Nunca conteúdo do projeto** — só contadores e nomes de funcionalidades. A
   mesma regra que o `/registos` já segue ao não guardar a imagem.
-- **Etiqueta de organização desde o primeiro dia**, hoje fixa em `avk`. Quando
+- **Etiqueta de organização desde o primeiro dia**, hoje fixa num valor por omissão. Quando
   houver venda a outra empresa, os números de cada uma já estão separados sem
   migração — e liga-se à ideia da "versão global para venda" do `CLAUDE.md`.
 
@@ -3608,11 +3608,11 @@ na própria nota que escala juntando mais nós WATCHPAX, mas a
 calculadora só olhava para 1 unidade de cada vez. Novo campo
 `escalavel: true` nas duas entradas Dataton/Watchout (WATCHPAX 64 e a
 nova com a W6800) — confirmado com o mike que isto não é exclusivo do
-inventário da AVK (*"pode sugerir sempre, não será apenas para AVK"*):
+inventário (*"pode sugerir sempre, não será apenas para uma casa"*):
 quando uma unidade só não chega mas o fabricante confirma que o
 software escala por nós, a lista mostra agora um selo "Empilhável ·
 Nx unidades" com a conta de quantas fariam falta — sem afirmar que
-essas unidades existem disponíveis (nem na AVK, nem no mercado), só
+essas unidades existem disponíveis (nem no inventário, nem no mercado), só
 o cálculo. Nova `stackBadgeHtml(x, totalMP)` em `index.html`.
 
 Testado com Playwright: a entrada W6800 aparece na lista com "6
@@ -3654,7 +3654,7 @@ usada quando um DSM chega do Preview, agora exposta em `window` para a
 aba Projeto poder chamá-la. Só a QUANTIDADE tem correspondência directa
 (o campo na aba Projeto é resolução em píxeis, não tamanho físico) — o
 tamanho físico (largura/altura em metros) só se actualiza quando um
-modelo real da AVK com diagonal confirmada está escolhido; sem modelo,
+modelo real do inventário com diagonal confirmada está escolhido; sem modelo,
 o tamanho que já estiver na Ecrã Complexo fica intocado, nunca se
 inventa um valor a partir de píxeis.
 

@@ -260,6 +260,8 @@ const TILES = [
   { modelo: "ROE Black Pearl BP2V2", mw: 500, mh: 500, rx: 176, ry: 176, weight: 9.4, mercado: true },
 ];
 const PROJ = [{ modelo: "Panasonic PT-RZ21K", lumens: 20000, resolucao: { rx: 1920, ry: 1200 } }];
+// o inventário que a pessoa importou na app («<ficheiro>|<modelo>»)
+const MEU = ["led-tiles|YESTECH MG6S P3.91", "projectors|Panasonic PT-RZ21K"];
 
 function trocarFetchComInventario(respostaIA, registo = {}) {
   const repor = trocarFetch(respostaIA, registo);
@@ -273,15 +275,15 @@ function trocarFetchComInventario(respostaIA, registo = {}) {
   return repor;
 }
 
-test("inventário vai nas instruções, com posse AVK/MERCADO, e o modo planner A/B/C", async () => {
+test("inventário vai nas instruções, com posse NOSSO/MERCADO, e o modo planner A/B/C", async () => {
   const visto = {};
   const repor = trocarFetchComInventario({ content: [{ type: "text", text: "ORIGEM: geral\nNOTAS: nenhuma\n\nOk." }] }, visto);
   try {
-    await worker.fetch(pedido("/pergunta", { pergunta: "orçamento para um evento" }), ambiente(), ctx);
+    await worker.fetch(pedido("/pergunta", { pergunta: "orçamento para um evento", meuInventario: MEU }), ambiente(), ctx);
     const s = visto.corpo.system;
-    assert.match(s, /YESTECH MG6S P3\.91 \| 3\.91 \| 500×500 \| 128×128 \| 6 \| AVK/);
+    assert.match(s, /YESTECH MG6S P3\.91 \| 3\.91 \| 500×500 \| 128×128 \| 6 \| NOSSO/);
     assert.match(s, /ROE Black Pearl BP2V2 .*\| MERCADO/);
-    assert.match(s, /Panasonic PT-RZ21K \| 20000 \| 1920×1200 \| AVK/);
+    assert.match(s, /Panasonic PT-RZ21K \| 20000 \| 1920×1200 \| NOSSO/);
     assert.match(s, /A\) Só com o que é nosso/);
     assert.match(s, /SOLUÇÕES PRÓPRIAS/);
   } finally { repor(); }
@@ -291,10 +293,22 @@ test("'stock' só quando a resposta nomeia um modelo NOSSO da lista; mercado nã
   const txt = "ORIGEM: geral\nNOTAS: nenhuma\n\nOpção A: YESTECH MG6S P3.91. Opção B: ROE Black Pearl BP2V2 alugado.";
   const repor = trocarFetchComInventario({ content: [{ type: "text", text: txt }] });
   try {
-    const r = await worker.fetch(pedido("/pergunta", { pergunta: "LED 6x3" }), ambiente(), ctx);
+    const r = await worker.fetch(pedido("/pergunta", { pergunta: "LED 6x3", meuInventario: MEU }), ambiente(), ctx);
     const d = await r.json();
     assert.deepEqual(d.origem, ["stock", "geral"]);
-    assert.deepEqual(d.equipamento, [{ nome: "YESTECH MG6S P3.91", avk: true }, { nome: "ROE Black Pearl BP2V2", avk: false }]);
+    assert.deepEqual(d.equipamento, [{ nome: "YESTECH MG6S P3.91", nosso: true }, { nome: "ROE Black Pearl BP2V2", nosso: false }]);
+  } finally { repor(); }
+});
+
+test("sem inventário importado: tudo é CATÁLOGO (a app não sabe de quem é) e não há 'stock'", async () => {
+  const visto = {};
+  const txt = "ORIGEM: geral\nNOTAS: nenhuma\n\nUsa YESTECH MG6S P3.91.";
+  const repor = trocarFetchComInventario({ content: [{ type: "text", text: txt }] }, visto);
+  try {
+    const d = await (await worker.fetch(pedido("/pergunta", { pergunta: "LED" }), ambiente(), ctx)).json();
+    assert.match(visto.corpo.system, /YESTECH MG6S P3\.91 \| 3\.91 \| 500×500 \| 128×128 \| 6 \| CATÁLOGO/);
+    assert.match(visto.corpo.system, /Panasonic PT-RZ21K \| 20000 \| 1920×1200 \| CATÁLOGO/);
+    assert.deepEqual(d.origem, ["geral"]);
   } finally { repor(); }
 });
 

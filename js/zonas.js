@@ -1147,7 +1147,7 @@
   var LZ_TOL_MM = 0.6;
 
   function lzModeloDoCatalogo(mw, mh, rx, ry) {
-    // Ordem com o stock da AVK à frente (mesma de lzPopulateModelSelect):
+    // Ordem com o meu inventário à frente (mesma de lzPopulateModelSelect):
     // havendo dois tiles iguais na base, o que a empresa tem é o certo.
     var ordem = (typeof stockFirstIndices === "function")
       ? stockFirstIndices(LED_TILES_DATA)

@@ -16,7 +16,7 @@ mercado.
 - **Mike Apps Calculadores** — distância de projeção, ecrã LED & pixel pitch,
   blending, dome, distância de visualização, TVs, sinal & data rate, fibra &
   SFP, media server, lentes, grafismo px↔cm e a ficha técnica do projeto.
-  Usa o inventário da AVK. Web/PWA.
+  Usa o inventário de cada utilizador. Web/PWA.
 - **Better call Mike** — perguntas técnicas do terreno e pedidos de projeto
   (texto, foto, PDF, email); responde com notas da equipa + web, e passa o
   projeto para os Cálculos e o Preview 3D. Web/PWA.
@@ -34,7 +34,7 @@ mercado.
 
 ## Régie, palco e show control (Windows/Mac)
 
-- **AVKtimer (MyCueTimer)** — cronómetro/relógio de estúdio: contagem
+- **MyCueTimer** — cronómetro/relógio de estúdio: contagem
   decrescente, modo negativo, relógio, ecrã de palco, visor web para OBS/vMix,
   mensagens, alarmes e API HTTP para Bitfocus Companion. Windows e macOS.
 - **Cue4All Prompter** — teleprompter de broadcast: régie/operador + janela de
@@ -62,8 +62,8 @@ mercado.
   dashboard, listas/shows e saída para ecrã externo.
 - **QuickVideoPlayer Android** — kiosk autónomo de vídeos para Android
   (touchscreens, boxes/Android TV, MUPI).
-- **MySignage + StickPlayer** — gestão de frota de sinalética digital (AVK
-  Fleet Manager): servidor central com dashboard, players Windows e Android
+- **MySignage + StickPlayer** — gestão de frota de sinalética digital (Fleet
+  Manager): servidor central com dashboard, players Windows e Android
   (TV box, tablets); pen USB em modo sem rede.
 - **Mconverter** — conversor de vídeo/imagem acelerado por GPU NVIDIA
   (FFmpeg), incluindo PowerPoint para vídeo mantendo os tempos das transições.

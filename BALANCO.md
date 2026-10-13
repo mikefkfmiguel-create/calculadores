@@ -269,10 +269,10 @@ tu apanhas.
 ## 6. A ideia da "versão global para venda": está meio feita, e o resto não é fácil
 
 O `CLAUDE.md` guarda a ideia de separar o motor genérico (throw ratio, pitch,
-data rate) do inventário da AVK. Depois deste levantamento, a leitura honesta:
+data rate) do inventário próprio. Depois deste levantamento, a leitura honesta:
 
 **O que já está do lado certo da linha.** Os dados estão todos em `data/*.json`,
-fora do código. O que é da AVK é o conteúdo desses ficheiros mais os crachás
+fora do código. O que é do inventário é o conteúdo desses ficheiros mais os crachás
 "Mercado"/"Estimado" e a ordenação stock-primeiro. Tirar o inventário é quase
 de graça.
 

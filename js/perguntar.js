@@ -358,7 +358,7 @@
     // Worker): nosso ou só de mercado, como as etiquetas da calculadora.
     var equipamento = (d.equipamento || []).length
       ? '<p class="bcm-meta">Equipamento da lista: ' + d.equipamento.map(function (m) {
-          return esc(m.nome) + (m.avk ? " <b>(nosso)</b>" : " <i>(mercado)</i>");
+          return esc(m.nome) + (m.nosso ? " <b>(nosso)</b>" : " <i>(mercado)</i>");
         }).join(", ") + "</p>"
       : "";
     var fontes = (d.fontes || []).length
@@ -422,6 +422,10 @@
     if (!navigator.onLine) { estado("Sem rede. O Better call Mike precisa de ligação."); return; }
     if (!caso) caso = novoCaso();
     var corpo = { pergunta: pergunta, nome: nomeAtual(), historico: historico.slice(-HISTORICO_MAX), meusModelos: meusModelos() };
+    try {
+      var inv = window.MeuInventario && window.MeuInventario.ler();
+      if (inv && inv.itens && inv.itens.length) corpo.meuInventario = inv.itens.slice(0, 2000);
+    } catch (_) {}
     if (foto) { corpo.imageBase64 = foto.base64; corpo.imageMediaType = foto.tipo; }
     if (anexo) {
       corpo.anexoNome = anexo.nome;
