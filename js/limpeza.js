@@ -80,14 +80,18 @@
    * NÃO recarrega: isso é decisão de quem chama, e sem recarregar isto pode
    * ser testado a sério.
    */
-  function limpezaProfunda() {
+  function limpezaProfunda(opcoes) {
     var apagadas = [], mantidas = [];
+    // Quem chama pode deixar ficar mais umas chaves (ex.: o "caso novo" do
+    // Better call Mike mantém o histórico de projetos e os modelos que a
+    // pessoa acrescentou, que não são do caso anterior -- ver js/perguntar.js).
+    var manter = MANTER.concat((opcoes && opcoes.manterTambem) || []);
     try {
       var todas = [];
       for (var i = 0; i < localStorage.length; i++) todas.push(localStorage.key(i));
       todas.forEach(function (chave) {
         if (!chave || !nossa(chave) || chave === CHAVE_DO_AVISO) return;
-        if (MANTER.indexOf(chave) !== -1) { mantidas.push(chave); return; }
+        if (manter.indexOf(chave) !== -1) { mantidas.push(chave); return; }
         try { localStorage.removeItem(chave); apagadas.push(chave); } catch (e) {}
       });
       // O aviso vai por último, já com tudo apagado: um separador que acorde

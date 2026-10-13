@@ -1,4 +1,4 @@
-const CACHE = "calculadores-v435";
+const CACHE = "calculadores-v453";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -16,6 +16,8 @@ const APP_SHELL = [
   "./js/zonas.js",
   "./js/i18n.js",
   "./js/calc-widget.js",
+  "./js/conhecimento.js",
+  "./js/perguntar.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png"
@@ -26,7 +28,13 @@ const DATA_FILES = [
   "./data/lenses.json",
   "./data/processors.json",
   "./data/tvs.json",
-  "./data/fibra.json"
+  "./data/fibra.json",
+  // Notas da aba Conhecimento: network-first como os dados, para uma nota
+  // nova aparecer logo com rede e a última cópia continuar a abrir sem rede.
+  "./conhecimento/indice.json",
+  "./conhecimento/novastar-mctrl4k-a8s-10bit-50hz.md",
+  "./conhecimento/solucoes-proprias-mike-apps.md",
+  "./conhecimento/perguntas-e-respostas.md"
 ];
 
 self.addEventListener("install", (event) => {

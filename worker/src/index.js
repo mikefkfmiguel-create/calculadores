@@ -12,6 +12,8 @@
 // falhar a leitura de um documento, e os valores usados na ficha técnica
 // têm de ser sempre os confirmados por uma pessoa.
 
+import { responderPergunta, proporNota } from "./pergunta.js";
+
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
 // Haiku é suficiente e mais barato para extração estruturada; troca para
@@ -573,6 +575,7 @@ const USO_APPS = ["calculadores", "preview"];
 const USO_ABAS = [
   "menu", "assistente", "projecao", "blend", "dome", "visualizacao", "tv",
   "led", "zonas", "sinal", "mediaserver", "projeto", "lentes", "grafismo", "ajuda",
+  "conhecimento", "perguntar",
   // O PREVIEW NÃO TEM ABAS, tem momentos. São estes dois que dizem se a app
   // chegou a PRODUZIR alguma coisa, que é a pergunta que "que aba abriste"
   // responde do lado dos Calculadores. Os outros nomes que ele manda
@@ -1211,6 +1214,21 @@ export default {
         });
       }
       return fichaDeModelo(request, env, origin, ctx);
+    }
+
+    // "Better call Mike": perguntas técnicas com notas da equipa + web.
+    // Ver src/pergunta.js.
+    if (url.pathname === "/pergunta" || url.pathname === "/pergunta/propor") {
+      if (request.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Método não suportado." }), {
+          status: 405,
+          headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+        });
+      }
+      const deps = { corsHeaders, travaDeGasto, ANTHROPIC_API_URL, ANTHROPIC_VERSION };
+      return url.pathname === "/pergunta"
+        ? responderPergunta(request, env, origin, ctx, deps)
+        : proporNota(request, env, origin, deps);
     }
 
     if (url.pathname === "/feedback") {

@@ -11,6 +11,293 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
+## 4 de outubro, ~00:45 — "Mike virtual": o Better call Mike pensa como o mike e aprende com aprovação (v4.64) — ESTADO ACTUAL
+
+**Calculadores v4.64** (sw `calculadores-v452`) · `mike/` sem mudanças · o
+Worker muda (`worker/src/pergunta.js`) e é publicado pelo workflow no merge.
+
+O mike pediu *"como se fosse uma ai do Mike, em que as questões são pensadas
+com base no que te tenho exposto e podes ir aprendendo juntando perguntas e
+respostas que encontras"*, e escolheu evoluir o Better call Mike em vez de
+fazer uma app à parte.
+
+### O que ficou feito
+
+- **`conhecimento/perfil-mike.md`**: a forma de pensar do mike (show no ar
+  primeiro, nunca inventar dados, offline, simples, cada caso é único, Mike
+  Apps antes do mercado, como responde). Tirado da análise dos 26 repos dele.
+  **Fora do `indice.json`** de propósito.
+- **Worker**: `lerPerfil()` lê o perfil em todas as perguntas e põe-no no
+  system como "COMO O MIKE PENSA"; nunca conta como fonte "notas" (não está
+  no índice). Sem perfil publicado, responde como antes.
+  3 testes novos (`worker/testes/perfil.test.mjs`); `node --test
+  "worker/testes/*.test.mjs"`: 63/63.
+- **`conhecimento/perguntas-e-respostas.md`** (+ `indice.json`, + `sw.js`):
+  a nota onde entram as fichas aprendidas. Começa vazia, com o formato.
+  Aparece na aba Conhecimento (verificado em browser).
+- **Skill `.claude/skills/aprender-mike`**: revisão dos `/registos`
+  (perguntas + propostas "📘 Propor como nota"), junta as dúvidas que se
+  repetem, propõe fichas ao mike e **só grava com o ok dele**.
+- `CLAUDE.md` atualizado (perfil + nota + skill).
+
+### Por fazer / por confirmar com o mike
+
+- Rever o `perfil-mike.md` com ele (é público no Pages; não tem nada
+  pessoal, mas é a voz dele).
+- Primeira revisão com a skill `aprender-mike` quando houver registos: pede o
+  `ASSISTENTE_ADMIN_TOKEN` (nunca no repo).
+- Se ele quiser, uma tarefa agendada semanal para a revisão.
+
+### Publicar
+
+PR para `main` (merge). O Pages serve o perfil e a nota; o workflow publica o
+Worker.
+
+---
+
+## 3 de outubro, ~00:00 — "conjuga isso tudo": event planner no Better call Mike (v4.63)
+
+**Calculadores v4.63** (sw `calculadores-v451`) · `mike/` sw `bcm-v4` · Worker
+publicado pelo workflow. Mais recente do que tudo o que vem abaixo.
+
+O mike reabriu depois do fecho e pediu: *"conjuga isso tudo"* (inventário,
+notas, os modelos que ele acrescentou, mercado e as soluções próprias) e
+*"vai também servir para analisar das apps que tenho vindo a fazer"*.
+
+### O que ficou feito
+
+- **`conhecimento/solucoes-proprias-mike-apps.md`** (+ `indice.json`, + `sw.js`):
+  catálogo das Mike Apps, escrito a partir dos README/LEIA-ME de cada repo
+  (calculadores, preview, AvPlanner, Testpatern-generador, comparador-pdfs,
+  MyCueTimer, cue4all-prompter, CueLight, ShowPresenter,
+  live-overlay-engine + módulo Companion, w7control, virtual-remote,
+  Edid-Simple-manager, QuickVideoPlayer (+Android), MySignage, Mconverter,
+  fotowall, raceclock; internos: things-on, video-team). **Gaby Draw não tem
+  README** — ficou "a descrever com o mike". Aparece na aba Conhecimento.
+- **Worker (`worker/src/pergunta.js`)**:
+  - lê o inventário `data/*.json` do Pages (`lerInventario`, `resumoInventario`):
+    LED, projetores, lentes, switchers, processadores LED, media servers, TVs,
+    cada um com **NOSSO** ou **MERCADO** (mesma regra das etiquetas da app);
+  - recebe os **modelos acrescentados** pela pessoa (`meusModelos`, do
+    `mikeapps-meus-modelos-v1`), marcados como não confirmados;
+  - instruções novas: **modo event planner** para pedidos de projeto/orçamento
+    — opções **A** só o nosso (+ Mike Apps), **B** nosso + mercado/aluguer,
+    **C** sem limites (dito às claras); soluções próprias primeiro, comparadas
+    com mercado com fonte; quantidades exatas ficam para os Cálculos/3D;
+  - origem nova **`stock`** ("📦 Com o nosso inventário"), só quando a
+    resposta nomeia um modelo do inventário da lista (`modelosCitados`); devolve
+    `equipamento` (nosso/mercado) que a app mostra por baixo da resposta;
+  - "geral" passa a depender só de notas/web (ter equipamento nomeado não é fonte);
+  - `max_tokens` 1800 → 3000 (várias opções).
+  - 5 testes novos; `node --test "worker/testes/*.test.mjs"`: 60/60.
+- **App (`js/perguntar.js`, `css/app.css`, `index.html`, `mike/index.html`)**:
+  envia `meusModelos`, mostra a etiqueta stock e a linha "Equipamento da
+  lista: … (nosso) / (mercado)", e uma dica "Pedido de orçamento?" na caixa.
+  Testado em browser (Playwright).
+
+### Por fazer / por confirmar com o mike
+
+- Rever o catálogo das Mike Apps com ele (estado/versão de cada uma, o que
+  pode ir a clientes, a Gaby Draw).
+- O histórico de projetos (`calculadores-historico-v1`) NÃO entra no Worker:
+  são estados crus de 5 projetos; se ele quiser "casos já feitos" como
+  soluções, melhor uma nota própria com casos descritos.
+- Formato de saída apresentável (PDF/proposta) e "Levar para Cálculos/3D"
+  por opção A/B/C — ainda não.
+- Os pendentes da secção de baixo continuam (cilindro no Preview, conversa
+  no projeto, limpeza.js do preview).
+
+---
+
+## 3 de outubro, 23:24 — SESSÃO FECHADA PELO MIKE ("fechado por agora")
+
+Tudo o que foi feito hoje está em `main` e no ar (Calculadores v4.62,
+Worker publicado; Preview sem alterações, v4.15). Nada a meio, nenhum ramo
+por fundir. As duas secções abaixo explicam o quê e porquê.
+
+**Pendente, à espera de decisão do mike (não iniciar sem ele pedir):**
+1. Preview desenhar ecrãs **cilíndricos** (ex.: 12 m Ø × 4 m, virado para
+   fora, LED ou projeção) — hoje chegam como ecrã plano.
+2. Guardar a conversa do Better call Mike **dentro do projeto** (Guardar /
+   Sincronizar), não só no aparelho.
+3. JSON de parâmetros da IA → "Enviar para calculadoras / Preview 3D"
+   sem passar pelo Analisar (respeitando a regra: a IA extrai, a conta é da app).
+4. Alinhar `js/limpeza.js` do repo preview com o daqui (`manterTambem`).
+
+**Princípio lembrado pelo mike depois do fecho (23:35) — orienta o próximo
+trabalho no Better call Mike:**
+
+> *"O motor de busca disto vai a todo o lado sempre procurando a melhor
+> situação e solução, combinada com o que já temos visto na calculadora."*
+
+Hoje o Worker (`worker/src/pergunta.js`) só junta as notas de `conhecimento/`
+e a pesquisa web. **Ainda não sabe** o que a app já conhece: o inventário
+(`data/led-tiles.json`, `projectors.json`, `lenses.json`, `processors.json`,
+`tvs.json`, `fibra.json`) nem o que está aberto nas calculadoras. O passo
+lógico, quando o mike pedir: dar ao Worker esse contexto para que a resposta
+case a melhor solução encontrada com o equipamento que temos (e diga quando
+a melhor solução pede algo que não temos). Manter as regras: a origem é
+verificada no Worker; nunca inventar specs; a conta continua a ser da app.
+
+**A visão completa, explicada pelo mike às 23:42 — "event planner total":**
+
+> *"Se eu for apenas um comercial que recebe um pedido para orçamento de um
+> evento com tais exigências, o que poderia apresentar como solução com base
+> no que temos na calculadora, cruzando com o que será possível fazer e com
+> que opções no mercado total, dando um exemplo ou vários. Um event planner
+> total, mesmo saindo fora do existente e dando possibilidades extra, pois
+> por vezes temos de quebrar algumas regras de origem."*
+
+O que isto pede, em funcionalidade (proposta, a validar com ele):
+
+- **Quem usa**: um comercial, não um técnico. Entra um briefing (texto,
+  email, PDF), sai uma **proposta de solução** que ele possa apresentar.
+- **Várias opções, não uma**: ex. A) só com o nosso stock; B) stock + aluguer
+  /mercado para ficar melhor; C) a solução "ideal" sem limites. Cada uma com
+  o que leva (equipamento, quantidades vindas das contas da app), o que
+  ganha e o que custa a mais em complexidade.
+- **Cruzar três fontes**: o inventário da app (`data/*.json`, badges de posse
+  já existentes), as contas das calculadoras (tamanhos, tiles, projetores,
+  lentes, processadores, fibra), e o mercado (pesquisa web, com fonte).
+- **"Quebrar regras"** = sair do que temos e do formato habitual (outra
+  tecnologia, forma, montagem, aluguer), dito às claras como opção extra.
+  **Não** quer dizer inventar specs: dados de mercado só com fonte, e o que
+  não está confirmado vai marcado como tal (regra da casa no CLAUDE.md).
+- **Formato de saída**: algo apresentável ao cliente/chefia (resumo por
+  opção, lista de equipamento, prós/contras, pendentes a confirmar), com
+  "Levar para os cálculos / 3D" por opção.
+- Liga com o que já existe: a conversa do Better call Mike (perguntas do que
+  falta), o caso único (cada pedido limpo), o Preview 3D por opção, e a
+  ideia futura da versão "global" (motor genérico vs. stock de uma casa).
+
+- **Quarta fonte, acrescentada pelo mike (23:43)**: *"podemos sempre
+  adicionar soluções das minhas que existem na mesma página e usar como
+  sugestão em comparação com o que o mercado tem"*. Ou seja, um catálogo das
+  **soluções próprias do mike** (casos já feitos e provados), que entram nas
+  propostas como sugestão e se comparam com as opções do mercado. Por
+  confirmar com ele: onde vivem hoje essas soluções (uma página/site dele?
+  notas? histórico de projetos da app?) e em que formato se guardam.
+
+Ainda NÃO iniciado — o mike fechou a sessão. Começar por conversar com ele
+sobre o formato da proposta e as opções A/B/C antes de mexer em código.
+
+---
+
+## 3 de outubro (noite) — cada caso é único: reset ao levar um caso novo (v4.62) — ESTADO ACTUAL
+
+**Calculadores v4.62** (sw `calculadores-v450`) · `mike/` sw `bcm-v3`. O
+Preview NÃO mudou (continua v4.15). Mais recente do que a secção de baixo.
+
+### O que aconteceu
+
+No telemóvel, depois de levar o caso do cilindro, o 3D abriu com o projeto
+"HR Excellence Awards 2024" e um pano de outro dia fora das paredes. Não era
+cache (as duas apps estavam na última versão): era o localStorage partilhado
+pelas duas apps, com o projeto antigo. O mike: *"preciso que cada caso seja
+único e tenha reset do que possa trazer de outro atrás"*.
+
+### Como ficou (`js/perguntar.js`)
+
+- Cada conversa do Better call Mike é um **caso** com id próprio (`caso`,
+  guardado em `bcm-conversa-v1`; "Nova conversa" começa outro).
+- A **primeira vez** que um caso é levado ("Levar este projeto para:"), as
+  duas apps são limpas a fundo com `mikeappsLimpeza.limpezaProfunda()` — a
+  mesma do "Limpar tudo" — e o id fica em `bcm-caso-levado-v1`.
+- Levar o **mesmo caso** outra vez (ex.: LED e depois Preview) NÃO limpa.
+- Ficam no caso novo, além da lista `MANTER` de `js/limpeza.js`:
+  `calculadores-historico-v1`, `mikeapps-meus-modelos-v1`, `calc-relatorio-modo`
+  (`MANTER_NO_CASO_NOVO`) — são da pessoa, não do caso anterior.
+  `js/limpeza.js` ganhou `limpezaProfunda({ manterTambem: [...] })` para isso.
+- As chaves `bcm-*` (conversa, nome, caso) não têm os prefixos da limpeza e
+  sobrevivem — a conversa continua lá depois do reset.
+- **Na app completa**, caso novo = limpa, guarda o pedido na passagem
+  (IndexedDB, `daApp: "completa"`) e **recarrega** com `#levar=<destino>`;
+  `receberDaApp()` segue numa página vazia. Se houver trabalho por guardar
+  (`window.mikeappsPorGuardar()`, exposto em `index.html`), pergunta antes;
+  depois esquece o aviso de saída para não perguntar duas vezes.
+- **Na app separada** (`mike/`), limpa e abre os cálculos como antes
+  (`mike/index.html` passou a carregar `../js/limpeza.js`).
+- O "← Voltar ao Better call Mike" só aponta para `mike/` quando se veio de lá.
+
+Testado em browser (Playwright): caso novo apaga projetor/projeto/DSM antigos
+e mantém o histórico; o mesmo caso não apaga; "Nova conversa" + levar volta a
+limpar; o mesmo vindo da app `mike/`.
+
+### Por fazer
+
+- A cópia de `js/limpeza.js` no repo **preview** não tem o `manterTambem`
+  (não precisa, é compatível; os ficheiros deixaram de ser iguais).
+- O Preview só desenha ecrãs planos: um cilindro (ex.: 12 m Ø × 4 m virado
+  para fora) chega lá como ecrã plano. Proposto ao mike, não iniciado.
+- Ainda do dia: guardar a conversa no projeto; JSON de parâmetros (ver abaixo).
+
+---
+
+## 3 de outubro — Better call Mike passa a ser uma conversa (v4.61)
+
+**Calculadores v4.61** (sw `calculadores-v449`) · app separada `mike/` com sw
+`bcm-v2`. O que está aqui é mais recente do que a secção de 1 de outubro.
+
+### O problema que o mike apontou
+
+A IA respondia "preciso de mais informação: 1. as medidas são em metros?
+2. …" e a conversa parecia acabar ali. O seguimento já existia por baixo
+(histórico de 3 trocas), mas a caixa de escrever estava **lá em cima**, fora
+do ecrã do telemóvel, e nada dizia que se podia responder. Nas palavras dele:
+*"se pedes mais info para ajudar temos de poder continuar a conversa sobre
+tal"*.
+
+### O que mudou
+
+- **Caixa "Responde ao que falta" por baixo da ÚLTIMA resposta** (`js/perguntar.js`,
+  `caixaDeSeguir`). Só a última resposta a tem; as anteriores perdem-na.
+- **Cada pergunta numerada da IA vira um campo curto** (`perguntasDaResposta`:
+  linhas `1.`/`1)` que contêm `?`, máx. 6). O que se escreve segue como UMA
+  mensagem: `1. <pergunta> → <resposta>`, uma por linha, mais o texto livre.
+  Enter num campo curto envia; Ctrl/⌘+Enter na caixa grande também.
+- **O corredor e a linha de estado mudam-se para a caixa** de quem respondeu
+  (`colocarEstado`) e voltam ao sítio depois — a responder lá em baixo não se
+  via nada a acontecer lá em cima.
+- Foto/PDF: continuam a juntar-se na caixa de cima e seguem com a próxima
+  mensagem, venha ela de cima ou da caixa de baixo.
+- **Histórico 3 → 8 trocas**, nos DOIS lados: `HISTORICO_MAX` em
+  `js/perguntar.js` e em `worker/src/pergunta.js` (têm de bater; o Worker corta).
+- **A conversa fica guardada neste aparelho** (`localStorage`
+  `bcm-conversa-v1`, só texto, 7 dias, últimas 10 trocas). Fechar a app a
+  meio de responder já não perde nada. "Nova conversa" (em cima e na caixa de
+  baixo) apaga-a.
+- **Instruções do Worker**, bloco novo "CONVERSA": adiantar o que já dá,
+  acabar com no máximo 4 perguntas curtas numeradas terminadas em "?", não
+  voltar a perguntar o que já foi respondido.
+- Teste do Worker actualizado (8 trocas). `node --test "worker/testes/*.test.mjs"`: 55/55.
+- Testado em browser (Playwright, ecrã de telemóvel) com o Worker simulado:
+  campos aparecem, resposta segue com histórico, recarregar repõe a conversa,
+  "Nova conversa" limpa.
+
+### Ligação aos cálculos — continua a regra da casa
+
+As respostas escritas nos campos são da PESSOA, por isso entram em `entradas`
+e seguem no "Levar este projeto para:" (Cálculos / LED / Projeção / Preview).
+A resposta da IA continua a NÃO seguir. Depois de recarregar, o texto volta
+mas os ficheiros anexados não (não se guardam).
+
+### O que ficou por fazer (falado com o mike, não iniciado)
+
+- Guardar a conversa **dentro do projeto** (botão Guardar / Sincronizar), e
+  não só no aparelho.
+- Pedir à IA um bloco JSON com os parâmetros quando já tem o suficiente, para
+  um "Enviar para calculadoras / Preview 3D" sem passar pelo Analisar. Atenção
+  à regra: a IA extrai, a conta é feita na app — isto teria de passar pelo
+  mesmo crivo do Assistente, não aplicar números da IA directamente.
+
+### Publicar
+
+O Worker publica-se sozinho quando `worker/**` entra em `main`
+(`.github/workflows/deploy-worker.yml`). Sem ele no ar, a app nova funciona
+na mesma (só com 3 trocas de histórico e sem as instruções novas).
+
+---
+
 ## 1 de outubro — ESTADO ACTUAL, PARA QUEM PEGAR NISTO A SEGUIR
 
 **Calculadores v4.44 · Preview v4.15**, as duas no ar. As secções mais abaixo

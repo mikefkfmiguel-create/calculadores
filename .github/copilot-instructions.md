@@ -101,3 +101,7 @@ Existe um segundo projeto irmão, **Preview** (`mikefkfmiguel-create/preview`, p
 - **Conflitos de merge espúrios são frequentes** neste repo (histórico de squash-merge diverge a cada PR) mesmo sem alterações reais conflituantes. Resolver com: `git fetch origin main`, snapshot dos ficheiros locais, `git merge origin/main` (produz conflitos), copiar os snapshots por cima dos ficheiros conflituosos, confirmar `diff` vazio e zero marcadores de conflito, `git add` + commit do merge, push, tentar o merge do PR outra vez.
 - **Testar antes de publicar**: usar Playwright com `context.newContext({ serviceWorkers: 'block' })` (evita que o service worker interfira nos testes) e abrir `<details>` colapsados via `document.querySelectorAll('.panel[data-mode="X"] details').forEach(d => d.open = true)` antes de interagir com campos.
 - **Nunca inventar dados técnicos** — specs de equipamento, standards (SMPTE, AVIXA) ou thresholds têm de vir de fontes reais (procurar/confirmar antes de implementar), nunca assumidos.
+
+## Base de conhecimento (`conhecimento/`)
+
+Notas técnicas de afinação para responder a perguntas futuras (ver a lista em `/CLAUDE.md`). Ex.: `conhecimento/novastar-mctrl4k-a8s-10bit-50hz.md` — NovaStar MCTRL4K + A8s com sinal 10-bit 50Hz, parâmetros do NovaLCT e configuração de grayscale a 100% e a 50% de brilho. São notas práticas, não fichas do fabricante: não as usar como dados de inventário em `data/*.json`.
