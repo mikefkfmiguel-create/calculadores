@@ -35,7 +35,7 @@
 // página escreve «~»).
 //
 // O QUE NÃO SE INVENTA: a profundidade de cor e a amostragem NÃO entram no
-// pixel clock nem nos MP desta app (a própria página di-lo assim), por isso
+// pixel clock nem nos MP desta app (a própria página diz isso), por isso
 // baixar a cor não resolve nada nestas contas — a sugestão avisa disso em
 // vez de fingir que resolve. A capacidade a 30p só entra quando a ficha tem o
 // valor (`maxMPPgmOnly30p`).
