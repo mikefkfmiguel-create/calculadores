@@ -1008,7 +1008,7 @@
   // daqui que saem as zonas JA EM METROS. Assim um modelo de LED novo nao
   // obriga a mexer la, e nunca ha dois sitios a discordar sobre o tamanho da
   // mesma parede.
-  var LZ_PREVIEW_URL = "https://mikefkfmiguel-create.github.io/preview/";
+  var LZ_PREVIEW_URL = new URL("../preview/", location.href).href;
 
   function lzPayloadPreview() {
     // A cúpula da aba Dome, quando lá está marcada "Adicionar ao projeto" --
