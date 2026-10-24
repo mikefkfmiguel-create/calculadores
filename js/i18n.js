@@ -1148,7 +1148,10 @@
     "configuração por confirmar": "configuration to be confirmed",
     "Baixar a profundidade de cor (": "Lowering the color depth (",
     "-bit) não ajuda aqui: o pixel clock e os MP desta conta não mudam com ela (só o data rate)": "-bit) doesn't help here: the pixel clock and MP in this calculation don't change with it (only the data rate)",
-    " (mercado)": " (market)"
+    " (mercado)": " (market)",
+    " (as que escolheste; o switcher tem ": " (the ones you chose; the switcher has ",
+    " saídas chegam (precisa de ": " outputs are enough (needs ",
+    " saídas não chegam (precisa de ": " outputs are not enough (needs "
   };
   Object.keys(SAIDAS_EN).forEach(function (k) { DICT_EN[k] = SAIDAS_EN[k]; });
 

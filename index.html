@@ -50,7 +50,7 @@
     <button type="button" class="mark topbtn" id="btInventario"
             title="O meu inventário — diz à app que modelos tens, para ficarem à frente nas listas">📦 Inventário</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.66</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.67</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -9433,6 +9433,12 @@
   function saidasMP(mp) { return fmt(mp, mp < 10 ? 2 : 1) + " MP"; }
   function saidasPct(p) { return fmt(p, 0) + "%"; }
   function saidasNome(s) { return s.marca + " " + s.modelo; }
+  // «(escolhidas; o switcher tem 16)»: só quando o Mike deu um N e o aparelho
+  // tem mais saídas do que as escolhidas.
+  function saidasEscolhidasTxt(x) {
+    return x.effectiveOutputs && x.usedOutputs < x.effectiveOutputs
+      ? " (as que escolheste; o switcher tem " + fmtInt(x.effectiveOutputs) + ")" : "";
+  }
   function saidasMargemTxt() { return fmt(SWITCHER_SAFETY_MARGIN * 100, 0) + "%"; }
   function saidasModoTxt(modo) { return modo === "pgmPreview" ? "dá para PGM + Preview" : "só dá para PGM, sem Preview"; }
 
@@ -9723,6 +9729,11 @@
     }
 
     var sinalSwitcherAdvanced = document.getElementById("sg-switcher-advanced").checked;
+    // Saídas a usar (N): lido já aqui porque a linha «Saída» de cada switcher
+    // escolhido também tem de contar com as saídas que o Mike escolheu, e não
+    // só com as que o aparelho tem.
+    var saidasInput = document.getElementById("sg-saidas");
+    var saidasLido = SaidasSwitcher.lerSaidas(saidasInput.value, !!(saidasInput.validity && saidasInput.validity.badInput));
     var switchersMP = (PROCESSORS_DATA.switchers || []).map(function (s) {
       // Capacidade sempre pela unidade única (config. mínima/base), nunca
       // pelos valores "*Linked" (várias unidades ligadas) — ver nota igual
@@ -9749,14 +9760,18 @@
         connsNeeded = split ? split.n : Math.ceil(totalMP / (capPgm / effectiveOutputs));
         connsEstimated = true;
       }
-      var outputsEnough = connsNeeded == null || !effectiveOutputs ? null : connsNeeded <= effectiveOutputs;
+      // Saídas que se vão MESMO usar: as N escolhidas (no máximo as que o
+      // aparelho tem). O orçamento por ligação acima continua a ser o do
+      // aparelho inteiro (é dele, não de quantas se usam).
+      var usedOutputs = saidasLido.n != null ? (effectiveOutputs ? Math.min(saidasLido.n, effectiveOutputs) : saidasLido.n) : effectiveOutputs;
+      var outputsEnough = connsNeeded == null || !usedOutputs ? null : connsNeeded <= usedOutputs;
       var clockFits = s.maxPixelClockMHz ? (s.maxPixelClockMHz >= clockMHz - 0.1) : null;
       // Entrada usa o mesmo pixel clock máx. por ligação que a saída (a ficha só
       // publica 1 valor de MHz para o aparelho) — por isso o nº de ligações e a
       // resolução por ligação são o mesmo cálculo, só comparado ao nº de
       // entradas físicas em vez de saídas.
       var inputsEnough = connsNeeded == null || !s.inputs ? null : connsNeeded <= s.inputs;
-      return { s: s, key: key, fits: fits, mode: mode, cap: capPgm, pct: fmt((totalMP / capPgm) * 100, 0), connsNeeded: connsNeeded, connsEstimated: connsEstimated, perConnRes: split, outputsEnough: outputsEnough, inputsEnough: inputsEnough, clockFits: clockFits, modeIdx: modeIdx, effectiveOutputs: effectiveOutputs, advancedNota: advancedNota };
+      return { s: s, key: key, fits: fits, mode: mode, cap: capPgm, pct: fmt((totalMP / capPgm) * 100, 0), connsNeeded: connsNeeded, connsEstimated: connsEstimated, perConnRes: split, outputsEnough: outputsEnough, inputsEnough: inputsEnough, clockFits: clockFits, modeIdx: modeIdx, effectiveOutputs: effectiveOutputs, usedOutputs: usedOutputs, advancedNota: advancedNota };
       // Folga de capacidade (descendente) é sempre o critério de
       // ordenação/prioridade — nº de ligações deixou de desempatar antes
       // disso, senão um switcher com muito mais folga podia ficar com
@@ -9770,8 +9785,6 @@
     // Saídas a usar (N): contas e texto por cada switcher escolhido. Vazio =
     // todas as saídas (como antes de este campo existir); os blocos antigos
     // abaixo não dependem dele.
-    var saidasInput = document.getElementById("sg-saidas");
-    var saidasLido = SaidasSwitcher.lerSaidas(saidasInput.value, !!(saidasInput.validity && saidasInput.validity.badInput));
     var saidasHint = document.getElementById("sg-saidas-hint");
     saidasHint.textContent = saidasLido.invalido
       ? "Indica um número inteiro de saídas (1 ou mais), ou deixa vazio para usar todas."
@@ -9807,6 +9820,11 @@
       ? switchersShown.map(function (x) {
           var checked = selectedSinalSwitcherKeys.has(x.key) ? " checked" : "";
           var io = x.s.inputs ? " · " + fmtInt(x.s.inputs) + " entradas" : "";
+          // Com «Saídas a usar (N)» preenchido, a lista também diz se essas N chegam.
+          if (saidasLido.n != null && x.connsNeeded != null && x.usedOutputs) {
+            io += x.outputsEnough ? " · ✔ " + fmtInt(x.usedOutputs) + " saídas chegam (precisa de " + (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + ")"
+              : " · ✘ " + fmtInt(x.usedOutputs) + " saídas não chegam (precisa de " + (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + ")";
+          }
           return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + '<strong>' + x.s.marca + '</strong> <span class="lm-model">' + x.s.modelo + '</span>' + srcLinkHtml(x.s.fonte) + '</span><span>' + fmt(x.cap, 1) + ' MP (' + x.mode + ') — ' + x.pct + '%' + io + '</span></span></label>';
         }).join("")
       : '<div class="lm-item"><span>Nenhum switcher da casa cobre este total (' + fmt(totalMP, 1) + ' MP)</span></div>') +
@@ -9841,9 +9859,9 @@
           (x.inputsEnough === false ? " — ⚠ insuficiente" : "")
         : (x.s.inputs ? fmtInt(x.s.inputs) + " entradas (sem pixel clock publicado para calcular quantas usar)" : "sem dados de entrada");
       var saidaVal = x.connsNeeded != null
-        ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.effectiveOutputs ? " de " + fmtInt(x.effectiveOutputs) + " saídas" : " ligações") + resTxt +
+        ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.usedOutputs ? " de " + fmtInt(x.usedOutputs) + " saídas" + saidasEscolhidasTxt(x) : " ligações") + resTxt +
           (x.outputsEnough === false ? " — ⚠ insuficiente" : "")
-        : (x.effectiveOutputs ? fmtInt(x.effectiveOutputs) + " saídas" : "sem dados de saídas");
+        : (x.usedOutputs ? fmtInt(x.usedOutputs) + " saídas" + saidasEscolhidasTxt(x) : "sem dados de saídas");
       var modeSelect = x.s.outputModes
         ? '<select class="plain sinal-mode-select" data-key="' + x.key + '" style="margin-top:4px;">' +
             x.s.outputModes.map(function (m, i) { return '<option value="' + i + '"' + (i === x.modeIdx ? ' selected' : '') + '>' + m.label + '</option>'; }).join('') +
@@ -9930,8 +9948,8 @@
             ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.s.inputs ? " de " + fmtInt(x.s.inputs) + " entradas" : " ligações")
             : (x.s.inputs ? fmtInt(x.s.inputs) + " entradas (sem dados para calcular quantas usar)" : "sem dados de entrada");
           var saidaTxt = x.connsNeeded != null
-            ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.effectiveOutputs ? " de " + fmtInt(x.effectiveOutputs) + " saídas" : " ligações")
-            : (x.effectiveOutputs ? fmtInt(x.effectiveOutputs) + " saídas (sem dados para calcular quantas usar)" : "sem dados de saídas");
+            ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.usedOutputs ? " de " + fmtInt(x.usedOutputs) + " saídas" + saidasEscolhidasTxt(x) : " ligações") + (x.outputsEnough === false ? " — ⚠ insuficiente" : "")
+            : (x.usedOutputs ? fmtInt(x.usedOutputs) + " saídas" + saidasEscolhidasTxt(x) + " (sem dados para calcular quantas usar)" : "sem dados de saídas");
           var modeTxt = x.s.outputModes ? " [" + x.s.outputModes[x.modeIdx].label + "]" : "";
           var line = "  " + x.s.marca + " " + x.s.modelo + modeTxt + " — entrada: " + entradaTxt + " — saída: " + saidaTxt + " — capacidade: " + fmt(x.cap, 1) + " MP (" + x.pct + "%)";
           if (x.perConnRes) line += "\n    resolução a aplicar em cada ligação: " + fmtInt(x.perConnRes.w) + "×" + fmtInt(x.perConnRes.h) + "px" + (x.connsEstimated ? " (estimado por capacidade em MP — a marca não publica o pixel clock máximo deste aparelho, por isso não é tão fino como a conta por pixel clock)" : "");

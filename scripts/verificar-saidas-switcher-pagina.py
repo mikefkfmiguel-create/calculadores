@@ -331,11 +331,36 @@ def traducao(p):
     b.close()
 
 
+def linhas_com_n(p):
+    print("\n[5] Com N preenchido, a linha «Saída» e a lista também usam as saídas escolhidas")
+    b, pg = abrir(p, NOVO)
+    sinal(pg, 7680, 2160, 60)
+    escolher(pg, "E2")
+    sem_n = cartoes(pg)[0]
+    pg.fill("#sg-saidas", "2")
+    pg.evaluate("document.activeElement && document.activeElement.blur()")
+    pg.wait_for_timeout(300)
+    com_n = cartoes(pg)[0]
+    print("  ", com_n.encode("ascii", "replace").decode())
+    confirmar("de 16 saídas" in sem_n, "sem N: «Saída» conta com as 16 do switcher")
+    confirmar("4 de 2 saídas" in com_n and "insuficiente" in com_n, "com N=2: «Saída» diz 4 de 2 e insuficiente")
+    confirmar("2 saídas não chegam" in lista(pg), "com N=2: a lista diz que 2 saídas não chegam no E2")
+    rel = pg.evaluate("document.getElementById('sg-sum').textContent")
+    confirmar("saída: 4 de 2 saídas" in rel and "insuficiente" in rel, "com N=2: o relatório antigo também usa as 2 saídas")
+    pg.fill("#sg-saidas", "8")
+    pg.evaluate("document.activeElement && document.activeElement.blur()")
+    pg.wait_for_timeout(300)
+    confirmar("4 de 8 saídas" in cartoes(pg)[0] and "insuficiente" not in cartoes(pg)[0], "com N=8: «Saída» diz 4 de 8 e chega")
+    confirmar(not pg.erros, "sem erros na consola: " + str(pg.erros))
+    b.close()
+
+
 with sync_playwright() as p:
     regressao(p)
     contas(p)
     estreito(p)
     traducao(p)
+    linhas_com_n(p)
 
 print("\n" + ("TUDO OK" if not falhas else f"{len(falhas)} FALHA(S):\n - " + "\n - ".join(falhas)))
 sys.exit(1 if falhas else 0)
