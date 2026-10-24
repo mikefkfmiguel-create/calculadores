@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Trazer os meus dados</title>
+<style>
+  body { margin: 0; padding: 32px 20px; background: #0E1418; color: #E7ECF2; font: 16px/1.5 system-ui, sans-serif; text-align: center; }
+  small { color: #8A97A6; }
+</style>
+</head>
+<body>
+<p id="msg">A preparar os teus dados…</p>
+<small id="sub"></small>
+<script>
+/* Responde ao endereço novo (avplanner.mike-app.com) com os dados guardados NESTE
+   endereço. Só envia para essa origem exacta (o postMessage descarta a mensagem se
+   quem abriu esta janela for outro site). Ver js/migrar-dados.js. */
+(function () {
+  "use strict";
+  var DESTINOS = ["https://avplanner.mike-app.com"];
+  var PREFIXOS = ["mikeapps-", "calculadores-", "calc-", "preview-"];
+  var msg = document.getElementById("msg"), sub = document.getElementById("sub");
+  var para = new URLSearchParams(location.search).get("para");
+  if (!window.opener || DESTINOS.indexOf(para) === -1) {
+    msg.textContent = "Esta página só funciona aberta a partir de https://avplanner.mike-app.com.";
+    return;
+  }
+  var dados = {}, n = 0;
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (!k || k === "mikeapps-migracao-v1") continue;
+      if (!PREFIXOS.some(function (p) { return k.indexOf(p) === 0; })) continue;
+      dados[k] = localStorage.getItem(k); n++;
+    }
+  } catch (e) {}
+  window.opener.postMessage({ tipo: "mikeapps-migracao", dados: dados }, para);
+  msg.textContent = "Enviei " + n + " itens para o endereço novo.";
+  sub.textContent = "Já podes fechar esta janela.";
+  setTimeout(function () { window.close(); }, 1500);
+})();
+</script>
+</body>
+</html>
