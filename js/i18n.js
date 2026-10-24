@@ -1043,6 +1043,115 @@
   };
   Object.keys(NOVOS_EN).forEach(function (k) { DICT_EN[k] = NOVOS_EN[k]; });
 
+  // ---- Saídas a usar (N), aba Sinal & Data Rate (v4.66) ----
+  // O texto dinâmico é escrito em index.html (saidasModelo & companhia) com os
+  // números SEMPRE entre pedaços fixos e distintos — é por pedaços que o
+  // tradutor trabalha. Não acrescentar aqui " de ", " e ", "as " e afins:
+  // estragariam o resto da app.
+  var SAIDAS_EN = {
+    "Saídas a usar (N)": "Outputs to use (N)",
+    "Saídas a usar": "Outputs to use",
+    "todas as saídas": "all outputs",
+    "todas (": "all (",
+    "Vazio = todas as saídas do switcher. Escolhe um switcher abaixo para veres a resolução máxima, a capacidade, se o sinal cabe e uma sugestão com N saídas.": "Empty = all of the switcher's outputs. Pick a switcher below to see the maximum resolution, the capacity, whether the signal fits and a suggestion for N outputs.",
+    "Indica um número inteiro de saídas (1 ou mais), ou deixa vazio para usar todas.": "Enter a whole number of outputs (1 or more), or leave empty to use them all.",
+    "em «Switchers de show», diz quantas saídas queres usar do switcher (vazio = todas). Para cada switcher que escolheres, mostra a resolução máxima com N saídas, a capacidade, se o teu sinal cabe e uma sugestão — com as N saídas num canvas contínuo e com N ecrãs independentes. Escolhe dois ou mais para os comparar lado a lado.": "in «Show switchers», say how many of the switcher's outputs you want to use (empty = all). For each switcher you pick, it shows the maximum resolution with N outputs, the capacity, whether your signal fits and a suggestion — with the N outputs as one continuous canvas and as N independent screens. Pick two or more to compare them side by side.",
+    "Comparação dos switchers escolhidos": "Comparison of the chosen switchers",
+    "Saídas usadas": "Outputs used",
+    "Canvas contínuo: máx.": "Continuous canvas: max.",
+    "Canvas contínuo: o teu sinal": "Continuous canvas: your signal",
+    "Ecrãs independentes: máx. por saída": "Independent screens: max. per output",
+    "Ecrãs independentes: o teu sinal": "Independent screens: your signal",
+    "Capacidade usada pelo sinal": "Capacity used by the signal",
+    "Canvas contínuo": "Continuous canvas",
+    "Ecrãs independentes": "Independent screens",
+    "canvas contínuo: máx. ": "continuous canvas: max. ",
+    "ecrãs independentes: máx. ": "independent screens: max. ",
+    " por saída, ": " per output, ",
+    "o sinal cabe": "the signal fits",
+    "o sinal não cabe": "the signal doesn't fit",
+    "✔ Cabe": "✔ Fits",
+    "✘ Não cabe": "✘ Doesn't fit",
+    "Tirar da escolha": "Remove from selection",
+    "Resolução máxima por saída": "Maximum resolution per output",
+    "Resolução máxima": "Maximum resolution",
+    "Com Preview": "With Preview",
+    // No relatório (texto corrido) as palavras vêm com «: » atrás, ao contrário
+    // dos rótulos da página, que são nós inteiros (ver DICT_EXACT_EN).
+    " · Capacidade: ": " · Capacity: ",
+    " · Possibilidade: ": " · Feasibility: ",
+    "Sugestão: ": "Suggestion: ",
+    " saídas juntas num só ecrã": " outputs together on a single screen",
+    " ecrãs, um por saída": " screens, one per output",
+    " ecrãs, cada um ": " screens, each ",
+    " (o switcher não publica quantas tem)": " (the switcher doesn't say how many it has)",
+    "⚠ Pediste ": "⚠ You asked for ",
+    " saídas, mas este switcher só tem ": " outputs, but this switcher only has ",
+    " — as contas estão feitas com ": " — the calculations use ",
+    "⚠ Este switcher já não cobre o total de píxeis do sinal (": "⚠ This switcher no longer covers the signal's total pixels (",
+    "), por isso saiu da lista de opções.": "), so it dropped off the options list.",
+    "Este switcher não publica o nº de saídas — indica «Saídas a usar (N)» em cima para fazer a conta.": "This switcher doesn't publish its number of outputs — enter «Outputs to use (N)» above to run the calculation.",
+    "Sem capacidade em MP publicada para este switcher — não há conta possível.": "No published MP capacity for this switcher — no calculation possible.",
+    "Sem pixel clock nem nº de saídas publicados: só se compara a capacidade total em MP, não a divisão por ligação.": "No published pixel clock or number of outputs: only the total MP capacity is compared, not the split per link.",
+    "~ Sem pixel clock publicado para este aparelho: a divisão por ligação é estimada pela capacidade em MP (menos fina). Os valores com ~ são estimativas.": "~ No published pixel clock for this device: the split per link is estimated from the MP capacity (less precise). Values with ~ are estimates.",
+    "limitada pela capacidade em MP (margem de ": "limited by the MP capacity (margin of ",
+    "limitada pelo pixel clock de cada ligação (": "limited by the pixel clock of each link (",
+    "limitada pelo orçamento de píxeis por ligação": "limited by the pixel budget per link",
+    "; cada saída leva ": "; each output carries ",
+    "; mesma proporção do sinal": "; same aspect ratio as the signal",
+    "mantendo PGM + Preview": "keeping PGM + Preview",
+    "não calculável com estes dados": "can't be calculated with this data",
+    "esse canvas usa ": "that canvas uses ",
+    " da capacidade (": " of capacity (",
+    " da capacidade)": " of capacity)",
+    ", só PGM": ", PGM only",
+    "o teu sinal usa ": "your signal uses ",
+    " saídas com o teu sinal usam ": " outputs with your signal use ",
+    "dá para PGM + Preview": "fits PGM + Preview",
+    "só dá para PGM, sem Preview": "fits PGM only, without Preview",
+    "— utiliza ": "— uses ",
+    ": utiliza ": ": uses ",
+    "; utiliza ": "; uses ",
+    "(utiliza ": "(uses ",
+    "(sobram ": "(spare ",
+    "conjunto das ": "total of the ",
+    "o sinal tem ": "the signal has ",
+    "; capacidade útil: ": "; usable capacity: ",
+    "(margem de ": "(margin of ",
+    "requer pelo menos ": "needs at least ",
+    "requer mais de 64 saídas": "needs more than 64 outputs",
+    "requer ": "needs ",
+    " (cada ligação aguenta no máximo ": " (each link handles at most ",
+    " (cada ligação aguenta cerca de ": " (each link handles about ",
+    ", estimado pela capacidade)": ", estimated from capacity)",
+    " e só tens ": " and you only have ",
+    "; o switcher tem ": "; the switcher has ",
+    "uma ligação não aguenta este sinal (precisa de ": "a link can't handle this signal (needs ",
+    "; o máximo é ": "; the maximum is ",
+    "uma ligação não aguenta este sinal (mais do que cerca de ": "a link can't handle this signal (more than about ",
+    " por saída, estimado pela capacidade)": " per output, estimated from capacity)",
+    "cabe, mas à justa": "fits, but only just",
+    "cabe com folga": "fits with room to spare",
+    "alternativa com mais folga na capacidade: ": "alternative with more capacity headroom: ",
+    " (a capacidade ou as entradas também falham)": " (the capacity or the inputs also fail)",
+    "este switcher não chega: ": "this switcher isn't enough: ",
+    " e só tem ": " and only has ",
+    "outros switchers que servem com ": "other switchers that work with ",
+    "nenhum outro switcher da lista serve com ": "no other switcher in the list works with ",
+    "nº máximo de ecrãs com este sinal em cada um (pela capacidade): ": "max. number of screens with this signal on each one (by capacity): ",
+    "baixar para ": "lowering to ",
+    " Hz passa a caber": " Hz fits",
+    " — capacidade só PGM: ": " — PGM-only capacity: ",
+    " MP (valor a 30p da ficha)": " MP (30p value from the datasheet)",
+    "ligar as unidades (modo avançado) sobe a capacidade para ": "linking the units (advanced mode) raises the capacity to ",
+    " MP, passa a caber — ": " MP, so it fits — ",
+    "configuração por confirmar": "configuration to be confirmed",
+    "Baixar a profundidade de cor (": "Lowering the color depth (",
+    "-bit) não ajuda aqui: o pixel clock e os MP desta conta não mudam com ela (só o data rate)": "-bit) doesn't help here: the pixel clock and MP in this calculation don't change with it (only the data rate)",
+    " (mercado)": " (market)"
+  };
+  Object.keys(SAIDAS_EN).forEach(function (k) { DICT_EN[k] = SAIDAS_EN[k]; });
+
   // Palavras curtas/ambíguas de mais para entrar no dicionário de substring
   // acima (ex: "e" e "ou" aparecem dentro de imensas outras palavras) — só
   // traduzem quando são o conteúdo INTEIRO de um nó de texto isolado (ex:
@@ -1059,6 +1168,12 @@
     // verificação nasceu para apanhar — e ela apanhou-o, que era o ponto.
     "quantos": "how many",
     "quem": "who",
+    // Rótulos de uma palavra da secção «Saídas a usar» (v4.66): em dicionário
+    // de substring estragariam frases ainda por traduzir ("Capacidade
+    // estimada, não é…"), por isso só traduzem quando são o nó inteiro.
+    "Capacidade": "Capacity",
+    "Sugestão": "Suggestion",
+    "Possibilidade": "Feasibility",
 
     // NÃO PÔR AQUI "Um": "A".
     //

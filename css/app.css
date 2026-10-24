@@ -705,6 +705,25 @@
   .sinal-detail-row .k { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); margin-bottom: 3px; }
   .sinal-detail-row .v { display: block; font-size: 13.5px; color: var(--ink); line-height: 1.5; }
   .sinal-detail-card .lm-note { font-size: 12px; color: var(--ink-faint); margin-top: 10px; line-height: 1.5; }
+  /* Saídas a usar (N): o bloco que cada switcher escolhido ganha, e a
+     comparação lado a lado quando há dois ou mais. */
+  .saidas-bloco { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+  .saidas-bloco h4 { font-size: 13px; margin: 0 0 8px; color: var(--ink); }
+  .saidas-disp { margin-top: 12px; }
+  .saidas-disp-t { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; }
+  .saidas-ok { color: var(--green-600); font-weight: 600; }
+  .saidas-nok { color: var(--danger-600); font-weight: 600; }
+  .saidas-sug { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--ink); }
+  .saidas-sug li { margin-bottom: 4px; overflow-wrap: anywhere; }
+  .saidas-bloco .sinal-detail-row .v { overflow-wrap: anywhere; }
+  .field .hint.saidas-erro { color: var(--danger-600); }
+  .saidas-comp { margin-bottom: 16px; }
+  .saidas-comp h4 { font-size: 13px; margin: 0 0 8px; color: var(--ink); }
+  .saidas-comp-scroll { overflow-x: auto; max-width: 100%; }
+  .saidas-tab { width: 100%; border-collapse: collapse; font-size: 12.5px; table-layout: fixed; }
+  .saidas-tab th, .saidas-tab td { border: 1px solid var(--line-soft); padding: 6px 8px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+  .saidas-tab thead th { background: var(--paper); color: var(--ink); }
+  .saidas-tab tbody th { font-weight: 500; color: var(--ink-soft); width: 34%; }
   /* Texto explicativo dentro de cada bloco de Sinal — colapsado por
      defeito, para o resultado (a lista) aparecer logo a seguir ao
      título, sem parede de texto pelo meio a atrasar. */

@@ -50,7 +50,7 @@
     <button type="button" class="mark topbtn" id="btInventario"
             title="O meu inventário — diz à app que modelos tens, para ficarem à frente nas listas">📦 Inventário</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.65</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.66</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -2157,6 +2157,7 @@
         <p>Indica a resolução, frame rate e profundidade de cor do sinal de vídeo para saberes o data rate e a ligação mínima (HDMI/DisplayPort/SDI) necessária, e que switchers ou processadores aguentam esse sinal na entrada.</p>
         <p>Usa <strong>"↙ Ecrã Complexo"</strong> ou <strong>"↙ Projeto"</strong> para preencher a resolução acima com o canvas final já calculado nessas abas, em vez de a escreveres à mão — útil para veres já a ligação mínima e os switchers/processadores compatíveis para o ecrã real do projeto.</p>
         <p>Em baixo também mostra, para o total de píxeis acima: quantos switchers de show da casa aguentam esse total (capacidade em megapíxeis, não só o pixel clock de um único sinal) e, se for para um ecrã LED, quantas unidades e exatamente quantas portas de cada processo de LED seriam precisas — a mesma conta usada na aba Projeto.</p>
+        <p><strong>Saídas a usar (N):</strong> em «Switchers de show», diz quantas saídas queres usar do switcher (vazio = todas). Para cada switcher que escolheres, mostra a resolução máxima com N saídas, a capacidade, se o teu sinal cabe e uma sugestão — com as N saídas num canvas contínuo e com N ecrãs independentes. Escolhe dois ou mais para os comparar lado a lado.</p>
         <p>Os três blocos abaixo (Sinal de vídeo, Resultado, Switchers disponíveis e ligações a usar) abrem/fecham ao clicar no título — fecha o que não precisares para ver a página toda de relance.</p>
       </div>
     </details>
@@ -2243,9 +2244,15 @@
             <div class="lensmatch-list" id="sg-preswitch-mp-list" style="margin-top:10px;"></div>
           </div>
           <label class="addproject"><input type="checkbox" id="sg-switcher-advanced">Modo avançado (configurações por confirmar — unidades ligadas, placas alternativas não montadas)</label>
+          <div class="field" style="margin:14px 0 6px;">
+            <label for="sg-saidas">Saídas a usar (N)</label>
+            <div class="inputgroup"><input id="sg-saidas" type="number" autocomplete="off" inputmode="numeric" min="1" step="1" placeholder="todas as saídas"><span class="unit">saídas</span></div>
+            <div class="hint" id="sg-saidas-hint">Vazio = todas as saídas do switcher. Escolhe um switcher abaixo para veres a resolução máxima, a capacidade, se o sinal cabe e uma sugestão com N saídas.</div>
+          </div>
           <div class="lensmatch-list" id="sg-switcher-mp-list"></div>
 
           <div id="sg-switcher-detail-wrap" style="display:none; margin-top:18px;">
+            <div id="sg-saidas-comparacao"></div>
             <div id="sg-switcher-detail"></div>
           </div>
         </div>
@@ -3155,6 +3162,7 @@
 <script src="js/visualizacao.js"></script>
 <script src="js/meu-inventario.js"></script>
 <script src="js/utils.js"></script>
+<script src="js/saidas-switcher.js"></script>
 <script src="js/meus-modelos.js"></script>
 <script src="js/relatorio-simples.js"></script>
 <script src="js/zonas.js"></script>
@@ -9402,6 +9410,238 @@
     return (bits * amostras * fps * totalPx) / 1e9;
   }
 
+  /* ------------------------------------------------------------------
+   * SAÍDAS A USAR (N) — o que se mostra por cada switcher escolhido.
+   *
+   * As contas estão em js/saidas-switcher.js (e usam as MESMAS funções de
+   * pixel clock, divisão e margem de segurança que o calcSinal()); aqui só
+   * se escreve o resultado, em PT. As frases fixas estão no js/i18n.js
+   * (secção «Saídas a usar») — o tradutor troca-as por pedaços, por isso
+   * os números ficam sempre entre pedaços fixos e distintos: nada de " de "
+   * ou " e " soltos, que não se podem pôr no dicionário sem estragar o resto.
+   * ------------------------------------------------------------------ */
+  var SAIDAS = SaidasSwitcher.criar({
+    cvtRb2ClockMHz: cvtRb2ClockMHz,
+    roundUpEven: roundUpEven,
+    margem: SWITCHER_SAFETY_MARGIN,
+    switcherAdvancedCap: switcherAdvancedCap,
+    splitCanvasForClock: splitCanvasForClock,
+    splitCanvasForCapacity: splitCanvasForCapacity
+  });
+
+  function saidasRes(w, h) { return fmtInt(w) + "×" + fmtInt(h) + "px"; }
+  function saidasMP(mp) { return fmt(mp, mp < 10 ? 2 : 1) + " MP"; }
+  function saidasPct(p) { return fmt(p, 0) + "%"; }
+  function saidasNome(s) { return s.marca + " " + s.modelo; }
+  function saidasMargemTxt() { return fmt(SWITCHER_SAFETY_MARGIN * 100, 0) + "%"; }
+  function saidasModoTxt(modo) { return modo === "pgmPreview" ? "dá para PGM + Preview" : "só dá para PGM, sem Preview"; }
+
+  function saidasMotivoTxt(m, av, disp) {
+    var lim = av.lim;
+    if (m.tipo === "saidas") {
+      var porLig = !lim ? "" : (lim.tipo === "clock"
+        ? " (cada ligação aguenta no máximo " + fmt(lim.mhz, 1) + " MHz)"
+        : " (cada ligação aguenta cerca de " + saidasMP(lim.px / 1e6) + ", estimado pela capacidade)");
+      return (m.precisa != null ? "requer " + (av.estimado ? "~" : "") + fmtInt(m.precisa) + " saídas" : "requer mais de 64 saídas") +
+        porLig + " e só tens " + fmtInt(m.tem);
+    }
+    if (m.tipo === "capacidade") {
+      return (disp === "indep" ? "conjunto das " + fmtInt(av.n) + " saídas: " : "o sinal tem ") + saidasMP(m.mp) +
+        "; capacidade útil: " + saidasMP(m.cap) + " (margem de " + saidasMargemTxt() + ")";
+    }
+    if (m.tipo === "entradas") {
+      return "requer " + (av.estimado ? "~" : "") + fmtInt(m.precisa) + " entradas; o switcher tem " + fmtInt(m.tem);
+    }
+    if (m.tipo === "ligacao") {
+      return m.mhz != null
+        ? "uma ligação não aguenta este sinal (precisa de " + fmt(m.clock, 1) + " MHz; o máximo é " + fmt(m.mhz, 1) + " MHz)"
+        : "uma ligação não aguenta este sinal (mais do que cerca de " + saidasMP(m.px / 1e6) + " por saída, estimado pela capacidade)";
+    }
+    return "";
+  }
+
+  function saidasLimiteTxt(lim, tipo) {
+    if (tipo === "capacidade") return "limitada pela capacidade em MP (margem de " + saidasMargemTxt() + ")";
+    return lim && lim.tipo === "clock"
+      ? "limitada pelo pixel clock de cada ligação (" + fmt(lim.mhz, 1) + " MHz)"
+      : "limitada pelo orçamento de píxeis por ligação";
+  }
+
+  function saidasSugestaoTxt(it, bits) {
+    var av = it.av;
+    var til = av.estimado ? "~" : "";
+    var nomes = function (lista, mais) {
+      return lista.map(function (o) {
+        return saidasNome(o.s) + (o.s.mercado ? " (mercado)" : "") + (o.modeLabel ? " [" + o.modeLabel + "]" : "") + " — " + (o.estimado ? "~" : "") + saidasPct(o.pct);
+      }).join("; ") + (mais ? "; …+" + fmtInt(mais) : "");
+    };
+    return it.sug.itens.map(function (i) {
+      var pre = i.disp === "continuo" ? "Canvas contínuo: " : (i.disp === "indep" ? "Ecrãs independentes: " : "");
+      switch (i.tipo) {
+        case "folga":
+          return pre + (i.pct > APERTADO_PCT ? "cabe, mas à justa" : "cabe com folga") + ": utiliza " + saidasPct(i.pct) + " da capacidade (" + saidasModoTxt(i.modo) + ")" +
+            (i.precisa != null ? "; utiliza " + til + fmtInt(i.precisa) + "/" + fmtInt(i.n) + " saídas (sobram " + fmtInt(i.n - i.precisa) + ")" : "; utiliza " + fmtInt(i.n) + " saídas");
+        case "maisFolga":
+          return pre + "alternativa com mais folga na capacidade: " + nomes(i.lista, i.mais);
+        case "saidasMin":
+          return pre + "requer pelo menos " + til + fmtInt(i.n) + " saídas" + (i.ainda ? " (a capacidade ou as entradas também falham)" : "");
+        case "semSaidas":
+          return pre + "este switcher não chega: " + (i.precisa != null ? "requer " + til + fmtInt(i.precisa) + " saídas" : "requer mais de 64 saídas") + " e só tem " + fmtInt(i.tem);
+        case "outros":
+          return pre + "outros switchers que servem com " + fmtInt(av.n) + " saídas: " + nomes(i.lista, i.mais);
+        case "nenhumOutro":
+          return pre + "nenhum outro switcher da lista serve com " + fmtInt(i.n) + " saídas";
+        case "maxEcras":
+          return pre + "nº máximo de ecrãs com este sinal em cada um (pela capacidade): " + fmtInt(i.n);
+        case "fps":
+          return pre + "baixar para " + fmtInt(i.fps) + " Hz passa a caber" +
+            (i.precisa != null && i.disp === "continuo" ? " (utiliza " + til + fmtInt(i.precisa) + " saídas)" : "") +
+            (i.capNova ? " — capacidade só PGM: " + fmt(i.capAntes, 1) + " → " + fmt(i.capNova, 1) + " MP (valor a 30p da ficha)" : "");
+        case "unidades":
+          return pre + "ligar as unidades (modo avançado) sobe a capacidade para " + fmt(i.capNova, 1) + " MP, passa a caber — " + (i.nota ? i.nota : "configuração por confirmar");
+        case "cor":
+          return "Baixar a profundidade de cor (" + bits + "-bit) não ajuda aqui: o pixel clock e os MP desta conta não mudam com ela (só o data rate)";
+      }
+      return "";
+    }).filter(Boolean);
+  }
+
+  // O modelo de um switcher: tudo o que a caixa e o relatório vão escrever.
+  function saidasModelo(it, bits) {
+    var av = it.av;
+    var M = { nome: saidasNome(av.s), avisos: [], seccoes: [], sugestoes: [], resumo: null, titulo: "" };
+    var til = av.estimado ? "~" : "";
+    if (av.nPedido != null && av.saidas) M.titulo = "Saídas a usar: " + fmtInt(av.n) + "/" + fmtInt(av.saidas);
+    else if (av.nPedido != null) M.titulo = "Saídas a usar: " + fmtInt(av.n) + " (o switcher não publica quantas tem)";
+    else if (av.saidas) M.titulo = "Saídas a usar: todas (" + fmtInt(av.saidas) + ")";
+    else M.titulo = "Saídas a usar";
+    if (av.nExcede) M.avisos.push("⚠ Pediste " + fmtInt(av.nPedido) + " saídas, mas este switcher só tem " + fmtInt(av.saidas) + " — as contas estão feitas com " + fmtInt(av.saidas) + ".");
+    if (it.semCobertura) M.avisos.push("⚠ Este switcher já não cobre o total de píxeis do sinal (" + saidasMP(av.sinal.totalMP) + "; capacidade útil: " + saidasMP(av.cap.pgm * SWITCHER_SAFETY_MARGIN) + "), por isso saiu da lista de opções.");
+    if (av.semDados) {
+      M.avisos.push(av.cap.pgm
+        ? "Este switcher não publica o nº de saídas — indica «Saídas a usar (N)» em cima para fazer a conta."
+        : "Sem capacidade em MP publicada para este switcher — não há conta possível.");
+      return M;
+    }
+    if (av.semLimite) M.avisos.push("Sem pixel clock nem nº de saídas publicados: só se compara a capacidade total em MP, não a divisão por ligação.");
+    else if (av.estimado) M.avisos.push("~ Sem pixel clock publicado para este aparelho: a divisão por ligação é estimada pela capacidade em MP (menos fina). Os valores com ~ são estimativas.");
+
+    var c = av.continuo, ind = av.indep;
+    var capTxt = fmt(av.cap.pgm, 1) + " MP, só PGM";
+
+    // ---- canvas contínuo ----
+    var l1 = [];
+    if (c.max) {
+      l1.push({ k: "Resolução máxima", v: til + saidasRes(c.max.w, c.max.h) + " (" + saidasMP(c.max.mp) + ") — " + saidasLimiteTxt(av.lim, c.max.limite) +
+        "; cada saída leva " + til + saidasRes(c.max.faixaW, c.max.faixaH) + "; mesma proporção do sinal" });
+      if (c.maxPreview && (c.maxPreview.w !== c.max.w || c.maxPreview.h !== c.max.h)) {
+        l1.push({ k: "Com Preview", v: til + saidasRes(c.maxPreview.w, c.maxPreview.h) + " (" + saidasMP(c.maxPreview.mp) + ") — mantendo PGM + Preview" });
+      }
+    } else {
+      l1.push({ k: "Resolução máxima", v: "não calculável com estes dados" });
+    }
+    l1.push({ k: "Capacidade", v: (c.pctMax != null ? "esse canvas usa " + saidasPct(c.pctMax) + " da capacidade (" + capTxt + "); " : "") +
+      "o teu sinal usa " + saidasPct(av.uso.pct) + " — " + saidasModoTxt(av.uso.modo) });
+    l1.push({
+      k: "Possibilidade", ok: c.cabe,
+      v: c.cabe
+        ? "✔ Cabe" + (c.precisa != null ? " — utiliza " + til + fmtInt(c.precisa) + "/" + fmtInt(av.n) + " saídas" : "")
+        : "✘ Não cabe — " + c.motivos.map(function (m) { return saidasMotivoTxt(m, av, "continuo"); }).join("; ")
+    });
+    M.seccoes.push({ id: "continuo", titulo: "Canvas contínuo — " + fmtInt(av.n) + " saídas juntas num só ecrã", linhas: l1 });
+
+    // ---- ecrãs independentes ----
+    var l2 = [];
+    if (ind.porSaida) {
+      l2.push({ k: "Resolução máxima por saída", v: til + saidasRes(ind.porSaida.w, ind.porSaida.h) + " (" + saidasMP(ind.porSaida.mp) + ") — " + saidasLimiteTxt(av.lim, ind.porSaida.limite) + "; mesma proporção do sinal" });
+      l2.push({ k: "Total", v: fmtInt(av.n) + " saídas × " + til + saidasMP(ind.porSaida.mp) + " = " + til + saidasMP(ind.totalMax) + " (" + saidasPct(ind.pctMax) + " da capacidade)" });
+    } else {
+      l2.push({ k: "Resolução máxima por saída", v: "não calculável com estes dados" });
+    }
+    l2.push({ k: "Capacidade", v: fmtInt(av.n) + " saídas com o teu sinal usam " + saidasMP(ind.totalMP) + " = " + saidasPct(ind.pct) + " da capacidade (" + capTxt + ") — " + saidasModoTxt(ind.modo) });
+    l2.push({
+      k: "Possibilidade", ok: ind.cabe,
+      v: ind.cabe
+        ? "✔ Cabe — " + fmtInt(av.n) + " ecrãs, cada um " + saidasRes(av.sinal.h, av.sinal.v) + " @ " + fmt(av.sinal.fps, 0) + " Hz"
+        : "✘ Não cabe — " + ind.motivos.map(function (m) { return saidasMotivoTxt(m, av, "indep"); }).join("; ")
+    });
+    M.seccoes.push({ id: "indep", titulo: "Ecrãs independentes — " + fmtInt(av.n) + " ecrãs, um por saída", linhas: l2 });
+
+    M.sugestoes = saidasSugestaoTxt(it, bits);
+    M.resumo = {
+      saidas: fmtInt(av.n) + (av.saidas ? "/" + fmtInt(av.saidas) : ""),
+      canvasMax: c.max ? til + saidasRes(c.max.w, c.max.h) : "—",
+      canvasCabe: c.cabe,
+      indepMax: ind.porSaida ? til + saidasRes(ind.porSaida.w, ind.porSaida.h) : "—",
+      indepCabe: ind.cabe,
+      capacidade: saidasPct(av.uso.pct) + " — " + saidasModoTxt(av.uso.modo)
+    };
+    return M;
+  }
+
+  function saidasCaixaHtml(M) {
+    var h = '<div class="saidas-bloco"><h4>' + M.titulo + '</h4>';
+    M.avisos.forEach(function (a) { h += '<div class="warn">' + a + '</div>'; });
+    M.seccoes.forEach(function (sec) {
+      h += '<div class="saidas-disp"><div class="saidas-disp-t">' + sec.titulo + '</div>';
+      sec.linhas.forEach(function (l) {
+        h += '<div class="sinal-detail-row"><span class="k">' + l.k + '</span><span class="v' + (l.ok === true ? ' saidas-ok' : (l.ok === false ? ' saidas-nok' : '')) + '">' + l.v + '</span></div>';
+      });
+      h += '</div>';
+    });
+    if (M.sugestoes.length) {
+      h += '<div class="saidas-disp"><div class="saidas-disp-t">Sugestão</div><ul class="saidas-sug">' +
+        M.sugestoes.map(function (t) { return '<li>' + t + '</li>'; }).join("") + '</ul></div>';
+    }
+    return h + '</div>';
+  }
+
+  // Comparação lado a lado: uma coluna por switcher escolhido (com 2 ou mais).
+  function saidasComparacaoHtml(modelos) {
+    var ok = function (b) { return b ? "✔ Cabe" : "✘ Não cabe"; };
+    var linhas = [
+      ["Saídas usadas", function (m) { return m.resumo ? m.resumo.saidas : "—"; }],
+      ["Canvas contínuo: máx.", function (m) { return m.resumo ? m.resumo.canvasMax : "—"; }],
+      ["Canvas contínuo: o teu sinal", function (m) { return m.resumo ? ok(m.resumo.canvasCabe) : "—"; }],
+      ["Ecrãs independentes: máx. por saída", function (m) { return m.resumo ? m.resumo.indepMax : "—"; }],
+      ["Ecrãs independentes: o teu sinal", function (m) { return m.resumo ? ok(m.resumo.indepCabe) : "—"; }],
+      ["Capacidade usada pelo sinal", function (m) { return m.resumo ? m.resumo.capacidade : "—"; }]
+    ];
+    var t = '<div class="saidas-comp"><h4>Comparação dos switchers escolhidos</h4><div class="saidas-comp-scroll"><table class="saidas-tab"><thead><tr><th></th>' +
+      modelos.map(function (m) { return '<th>' + m.nome + '</th>'; }).join("") + '</tr></thead><tbody>';
+    linhas.forEach(function (ln) {
+      t += '<tr><th scope="row">' + ln[0] + '</th>' + modelos.map(function (m) {
+        var txt = ln[1](m);
+        var cls = /^✔/.test(txt) ? ' class="saidas-ok"' : (/^✘/.test(txt) ? ' class="saidas-nok"' : '');
+        return '<td' + cls + '>' + txt + '</td>';
+      }).join("") + '</tr>';
+    });
+    return t + '</tbody></table></div></div>';
+  }
+
+  // O texto do relatório: uma linha por switcher com o essencial (fica no
+  // relatório simplificado) e o detalhe por baixo, com 4 espaços.
+  function saidasRelatorio(modelos, itens, lido) {
+    if (!modelos.length) return "";
+    var out = ["Saídas a usar" + (lido.n != null ? " (N = " + fmtInt(lido.n) + ")" : " (todas as saídas)") + ":"];
+    modelos.forEach(function (M, idx) {
+      var av = itens[idx].av;
+      var modeTxt = av.s.outputModes ? " [" + av.s.outputModes[av.modeIdx].label + "]" : "";
+      var linha = "  " + M.nome + modeTxt;
+      if (M.resumo) {
+        linha += " — " + M.resumo.saidas + " saídas — canvas contínuo: máx. " + M.resumo.canvasMax + ", " + (M.resumo.canvasCabe ? "o sinal cabe" : "o sinal não cabe") +
+          " — ecrãs independentes: máx. " + M.resumo.indepMax + " por saída, " + (M.resumo.indepCabe ? "o sinal cabe" : "o sinal não cabe");
+      }
+      out.push(linha);
+      M.avisos.forEach(function (a) { out.push("    " + a); });
+      M.seccoes.forEach(function (sec) {
+        sec.linhas.forEach(function (l) { out.push("    " + sec.titulo.split(" — ")[0] + " · " + l.k + ": " + l.v); });
+      });
+      M.sugestoes.forEach(function (t) { out.push("    Sugestão: " + t); });
+    });
+    return out.join("\n");
+  }
+
   function calcSinal() {
     var h = val("sg-h"), v = val("sg-v"), fps = val("sg-fps");
     var bits = parseInt(document.getElementById("sg-bits").value, 10);
@@ -9526,6 +9766,41 @@
     markBestOption(switchersMP);
 
     var switchersChosen = switchersMP.filter(function (x) { return selectedSinalSwitcherKeys.has(x.key); });
+
+    // Saídas a usar (N): contas e texto por cada switcher escolhido. Vazio =
+    // todas as saídas (como antes de este campo existir); os blocos antigos
+    // abaixo não dependem dele.
+    var saidasInput = document.getElementById("sg-saidas");
+    var saidasLido = SaidasSwitcher.lerSaidas(saidasInput.value, !!(saidasInput.validity && saidasInput.validity.badInput));
+    var saidasHint = document.getElementById("sg-saidas-hint");
+    saidasHint.textContent = saidasLido.invalido
+      ? "Indica um número inteiro de saídas (1 ou mais), ou deixa vazio para usar todas."
+      : "Vazio = todas as saídas do switcher. Escolhe um switcher abaixo para veres a resolução máxima, a capacidade, se o sinal cabe e uma sugestão com N saídas.";
+    saidasHint.classList.toggle("saidas-erro", saidasLido.invalido);
+    var saidasItens = [];
+    if (h > 0 && v > 0 && fps > 0 && isFinite(h * v)) {
+      var saidasCtx = {
+        todos: PROCESSORS_DATA.switchers || [],
+        escolhidos: function (s2) { return selectedSinalSwitcherKeys.has(itemKey(s2.marca, s2.modelo)); }
+      };
+      var saidasArmar = function (s, key, modeIdx, semCobertura) {
+        var it = { s: s, key: key, semCobertura: semCobertura };
+        it.av = SAIDAS.avaliar(s, { h: h, v: v, fps: fps }, { n: saidasLido.n, avancado: sinalSwitcherAdvanced, modeIdx: modeIdx });
+        it.sug = SAIDAS.sugerir(it.av, saidasCtx);
+        it.M = saidasModelo(it, bits);
+        return it;
+      };
+      switchersChosen.forEach(function (x) { saidasItens.push(saidasArmar(x.s, x.key, x.modeIdx, false)); });
+      // Um switcher escolhido que, com este sinal, já não cobre o total
+      // sai da lista de opções (como sempre saiu) mas continua aqui, a dizer
+      // que não cabe — senão a comparação desaparecia justamente quando o
+      // sinal cresce.
+      (PROCESSORS_DATA.switchers || []).forEach(function (s) {
+        var key = itemKey(s.marca, s.modelo);
+        if (!selectedSinalSwitcherKeys.has(key) || switchersChosen.some(function (x) { return x.key === key; })) return;
+        saidasItens.push(saidasArmar(s, key, s.outputModes ? (selectedSinalOutputMode.get(key) || 0) : null, true));
+      });
+    }
     var switchersShown = (switchersChosen.length && !sinalSwitcherListExpanded) ? switchersChosen : switchersMP;
 
     document.getElementById("sg-switcher-mp-list").innerHTML = (switchersShown.length
@@ -9553,8 +9828,11 @@
     });
 
     var detailWrap = document.getElementById("sg-switcher-detail-wrap");
-    detailWrap.style.display = switchersChosen.length ? "block" : "none";
+    detailWrap.style.display = (switchersChosen.length || saidasItens.length) ? "block" : "none";
+    document.getElementById("sg-saidas-comparacao").innerHTML = saidasItens.length >= 2
+      ? saidasComparacaoHtml(saidasItens.map(function (it) { return it.M; })) : "";
     document.getElementById("sg-switcher-detail").innerHTML = switchersChosen.map(function (x) {
+      var saidasItem = saidasItens.filter(function (it) { return it.key === x.key; })[0];
       var resTxt = x.perConnRes
         ? " — cada uma a " + fmtInt(x.perConnRes.w) + "×" + fmtInt(x.perConnRes.h) + "px" + (x.connsEstimated ? " (estimado por capacidade, sem pixel clock publicado)" : "")
         : (x.connsEstimated ? " (resolução por ligação não calculável)" : "");
@@ -9577,8 +9855,19 @@
         '<div class="sinal-detail-row"><span class="k">Saída</span><span class="v">' + saidaVal + modeSelect + '</span></div>' +
         '<div class="sinal-detail-row"><span class="k">Capacidade</span><span class="v">' + fmt(x.cap, 1) + ' MP — ' + x.pct + '%</span></div>' +
         advancedWarn +
+        (saidasItem ? saidasCaixaHtml(saidasItem.M) : '') +
         '</div>';
+    }).join("") + saidasItens.filter(function (it) { return it.semCobertura; }).map(function (it) {
+      return '<div class="sinal-detail-card"><h3>' + saidasNome(it.s) + ' ' + srcLinkHtml(it.s.fonte) + '</h3>' +
+        saidasCaixaHtml(it.M) +
+        '<button type="button" class="copy saidas-remover" data-key="' + it.key + '" style="margin-top:10px;">Tirar da escolha</button></div>';
     }).join("");
+    document.getElementById("sg-switcher-detail").querySelectorAll(".saidas-remover").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        selectedSinalSwitcherKeys.delete(btn.dataset.key);
+        calcSinal();
+      });
+    });
 
     document.getElementById("sg-switcher-detail").querySelectorAll(".sinal-mode-select").forEach(function (sel) {
       sel.addEventListener("change", function () {
@@ -9668,6 +9957,7 @@
       "Ligação mínima recomendada: " + connectorForClock(clockMHz) + "\n\n" +
       (preSwitchEnabled ? "Pré-switch (" + fmtInt(psH) + "×" + fmtInt(psV) + "px):\n" + preSwitchLines + "\n\n" : "") +
       (switchersChosen.length ? "Switchers escolhidos:\n" + switchersLines + "\n\n" : "") +
+      (saidasItens.length ? saidasRelatorio(saidasItens.map(function (it) { return it.M; }), saidasItens, saidasLido) + "\n\n" : "") +
       "Processo de LED escolhido:\n" + ledProcLines;
 
     renderProjectItems();

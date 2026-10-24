@@ -11,6 +11,37 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
+## 25 de outubro — «Saídas a usar (N)» na aba Sinal & Data Rate (v4.66) — POR FUNDIR (espera o ok do Mike)
+
+**AV Planner v4.66** (sw `calculadores-v455`). Pedido do Mike: dar o nº de saídas do switcher e ver a resolução, a capacidade, a possibilidade e uma sugestão — no sítio da ESCOLHA do switcher, para trocar de switcher e comparar.
+
+### O que ficou feito
+
+- Campo **«Saídas a usar (N)»** (`#sg-saidas`) no bloco «Switchers de show». Vazio = todas as saídas (como antes); inteiro >= 1; inválido avisa e conta como vazio; se passar do que o switcher tem avisa e calcula com as que ele tem (também limitado pelo `outputModes` escolhido).
+- **Só para os switchers ESCOLHIDOS**: cada cartão ganha uma caixa «Saídas a usar» com as DUAS disposições lado a lado:
+  - **Canvas contínuo** — o sinal indicado é o canvas inteiro; as N saídas em faixas iguais ao longo da dimensão maior (a conta que já existia, `splitCanvasForClock/Capacity`, ao contrário): maior canvas, com a proporção do sinal, que N faixas aguentam por pixel clock e dentro da capacidade com a margem de 90%. Mostra também o máximo mantendo PGM + Preview.
+  - **N ecrãs independentes** — o sinal indicado é o de CADA ecrã; resolução máxima por saída (pixel clock da ligação e a parte da capacidade que cabe a cada saída), e o total.
+  - Para cada uma: resolução máxima, capacidade, possibilidade (sim/não com o motivo: saídas/pixel clock, capacidade, entradas) e **sugestão calculada** (nº mínimo de saídas, outros switchers que servem com N, baixar frame rate — com a capacidade a 30p da ficha —, ligar as unidades/modo avançado, e um aviso honesto de que baixar a cor não muda pixel clock nem MP). Sem pixel clock publicado: orçamento por capacidade e marcado «~».
+  - Com 2 ou mais escolhidos: tabela de comparação. Um escolhido que já não cobre o total de píxeis continua no detalhe, a dizer que não cabe (antes desaparecia em silêncio), com «Tirar da escolha».
+- Entra no «Copiar relatório» (linha essencial a 2 espaços — fica no simplificado — e detalhe a 4 espaços).
+- PT/EN: secção `SAIDAS_EN` em `js/i18n.js` (frases por pedaços; NÃO acrescentar « de », « e », « usa »…) + 3 rótulos exatos em `DICT_EXACT_EN`.
+
+### Ficheiros
+
+`js/saidas-switcher.js` (contas, puras, com as funções da página injetadas), `index.html` (campo, helpers `saidas*`, ligação em `calcSinal`), `css/app.css`, `js/i18n.js`, `sw.js`, e as verificações abaixo.
+
+### Como verificar
+
+- `node --test scripts/verificar-saidas-switcher.mjs` — contas, com as funções verdadeiras lidas do `index.html`.
+- `python scripts/verificar-saidas-switcher-pagina.py <pasta-da-versão-antiga>` — Playwright (Edge): regressão sem N, contas à mão, consola, 400 px, EN/PT.
+
+### Por fazer
+
+- O Mike escolher a disposição que prefere (hoje mostram-se as duas).
+- Testar com equipamento real as contas por capacidade dos switchers sem pixel clock (P20-DS, P80…): são estimativas.
+
+---
+
 ## 4 de outubro, ~00:45 — "Mike virtual": o Better call Mike pensa como o mike e aprende com aprovação (v4.64) — ESTADO ACTUAL
 
 **Calculadores v4.64** (sw `calculadores-v452`) · `mike/` sem mudanças · o
