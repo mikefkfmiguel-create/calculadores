@@ -42,7 +42,13 @@
     /^1 cm =/,
     /^1 in =/,
     /^1 px =/,
-    /^Tamanho a definir no PowerPoint/
+    /^Tamanho a definir no PowerPoint/,
+    // Alimentação em série / consumo por brilho (v4.68): a conta por extenso e
+    // a repartição por fase são detalhe; as linhas «Alimentação em série» e
+    // «Cadeias» ficam, como as de «Brilho …» quando o interruptor está ligado.
+    /^Conta da alimentação/,
+    /^Por fase \(trifásica\)/,
+    /^Estimativa:/
   ];
 
   function encurtarLinha(linha) {

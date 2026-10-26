@@ -11,6 +11,39 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
+## 26 de outubro — Cabinets em série por entrada + consumo por brilho (v4.68)
+
+**AV Planner v4.68** (sw `calculadores-v457`). Pedido do Mike: a conta da **corrente máx. de saída** de cada cabinet para saber **quantos ligar em série** a partir de uma entrada de corrente — com **margem de segurança de 20 %** — e o **consumo estimado por brilho** em 5 patamares (100, 75, 50, 25, 10 %).
+
+### A conta
+
+`utilizável = I_max × (1 − margem)`; `N = floor(utilizável ÷ I_cab)`; `entradas M = ceil(n ÷ N)`; cadeias **equilibradas** (100 tiles com N=15 -> 7 cadeias de 14/15); corrente no 1.º cabinet da cadeia mais carregada = `ceil(n ÷ M) × I_cab`, com a % de ocupação de `I_max`. Trifásica: as entradas repartem-se por L1/L2/L3 (máx. = `ceil(M ÷ 3)`). Pressuposto (por confirmar com o Mike): «corrente máx. de saída» = o que o conector de passagem do 1.º cabinet aguenta.
+
+### O que ficou feito
+
+- Campo **«Corrente máx. de saída (A)»** (opcional) na aba Ecrã LED (`#l-ampmax`) e em cada zona do Ecrã Complexo (`.lz-ampmax`, também na página solta `ecra-complexo.html`). O catálogo NÃO tem o valor (não se inventa); lê `ampSaidaMax` se um dia o tiver. Trocar de modelo limpa-o.
+- Bloco **«Alimentação em série»** nos resultados (LED: um ecrã, com «Cada ecrã: M; N ecrãs → total»; Ecrã Complexo: por zona + total das zonas; zonas sem o campo dizem-se «não contadas»). Meios-tiles contam como inteiros (prudente).
+- **Parâmetros comuns** (`js/corrente-serie.js`, `montarParametros`): margem (0–50 %, 20), consumo mínimo/base (0–50 %, 0), tensão por cabinet (opcional; sem ela só amperes) e interruptor **«Incluir consumo por brilho no relatório»** (desligado). São UM conjunto, espelhado entre a aba Ecrã LED e os totais do Ecrã Complexo; guardados em `localStorage` (`calculadores-alimentacao-v1`) e no `.cal` (`alimentacao`). `ampMax` de cada zona viaja em `ledZones`.
+- Tabela **«Consumo estimado por brilho»**: `I(b) = I_max × (base + (1 − base) × b)`; W = I × V só com tensão; A/fase = total ÷ 3; poupança face a 100 %. É estimativa: o dimensionamento (disjuntores, cadeias) continua pelo máximo. Aparece no ecrã sempre que há amperes; no relatório só com o interruptor ligado.
+- Relatório (Completo e Simplificado): linhas «Alimentação em série», «Cadeias» (ficam nos dois), «Conta da alimentação», «Por fase (trifásica)» e «Estimativa:» (só Completo — `TIRAR` em `js/relatorio-simples.js`). Campo vazio = NENHUMA linha nova. Entram também no relatório da aba Projeto quando se usam as zonas.
+- PT/EN: secção `CORRENTE_EN` em `js/i18n.js` (frases partidas nos números; sem « por fase »/« de » soltos).
+
+### Ficheiros
+
+`js/corrente-serie.js` (novo), `index.html`, `js/zonas.js`, `js/relatorio-simples.js`, `js/i18n.js`, `css/app.css`, `ecra-complexo.html`, `sw.js` (v457 + ficheiro novo na cache).
+
+### Como verificar
+
+- `node --test scripts/verificar-corrente-serie.mjs` — contas puras (referência por procura linear).
+- `python scripts/verificar-corrente-serie-pagina.py <pasta-da-versão-antiga>` — Playwright (Edge): contas, vazio, trifásica, várias zonas, brilho, interruptor, guardar/abrir (ficheiro novo e antigo), EN/PT, 400 px, regressão. Com um URL `https://…` corre contra a página no ar.
+
+### Por fazer
+
+- A aba Projeto com um tile do catálogo (sem zonas) não tem o campo (o catálogo não traz o valor).
+- Confirmar com o Mike o significado de «max output».
+
+---
+
 ## 25 de outubro — «Saídas a usar (N)» na aba Sinal & Data Rate (v4.66) — POR FUNDIR (espera o ok do Mike)
 
 **AV Planner v4.66** (sw `calculadores-v455`). Pedido do Mike: dar o nº de saídas do switcher e ver a resolução, a capacidade, a possibilidade e uma sugestão — no sítio da ESCOLHA do switcher, para trocar de switcher e comparar.

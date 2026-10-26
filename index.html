@@ -50,7 +50,7 @@
     <button type="button" class="mark topbtn" id="btInventario"
             title="O meu inventário — diz à app que modelos tens, para ficarem à frente nas listas">📦 Inventário</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.67</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.68</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -1045,6 +1045,12 @@
             <div class="inputgroup"><input id="l-amp" type="number" autocomplete="off" inputmode="decimal" placeholder="0.52" min="0" step="0.01"><span class="unit">A</span></div>
           </div>
         </div>
+        <div class="field">
+          <label for="l-ampmax">Corrente máx. de saída (A)</label>
+          <div class="inputgroup"><input id="l-ampmax" type="number" autocomplete="off" inputmode="decimal" placeholder="ex.: 10" min="0" step="0.1"><span class="unit">A</span></div>
+          <div class="hint">Opcional. O máximo que o conector de passagem (saída de alimentação) de cada cabinet aguenta, na ficha do fabricante — costuma ser entre 10 e 32 A. Com ele a app diz quantos cabinets ligar em série por entrada de corrente. Vazio = sem este cálculo.</div>
+        </div>
+        <div id="l-alim-params"></div>
 
         <div class="divider">Brilho</div>
         <div class="field">
@@ -1108,6 +1114,7 @@
           <div class="item"><div class="k">Amp por fase (máx.)</div><div class="v" id="l-out-ampphase">—</div></div>
         </div>
         <p class="note" id="l-qty-nota" style="display:none;"></p>
+        <div id="l-alim"></div>
         <p class="note">Valores de amperagem são o consumo máximo publicado pelo fabricante (pico, não a média em uso real) — a margem de segurança correta para dimensionar disjuntores/circuitos. Trifásica: amp por fase = (amp por tile × nº de tiles) ÷ 3.</p>
 
         <div class="summary">
@@ -3162,6 +3169,7 @@
 <script src="js/visualizacao.js"></script>
 <script src="js/meu-inventario.js"></script>
 <script src="js/utils.js"></script>
+<script src="js/corrente-serie.js"></script>
 <script src="js/saidas-switcher.js"></script>
 <script src="js/meus-modelos.js"></script>
 <script src="js/relatorio-simples.js"></script>
@@ -4797,6 +4805,9 @@
     document.getElementById("l-ry").value = t.ry;
     document.getElementById("l-weight").value = t.weight == null ? "" : t.weight;
     document.getElementById("l-amp").value = t.amp;
+    // A corrente máx. de saída é do modelo: ao trocar de modelo a antiga já não
+    // vale. O catálogo não a traz (não se inventa) -- só preenche se um dia trouxer.
+    document.getElementById("l-ampmax").value = t.ampSaidaMax == null ? "" : t.ampSaidaMax;
     document.getElementById("l-nits").value = t.nitsMax == null ? "" : t.nitsMax;
     calcLed();
   });
@@ -4809,6 +4820,12 @@
   document.getElementById("l-nits").addEventListener("input", function () {
     populateLedModelSelect(ledModelSel, val("l-nits"));
   });
+  // Margem de segurança, consumo mínimo, tensão e interruptor do relatório:
+  // os mesmos campos existem nos totais do Ecrã Complexo e acompanham-se.
+  if (window.correnteSerie) {
+    window.correnteSerie.montarParametros(document.getElementById("l-alim-params"), "l");
+    window.correnteSerie.aoMudar(function () { calcLed(); });
+  }
 
   var lSizeMode = "tiles";
   var lTilesInputs = document.getElementById("l-tiles-inputs");
@@ -5011,6 +5028,36 @@
     return best;
   }
 
+  // ALIMENTAÇÃO EM SÉRIE + CONSUMO POR BRILHO do ecrã LED (js/corrente-serie.js).
+  // Só ACRESCENTA: não toca em nenhum dos totais de cima. Devolve as linhas
+  // para o relatório (vazio se o campo «Corrente máx. de saída» não foi
+  // preenchido -- «só mostrar o que foi escolhido»).
+  function alimLedAtualizar(numTiles, icab, meio, qtd, ampTodos) {
+    var cs = window.correnteSerie, el = document.getElementById("l-alim");
+    if (!cs || !el) return [];
+    var p = cs.parametros();
+    var imax = val("l-ampmax");
+    var res = cs.calcular({ imax: imax, icab: icab, n: numTiles, margemPct: p.margem });
+    var html = '<h2 style="margin-top:18px;">Alimentação em série</h2>';
+    var linhas = [];
+    if (res.estado === "sem-imax") {
+      html += '<p class="note">Indique a corrente máx. de saída (A) para calcular quantos cabinets ligar em série por entrada.</p>';
+    } else if (res.estado === "sem-icab") {
+      html += '<p class="note">Falta o «Amp máx. por tile» para fazer esta conta.</p>';
+    } else {
+      html += cs.htmlDetalhe(res, { qtd: qtd, meio: meio });
+      linhas = cs.linhasRelatorio(res);
+      if (res.estado === "ok" && qtd > 1) linhas.push("Cada ecrã: " + res.M + " entradas; " + qtd + " ecrãs → " + (res.M * qtd) + " no total.");
+    }
+    var brilho = cs.consumoPorBrilho({ itotal: ampTodos, basePct: p.base, tensao: p.tensao });
+    html += cs.htmlTabelaConsumo(brilho, { basePct: p.base });
+    el.innerHTML = html;
+    if (p.incluir && brilho) {
+      linhas = linhas.concat(cs.linhasConsumo(brilho, { basePct: p.base }), [cs.linhaAviso()]);
+    }
+    return linhas;
+  }
+
   function calcLed() {
     updateSourceHint(ledModelSel, LED_TILES_DATA, "l-model-source", true);
     var mw = val("l-mw"), mh = val("l-mh");
@@ -5117,6 +5164,8 @@
     var weightTodos = weightTotal * qtd;
     var ampTodos = ampTotal * qtd;
     var ampPhase = ampTodos / 3;
+    var linhasAlim = alimLedAtualizar(numTiles,
+      mixed ? Math.max(ampPerTile, mixed.half.amp) : ampPerTile, !!mixed, qtd, ampTodos);
     document.getElementById("l-out-tiles").textContent = fmtInt(numTilesTodos);
     document.getElementById("l-out-weight").innerHTML = fmt(weightTodos,1) + "<small>kg</small>";
     document.getElementById("l-out-amp").innerHTML = fmt(ampTodos,2) + "<small>A</small>";
@@ -5216,6 +5265,8 @@
           " kg  —  Amps (máx.): " + fmt(ampTodos,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)"
         : "Peso total: " + fmt(weightTotal,1) + " kg  —  Amps (máx.): " + fmt(ampTotal,2) + " A total, " + fmt(ampPhase,2) + " A por fase (trifásica)");
 
+    if (linhasAlim.length) document.getElementById("l-sum").textContent += "\n" + linhasAlim.join("\n");
+
     calcLedSuggest();
     renderProjectItems();
     if (document.getElementById("l-addproject").checked) syncLedToProject();
@@ -5239,6 +5290,7 @@
       curveMode: lCurveMode,
       curveValue: val("l-curve-value"),
       curveDir: document.getElementById("l-curve-dir").value,
+      ampMax: isFinite(val("l-ampmax")) ? val("l-ampmax") : "",
       // Quantos ecrãs iguais. Três ecrãs iguais ocupam três sítios na sala, e
       // um desenho com um só não é o desenho da montagem -- reportado assim:
       // "na calculadora marquei 3 e o 3D apenas mostra um". Quem os coloca é
@@ -7065,7 +7117,8 @@
           "Amp total (máx.): " + (lzLastTotals.pesoDesconhecido
             ? "não conhecido"
             : fmt(totalAmp, 2) + " A  —  " + fmt(ampPhaseZ, 2) + " A por fase (trifásica)" + (lzLastTotals.notaPesoParcial || "")) + "\n" +
-          "Área total (uso interno): " + fmt(lzLastTotals.totalArea, 2) + " m²";
+          "Área total (uso interno): " + fmt(lzLastTotals.totalArea, 2) + " m²" +
+          (lzLastTotals.alimTexto ? "\n" + lzLastTotals.alimTexto : "");
       }
       } else {
       zonesHint.style.display = "none";
@@ -8569,7 +8622,10 @@
       // Os blends acrescentados da aba do Blending — um projeto que reabre
       // sem eles é um projeto que perdeu telas.
       blendsProjecao: projBlendsGuardados,
-      modelosMeus: window.meusModelos ? { tv: window.meusModelos.ler("tv") } : null
+      modelosMeus: window.meusModelos ? { tv: window.meusModelos.ler("tv") } : null,
+      // Margem de segurança, consumo mínimo, tensão e o interruptor do consumo
+      // por brilho no relatório. Ficheiros de antes não os trazem e abrem na mesma.
+      alimentacao: window.correnteSerie ? window.correnteSerie.parametros() : null
     };
   }
 
@@ -9028,6 +9084,7 @@
       var entraram = window.meusModelos.importar("tv", state.modelosMeus.tv);
       if (entraram && window.recarregarTVs) window.recarregarTVs();
     }
+    if (state.alimentacao && window.correnteSerie) window.correnteSerie.aplicarParametros(state.alimentacao);
     setFieldVal("proj-nome", state.nome);
     setFieldVal("proj-data-inicio", state.dataInicio);
     setFieldVal("proj-data-fim", state.dataFim);

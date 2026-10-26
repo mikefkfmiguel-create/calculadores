@@ -361,6 +361,7 @@
     if (opts.ry != null) card.querySelector(".lz-ry").value = opts.ry;
     if (opts.weight != null) card.querySelector(".lz-weight").value = opts.weight;
     if (opts.amp != null) card.querySelector(".lz-amp").value = opts.amp;
+    if (opts.ampMax != null) card.querySelector(".lz-ampmax").value = opts.ampMax;
     // Resolução nativa das zonas de delay (TV/projeção). Ao contrário do
     // rx/ry do LED -- que são píxeis POR TILE e têm valor por omissão --
     // estes ficam em branco quando não se sabem, e em branco quer mesmo
@@ -462,6 +463,7 @@
       ry: card.querySelector(".lz-ry").value,
       weight: card.querySelector(".lz-weight").value,
       amp: card.querySelector(".lz-amp").value,
+      ampMax: card.querySelector(".lz-ampmax").value,
       delayRx: card.querySelector(".lz-delay-rx").value,
       delayRy: card.querySelector(".lz-delay-ry").value,
       curveEnabled: card.querySelector(".lz-curve-enabled").checked,
@@ -604,6 +606,11 @@
         '<div class="row2 lz-custom-fields" style="display:none;">' +
           '<div class="field"><label>Peso por tile</label><div class="inputgroup"><input class="lz-weight" type="number" inputmode="decimal" value="6.0" min="0" step="0.1"><span class="unit">kg</span></div></div>' +
           '<div class="field"><label>Amp máx. por tile</label><div class="inputgroup"><input class="lz-amp" type="number" inputmode="decimal" value="0.52" min="0" step="0.01"><span class="unit">A</span></div></div>' +
+        '</div>' +
+        '<div class="field lz-led-only">' +
+          '<label>Corrente máx. de saída (A)</label>' +
+          '<div class="inputgroup"><input class="lz-ampmax" type="number" inputmode="decimal" placeholder="ex.: 10" min="0" step="0.1"><span class="unit">A</span></div>' +
+          '<div class="hint">Opcional. O máximo que o conector de passagem de cada cabinet aguenta (ficha do fabricante, 10 a 32 A): serve para contar quantos ligar em série por entrada. Vazio = sem este cálculo.</div>' +
         '</div>' +
         '<div class="field lz-led-only">' +
           '<label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:400;">' +
@@ -842,6 +849,7 @@
     var opts = {
       tipo: "led",
       modelValue: spec.modelValue,
+      ampMax: spec.ampMax == null ? "" : spec.ampMax,
       sizeMode: "tiles",
       mx: spec.mx,
       my: spec.my,
@@ -1422,6 +1430,10 @@
     card.querySelector(".lz-ry").value = t.ry;
     card.querySelector(".lz-weight").value = t.weight == null ? "" : t.weight;
     card.querySelector(".lz-amp").value = t.amp == null ? "" : t.amp;
+    // O catálogo não traz a corrente máx. de saída (não se inventa); se um dia
+    // trouxer, entra aqui -- sem pisar o que a pessoa já escreveu.
+    var campoAmpMax = card.querySelector(".lz-ampmax");
+    if (campoAmpMax && t.ampSaidaMax != null && campoAmpMax.value === "") campoAmpMax.value = t.ampSaidaMax;
   }
 
   document.querySelectorAll("#lz-add, #lz-add-top, #lz-add-canvas").forEach(function (btn) {
@@ -1771,6 +1783,9 @@
   });
   lzList.addEventListener("change", function (e) {
     if (e.target.classList.contains("lz-model")) {
+      // A corrente máx. de saída é do modelo: ao trocar, a antiga já não vale.
+      var campoAmpMaxTroca = e.target.closest(".card").querySelector(".lz-ampmax");
+      if (campoAmpMaxTroca) campoAmpMaxTroca.value = "";
       lzApplyModel(e.target.closest(".card"));
       updateSelectStockColor(e.target);
     }
@@ -2700,6 +2715,83 @@
     });
   }
 
+  // ALIMENTAÇÃO EM SÉRIE + CONSUMO POR BRILHO dos totais (js/corrente-serie.js).
+  // Só ACRESCENTA ao que já se calcula: cada zona LED com «Corrente máx. de
+  // saída» preenchida entra na conta; as outras não contam e diz-se quais.
+  // O dimensionamento fica pelo máximo; a tabela por brilho é só estimativa.
+  var lzAlimEl = null;
+  function lzMontarAlimentacao() {
+    var cs = window.correnteSerie;
+    if (!cs) return;
+    var ancora = document.getElementById("lz-out-amp");
+    var readout = ancora && ancora.closest(".readout");
+    if (!readout) return;
+    lzAlimEl = document.createElement("div");
+    lzAlimEl.id = "lz-alim";
+    lzAlimEl.innerHTML = '<div id="lz-alim-params" style="margin-top:12px;"></div><div id="lz-alim-res"></div>';
+    readout.parentNode.insertBefore(lzAlimEl, readout.nextSibling);
+    cs.montarParametros(document.getElementById("lz-alim-params"), "lz");
+    cs.aoMudar(function () { calcLedZones(); });
+  }
+  lzMontarAlimentacao();
+
+  // Devolve as linhas de texto do relatório e escreve o resultado no ecrã.
+  function lzAlimentacao(zonasLed, totalAmp, pesoDesconhecido) {
+    var cs = window.correnteSerie;
+    var linhas = [];
+    if (!cs || !lzAlimEl) return linhas;
+    var alvo = document.getElementById("lz-alim-res");
+    if (!zonasLed.length) { alvo.innerHTML = ""; return linhas; }
+    var p = cs.parametros();
+    var varias = zonasLed.length > 1;
+    var contas = zonasLed.map(function (z) {
+      return { z: z, res: cs.calcular({ imax: z.ampMax, icab: z.ampTile, n: z.numTiles, margemPct: p.margem }) };
+    });
+    var feitas = contas.filter(function (c) { return c.res.estado === "ok" || c.res.estado === "nenhum-cabe"; });
+    var sem = contas.filter(function (c) { return c.res.estado === "sem-imax" || c.res.estado === "sem-icab"; });
+    var html = '<h2 style="margin-top:18px;">Alimentação em série</h2>';
+    if (!feitas.length) {
+      html += '<p class="note">Indique a corrente máx. de saída (A) para calcular quantos cabinets ligar em série por entrada.</p>';
+    } else if (feitas.length === 1 && !varias) {
+      html += cs.htmlDetalhe(feitas[0].res);
+      linhas = linhas.concat(cs.linhasRelatorio(feitas[0].res));
+    } else {
+      var soma = cs.somar(feitas.map(function (c) { return c.res; }));
+      if (soma.zonas) {
+        html += '<div class="readout"><div class="item wide"><div class="k">Entradas de alimentação necessárias (total das zonas)</div><div class="v">' + soma.entradas + '</div></div></div>';
+      }
+      feitas.forEach(function (c) {
+        html += cs.htmlLinhaZona(c.res, c.z.name);
+        linhas = linhas.concat(cs.linhasRelatorio(c.res, c.z.name));
+      });
+      if (soma.zonas) {
+        if (soma.entradas > 1) html += '<p class="note">' + ("Trifásica: as entradas repartem-se pelas 3 fases; máx. de entradas por fase = " + Math.ceil(soma.entradas / 3) + ".") + '</p>';
+        linhas.push("Entradas de alimentação necessárias (total das zonas): " + soma.entradas);
+      }
+    }
+    if (sem.length && feitas.length) {
+      html += '<p class="note">Sem corrente máx. de saída (não contadas): ' + sem.map(function (c) {
+        return String(c.z.name).replace(/[&<>"]/g, function (ch) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]; });
+      }).join(", ") + '.</p>';
+    }
+    // Consumo estimado por brilho: total das zonas LED e, havendo várias, cada uma.
+    var brilho = pesoDesconhecido ? null : cs.consumoPorBrilho({ itotal: totalAmp, basePct: p.base, tensao: p.tensao });
+    if (brilho) {
+      html += cs.htmlTabelaConsumo(brilho, { basePct: p.base }, varias ? "Consumo estimado por brilho (total das zonas LED)" : "Consumo estimado por brilho");
+      var porZona = varias ? zonasLed.map(function (z) {
+        return { nome: z.name, linhas: cs.consumoPorBrilho({ itotal: z.amp, basePct: p.base, tensao: p.tensao }) };
+      }).filter(function (x) { return x.linhas; }) : [];
+      if (porZona.length) html += cs.htmlTabelaZonasConsumo(porZona);
+      if (p.incluir) {
+        linhas = linhas.concat(cs.linhasConsumo(brilho, { basePct: p.base }, varias ? "total das zonas LED" : ""));
+        porZona.forEach(function (x) { linhas.push(cs.linhaConsumoZona(x.nome, x.linhas)); });
+        linhas.push(cs.linhaAviso());
+      }
+    }
+    alvo.innerHTML = html;
+    return linhas;
+  }
+
   function calcLedZones() {
     var cards = lzList.querySelectorAll(".card");
     var totalsCard = document.getElementById("lz-totals-card");
@@ -2774,6 +2866,7 @@
       var ry = parseFloat(card.querySelector(".lz-ry").value);
       var weight = parseFloat(card.querySelector(".lz-weight").value);
       var amp = parseFloat(card.querySelector(".lz-amp").value);
+      var ampMax = parseFloat(card.querySelector(".lz-ampmax").value);
       var mxInput = card.querySelector(".lz-mx");
       var myInput = card.querySelector(".lz-my");
       var activeSeg = card.querySelector(".lz-sizemode-seg .seg-btn.active");
@@ -2832,7 +2925,7 @@
       }
       lzRenderCurvePreview(card.querySelector(".lz-curve-preview"), curveInfo ? curveInfo.n : 0, curveInfo ? curveInfo.angleDeg : 0, curveInfo ? curveInfo.convex : false);
 
-      zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, resConhecida: totalPx > 0 && totalPy > 0, weight: zoneWeight, amp: zoneAmp, pesoConhecido: true, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: curveText, curve: curveInfo });
+      zones.push({ id: card.dataset.zoneId, origem: (card.dataset.origemTv === "1" ? "tv" : (card.dataset.origemLed === "1" ? "led" : null)), name: name, model: modelLabel, tipo: card.querySelector(".lz-tipo").value, mx: mx, my: my, numTiles: isNaN(numTiles) ? 0 : numTiles, w: wM, h: hM, area: isNaN(zoneArea) ? 0 : zoneArea, totalPx: totalPx, totalPy: totalPy, pixels: isNaN(zonePixels) ? 0 : zonePixels, resConhecida: totalPx > 0 && totalPy > 0, weight: zoneWeight, amp: zoneAmp, ampTile: amp, ampMax: ampMax, pesoConhecido: true, posX: posX, posY: posY, visible: visible, isRef: isRef, colorOverride: card.dataset.colorOverride || null, preview3d: lzPreview3dDoCard(card), curveText: curveText, curve: curveInfo });
     });
 
     // Zonas desmarcadas em "Vis." ficam de fora do desenho, das contas do
@@ -2913,6 +3006,9 @@
       ? "<small>não conhecido</small>"
       : fmt(totalAmp,2) + "<small>A</small> (" + fmt(totalAmp/3,2) + "<small>A/fase</small>)" + (zonasSemPeso ? "<small> — só as LED</small>" : "");
 
+    var linhasAlim = lzAlimentacao(zonasLed, totalAmp, pesoDesconhecido);
+    var alimTexto = linhasAlim.join("\n");
+
     var colorMap = lzGroupColorMap(visibleZones);
     cards.forEach(function (card, i) {
       var colorInput = card.querySelector(".lz-color-input");
@@ -2969,9 +3065,10 @@
         }).join(" · ");
       })() +
       (pm ? "\nResolução final do canvas (com gaps): " + canvasResText + (pm.mixedPitch ? " — pitches diferentes, aproximado com o pitch da zona \"" + pm.refName + "\" como referência (" + (pm.refPinned ? "marcada manualmente" : "automática, zona mais alta") + ")" : "") : "") +
-      (pm ? "\nResolução final do canvas (sem gaps): " + canvasResNoGapsText + " — usada para o sinal/processo: " + (lzCanvasMode === "nogaps" ? "sem gaps" : "com gaps") : "");
+      (pm ? "\nResolução final do canvas (sem gaps): " + canvasResNoGapsText + " — usada para o sinal/processo: " + (lzCanvasMode === "nogaps" ? "sem gaps" : "com gaps") : "") +
+      (alimTexto ? "\n" + alimTexto : "");
 
-    lzLastTotals = { zones: visibleZones, zonasLed: zonasLed, zonasDelay: zonasDelay, textoDelay: textoDelay, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, pesoDesconhecido: pesoDesconhecido, zonasSemPeso: zonasSemPeso, notaPesoParcial: notaPesoParcial, bbox: bbox, pixelMap: pm, colorMap: colorMap };
+    lzLastTotals = { zones: visibleZones, zonasLed: zonasLed, zonasDelay: zonasDelay, textoDelay: textoDelay, totalTiles: totalTiles, totalPixels: totalPixels, totalArea: totalArea, totalWeight: totalWeight, totalAmp: totalAmp, pesoDesconhecido: pesoDesconhecido, zonasSemPeso: zonasSemPeso, notaPesoParcial: notaPesoParcial, bbox: bbox, pixelMap: pm, colorMap: colorMap, alimTexto: alimTexto };
 
     // As duas apps vivem no mesmo dominio e partilham o localStorage: e por
     // aqui que elas falam. O preview le isto ao abrir -- e, se estiver aberto

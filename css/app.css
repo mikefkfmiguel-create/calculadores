@@ -2169,3 +2169,10 @@
   .bcm-rodape { margin-top: 24px; font-size: 0.8em; color: var(--ink-faint); text-align: center; }
   .bcm-instalar-recado { margin: -8px 0 14px; }
   .bcm-instalar-recado:empty { display: none; }
+
+  /* Parâmetros de alimentação (v4.68): margem, consumo mínimo, tensão e o
+     interruptor do consumo por brilho no relatório. */
+  .cs-params { margin-top: 12px; }
+  .cs-params .cs-incluir { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; margin-top: 4px; }
+  .cs-params .cs-incluir input { width: auto; }
+  .cs-consumo { margin-top: 14px; }
