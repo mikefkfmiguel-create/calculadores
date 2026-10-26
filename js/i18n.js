@@ -1155,6 +1155,73 @@
   };
   Object.keys(SAIDAS_EN).forEach(function (k) { DICT_EN[k] = SAIDAS_EN[k]; });
 
+  // ---- Alimentação em série e consumo por brilho (v4.68) ----
+  // Frases partidas nos números (o motor troca trechos): ver js/corrente-serie.js.
+  var CORRENTE_EN = {
+    "Corrente máx. de saída (A)": "Max output current (A)",
+    "Opcional. O máximo que o conector de passagem (saída de alimentação) de cada cabinet aguenta, na ficha do fabricante — costuma ser entre 10 e 32 A. Com ele a app diz quantos cabinets ligar em série por entrada de corrente. Vazio = sem este cálculo.": "Optional. The most the pass-through connector (power output) of each cabinet can carry, from the manufacturer's data sheet — usually between 10 and 32 A. With it the app tells you how many cabinets to chain in series per power input. Empty = no calculation.",
+    "Opcional. O máximo que o conector de passagem de cada cabinet aguenta (ficha do fabricante, 10 a 32 A): serve para contar quantos ligar em série por entrada. Vazio = sem este cálculo.": "Optional. The most the pass-through connector of each cabinet can carry (manufacturer's data sheet, 10 to 32 A): used to count how many to chain in series per input. Empty = no calculation.",
+    "ex.: 10": "e.g. 10",
+    "Margem de segurança": "Safety margin",
+    "Consumo mínimo (base)": "Minimum consumption (base)",
+    "Tensão por cabinet (opcional)": "Voltage per cabinet (optional)",
+    "A margem fica de fora da capacidade de saída (por omissão 20 %, de 0 a 50 %) e vale para todas as zonas. O consumo mínimo e a tensão só servem para a estimativa por brilho; sem tensão a tabela fica só em amperes.": "The margin is kept free of the output capacity (20 % by default, 0 to 50 %) and applies to all zones. The minimum consumption and the voltage are only used for the brightness estimate; without a voltage the table stays in amps only.",
+    "Incluir consumo por brilho no relatório": "Include consumption by brightness in the report",
+    "Alimentação em série": "Series power feed",
+    "Indique a corrente máx. de saída (A) para calcular quantos cabinets ligar em série por entrada.": "Enter the max output current (A) to calculate how many cabinets to chain in series per input.",
+    "Falta o «Amp máx. por tile» para fazer esta conta.": "The «Max amps per tile» is missing for this calculation.",
+    "Máx. de cabinets em série por entrada": "Max cabinets in series per input",
+    "Entradas de alimentação necessárias (total das zonas)": "Power inputs needed (all zones)",
+    "Entradas de alimentação necessárias": "Power inputs needed",
+    "Distribuição sugerida": "Suggested distribution",
+    "Corrente da cadeia mais carregada (1.º cabinet)": "Current of the most loaded chain (1st cabinet)",
+    "Capacidade total: ": "Total capacity: ",
+    " → com margem de ": " → with a margin of ",
+    " A utilizáveis → ": " A usable → ",
+    " cabinets em série por entrada (": " cabinets in series per input (",
+    " A por cabinet).": " A per cabinet).",
+    " cabinets em série por entrada → ": " cabinets in series per input → ",
+    " entrada de alimentação": " power input",
+    " entradas de alimentação": " power inputs",
+    " (margem de ": " (margin of ",
+    " %): máx. ": " %): max. ",
+    "Cadeias": "Chains",
+    "; a mais carregada: ": "; most loaded: ",
+    " cadeia de ": " chain of ",
+    " cadeias de ": " chains of ",
+    "Conta da alimentação": "Power calculation",
+    ": capacidade total ": ": total capacity ",
+    " A utilizáveis ÷ ": " A usable ÷ ",
+    " A por cabinet = ": " A per cabinet = ",
+    "Por fase (trifásica)": "Per phase (three-phase)",
+    ": máx. de entradas por fase = ": ": max inputs per phase = ",
+    "Trifásica: as entradas repartem-se pelas 3 fases; máx. de entradas por fase = ": "Three-phase: the inputs are spread over the 3 phases; max inputs per phase = ",
+    "⚠ Nenhum cabinet cabe numa entrada: ": "⚠ Not even one cabinet fits on an input: ",
+    " A por cabinet é mais do que os ": " A per cabinet is more than the ",
+    " A utilizáveis (capacidade de ": " A usable (capacity of ",
+    " A, margem de ": " A, margin of ",
+    "Cada ecrã: ": "Each screen: ",
+    " entradas; ": " inputs; ",
+    " ecrãs → ": " screens → ",
+    " no total.": " in total.",
+    "Entradas de alimentação necessárias (total das zonas): ": "Power inputs needed (all zones): ",
+    "Sem corrente máx. de saída (não contadas): ": "Without max output current (not counted): ",
+    "Meios-tiles contados como tiles inteiros (conta prudente).": "Half-tiles counted as full tiles (conservative).",
+    "Consumo estimado por brilho (total das zonas LED)": "Estimated consumption by brightness (all LED zones)",
+    "Consumo estimado por brilho": "Estimated consumption by brightness",
+    " — total das zonas LED": " — all LED zones",
+    " (estimativa linear, consumo mínimo de ": " (linear estimate, minimum consumption of ",
+    "Corrente total": "Total current",
+    "Corrente por fase (trifásica)": "Current per phase (three-phase)",
+    "Potência": "Power",
+    "Poupança face a 100 %": "Saving vs 100 %",
+    " — poupança de ": " — saving of ",
+    "Consumo por brilho — ": "Consumption by brightness — ",
+    "Modelo linear: I = I máx. × (base + (1 − base) × brilho); consumo mínimo (base) de ": "Linear model: I = I max × (base + (1 − base) × brightness); minimum consumption (base) of ",
+    "Estimativa: o consumo real depende do conteúdo e do ecrã; o dimensionamento de disjuntores e cadeias continua a usar o máximo (100 %).": "Estimate: real consumption depends on the content and the screen; breaker and chain sizing still use the maximum (100 %)."
+  };
+  Object.keys(CORRENTE_EN).forEach(function (k) { DICT_EN[k] = CORRENTE_EN[k]; });
+
   // Palavras curtas/ambíguas de mais para entrar no dicionário de substring
   // acima (ex: "e" e "ou" aparecem dentro de imensas outras palavras) — só
   // traduzem quando são o conteúdo INTEIRO de um nó de texto isolado (ex:
