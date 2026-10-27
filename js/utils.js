@@ -778,9 +778,9 @@ function showAlarm(opts) {
   if (closeBtn) closeBtn.addEventListener("click", function () { dialog.close(); });
 })();
 
-// Cor do stock vem do tema (--stock-ink em css/app.css): o roxo fixo #5028C8
-// perdia-se no fundo escuro.
-var STOCK_COLOR = "var(--stock-ink)";
+// O stock deixou de ter cor nem negrito nos menus (pedido do Mike, 27 out): o
+// roxo #5028C8 perdia-se no fundo escuro e a distinção não era precisa.
+// `dataset.stock` mantém-se nas opções para quem precisar dele.
 // isStock vem de quem chama (normalmente "!item.mercado" dos dados em
 // data/*.json) — nada aqui faz sniffing de texto no nome do modelo.
 function addOption(select, value, text, isDefault, dataIdx, isStock, skipMarketTag) {
@@ -790,19 +790,14 @@ function addOption(select, value, text, isDefault, dataIdx, isStock, skipMarketT
   if (isDefault) opt.selected = true;
   if (dataIdx !== undefined) opt.dataset.idx = dataIdx;
   opt.dataset.stock = isStock ? "1" : "0";
-  if (isStock) {
-    opt.style.color = STOCK_COLOR;
-    opt.style.fontWeight = "600";
-  } else {
-    opt.style.color = "var(--ink)";
-    opt.style.fontWeight = "normal";
-  }
+  opt.style.color = "var(--ink)";
+  opt.style.fontWeight = "normal";
   select.insertBefore(opt, select.lastElementChild);
 }
 
-// Ordem dos menus de equipamento: primeiro o stock (o que o Mike tem), depois
-// o mercado, e DENTRO de cada grupo por ordem alfabética de marca + modelo
-// (sem ligar a maiúsculas/acentos; números por valor: "P2.6" antes de "P10").
+// Ordem dos menus de equipamento: alfabética por marca + modelo, sem separar
+// stock de mercado (sem ligar a maiúsculas/acentos; números por valor: "P2.6"
+// antes de "P10").
 function nomeParaOrdem(item) {
   return ((item.marca ? item.marca + " " : "") + (item.modelo || (item.diag != null ? String(item.diag) : ""))).trim();
 }
@@ -812,9 +807,6 @@ function compararNomes(a, b) {
 function stockFirstIndices(arr) {
   var order = arr.map(function (item, i) { return i; });
   order.sort(function (a, b) {
-    var as = arr[a].mercado ? 1 : 0;
-    var bs = arr[b].mercado ? 1 : 0;
-    if (as !== bs) return as - bs;
     return compararNomes(nomeParaOrdem(arr[a]), nomeParaOrdem(arr[b])) || a - b;
   });
   return order;
@@ -823,8 +815,8 @@ function stockFirstIndices(arr) {
 function updateSelectStockColor(select) {
   var opt = select.options[select.selectedIndex];
   var isStock = opt && opt.dataset.stock === "1";
-  select.style.color = isStock ? STOCK_COLOR : "";
-  select.style.fontWeight = isStock ? "600" : "";
+  select.style.color = "";
+  select.style.fontWeight = "";
 }
 function wireStockColor(select) {
   select.addEventListener("change", function () { updateSelectStockColor(select); });

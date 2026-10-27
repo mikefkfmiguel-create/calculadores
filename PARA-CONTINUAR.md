@@ -11,12 +11,12 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
-## 27 de outubro — Menus por ordem alfabética, stock legível no escuro, série no Projeto (v4.69)
+## 27 de outubro — Menus por ordem alfabética, sem referência ao stock, série no Projeto (v4.69)
 
 **AV Planner v4.69** (sw `calculadores-v458`). Três pedidos do Mike:
 
-- **Marcas e modelos por ordem alfabética** nos menus de equipamento (LED, projetores, TVs, lentes, cabine do Sinal, zonas): `stockFirstIndices` (`js/utils.js`) continua a pôr o stock antes do mercado, mas DENTRO de cada grupo ordena por marca + modelo (`localeCompare` pt, números por valor, sem ligar a maiúsculas/acentos). Os modelos de lente (`populateLensModelSelect`) ordenam por marca e modelo. Os índices dos dados não mudam (só a ordem de apresentação). Se o Mike quiser alfabético SEM stock primeiro, é só tirar a comparação `as !== bs` em `stockFirstIndices`.
-- **Cor do stock ilegível no tema escuro**: o roxo-azulado fixo `#5028C8` (`STOCK_COLOR`) perdia-se no fundo. Passou a `var(--stock-ink)` (claro `#5028C8`, escuro `#BBA9FF`) e o verde dos «meus modelos» a `var(--meu-ink)` (claro `#0F8A6A`, escuro `#5FD6AE`), em `css/app.css` nos 3 blocos de tema.
+- **Marcas e modelos por ordem alfabética** nos menus de equipamento (LED, projetores, TVs, lentes, cabine do Sinal, zonas): `stockFirstIndices` (`js/utils.js`, o nome ficou por compatibilidade) ordena agora tudo por marca + modelo (`localeCompare` pt, números por valor), sem separar stock de mercado. Os modelos de lente (`populateLensModelSelect`) ordenam por marca e modelo. Os índices dos dados não mudam.
+- **Referência ao stock retirada** (pedido do Mike): os itens de stock já não levam cor nem negrito nos menus (o roxo `#5028C8` perdia-se no fundo escuro). `dataset.stock` mantém-se nas opções. O verde dos «meus modelos» passou a `var(--meu-ink)` (claro `#0F8A6A`, escuro `#5FD6AE`).
 - **Cabinets em série no Projeto** (cabine do catálogo, sem zonas): campo «Corrente máx. de saída (A)» (`#proj-led-ampmax`) e bloco «Consumo elétrico — cabinets em série» (`#proj-alim`) por baixo dos resultados; entra no resumo do projeto; guarda/abre no `.cal` (`ledAmpMax`); trocar de modelo limpa-o. A margem é a comum da aba Ecrã LED. PT/EN em `CORRENTE_EN`.
 
 Como verificar: `node --test scripts/verificar-corrente-serie.mjs`; `PYTHONIOENCODING=utf-8 python scripts/verificar-corrente-serie-pagina.py <pasta da versão anterior>` (a v4.68) e `scripts/verificar-saidas-switcher-pagina.py`.
