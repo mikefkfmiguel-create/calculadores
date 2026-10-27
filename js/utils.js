@@ -778,7 +778,9 @@ function showAlarm(opts) {
   if (closeBtn) closeBtn.addEventListener("click", function () { dialog.close(); });
 })();
 
-var STOCK_COLOR = "#5028C8";
+// Cor do stock vem do tema (--stock-ink em css/app.css): o roxo fixo #5028C8
+// perdia-se no fundo escuro.
+var STOCK_COLOR = "var(--stock-ink)";
 // isStock vem de quem chama (normalmente "!item.mercado" dos dados em
 // data/*.json) — nada aqui faz sniffing de texto no nome do modelo.
 function addOption(select, value, text, isDefault, dataIdx, isStock, skipMarketTag) {
@@ -798,12 +800,22 @@ function addOption(select, value, text, isDefault, dataIdx, isStock, skipMarketT
   select.insertBefore(opt, select.lastElementChild);
 }
 
+// Ordem dos menus de equipamento: primeiro o stock (o que o Mike tem), depois
+// o mercado, e DENTRO de cada grupo por ordem alfabética de marca + modelo
+// (sem ligar a maiúsculas/acentos; números por valor: "P2.6" antes de "P10").
+function nomeParaOrdem(item) {
+  return ((item.marca ? item.marca + " " : "") + (item.modelo || (item.diag != null ? String(item.diag) : ""))).trim();
+}
+function compararNomes(a, b) {
+  return String(a).localeCompare(String(b), "pt", { numeric: true, sensitivity: "base" });
+}
 function stockFirstIndices(arr) {
   var order = arr.map(function (item, i) { return i; });
   order.sort(function (a, b) {
     var as = arr[a].mercado ? 1 : 0;
     var bs = arr[b].mercado ? 1 : 0;
-    return as !== bs ? as - bs : a - b;
+    if (as !== bs) return as - bs;
+    return compararNomes(nomeParaOrdem(arr[a]), nomeParaOrdem(arr[b])) || a - b;
   });
   return order;
 }
