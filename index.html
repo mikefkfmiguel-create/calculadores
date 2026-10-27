@@ -6774,8 +6774,13 @@
   }
 
   var projLedModelSel = document.getElementById("proj-led-model");
-  // A corrente máx. de saída é de UMA cabine: trocar de modelo limpa-a (como na aba Ecrã LED).
-  projLedModelSel.addEventListener("change", function () { var a = document.getElementById("proj-led-ampmax"); if (a) a.value = ""; });
+  // A corrente máx. de saída é de UMA cabine: trocar de modelo põe a do fabricante
+  // (campo `ampSaidaMax` do catálogo) ou limpa-a (como na aba Ecrã LED).
+  projLedModelSel.addEventListener("change", function () {
+    var a = document.getElementById("proj-led-ampmax");
+    var t = LED_TILES_DATA[parseInt(projLedModelSel.value, 10)];
+    if (a) a.value = t && t.ampSaidaMax != null ? t.ampSaidaMax : "";
+  });
   document.getElementById("proj-led-ampmax").addEventListener("input", function () { calcProjeto(); });
   if (window.correnteSerie) window.correnteSerie.aoMudar(function () { calcProjeto(); });
   var sgLedTileSel = document.getElementById("sg-led-tile");
