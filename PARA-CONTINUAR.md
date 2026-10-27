@@ -11,6 +11,19 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
+## 27 de outubro — Menus por ordem alfabética, sem referência ao stock, série no Projeto (v4.69)
+
+**AV Planner v4.69** (sw `calculadores-v458`). Três pedidos do Mike:
+
+- **Marcas e modelos por ordem alfabética** nos menus de equipamento (LED, projetores, TVs, lentes, cabine do Sinal, zonas): `stockFirstIndices` (`js/utils.js`, o nome ficou por compatibilidade) ordena agora tudo por marca + modelo (`localeCompare` pt, números por valor), sem separar stock de mercado. Os modelos de lente (`populateLensModelSelect`) ordenam por marca e modelo. Os índices dos dados não mudam.
+- **Referência ao stock retirada** (pedido do Mike): os itens de stock já não levam cor nem negrito nos menus (o roxo `#5028C8` perdia-se no fundo escuro). `dataset.stock` mantém-se nas opções. O verde dos «meus modelos» passou a `var(--meu-ink)` (claro `#0F8A6A`, escuro `#5FD6AE`).
+- **`ampSaidaMax` no catálogo (só o que o fabricante publica)**: ROE Black Pearl BP2, Ruby RB2.3 e Diamond DM2.6 = **16 A** (manuais ROE v1.8/v3.5/v3.6: «should be less than or equal to 16A» por cabo/entrada de alimentação; cópias alojadas em ledwallcentral.com porque o ROE exige login, por isso confiança média; fonte em `ampSaidaMaxFonte`). Preenche sozinho o campo nas abas Ecrã LED, Projeto e zonas. Pesquisados e SEM valor publicado: Sapphire, Absen (A3 Pro, PL2.5 Pro, NT 2.6), Unilumin (Upad, URM III), Yestech, Gloshine, Infiled, Traulux, Aluvision, Uniview. Chauvet Vivid 4 só dá «13 painéis a 230 V / 7 a 120 V» (não convertido). Pista: pedir os manuais ao suporte da Absen/Unilumin.
+- **Cabinets em série no Projeto** (cabine do catálogo, sem zonas): campo «Corrente máx. de saída (A)» (`#proj-led-ampmax`) e bloco «Consumo elétrico — cabinets em série» (`#proj-alim`) por baixo dos resultados; entra no resumo do projeto; guarda/abre no `.cal` (`ledAmpMax`); trocar de modelo limpa-o. A margem é a comum da aba Ecrã LED. PT/EN em `CORRENTE_EN`.
+
+Como verificar: `node --test scripts/verificar-corrente-serie.mjs`; `PYTHONIOENCODING=utf-8 python scripts/verificar-corrente-serie-pagina.py <pasta da versão anterior>` (a v4.68) e `scripts/verificar-saidas-switcher-pagina.py`.
+
+---
+
 ## 26 de outubro — Cabinets em série por entrada + consumo por brilho (v4.68)
 
 **AV Planner v4.68** (sw `calculadores-v457`). Pedido do Mike: a conta da **corrente máx. de saída** de cada cabinet para saber **quantos ligar em série** a partir de uma entrada de corrente — com **margem de segurança de 20 %** — e o **consumo estimado por brilho** em 5 patamares (100, 75, 50, 25, 10 %).
