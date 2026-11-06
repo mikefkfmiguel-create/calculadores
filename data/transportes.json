@@ -1,0 +1,107 @@
+{
+  "_nota": "Capacidade NOMINAL de cada tipo de ligação, para dividir o sinal de um ecrã por ligações (aba Ecrã LED, «Ligação dos gabinetes»). REGRA DA CASA: nada entra aqui sem fonte e sem dizer de onde vem. O valor de `gbps` é o nominal da norma; o débito ÚTIL depende da codificação e do protocolo e, quando a fonte o dá, vem em `gbpsUtil` (só informativo: a conta usa o nominal, a margem de segurança é que cobre a diferença). Os transportes do tipo `origem: fibra.json` / `custos_de_banda` repetem valores que JÁ estavam nesses ficheiros (a verificação scripts/verificar-ligacao-led.mjs confirma que são iguais); os restantes foram lidos da página pública indicada (Wikipédia, que cita as normas) em 2026-11-05 e ficam como `indicativo` até serem confirmados na norma.",
+  "transportes": [
+    {
+      "id": "lightware18", "grupo": "Equipamento", "nome": "Lightware (HDMI 2.0)", "gbps": 18,
+      "indicadoPeloMike": true, "origem": "indicado pelo Mike", "confianca": "indicado pelo Mike",
+      "fonte": "https://en.wikipedia.org/wiki/HDMI",
+      "nota": "Indicado pelo Mike: até 18 Gb/s por ligação. A CONFIRMAR NA FICHA DO FABRICANTE. 18 Gb/s é também o nominal do HDMI 2.0 (norma pública, ligação à direita). O inventário da app (fibra.json) só tem os extensores DP-OPT da Lightware, sem débito por ligação; se um dia tiver a ficha real, essa passa a mandar."
+    },
+    {
+      "id": "blustream10", "grupo": "Equipamento", "nome": "Blustream IP500", "gbps": 10,
+      "indicadoPeloMike": true, "origem": "indicado pelo Mike", "confianca": "indicado pelo Mike",
+      "fonte": "https://ethernetalliance.org/blog/2012/06/13/10gbe-standardized-to-400-meters-on-om4-fiber/",
+      "nota": "Indicado pelo Mike: 10 Gb/s por ligação, também em ponto a ponto (PTP). A CONFIRMAR NA FICHA DO FABRICANTE. 10 Gb/s é o nominal da Ethernet 10G (ligação à direita). Não há Blustream no inventário da app; se um dia houver a ficha real, essa passa a mandar."
+    },
+    {
+      "id": "eth1", "grupo": "Ethernet", "nome": "Ethernet 1 Gb/s", "gbps": 1,
+      "origem": "fibra.json › oticas › 1000BASE-SX/LX", "confianca": "norma",
+      "fonte": "https://en.wikipedia.org/wiki/Gigabit_Ethernet",
+      "nota": "Nominal. Na porta GigE de um processador de LED a app usa 0,93 Gb/s úteis (processors.json › bandwidthNote)."
+    },
+    {
+      "id": "eth10", "grupo": "Ethernet", "nome": "Ethernet 10 Gb/s", "gbps": 10, "padrao": true,
+      "origem": "fibra.json › oticas › 10GBASE-SR/LR/ER", "confianca": "norma",
+      "fonte": "https://ethernetalliance.org/blog/2012/06/13/10gbe-standardized-to-400-meters-on-om4-fiber/",
+      "nota": "Nominal. É o valor por omissão (limite dado pelo Mike). O débito útil depende do protocolo."
+    },
+    {
+      "id": "eth25", "grupo": "Ethernet", "nome": "Ethernet 25 Gb/s", "gbps": 25,
+      "origem": "fibra.json › oticas › 25GBASE-SR", "confianca": "indicativo",
+      "fonte": "https://www.l-p.com/blog/knowledge-center/multimode-distance-limits-om3-vs-om4-fiber-standards.htm",
+      "nota": "Nominal. Fonte marcada como indicativa em fibra.json."
+    },
+    {
+      "id": "eth40", "grupo": "Ethernet", "nome": "Ethernet 40 Gb/s", "gbps": 40,
+      "origem": "novo", "confianca": "indicativo",
+      "fonte": "https://en.wikipedia.org/wiki/40_Gigabit_Ethernet",
+      "nota": "Nominal, IEEE 802.3ba-2010 (40GBASE-SR4 usa 4 pares de fibra de 10 Gb/s)."
+    },
+    {
+      "id": "eth100", "grupo": "Ethernet", "nome": "Ethernet 100 Gb/s", "gbps": 100,
+      "origem": "fibra.json › oticas › 100GBASE-SR4/LR4", "confianca": "norma",
+      "fonte": "https://en.wikipedia.org/wiki/100_Gigabit_Ethernet",
+      "nota": "Nominal."
+    },
+    {
+      "id": "sdi3g", "grupo": "SDI", "nome": "SDI 3G (ST 424)", "gbps": 2.97,
+      "origem": "fibra.json › custos_de_banda › 3G-SDI", "confianca": "norma",
+      "fonte": "https://en.wikipedia.org/wiki/Serial_digital_interface",
+      "nota": "Débito de linha nominal (2,97 Gb/s). Um sinal SDI leva um formato de vídeo definido; aqui usa-se só como medida de capacidade."
+    },
+    {
+      "id": "sdi6g", "grupo": "SDI", "nome": "SDI 6G (ST 2081)", "gbps": 5.94,
+      "origem": "fibra.json › custos_de_banda › 6G-SDI", "confianca": "norma",
+      "fonte": "https://en.wikipedia.org/wiki/Serial_digital_interface",
+      "nota": "Débito de linha nominal (5,94 Gb/s)."
+    },
+    {
+      "id": "sdi12g", "grupo": "SDI", "nome": "SDI 12G (ST 2082)", "gbps": 11.88,
+      "origem": "fibra.json › custos_de_banda › 12G-SDI", "confianca": "norma",
+      "fonte": "https://en.wikipedia.org/wiki/Serial_digital_interface",
+      "nota": "Débito de linha nominal (11,88 Gb/s)."
+    },
+    {
+      "id": "hdmi14", "grupo": "HDMI", "nome": "HDMI 1.4", "gbps": 10.2, "gbpsUtil": 8.16,
+      "origem": "novo", "confianca": "indicativo",
+      "fonte": "https://en.wikipedia.org/wiki/HDMI",
+      "nota": "Nominal 10,2 Gb/s (TMDS); a fonte dá 8,16 Gb/s de dados após a codificação."
+    },
+    {
+      "id": "hdmi20", "grupo": "HDMI", "nome": "HDMI 2.0", "gbps": 18, "gbpsUtil": 14.4,
+      "origem": "novo", "confianca": "indicativo",
+      "fonte": "https://en.wikipedia.org/wiki/HDMI",
+      "nota": "Nominal 18 Gb/s (TMDS); a fonte dá 14,4 Gb/s de dados após a codificação."
+    },
+    {
+      "id": "hdmi21", "grupo": "HDMI", "nome": "HDMI 2.1", "gbps": 48, "gbpsUtil": 42,
+      "origem": "novo", "confianca": "indicativo",
+      "fonte": "https://en.wikipedia.org/wiki/HDMI",
+      "nota": "Nominal 48 Gb/s (FRL); a fonte dá 42 Gb/s de dados após a codificação."
+    },
+    {
+      "id": "dp11", "grupo": "DisplayPort", "nome": "DisplayPort 1.1", "gbps": 10.8, "gbpsUtil": 8.64,
+      "origem": "novo", "confianca": "indicativo",
+      "fonte": "https://en.wikipedia.org/wiki/DisplayPort",
+      "nota": "Nominal 10,8 Gb/s; a fonte dá 8,64 Gb/s de dados após a codificação."
+    },
+    {
+      "id": "dp12", "grupo": "DisplayPort", "nome": "DisplayPort 1.2", "gbps": 21.6, "gbpsUtil": 17.28,
+      "origem": "novo", "confianca": "indicativo",
+      "fonte": "https://en.wikipedia.org/wiki/DisplayPort",
+      "nota": "Nominal 21,6 Gb/s; a fonte dá 17,28 Gb/s de dados após a codificação."
+    },
+    {
+      "id": "dp14", "grupo": "DisplayPort", "nome": "DisplayPort 1.4", "gbps": 32.4, "gbpsUtil": 25.92,
+      "origem": "novo", "confianca": "indicativo",
+      "fonte": "https://en.wikipedia.org/wiki/DisplayPort",
+      "nota": "Nominal 32,4 Gb/s; a fonte dá 25,92 Gb/s de dados após a codificação."
+    },
+    {
+      "id": "dp20", "grupo": "DisplayPort", "nome": "DisplayPort 2.0", "gbps": 80, "gbpsUtil": 77.37,
+      "origem": "novo", "confianca": "indicativo",
+      "fonte": "https://en.wikipedia.org/wiki/DisplayPort",
+      "nota": "Nominal 80 Gb/s; a fonte dá 77,37 Gb/s de dados após a codificação."
+    }
+  ]
+}

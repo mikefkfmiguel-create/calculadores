@@ -1,4 +1,4 @@
-const CACHE = "calculadores-v458";
+const CACHE = "calculadores-v459";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -14,6 +14,9 @@ const APP_SHELL = [
   "./js/utils.js",
   "./js/saidas-switcher.js",
   "./js/corrente-serie.js",
+  "./js/ligacao-led.js",
+  "./js/ledwall-help-en.js",
+  "./js/ledwall-help.js",
   "./js/meus-modelos.js",
   "./js/zonas.js",
   "./js/i18n.js",
@@ -31,6 +34,7 @@ const DATA_FILES = [
   "./data/processors.json",
   "./data/tvs.json",
   "./data/fibra.json",
+  "./data/transportes.json",
   // Notas da aba Conhecimento: network-first como os dados, para uma nota
   // nova aparecer logo com rede e a última cópia continuar a abrir sem rede.
   "./conhecimento/indice.json",

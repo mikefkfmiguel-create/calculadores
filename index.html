@@ -50,7 +50,7 @@
     <button type="button" class="mark topbtn" id="btInventario"
             title="O meu inventário — diz à app que modelos tens, para ficarem à frente nas listas">📦 Inventário</button>
     <span class="mark versao-botao" id="app-versao" role="button" tabindex="0"
-          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.69</span>
+          title="Toca para procurar uma versão nova e forçar a atualização — serve para quando a app instalada no telemóvel fica presa numa versão antiga">v4.70</span>
     <span class="mark app-copy" id="app-copy-topo" title="Mike Apps — todos os direitos reservados">© Mike Apps</span>
   </div>
   <p class="sub">Distância de projeção e pixel pitch de ecrãs LED, calculados com precisão para fichas técnicas de produção.</p>
@@ -205,6 +205,7 @@
       <button class="tab" data-mode="visualizacao" role="tab" aria-selected="false"><span class="swatch"></span>Distância de Visualização</button>
       <button class="tab" data-mode="tv" role="tab" aria-selected="false"><span class="swatch"></span>TVs</button>
       <button class="tab" data-mode="led" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã LED &amp; Pixel Pitch</button>
+      <button class="tab" data-mode="ledwall" role="tab" aria-selected="false"><span class="swatch"></span>LED Wall Help</button>
       <button class="tab" data-mode="zonas" role="tab" aria-selected="false"><span class="swatch"></span>Ecrã Complexo</button>
       <button class="tab" data-mode="sinal" role="tab" aria-selected="false"><span class="swatch"></span>Sinal &amp; Data Rate</button>
       <button class="tab" data-mode="fibra" role="tab" aria-selected="false"><span class="swatch"></span>Fibra &amp; SFP</button>
@@ -900,6 +901,8 @@
       <button type="button" data-jumptab="blend" style="font:inherit; font-weight:600; color:var(--violet-600); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">Resolução de um blend de projetores</button>
       ·
       <button type="button" data-jumptab="grafismo" style="font:inherit; font-weight:600; color:var(--orange-600); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">Grafismo px↔cm</button>
+      ·
+      <button type="button" id="l-abrir-lw" style="font:inherit; font-weight:600; color:var(--blue-600); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;" title="Leva este ecrã para o separador LED Wall Help: portas, ligações e desenho do cabo">Abrir no LED Wall Help</button>
     </p>
     <div class="grid">
       <details class="card sinal-block" open>
@@ -1186,6 +1189,12 @@
       </details>
     </div>
 
+  </section>
+
+  <!-- LED WALL HELP: separador novo (v4.70). Como transportar e dividir o sinal de um
+       ecrã LED e como ligar os gabinetes. Montado por js/ledwall-help.js. -->
+  <section class="panel" data-mode="ledwall">
+    <div id="lw-raiz"></div>
   </section>
 
   <!-- ECRÃ COMPLEXO (múltiplas zonas) -->
@@ -3177,6 +3186,9 @@
 <script src="js/utils.js"></script>
 <script src="js/corrente-serie.js"></script>
 <script src="js/saidas-switcher.js"></script>
+<script src="js/ligacao-led.js"></script>
+<script src="js/ledwall-help-en.js"></script>
+<script src="js/ledwall-help.js"></script>
 <script src="js/meus-modelos.js"></script>
 <script src="js/relatorio-simples.js"></script>
 <script src="js/zonas.js"></script>
@@ -3295,7 +3307,8 @@
     // escrever lá os números dela era estragar o ecrã que está no projeto.
     { key: "dome", label: "Dome", sumId: "dome-sum", checkboxId: "dome-addproject" },
     { key: "sinal", label: "Sinal & Data Rate", sumId: "sg-sum", checkboxId: "sg-addproject", conflict: sinalProjectConflict },
-    { key: "mediaserver", label: "Media Server", sumId: "ms-sum", checkboxId: "ms-addproject" }
+    { key: "mediaserver", label: "Media Server", sumId: "ms-sum", checkboxId: "ms-addproject" },
+    { key: "ledwall", label: "LED Wall Help", sumId: "lw-sum", checkboxId: "lw-addproject" }
   ];
 
   function sinalProjectConflict() {
@@ -3669,7 +3682,7 @@
   // mesmo lugar que nas outras, no resumo; o que lhe faltava era o ATALHO
   // fixo do topo, que todas as outras tinham. Numa aba tão longa como a Dome
   // é a diferença entre estar à vista e não existir.
-  var ADDPROJECT_BY_MODE = { projecao: "p-addproject", visualizacao: "v-addproject", tv: "tv-addproject", led: "l-addproject", zonas: "z-addproject", blend: "b-addproject", dome: "dome-addproject", sinal: "sg-addproject", mediaserver: "ms-addproject" };
+  var ADDPROJECT_BY_MODE = { projecao: "p-addproject", visualizacao: "v-addproject", tv: "tv-addproject", led: "l-addproject", zonas: "z-addproject", blend: "b-addproject", dome: "dome-addproject", sinal: "sg-addproject", mediaserver: "ms-addproject", ledwall: "lw-addproject" };
   var addprojectFixed = document.getElementById("addproject-fixed");
   var addprojectFixedCb = document.getElementById("addproject-fixed-cb");
   function syncAddProjectFixed(mode) {
@@ -3717,6 +3730,7 @@
       // lado já dizia 14,93. Um número velho com ar de novo é pior do que
       // número nenhum -- e este decide compras.
       if (tab.dataset.mode === "fibra" && typeof calcFibra === "function") calcFibra();
+      if (tab.dataset.mode === "ledwall" && window.ledWallHelp) window.ledWallHelp.render();
     });
   });
   var tabsCurrentEl = document.getElementById("tabs-current");
@@ -3750,6 +3764,16 @@
     var activeTab = document.querySelector('.tab[aria-selected="true"]');
     syncAddProjectFixed(activeTab ? activeTab.dataset.mode : "projecao");
   });
+  // Atalho discreto da aba Ecrã LED: leva o ecrã para o LED Wall Help.
+  (function () {
+    var b = document.getElementById("l-abrir-lw");
+    if (!b) return;
+    b.addEventListener("click", function () {
+      if (window.ledWallHelp) window.ledWallHelp.trazer(false);
+      document.querySelector('.tab[data-mode="ledwall"]').click();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  })();
   document.querySelectorAll("[data-jumptab]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       document.querySelector('.tab[data-mode="' + btn.dataset.jumptab + '"]').click();
@@ -8476,6 +8500,7 @@
     { sum: "lz-sum", share: "lz-share", title: "Ecrã Complexo", slug: "ecra-complexo" },
     { sum: "b-sum", share: "b-share", title: "Blending Multi-Projetor", slug: "blending" },
     { sum: "sg-sum", share: "sg-share", title: "Sinal & Data Rate", slug: "sinal-data-rate" },
+    { sum: "lw-sum", share: "lw-share", title: "LED Wall Help", slug: "led-wall-help" },
     { sum: "ms-sum", share: "ms-share", title: "Media Server", slug: "media-server" },
     { sum: "tv-sum", share: "tv-share", title: "TVs", slug: "tv" },
     { sum: "dome-sum", share: "dome-share", title: "Dome", slug: "dome" },
@@ -8671,7 +8696,9 @@
       modelosMeus: window.meusModelos ? { tv: window.meusModelos.ler("tv") } : null,
       // Margem de segurança, consumo mínimo, tensão e o interruptor do consumo
       // por brilho no relatório. Ficheiros de antes não os trazem e abrem na mesma.
-      alimentacao: window.correnteSerie ? window.correnteSerie.parametros() : null
+      alimentacao: window.correnteSerie ? window.correnteSerie.parametros() : null,
+      // O separador LED Wall Help (ecrã, sinal, transporte, margem, esquema de ligação).
+      ledWall: window.ledWallHelp ? window.ledWallHelp.estado() : null
     };
   }
 
@@ -9131,6 +9158,7 @@
       if (entraram && window.recarregarTVs) window.recarregarTVs();
     }
     if (state.alimentacao && window.correnteSerie) window.correnteSerie.aplicarParametros(state.alimentacao);
+    if (state.ledWall && window.ledWallHelp) window.ledWallHelp.aplicar(state.ledWall);
     setFieldVal("proj-nome", state.nome);
     setFieldVal("proj-data-inicio", state.dataInicio);
     setFieldVal("proj-data-fim", state.dataFim);
@@ -9228,7 +9256,7 @@
   // preencher isto sozinha) e repõe os campos da aba Projeto em branco.
   // Nunca mexe nas outras calculadoras nem nas zonas do Ecrã Complexo —
   // só desliga a ligação delas ao projeto.
-  var PROJ_ADDPROJECT_IDS = ["p-addproject", "v-addproject", "tv-addproject", "l-addproject", "z-addproject", "b-addproject", "sg-addproject", "ms-addproject"];
+  var PROJ_ADDPROJECT_IDS = ["p-addproject", "v-addproject", "tv-addproject", "l-addproject", "z-addproject", "b-addproject", "sg-addproject", "ms-addproject", "lw-addproject"];
   document.getElementById("proj-clear").addEventListener("click", function () {
     var confirmMsg = (typeof i18nGetLang === "function" && i18nGetLang() === "en")
       ? "Clear everything? Both apps go back to empty — every calculator, the Multi-Zone zones, the DSM, the dome, the TVs, the project history, and the 3D Preview. Language, sync and usage-counting settings stay. There is no undo."
@@ -10083,6 +10111,9 @@
       "Processo de LED escolhido:\n" + ledProcLines;
 
     renderProjectItems();
+    // O separador LED Wall Help partilha o refresh, os bits e o processo de LED
+    // (com o interruptor «Usar os valores do Sinal & Data Rate» ligado).
+    if (window.ledWallHelp) window.ledWallHelp.deSinal();
   }
 
   var tvModelSel = document.getElementById("tv-model");
@@ -11299,6 +11330,11 @@
     LED_TILES_DATA = ledTiles;
     PROCESSORS_DATA = processors;
     TVS_DATA = tvs;
+    // O LED Wall Help lê o catálogo de processadores e liga-se à escolha do Sinal.
+    if (window.ledWallHelp) window.ledWallHelp.ligar({
+      getProc: function () { var it = selectedSinalLedProcKeys.values().next(); return it.done ? "" : it.value; },
+      setProc: function (key) { selectedSinalLedProcKeys = new Set(key ? [key] : []); sinalLedProcListExpanded = false; calcSinal(); }
+    });
     // DEPOIS do PROCESSORS_DATA, e não antes: a aba da fibra lê o catálogo
     // dos aparelhos para dizer quais saem em fibra, e a correr primeiro
     // encontrava-o vazio -- a lista nascia a "—" e só aparecia quando
