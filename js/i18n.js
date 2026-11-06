@@ -1425,6 +1425,9 @@
     if (lang === "en") { hasAppliedEn = true; ensureObserver(); }
     else { hasAppliedEn = false; }
     updateToggleUI();
+    // Quem escreve texto a partir de dados com as duas línguas (ex: as
+    // configurações PixelHue) volta a desenhar-se na língua nova.
+    try { document.dispatchEvent(new CustomEvent("i18n-lang", { detail: lang })); } catch (e) {}
   }
 
   function init() {

@@ -235,17 +235,26 @@
       var lista = [];
       (ctx.todos || []).forEach(function (s2) {
         if (s2 === av.s || (ctx.escolhidos && ctx.escolhidos(s2))) return;
-        var opcoes = opcoesDeSaida(s2).filter(function (op) { return op.outputs >= av.n; });
-        for (var i = 0; i < opcoes.length; i++) {
-          var a2 = avaliar(s2, av.sinal, { n: av.n, avancado: av.avancado, modeIdx: opcoes[i].modeIdx });
-          if (a2.semDados) continue;
-          var blk = disp === "continuo" ? a2.continuo : a2.indep;
-          if (!blk.cabe) continue;
-          var pct = disp === "continuo" ? a2.uso.pct : a2.indep.pct;
-          if (filtro && !filtro(pct, a2)) continue;
-          lista.push({ s: s2, pct: pct, modeLabel: opcoes[i].label, modeIdx: opcoes[i].modeIdx, estimado: a2.estimado, precisa: a2.continuo.precisa });
-          break;
-        }
+        // Um aparelho com várias CONFIGURAÇÕES (ex: P80 Split/Copy) entra com
+        // cada uma delas (`ctx.variantes`); os outros, tal como estão.
+        var variantes = ctx.variantes ? ctx.variantes(s2) : [s2];
+        var achou = false;
+        variantes.forEach(function (v) {
+          if (achou) return;
+          var opcoes = opcoesDeSaida(v).filter(function (op) { return op.outputs >= av.n; });
+          for (var i = 0; i < opcoes.length; i++) {
+            var a2 = avaliar(v, av.sinal, { n: av.n, avancado: av.avancado, modeIdx: opcoes[i].modeIdx });
+            if (a2.semDados) continue;
+            var blk = disp === "continuo" ? a2.continuo : a2.indep;
+            if (!blk.cabe) continue;
+            var pct = disp === "continuo" ? a2.uso.pct : a2.indep.pct;
+            if (filtro && !filtro(pct, a2)) continue;
+            var rotuloCfg = v !== s2 && v.configuracaoPixelhue ? (ctx.rotulo ? ctx.rotulo(v.configuracaoPixelhue) : v.configuracaoPixelhue.rotulo) : null;
+            lista.push({ s: s2, pct: pct, modeLabel: opcoes[i].label || rotuloCfg, modeIdx: opcoes[i].modeIdx, estimado: a2.estimado, precisa: a2.continuo.precisa });
+            achou = true;
+            break;
+          }
+        });
       });
       lista.sort(function (a, b) { return (a.s.mercado ? 1 : 0) - (b.s.mercado ? 1 : 0) || a.pct - b.pct; });
       return lista;

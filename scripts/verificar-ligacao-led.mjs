@@ -167,10 +167,11 @@ function dividir(bits, hz, gbps, margem = 100) {
   return { r: L.dividirLigacoes(esq.portas, L.debitoGbps(g.total, hz, bits, 3) / g.total, cap), esq, cap, total: L.debitoGbps(g.total, hz, bits, 3) };
 }
 
-test("divisão: Lightware 18, Blustream IP500 10 e Ethernet 25 a 8, 10 e 12 bits", () => {
+test("divisão: HDMI 2.0 18, Blustream IP500 10, UBEX 2×10 G (20) e Ethernet 25 a 8, 10 e 12 bits", () => {
   const esperado = { // nº de ligações = ceil(débito ÷ capacidade)
-    lightware18: { 8: 1, 10: 1, 12: 2 },   // 12,10 · 15,13 · 18,15 (> 18 -> 2)
-    blustream10: { 8: 2, 10: 2, 12: 2 },   // 12,10 ÷ 10 · 15,13 ÷ 10 · 18,15 ÷ 10
+    hdmi20: { 8: 1, 10: 1, 12: 2 },        // 12,10 · 15,13 · 18,15 (> 18 -> 2)
+    "bs-ip500": { 8: 2, 10: 2, 12: 2 },    // 12,10 ÷ 10 · 15,13 ÷ 10 · 18,15 ÷ 10
+    "lw-ubex-2x10": { 8: 1, 10: 1, 12: 1 },// 20 Gb/s cobrem os 18,15
     eth25: { 8: 1, 10: 1, 12: 1 }
   };
   for (const id of Object.keys(esperado)) {
@@ -230,34 +231,65 @@ test("comparação de transportes: ligações por transporte e aviso acima do d�
   const { esq } = dividir(10, 60, 18);
   const tab = L.tabelaTransportes(esq.portas, L.debitoGbps(g.total, 60, 10, 3) / g.total, lista, 100);
   const por = Object.fromEntries(tab.map((l) => [l.t.id, l]));
-  assert.equal(por.lightware18.n, 1);
-  assert.equal(por.blustream10.n, 2);
+  assert.equal(por["lw-optc"].n, 1);
+  assert.equal(por["bs-ip500"].n, 2);
   assert.equal(por.eth25.n, 1);
   // HDMI 2.0: 15,13 Gb/s cabem nos 18 nominais mas passam os 14,4 úteis da fonte
   assert.equal(por.hdmi20.aviso, "acima-util");
-  assert.equal(por.lightware18.aviso, null, "o preset do Mike não tem débito útil publicado: sem aviso inventado");
+  assert.equal(por["lw-optc"].aviso, null, "a ficha da Lightware não dá débito útil: sem aviso inventado");
   tab.forEach((l) => { if (l.r.estado === "ok") l.r.grupos.forEach((x) => assert.ok(x.rate <= l.cap + 1e-9)); });
 });
 
 // ---------------------------------------------------------------- dados dos transportes
-test("transportes.json: tudo com fonte (ou «indicado pelo Mike»), default 10G, presets do Mike a confirmar", () => {
+test("transportes.json: tudo com fonte, default 10G, sem «indicado pelo Mike»; os do fabricante com URL e data", () => {
   const ts = dados.transportes;
   ts.forEach((t) => {
     assert.ok(t.gbps > 0, t.id + " tem capacidade");
-    assert.ok(t.fonte || t.indicadoPeloMike, t.id + " tem fonte ou vem rotulado");
+    assert.ok(t.fonte && /^https:\/\//.test(t.fonte), t.id + " tem fonte (URL)");
     assert.ok(t.nota && t.nota.length > 5, t.id + " tem nota");
+    assert.ok(!t.indicadoPeloMike, t.id + ": nenhum valor vem «indicado pelo Mike»");
     if (t.gbpsUtil) assert.ok(t.gbpsUtil < t.gbps, t.id + ": o útil é menor que o nominal");
   });
+  assert.ok(!/indicad[oa] pelo Mike/i.test(JSON.stringify(dados)), "o ficheiro já não fala em «indicado pelo Mike»");
+  assert.ok(!T("lightware18") && !T("blustream10"), "os dois presets por palpite saíram");
   assert.deepEqual(ts.filter((t) => t.padrao).map((t) => t.id), ["eth10"]);
-  assert.equal(T("lightware18").gbps, 18);
-  assert.equal(T("blustream10").gbps, 10);
-  for (const id of ["lightware18", "blustream10"]) {
-    assert.equal(T(id).indicadoPeloMike, true);
-    assert.match(T(id).nota, /CONFIRMAR NA FICHA/);
-  }
-  // 18 Gb/s é também o nominal do HDMI 2.0 e 10 o da Ethernet 10G (a pedido do Mike)
-  assert.equal(T("hdmi20").gbps, T("lightware18").gbps);
-  assert.equal(T("eth10").gbps, T("blustream10").gbps);
+  // Cada valor do fabricante: capacidade, tipo de ligação (no nome), URL e data de consulta. Valores lidos nas
+  // fichas/manuais/páginas oficiais em 2026-11-06 (a frase de origem está em `nota`).
+  const fab = {
+    "lw-ubex-1x10": [10, /lightware\.com/, /SFP\+/], "lw-ubex-2x10": [20, /lightware\.com/, /2 × .*SFP\+/],
+    "lw-optc": [18, /lightware\.com/, /multimodo/], "lw-optj": [18, /lightware\.com/, /multimodo/],
+    "lw-tpx": [18, /lightware\.com/, /CATx/], "lw-tps": [10.2, /lightware\.com/, /HDBaseT/],
+    "lw-3dopt": [9, /lightware\.com/, /multimodo/], "lw-dpopt": [10.8, /lightware\.com/, /DisplayPort/],
+    "lw-mx2": [18, /lightware\.com/, /matriz/], "lw-vinx120": [0.8, /lightware\.com/, /IP/],
+    "bs-ip500": [10, /blustream\.com/, /SDVoE/], "bs-ip510": [10, /blustream\.com/, /SDVoE/],
+    "bs-fve4k": [10, /blustream/, /SFP\+/], "bs-ip300": [1, /blustream/, /IP/], "bs-hex18g": [18, /blustream/, /HDBaseT/]
+  };
+  Object.entries(fab).forEach(([id, [gbps, url, tipo]]) => {
+    const t = T(id);
+    assert.ok(t, id);
+    assert.equal(t.gbps, gbps, id + ": capacidade da ficha");
+    assert.equal(t.confianca, "fabricante");
+    assert.match(t.fonte, url, id + ": URL do fabricante");
+    assert.match(t.nome, tipo, id + ": o nome diz o tipo de ligação");
+    assert.equal(t.consultado, "2026-11-06");
+    assert.match(t.grupo, id.startsWith("lw-") ? /^Lightware/ : /^Blustream/);
+    assert.ok(!/^Ethernet/.test(t.nome), id + ": não é «Ethernet» genérico");
+  });
+  // «sem dados» dito onde a ficha não dá o débito real
+  assert.match(T("bs-ip500").nota, /sem dados/);
+  assert.match(T("bs-ip300").nota, /sem dados/);
+  // grupos e ordem: por família, e dentro de cada uma pela capacidade
+  const grupos = [...new Set(lista.map((t) => t.grupo))];
+  assert.deepEqual(grupos.slice(0, 6), dados.grupos);
+  assert.equal(grupos[grupos.length - 1], L.GRUPO_PROC);
+  grupos.forEach((gr) => {
+    const gs = lista.filter((t) => t.grupo === gr).map((t) => t.gbps);
+    assert.deepEqual(gs, [...gs].sort((a, b) => a - b), gr + " ordenado por capacidade");
+  });
+  assert.equal(lista.filter((t) => t.grupo === dados.grupos[0]).length > 0 && lista[0].grupo, dados.grupos[0]);
+  // 18 Gb/s é também o nominal do HDMI 2.0 e 10 o da Ethernet 10G
+  assert.equal(T("hdmi20").gbps, T("lw-optc").gbps);
+  assert.equal(T("eth10").gbps, T("bs-ip500").gbps);
 });
 
 test("transportes.json repete o que já estava em fibra.json (sem divergir)", () => {
@@ -274,12 +306,13 @@ test("transportes.json repete o que já estava em fibra.json (sem divergir)", ()
 });
 
 test("saídas óticas dos processadores entram só com o débito que o processors.json já tem", () => {
-  const procs = ler("data/processors.json").ledProcessors;
+  const proc = ler("data/processors.json");
+  const procs = proc.ledProcessors.concat(proc.switchers);
   const comOptica = procs.filter((p) => p.optica && p.optica.gbps > 0);
   const dinamicos = lista.filter((t) => t.id.startsWith("proc-"));
   assert.equal(dinamicos.length, comOptica.length);
   comOptica.forEach((p) => {
-    const t = dinamicos.find((d) => d.nome === "Saída ótica do " + p.marca + " " + p.modelo);
+    const t = dinamicos.find((d) => d.nome === p.marca + " " + p.modelo + " · saída ótica");
     assert.ok(t, p.modelo);
     assert.equal(t.gbps, p.optica.gbps);
   });

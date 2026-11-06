@@ -67,7 +67,9 @@
       "modelo": "P10",
       "maxMPSwitcher": 8.3,
       "maxMPPgmOnly": 17.7,
-      "nota": "Modo switcher: 1×4K60. Modo PGM only: 8K×2K60. MP calculados da resolução, não publicados diretamente.",
+      "maxPixelClockMHz": 141.9,
+      "maxPixelClockSource": "derivado de 2048×1080@60Hz (saída HDMI 1.3, máximo publicado na ficha do P10) via CVT-RB2 — a PixelHue não publica MHz diretamente. Nº de saídas do P10: sem dados (ver data/pixelhue-configuracoes.json).",
+      "nota": "Modo switcher: 1×4K60. Modo PGM only: 8K×2K60. MP calculados da resolução, não publicados diretamente. ⚠ A ficha da PixelHue dá ao P10 saídas HDMI 1.3 de, no máximo, 2048×1080@60 (largura e altura até 2048 px): estes MP guardados não batem com ela, a confirmar.",
       "fonte": "https://pixelhue.com/index.php/content/products_detail/catid/62/id/18.html"
     },
     {
@@ -75,7 +77,10 @@
       "modelo": "P20",
       "maxMPSwitcher": 16.6,
       "maxMPPgmOnly": 35.4,
-      "nota": "Modo switcher: 2×4K60. Modo PGM only: 8K×4K60. MP calculados da resolução, não publicados diretamente.",
+      "outputs": 2,
+      "maxPixelClockMHz": 556.7,
+      "maxPixelClockSource": "derivado de 4096×2160@60Hz 8-bit 4:4:4 (saída HDMI 2.0, máximo publicado na ficha do P20) via CVT-RB2 — a PixelHue não publica MHz diretamente",
+      "nota": "Modo switcher: 2×4K60. Modo PGM only: 8K×4K60. MP calculados da resolução, não publicados diretamente. 2 saídas 4K (tabela comparativa da PixelHue; a página do P20 não diz o nº de saídas).",
       "fonte": "https://www.pixelhue.com/index.php/content/products_detail/catid/64/id/20.html"
     },
     {
@@ -100,6 +105,23 @@
         "portas": 8,
         "gbps": 10,
         "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html"
+      }
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "Q8",
+      "maxMPSwitcher": 141.6,
+      "inputs": 48,
+      "outputs": 16,
+      "maxPixelClockMHz": 556.7,
+      "maxPixelClockSource": "derivado de 4096×2160@60Hz 8-bit 4:4:4 (saída HDMI 2.0, máximo publicado na ficha do Q8; a ficha diz «4K×2K@60Hz») via CVT-RB2 — a PixelHue não publica MHz diretamente",
+      "nota": "Configuração máxima da ficha: até 16 saídas 4K em simultâneo em 4 cartões de saída (4 saídas independentes por cartão; as 8 óticas 10G de cada cartão copiam as 4 saídas, 2 por saída) e até 48 entradas 4K em simultâneo em 6 cartões de entrada. A capacidade em MP NÃO é publicada: 141,6 MP é derivada (16 saídas × 4096×2160). Com menos cartões, escolhe a «Configuração» na aba Sinal & Data Rate. Q8 Pro: não consta nas páginas oficiais. Ver data/pixelhue-configuracoes.json.",
+      "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html",
+      "optica": {
+        "portas": 8,
+        "gbps": 10,
+        "nota": "8 óticas 10G POR CARTÃO DE SAÍDA, em cópia das saídas (2 óticas por saída 4K).",
+        "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html"
       }
     },
     {
@@ -235,8 +257,10 @@
       "maxMPSwitcher": 16.6,
       "maxMPPgmOnly": 35.4,
       "inputs": 12,
-      "outputs": 8,
-      "nota": "Variante Dante do P20 — mesma classe de resolução (switcher 2×4K60, PGM-only 8K×4K60). MP calculados da resolução, não publicados diretamente.",
+      "outputs": 2,
+      "maxPixelClockMHz": 556.7,
+      "maxPixelClockSource": "derivado de 4096×2160@60Hz 8-bit 4:4:4 (saída HDMI 2.0, máximo publicado na ficha do P20/P20-DS) via CVT-RB2 — a PixelHue não publica MHz diretamente",
+      "nota": "Variante Dante do P20 — mesma classe de resolução (switcher 2×4K60, PGM-only 8K×4K60). MP calculados da resolução, não publicados diretamente. A app tinha 8 saídas; a tabela comparativa da PixelHue dá 2 saídas 4K ao P20 (e as 12G-SDI do P20-DS só copiam as HDMI), por isso passou a 2.",
       "fonte": "https://www.pixelhue.com/index.php/content/products_detail/catid/64/id/20.html"
     },
     {
@@ -593,6 +617,54 @@
         "portas": 2,
         "gbps": 10,
         "fonte": "https://oss.novastar.tech/uploads/2025/11/TU4K-Pro-LED-Playback-Control-Processor-Specifications-V1.2.0.pdf"
+      }
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "Lumina · LU_20×RJ45",
+      "ports": 20,
+      "portaTipo": "RJ45 GbE",
+      "maxPixelsHardCap": 13000000,
+      "pixelhueCartao": "lu-20rj45",
+      "nota": "Placa de envio do servidor Lumina (chassi 2U/5U; não é para o P80/P20/Q8): 20 saídas Ethernet Gigabit, até 13 000 000 px (largura e altura até 10 752 px), 650 000 px por porta a 8 bits e 320 000 a 10 bits, 144 Hz. Ocupa 2 ranhuras. Nº de placas que cabem em cada chassi: sem dados na página. Ver data/pixelhue-configuracoes.json.",
+      "fonte": "https://proav.pixelhue.com/product/detail.html?id=77"
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "Lumina · LU_16×RJ45+2×OPT",
+      "ports": 16,
+      "portaTipo": "RJ45 GbE",
+      "maxPixelsHardCap": 10400000,
+      "pixelhueCartao": "lu-16rj45-2opt",
+      "nota": "Placa de envio do servidor Lumina: 16 saídas Ethernet Gigabit + 2 óticas 10G, até 10 400 000 px (largura e altura até 10 240 px), 650 000 px por porta a 8 bits e 320 000 a 10 bits, 144 Hz. As óticas só copiam (OPT 1 = Ethernet 1–8, OPT 2 = 9–16): não acrescentam capacidade. Ocupa 2 ranhuras. Ver data/pixelhue-configuracoes.json.",
+      "fonte": "https://proav.pixelhue.com/product/detail.html?id=76",
+      "optica": {
+        "portas": 2,
+        "gbps": 10,
+        "copia": true,
+        "equivEth": 8,
+        "nota": "Cópia das Ethernet 1–8 e 9–16 (não somam capacidade). Módulos óticos vendidos à parte.",
+        "fonte": "https://proav.pixelhue.com/product/detail.html?id=76"
+      }
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "Lumina · LU_4×OPT",
+      "ports": 4,
+      "portaTipo": "OPT 10G",
+      "soOptica": true,
+      "portGbpsUsable": 7.44,
+      "maxPixelsHardCap": 20800000,
+      "pixelhueCartao": "lu-4opt",
+      "nota": "Placa de envio do servidor Lumina com 4 portas óticas 10G (SFP+; monomodo 10 km ou multimodo 300 m), até 20 800 000 px (largura e altura até 16 384 px), 144 Hz, 8 e 10 bits. «Cada porta carrega o mesmo que 8 portas Ethernet»: 8 × 0,93 Gb/s = 7,44 Gb/s úteis por porta (a mesma regra dos 930 Mbit/s por porta Ethernet da app; 8 × 650 000 px = 5 200 000 px por porta a 8 bits, que bate com 20 800 000 ÷ 4). Não se combina com as placas Ethernet no mesmo ecrã. Ranhuras ocupadas: sem dados. Ver data/pixelhue-configuracoes.json.",
+      "fonte": "https://proav.pixelhue.com/product/detail.html?id=78",
+      "optica": {
+        "portas": 4,
+        "gbps": 10,
+        "copia": false,
+        "equivEth": 8,
+        "nota": "As 4 portas são a própria saída (modo independente); em cópia ou reserva, OPT 3 repete a 1 e OPT 4 a 2.",
+        "fonte": "https://proav.pixelhue.com/product/detail.html?id=78"
       }
     }
   ],
