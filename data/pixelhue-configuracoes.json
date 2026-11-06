@@ -1,0 +1,241 @@
+{
+  "_nota": "Saídas, cartões e capacidades dos aparelhos PixelHue, com as configurações possíveis. REGRA: só entra o que foi lido na página ou na ficha da PixelHue (campo `fonte`, data em `consultado`); o que a ficha não publica fica `null` e `sem_dados` diz o que falta — nunca se preenche de cabeça. `confianca`: «fabricante» = página oficial da PixelHue; «indicativo» = documento da PixelHue alojado num revendedor, ou valor derivado de uma frase da ficha (diz-se em `nota`). `derivado: true` = conta feita com valores publicados (a conta está em `nota`). O js/pixelhue-config.js transforma isto, por configuração escolhida, em nº de saídas, pixel clock (CVT-RB2, a mesma conta da aba Sinal & Data Rate) e capacidade por saída.",
+  "consultado": "2026-11-06",
+  "fontes": {
+    "p80": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html",
+    "p20": "https://www.pixelhue.com/index.php/Content/products_detail/catid/76/id/20.html",
+    "q8": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html",
+    "comparacao_p20_p80_q8": "https://www.logando.de/wp-content/uploads/2025/10/P80-Product-Introduction-1.pdf",
+    "lumina_5u": "https://proav.pixelhue.com/product/detail.html?id=38",
+    "lumina_2u": "https://proav.pixelhue.com/product/detail.html?id=37",
+    "lu_20rj45": "https://proav.pixelhue.com/product/detail.html?id=77",
+    "lu_16rj45_2opt": "https://proav.pixelhue.com/product/detail.html?id=76",
+    "lu_4opt": "https://proav.pixelhue.com/product/detail.html?id=78"
+  },
+  "nao_tratados": {
+    "Q8 Pro": "Não existe na lista de produtos nem nas páginas oficiais consultadas (pixelhue.com e proav.pixelhue.com) — sem dados.",
+    "série J": "Não existe nas páginas oficiais consultadas — sem dados.",
+    "série F (F4, F8)": "A ficha existe (https://www.pixelhue.com/index.php/Content/products_detail/catid/2/id/7.html e …/id/6.html) mas diz só «cada cartão de saída dá até 2K@60Hz de capacidade», sem dizer se é por cartão ou por conector; não se modelou para não inventar a capacidade.",
+    "cartões de entrada": "Os cartões de entrada do Q8 estão listados em `modelos[Q8].cartoes_entrada` (informativo); a escolha de entradas não entra nas contas de saídas."
+  },
+  "modelos": [
+    {
+      "marca": "PixelHUE",
+      "modelo": "P10",
+      "tipo": "fixo",
+      "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/76/id/20.html",
+      "consultado": "2026-11-06",
+      "confianca": "fabricante",
+      "sem_dados": ["Nº de saídas HDMI 1.3 do P10 (a ficha não o diz)", "Capacidade total em MP (a ficha não a publica)"],
+      "sem_dados_en": ["Number of HDMI 1.3 outputs on the P10 (the datasheet doesn't say)", "Total capacity in MP (the datasheet doesn't publish it)"],
+      "aviso": "A capacidade em MP guardada na app para o P10 (8,3 MP no switcher e 17,7 MP só PGM) não bate com a ficha: a ficha da PixelHue dá ao P10 saídas HDMI 1.3 de, no máximo, 2048×1080@60 (largura e altura até 2048 px). Confirmar antes de usar.",
+      "aviso_en": "The MP capacity stored in the app for the P10 (8.3 MP switcher, 17.7 MP PGM-only) does not match the datasheet: PixelHue gives the P10 HDMI 1.3 outputs of 2048×1080@60 at most (width and height up to 2048 px). Check before relying on it.",
+      "configuracoes": [
+        {
+          "id": "fixa",
+          "rotulo": "P10 — saídas HDMI 1.3",
+          "rotulo_en": "P10 — HDMI 1.3 outputs",
+          "saidas": null,
+          "padrao": true,
+          "porSaida": { "tipo": "HDMI 1.3", "w": 2048, "h": 1080, "hz": 60, "larguraMax": 2048, "alturaMax": 2048, "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/76/id/20.html", "confianca": "fabricante", "nota": "Ficha: «Maximum resolution: 1920×1080@60Hz/2048×1080@60Hz»; largura e altura máximas 2048 px; até 120 Hz." }
+        }
+      ]
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "P20",
+      "tipo": "fixo",
+      "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/76/id/20.html",
+      "consultado": "2026-11-06",
+      "confianca": "fabricante",
+      "sem_dados": ["Capacidade total em MP (a ficha não a publica; os valores guardados na app são derivados da resolução)", "Nº de portas óticas 10G (a ficha só diz que copiam a saída HDMI)"],
+      "sem_dados_en": ["Total capacity in MP (the datasheet doesn't publish it; the values stored in the app are derived from the resolution)", "Number of 10G optical ports (the datasheet only says they copy the HDMI output)"],
+      "configuracoes": [
+        {
+          "id": "fixa",
+          "rotulo": "P20 — 2 saídas HDMI 2.0 (4K)",
+          "rotulo_en": "P20 — 2 HDMI 2.0 outputs (4K)",
+          "saidas": 2,
+          "padrao": true,
+          "saidas_fonte": "https://www.logando.de/wp-content/uploads/2025/10/P80-Product-Introduction-1.pdf",
+          "saidas_confianca": "indicativo",
+          "saidas_nota": "Tabela comparativa P20 / P80 / Q8 da apresentação da PixelHue: «4K Output: 2». A página oficial do P20 não diz o nº de saídas.",
+          "porSaida": { "tipo": "HDMI 2.0", "w": 4096, "h": 2160, "hz": 60, "bits": 8, "amostragem": "4:4:4", "larguraMax": 8192, "alturaMax": 8192, "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/76/id/20.html", "confianca": "fabricante", "nota": "Ficha: «4096×2160@60Hz / 8192×1080@60Hz»; até 120 Hz." }
+        }
+      ]
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "P20-DS",
+      "tipo": "fixo",
+      "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/76/id/20.html",
+      "consultado": "2026-11-06",
+      "confianca": "fabricante",
+      "sem_dados": ["Capacidade total em MP (a ficha não a publica)"],
+      "sem_dados_en": ["Total capacity in MP (the datasheet doesn't publish it)"],
+      "configuracoes": [
+        {
+          "id": "fixa",
+          "rotulo": "P20-DS — 2 saídas HDMI 2.0 (4K) + 12G-SDI em cópia",
+          "rotulo_en": "P20-DS — 2 HDMI 2.0 outputs (4K) + 12G-SDI copies",
+          "saidas": 2,
+          "padrao": true,
+          "saidas_fonte": "https://www.logando.de/wp-content/uploads/2025/10/P80-Product-Introduction-1.pdf",
+          "saidas_confianca": "indicativo",
+          "saidas_nota": "Tabela comparativa da apresentação da PixelHue dá «4K Output: 2» para o P20; o P20-DS é o mesmo aparelho com as saídas 12G-SDI (cópia das HDMI) e a Dante, por isso assume-se o mesmo nº de saídas HDMI. A app tinha 8; a ficha do P20-DS não confirma esse valor.",
+          "porSaida": { "tipo": "HDMI 2.0", "w": 4096, "h": 2160, "hz": 60, "bits": 8, "amostragem": "4:4:4", "larguraMax": 8192, "alturaMax": 8192, "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/76/id/20.html", "confianca": "fabricante", "nota": "As saídas 12G-SDI do P20-DS copiam as HDMI (até 4096×2160@60); não somam saídas." }
+        }
+      ]
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "P80",
+      "tipo": "modos",
+      "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html",
+      "consultado": "2026-11-06",
+      "confianca": "fabricante",
+      "sem_dados": ["Capacidade total em MP (a ficha não a publica; a app guarda 35 MP = 4 saídas 4K)", "Nº de ranhuras do cartão de entrada (a ficha só diz que é trocável)", "Definição de «DL» na ficha da P80 (ver nota do modo Split)"],
+      "sem_dados_en": ["Total capacity in MP (the datasheet doesn't publish it; the app stores 35 MP = 4 × 4K outputs)", "Number of input card slots (the datasheet only says the card is swappable)", "Definition of «DL» in the P80 datasheet (see the Split mode note)"],
+      "configuracoes": [
+        {
+          "id": "split",
+          "rotulo": "Split — 8× DL principais + 4× flex 4K (repartir um canvas grande)",
+          "rotulo_en": "Split — 8× DL main + 4× flex 4K (split a large canvas)",
+          "saidas": 12,
+          "padrao": true,
+          "saidas_fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html",
+          "saidas_nota": "Ficha: 8× HDMI 2.0 principais («up to 8x DL concurrent main outputs in split mode») + 4× HDMI 2.0 flex.",
+          "porSaida": { "tipo": "HDMI 2.0 (DL)", "w": 4096, "h": 1080, "hz": 60, "bits": 8, "amostragem": "4:4:4", "larguraMax": 8192, "alturaMax": 7680, "derivado": true, "fonte": "https://www.logando.de/wp-content/uploads/2025/10/P80-Product-Introduction-1.pdf", "confianca": "indicativo", "nota": "Derivado: a apresentação da PixelHue diz que no modo Split «a single 4K interface was split into two DL interfaces» (um 4K = 4096×2160@60 vira dois DL), e as fichas da série F definem DL como 4096×1080@60. A ficha da P80 não define DL em píxeis: confirmar. A conta usa a saída mais fraca (DL); as 4 flex são 4K (4096×2160@60)." },
+          "optica": { "portas": 8, "gbps": 10, "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html", "nota": "8× SFP 10G em cópia das HDMI 2.0; um par de óticas leva uma saída 4K (OPT 1 + OPT 2 = HDMI 1)." }
+        },
+        {
+          "id": "copy",
+          "rotulo": "Copy — 4× saídas 4K principais espelhadas + 4× flex 4K (conteúdo repetido nas principais)",
+          "rotulo_en": "Copy — 4× mirrored main 4K outputs + 4× flex 4K (content repeated on the main outputs)",
+          "saidas": 8,
+          "saidas_fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html",
+          "saidas_nota": "Ficha: «up to 4x 4K concurrent main outputs in copy mode» + 4× HDMI 2.0 flex.",
+          "porSaida": { "tipo": "HDMI 2.0", "w": 4096, "h": 2160, "hz": 60, "bits": 8, "amostragem": "4:4:4", "larguraMax": 8192, "alturaMax": 7680, "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html", "confianca": "fabricante", "nota": "Ficha: «Maximum resolution: 4096×2160@60Hz 8bit 4:4:4»; largura máx. 8192 (8192×1080@60), altura máx. 7680 (1080×7680@60); 8/10/12 bits." },
+          "optica": { "portas": 8, "gbps": 10, "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/64/id/29.html", "nota": "8× SFP 10G em cópia das HDMI 2.0; um par de óticas leva uma saída 4K." }
+        }
+      ]
+    },
+    {
+      "marca": "PixelHUE",
+      "modelo": "Q8",
+      "tipo": "cartoes",
+      "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html",
+      "consultado": "2026-11-06",
+      "confianca": "fabricante",
+      "max_cartoes_saida": 4,
+      "max_cartoes_saida_fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html",
+      "max_cartoes_saida_nota": "Ficha: «Up to 16x 4K concurrent outputs through 4 output cards».",
+      "max_saidas": 16,
+      "capacidade": "derivada",
+      "capacidade_nota": "A ficha não publica a capacidade em MP: derivada = nº de saídas 4K em simultâneo × 4096×2160 (16 × 8,85 = 141,6 MP no máximo).",
+      "inputs": 48,
+      "inputs_nota": "Ficha: «Up to 48x 4K concurrent inputs through 6 input cards».",
+      "sem_dados": ["Capacidade total em MP (a ficha não a publica; a da app é derivada do nº de saídas 4K × 4096×2160)", "Se se podem misturar os dois tipos de cartão de saída (a ficha não diz que não, nem que sim)", "Q8 Pro: não consta nas páginas oficiais"],
+      "sem_dados_en": ["Total capacity in MP (the datasheet doesn't publish it; the app's is derived from the number of 4K outputs × 4096×2160)", "Whether the two output card types can be mixed (the datasheet says neither yes nor no)", "Q8 Pro: not listed on the official pages"],
+      "cartoes": [
+        {
+          "id": "hdmi-sdi-fibra",
+          "nome": "Q8_HDMI2.0+12G-SDI+Fiber Output Card",
+          "saidas": 4,
+          "saidas_nota": "4× HDMI 2.0 + 4× 12G-SDI organizados em 4 grupos (1 HDMI + 1 SDI por grupo, um copia o outro): 4 saídas independentes por cartão.",
+          "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html",
+          "confianca": "fabricante",
+          "porSaida": { "tipo": "HDMI 2.0", "w": 4096, "h": 2160, "hz": 60, "bits": 8, "amostragem": "4:4:4", "larguraMax": 8192, "alturaMax": 8188, "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html", "confianca": "indicativo", "nota": "Ficha: «Up to 4K×2K@60Hz 8bit 4:4:4 or 4K×2K@60Hz 12bit 4:2:2»; «4K×2K» assumido como 4096×2160 (a ficha da P80 diz 4096×2160); personalizado até 8192×8188." },
+          "optica": { "portas": 8, "gbps": 10, "modo": "monomodo ou multimodo (até 10 km em monomodo)", "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html", "nota": "8× 10G OPT em cópia: OPT 1 e 2 copiam o conector 1 ou 5, OPT 3 e 4 o 2 ou 6, OPT 5 e 6 o 3 ou 7, OPT 7 e 8 o 4 ou 8 (2 óticas por saída). Não somam saídas." }
+        },
+        {
+          "id": "hdmi-dp-sfp",
+          "nome": "Q8_HDMI2.0x4+DP1.2x4+SFPx8 Output Card",
+          "saidas": 4,
+          "saidas_nota": "4× HDMI 2.0 + 4× DP 1.2 organizados em 4 grupos (1 HDMI + 1 DP por grupo, um copia o outro): 4 saídas independentes por cartão.",
+          "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html",
+          "confianca": "fabricante",
+          "porSaida": { "tipo": "HDMI 2.0 / DP 1.2", "w": 4096, "h": 2160, "hz": 60, "bits": 10, "amostragem": "4:4:4", "larguraMax": 8192, "alturaMax": 8188, "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html", "confianca": "indicativo", "nota": "Ficha: «Up to 4K×2K@60Hz 10bit 4:4:4 output» (HDMI 2.0 e DP 1.2); «4K×2K» assumido como 4096×2160; personalizado até 8192×8188." },
+          "optica": { "portas": 8, "gbps": 10, "modo": "monomodo ou multimodo (até 10 km em monomodo)", "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html", "nota": "8× 10G OPT em cópia: um par de óticas por grupo (OPT 1+2 = grupo 1, 3+4 = grupo 2, 5+6 = grupo 3, 7+8 = grupo 4). Não somam saídas." }
+        }
+      ],
+      "cartoes_entrada": [
+        { "id": "st2110", "nome": "Q8_ST2110_4xSFP25G Input Card", "entradas": 2, "nota": "4× SFP25G: 2 principais + 2 de reserva; ST 2110 / SMPTE 2059; até 4096×2160@60.", "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html", "confianca": "indicativo" },
+        { "id": "hdmi-dp-sdi", "nome": "Q8_HDMI2.0+DP1.2+12G-SDI Input Card", "entradas": 8, "nota": "4× HDMI 2.0 + 4× DP 1.2 + 4× 12G-SDI; 8 entradas 4K×2K em simultâneo por cartão.", "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html", "confianca": "fabricante" },
+        { "id": "hdmi8-sdi", "nome": "Q8_8xHDMI2.0+12G-SDI Input Card", "entradas": 8, "nota": "8× HDMI 2.0 + 4× 12G-SDI; 8 entradas 4K×2K@60 em simultâneo por cartão.", "fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html", "confianca": "fabricante" }
+      ],
+      "max_cartoes_entrada": 6,
+      "max_cartoes_entrada_fonte": "https://www.pixelhue.com/index.php/Content/products_detail/catid/63/id/24.html"
+    }
+  ],
+  "lumina": {
+    "_nota": "A Lumina é o servidor de «video splicing» da PixelHue (página proav.pixelhue.com). As placas LU_ NÃO entram no P80, P20 nem Q8: encaixam no chassi Lumina 2U ou 5U e alimentam o LED (a ficha pede o NovaLCT para configurar o ecrã). Na app entram como processadores de LED (data/processors.json › ledProcessors), uma placa de cada vez; quantas placas cabem em cada chassi não está nas páginas.",
+    "chassis": [
+      { "nome": "Lumina 5U", "fonte": "https://proav.pixelhue.com/product/detail.html?id=38", "ranhuras": null, "max_pixeis": null, "sem_dados": ["nº de ranhuras de entrada/saída/envio", "máximo de placas", "capacidade total do chassi"] },
+      { "nome": "Lumina 2U", "fonte": "https://proav.pixelhue.com/product/detail.html?id=37", "ranhuras": null, "max_pixeis": null, "sem_dados": ["nº de ranhuras de entrada/saída/envio", "máximo de placas", "capacidade total do chassi"] }
+    ],
+    "regra_de_mistura": "A placa LU_4×OPT não se combina com as LU_20×RJ45 ou LU_16×RJ45+2×OPT para carregar o mesmo ecrã (ficha do Lumina 5U e 2U).",
+    "cartoes": [
+      {
+        "id": "lu-20rj45",
+        "nome": "LU_20×RJ45 Sending Card",
+        "modelo_app": "Lumina · LU_20×RJ45",
+        "ligacoes": { "tipo": "RJ45 GbE", "portas": 20 },
+        "max_pixeis": 13000000,
+        "largura_max": 10752,
+        "altura_max": 10752,
+        "px_por_porta_8bit": 650000,
+        "px_por_porta_10bit": 320000,
+        "hz_max": 144,
+        "bits": [8, 10],
+        "ranhuras_ocupadas": 2,
+        "ranhuras_nota": "«Daughter card that uses two expansion slots».",
+        "reserva": "backup entre portas Ethernet",
+        "fonte": "https://proav.pixelhue.com/product/detail.html?id=77",
+        "consultado": "2026-11-06",
+        "confianca": "fabricante"
+      },
+      {
+        "id": "lu-16rj45-2opt",
+        "nome": "LU_16×RJ45+2×OPT Sending Card",
+        "modelo_app": "Lumina · LU_16×RJ45+2×OPT",
+        "ligacoes": { "tipo": "RJ45 GbE", "portas": 16 },
+        "optica": { "portas": 2, "gbps": 10, "copia": true, "modo": "monomodo ou multimodo (módulos vendidos à parte)", "nota": "OPT 1 copia as Ethernet 1–8 e OPT 2 copia as 9–16: levam longe o que sai em cobre, não acrescentam capacidade." },
+        "max_pixeis": 10400000,
+        "largura_max": 10240,
+        "altura_max": 10240,
+        "px_por_porta_8bit": 650000,
+        "px_por_porta_10bit": 320000,
+        "hz_max": 144,
+        "bits": [8, 10],
+        "ranhuras_ocupadas": 2,
+        "ranhuras_nota": "«Daughter card occupying two slots».",
+        "reserva": "backup entre portas",
+        "fonte": "https://proav.pixelhue.com/product/detail.html?id=76",
+        "consultado": "2026-11-06",
+        "confianca": "fabricante"
+      },
+      {
+        "id": "lu-4opt",
+        "nome": "LU_4×OPT Sending Card",
+        "modelo_app": "Lumina · LU_4×OPT",
+        "ligacoes": { "tipo": "OPT 10G (SFP+)", "portas": 4 },
+        "optica": { "portas": 4, "gbps": 10, "copia": false, "equivEth": 8, "modo": "monomodo (SFP+ LR, 10 km; 4 módulos incluídos) ou multimodo (SFP+ SR, 300 m)", "nota": "Cada porta carrega o mesmo que 8 portas Ethernet. Modos: independente (as 4 com a mesma capacidade), cópia (OPT 3 copia a 1 e OPT 4 a 2) e reserva (OPT 3 reserva da 1 e OPT 4 da 2)." },
+        "max_pixeis": 20800000,
+        "largura_max": 16384,
+        "altura_max": 16384,
+        "px_por_porta_8bit": 5200000,
+        "px_por_porta_8bit_derivado": true,
+        "px_por_porta_nota": "Derivado: «each port's loading capacity equals that of 8 Ethernet ports» × 650 000 px (8 bits) = 5 200 000 px, que bate com 20 800 000 ÷ 4 portas.",
+        "px_por_porta_10bit": null,
+        "hz_max": 144,
+        "bits": [8, 10],
+        "ranhuras_ocupadas": null,
+        "ranhuras_nota": "A ficha não diz quantas ranhuras ocupa (só a espessura: 21,15 mm).",
+        "fonte": "https://proav.pixelhue.com/product/detail.html?id=78",
+        "consultado": "2026-11-06",
+        "confianca": "fabricante"
+      }
+    ]
+  }
+}
