@@ -1225,6 +1225,15 @@
   };
   Object.keys(CORRENTE_EN).forEach(function (k) { DICT_EN[k] = CORRENTE_EN[k]; });
 
+  // ---- Atalho para o separador LED Wall Help (v4.70) ----
+  // O resto do LED Wall Help traduz-se a si próprio (js/ledwall-help-en.js);
+  // só o atalho que vive na aba Ecrã LED passa por aqui.
+  var LEDWALL_ATALHO_EN = {
+    "Abrir no LED Wall Help": "Open in LED Wall Help",
+    "Leva este ecrã para o separador LED Wall Help: portas, ligações e desenho do cabo": "Takes this screen to the LED Wall Help tab: ports, links and the cable drawing"
+  };
+  Object.keys(LEDWALL_ATALHO_EN).forEach(function (k) { DICT_EN[k] = LEDWALL_ATALHO_EN[k]; });
+
   // Palavras curtas/ambíguas de mais para entrar no dicionário de substring
   // acima (ex: "e" e "ou" aparecem dentro de imensas outras palavras) — só
   // traduzem quando são o conteúdo INTEIRO de um nó de texto isolado (ex:

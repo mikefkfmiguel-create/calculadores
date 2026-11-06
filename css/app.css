@@ -536,6 +536,7 @@
   .tab[data-mode="projeto"] .swatch, .tabs-current[data-mode="projeto"] .swatch { background: var(--green-500); }
   .tab[data-mode="assistente"] .swatch, .tabs-current[data-mode="assistente"] .swatch { background: var(--green-500); }
   .tab[data-mode="sinal"] .swatch, .tabs-current[data-mode="sinal"] .swatch { background: var(--rose-500); }
+  .tab[data-mode="ledwall"] .swatch, .tabs-current[data-mode="ledwall"] .swatch { background: var(--blue-600); }
   .tab[data-mode="mediaserver"] .swatch, .tabs-current[data-mode="mediaserver"] .swatch { background: var(--cyan-500); }
   .tab[data-mode="tv"] .swatch, .tabs-current[data-mode="tv"] .swatch { background: var(--orange-500); }
   .tab[data-mode="dome"] .swatch, .tabs-current[data-mode="dome"] .swatch { background: var(--violet-500); }
@@ -559,6 +560,7 @@
   .tab[data-mode="projeto"][aria-selected="true"] { border-bottom-color: var(--green-500); }
   .tab[data-mode="assistente"][aria-selected="true"] { border-bottom-color: var(--green-500); }
   .tab[data-mode="sinal"][aria-selected="true"] { border-bottom-color: var(--rose-500); }
+  .tab[data-mode="ledwall"][aria-selected="true"] { border-bottom-color: var(--blue-600); }
   .tab[data-mode="mediaserver"][aria-selected="true"] { border-bottom-color: var(--cyan-500); }
   .tab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
 
@@ -1503,6 +1505,7 @@
   .panel[data-mode="lentes"] .stripe, [data-accent="lentes"] .stripe { background: var(--blue-500); }
   .panel[data-mode="projeto"] .stripe, [data-accent="projeto"] .stripe { background: var(--green-500); }
   .panel[data-mode="sinal"] .stripe, [data-accent="sinal"] .stripe { background: var(--rose-500); }
+  .panel[data-mode="ledwall"] .stripe, [data-accent="ledwall"] .stripe { background: var(--blue-600); }
   .panel[data-mode="tv"] .stripe, [data-accent="tv"] .stripe { background: var(--orange-500); }
   /* O dome partilha o violeta do Blending de propósito: é o mesmo problema,
      vários projetores a sobreporem-se, e não vale acrescentar mais uma cor. */
@@ -2179,3 +2182,81 @@
   .cs-params .cs-incluir { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; margin-top: 4px; }
   .cs-params .cs-incluir input { width: auto; }
   .cs-consumo { margin-top: 14px; }
+
+  /* LED Wall Help (v4.70): separador novo para o transporte, a divisão do sinal e a ligação dos gabinetes. */
+  :root {
+    --lw-c0: #1D5FA8; --lw-c1: #B8500A; --lw-c2: #1C7A42; --lw-c3: #B23D63; --lw-c4: #5A4FB8;
+    --lw-c5: #0C7A94; --lw-c6: #8A6A00; --lw-c7: #7A3E9D; --lw-c8: #4A6572; --lw-c9: #8F3B2E;
+    --lw-erro: #C0392B; --lw-corr: #B8500A; --lw-semfundo: #FBE7E5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --lw-c0: #5BA3F0; --lw-c1: #F0944A; --lw-c2: #5FD08A; --lw-c3: #F07AA0; --lw-c4: #9D93F5;
+      --lw-c5: #4CC8E0; --lw-c6: #E3C24A; --lw-c7: #C58AE6; --lw-c8: #94B4C4; --lw-c9: #F0897A;
+      --lw-erro: #FF6B5B; --lw-corr: #F0944A; --lw-semfundo: #3A1A18;
+    }
+  }
+  :root[data-theme="dark"] {
+    --lw-c0: #5BA3F0; --lw-c1: #F0944A; --lw-c2: #5FD08A; --lw-c3: #F07AA0; --lw-c4: #9D93F5;
+    --lw-c5: #4CC8E0; --lw-c6: #E3C24A; --lw-c7: #C58AE6; --lw-c8: #94B4C4; --lw-c9: #F0897A;
+    --lw-erro: #FF6B5B; --lw-corr: #F0944A; --lw-semfundo: #3A1A18;
+  }
+  #lw-raiz { max-width: 1000px; margin: 0 auto; }
+  #lw-raiz .results { position: static; }
+  #lw-raiz .card + .card, #lw-raiz details.card + .lw-sub { margin-top: 14px; }
+  .lw-linha-botoes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+  .lw-rapido { display: flex; gap: 8px; margin-top: 8px; }
+  .lw-rapido .copy { flex: 1; padding: 8px 10px; }
+  .lw-interruptor { margin-bottom: 6px; }
+  .lw-sub { display: flex; gap: 6px; margin: 16px 0 10px; padding: 4px; background: var(--paper-raised); border: 1px solid var(--line); border-radius: 12px; }
+  .lw-subbtn { flex: 1; font: inherit; font-weight: 600; font-size: 14px; padding: 10px 6px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); cursor: pointer; min-height: 44px; }
+  .lw-subbtn.active { background: var(--blue-600); color: #fff; }
+  .lw-painel { padding: 16px; }
+  .lw-info { padding: 10px 12px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--paper); display: grid; gap: 6px; }
+  .lw-tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--blue-100); color: var(--blue-600); border: 1px solid var(--blue-200); vertical-align: middle; }
+  .lw-tag-mike { background: var(--amber-100); color: var(--amber-600); border-color: var(--amber-200); }
+  .lw-tabela { display: grid; border: 1px solid var(--line-soft); border-radius: 10px; overflow: hidden; margin-top: 8px; }
+  .lw-linhatab { display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(0, .9fr) minmax(0, 1fr) minmax(0, 1.5fr); gap: 6px; align-items: center; text-align: left; font: inherit; font-size: 13px; padding: 8px 10px; border: 0; border-bottom: 1px solid var(--line-soft); background: var(--paper-raised); color: var(--ink); width: 100%; }
+  button.lw-linhatab { cursor: pointer; }
+  .lw-linhatab:last-child { border-bottom: 0; }
+  .lw-linhatab.lw-cab { font-weight: 700; font-size: 12px; color: var(--ink-soft); background: var(--paper); }
+  .lw-linhatab.ativa { outline: 2px solid var(--blue-600); outline-offset: -2px; }
+  .lw-linhatab.lw-mau { background: var(--danger-100); color: var(--danger-600); }
+  .lw-linhatab em { font-style: normal; font-size: 11px; color: var(--amber-600); }
+  .lw-c2, .lw-c3 { text-align: right; }
+  .lw-tab-portas .lw-linhatab { grid-template-columns: .6fr .8fr 1fr 1.6fr; }
+  #lw-bits-tab .lw-linhatab { grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); }
+  #lw-bits-tab .lw-cb { text-align: right; }
+  #lw-bits-tab .lw-cb.ativa { font-weight: 700; color: var(--blue-600); }
+  .lw-frase { margin: 0 0 8px; line-height: 1.45; }
+  .lw-liga { padding: 10px 12px; margin-top: 8px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--paper-raised); }
+  .lw-liga.lw-mau { border-color: var(--danger-600); background: var(--danger-100); }
+  .lw-liga-topo { display: flex; align-items: center; gap: 8px; }
+  .lw-liga-v { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lw-chip { display: inline-block; width: 12px; height: 12px; border-radius: 3px; flex: 0 0 auto; }
+  .lw-barra { height: 8px; border-radius: 4px; background: var(--line-soft); margin: 8px 0 4px; overflow: hidden; }
+  .lw-barra span { display: block; height: 100%; border-radius: 4px; }
+  .lw-aviso { margin-top: 8px; }
+  .lw-aviso-suave { margin-top: 6px; }
+  .lw-sugcard { display: grid; gap: 3px; width: 100%; text-align: left; font: inherit; padding: 10px 12px; margin-top: 8px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--paper-raised); color: var(--ink); cursor: pointer; }
+  .lw-sugcard.ativa { border-color: var(--blue-600); box-shadow: 0 0 0 2px var(--blue-200); }
+  .lw-sugtit { font-weight: 700; }
+  .lw-sugn { font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .lw-sugdesc { font-size: 13px; }
+  .lw-sugraz { font-size: 12.5px; color: var(--ink-soft); }
+  .lw-ajuste { margin: 12px 0 6px; }
+  .lw-ajuste > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+  .lw-camadas { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 10px 0 4px; align-items: center; }
+  .lw-chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+  .lw-chk input[type="checkbox"] { width: auto; }
+  .lw-chk select { width: auto; padding: 4px 8px; }
+  .lw-svg-wrap { margin-top: 10px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--paper-raised); padding: 6px; max-width: 100%; }
+  .lw-svg-wrap svg { max-width: 100%; height: auto; }
+  .lw-leg-lista { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; font-size: 13px; }
+  .lw-leg-item { display: inline-flex; align-items: center; gap: 8px; }
+  .lw-portas { margin-top: 10px; }
+  .lw-portas > summary { cursor: pointer; font-weight: 600; }
+  @media (max-width: 520px) {
+    .lw-linhatab { font-size: 12px; padding: 7px 8px; gap: 4px; grid-template-columns: minmax(0, 2fr) .8fr .9fr minmax(0, 1.2fr); }
+    .lw-subbtn { font-size: 13px; }
+  }
