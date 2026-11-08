@@ -2183,7 +2183,7 @@
   .cs-params .cs-incluir input { width: auto; }
   .cs-consumo { margin-top: 14px; }
 
-  /* LED Wall Help (v4.70): separador novo para o transporte, a divisão do sinal e a ligação dos gabinetes. */
+  /* LED Wall Help (v4.70): separador novo para o transporte, a divisão do sinal e a ligação dos cabinets. */
   :root {
     --lw-c0: #1D5FA8; --lw-c1: #B8500A; --lw-c2: #1C7A42; --lw-c3: #B23D63; --lw-c4: #5A4FB8;
     --lw-c5: #0C7A94; --lw-c6: #8A6A00; --lw-c7: #7A3E9D; --lw-c8: #4A6572; --lw-c9: #8F3B2E;
