@@ -3186,6 +3186,7 @@
 <script src="js/utils.js"></script>
 <script src="js/corrente-serie.js"></script>
 <script src="js/saidas-switcher.js"></script>
+<script src="js/pixelhue-config.js"></script>
 <script src="js/ligacao-led.js"></script>
 <script src="js/ledwall-help-en.js"></script>
 <script src="js/ledwall-help.js"></script>
@@ -6673,6 +6674,7 @@
   var projLedProcListExpanded = false;
   var selectedSinalSwitcherKeys = new Set();
   var selectedSinalOutputMode = new Map();
+  var selectedSinalConfig = new Map();   // configuração PixelHue por switcher: { id, qtd }
   var selectedSinalLedProcKeys = new Set();
   var sinalSwitcherListExpanded = false;
   var sinalLedProcListExpanded = false;
@@ -9561,6 +9563,81 @@
     splitCanvasForCapacity: splitCanvasForCapacity
   });
 
+  // CONFIGURAÇÕES PIXELHUE (data/pixelhue-configuracoes.json, js/pixelhue-config.js):
+  // a configuração escolhida (modo do P80, cartões do Q8) dá o nº de saídas, o pixel
+  // clock por saída e a capacidade. `efetivoSw(s)` devolve o switcher com isso aplicado
+  // (os outros devolvem-se como estão).
+  var PHC = PixelhueConfig.criar({ cvt: cvtRb2ClockMHz });
+  var PHC_DADOS = null;
+  // As frases das configurações PixelHue vêm dos dados nas duas línguas: ao trocar
+  // de língua, redesenha-se a aba Sinal & Data Rate.
+  document.addEventListener("i18n-lang", function () { if (PHC_DADOS && document.getElementById("sg-h")) calcSinal(); });
+  function pxEn() { return typeof i18nGetLang === "function" && i18nGetLang() === "en"; }
+  function pxT(pt, en) { return pxEn() ? en : pt; }
+  function cfgEstado(s, m) { return PHC.estadoValido(m, selectedSinalConfig.get(itemKey(s.marca, s.modelo))); }
+  function efetivoSw(s) {
+    var m = PHC.modeloDe(s);
+    return m ? PHC.efetivo(s, m, cfgEstado(s, m)).s : s;
+  }
+  function pxCfgRotulo(s) { var r = s.configuracaoPixelhue; return pxEn() ? (r.rotulo_en || r.rotulo) : r.rotulo; }
+  function pxCfgRotuloDe(r) { return pxEn() ? (r.rotulo_en || r.rotulo) : r.rotulo; }
+  function pxAviso(a) { return pxEn() ? a.en : a.pt; }
+  function pxPorSaidaTxt(s) {
+    var p = s.configuracaoPixelhue && s.configuracaoPixelhue.porSaida;
+    if (!p) return pxT("sem dados", "no data");
+    return p.tipo + " · " + fmtInt(p.w) + "×" + fmtInt(p.h) + " @ " + fmtInt(p.hz) + " Hz" +
+      (p.bits ? " · " + p.bits + "-bit" + (p.amostragem ? " " + p.amostragem : "") : "") +
+      " · " + fmt((p.w * p.h) / 1e6, 2) + " MP " + pxT("por saída", "per output") +
+      (s.maxPixelClockMHz ? " · " + fmt(s.maxPixelClockMHz, 1) + " MHz (" + pxT("derivado, CVT-RB2", "derived, CVT-RB2") + ")" : "") +
+      (p.derivado ? " · " + pxT("valor derivado", "derived value") : "") +
+      (p.confianca === "indicativo" ? " · " + pxT("indicativo", "indicative") : "");
+  }
+  // Os cartões/saídas da configuração, o que não tem dados e os avisos — só o que há.
+  function pxCfgHtml(s) {
+    var r = s.configuracaoPixelhue, m = r && r.modelo;
+    if (!m) return "";
+    var key = itemKey(s.marca, s.modelo), est = r.estado, en = pxEn();
+    var h = '<div class="sinal-detail-row pxh-cfg-row"><span class="k">' + pxT("Configuração", "Configuration") + '</span><span class="v">';
+    var ops = PHC.opcoes(m, en);
+    if (ops.length > 1) {
+      h += '<select class="plain pxh-cfg" data-key="' + key + '" aria-label="' + pxT("Configuração (cartões de saída)", "Configuration (output cards)") + '">' +
+        ops.map(function (o) { return '<option value="' + o.id + '"' + (o.id === est.id ? ' selected' : '') + '>' + o.rotulo + '</option>'; }).join("") + '</select>';
+    } else {
+      h += pxCfgRotulo(s);
+    }
+    if (m.tipo === "cartoes" && est.id === "manual") {
+      var qtd = r.cartoes.reduce(function (a, c) { a[c.id] = c.qtd; return a; }, {});
+      var manual = est.qtd || {};
+      h += '<div class="pxh-qtds">' + m.cartoes.map(function (c) {
+        var v = manual[c.id] != null ? manual[c.id] : (qtd[c.id] || 0);
+        return '<label class="pxh-qtd-l"><span>' + c.nome + '</span><input type="number" class="pxh-qtd" inputmode="numeric" min="0" max="' + (m.max_cartoes_saida || 99) + '" step="1" value="' + v + '" data-key="' + key + '" data-cartao="' + c.id + '"></label>';
+      }).join("") + '</div>';
+    }
+    h += '</span></div>';
+    h += '<div class="sinal-detail-row"><span class="k">' + pxT("Capacidade por saída", "Capacity per output") + '</span><span class="v">' + pxPorSaidaTxt(s) +
+      (r.porSaida && r.porSaida.fonte ? ' ' + srcLinkHtml(r.porSaida.fonte) : '') + '</span></div>';
+    if (m.tipo === "cartoes" && m.max_cartoes_saida) {
+      var tot = r.cartoes.reduce(function (a, c) { return a + c.qtd; }, 0);
+      h += '<div class="sinal-detail-row"><span class="k">' + pxT("Cartões de saída", "Output cards") + '</span><span class="v">' + fmtInt(tot) + ' / ' + fmtInt(m.max_cartoes_saida) +
+        ' ' + pxT("(máximo da ficha)", "(datasheet maximum)") + (r.opticaPortas ? ' · ' + fmtInt(r.opticaPortas) + ' ' + pxT("óticas 10G em cópia", "10G optical ports (copy)") : '') + '</span></div>';
+    }
+    r.avisos.forEach(function (a) { h += '<div class="warn">' + pxAviso(a) + '</div>'; });
+    if (r.semDados.length) {
+      h += '<div class="hint pxh-sem">' + pxT("Sem dados na ficha: ", "No data in the datasheet: ") + r.semDados.map(pxAviso).join("; ") + '.</div>';
+    }
+    return h;
+  }
+  function pxCfgRelatorio(s) {
+    var r = s.configuracaoPixelhue, t = "\n    " + pxT("Configuração PixelHue: ", "PixelHue configuration: ") + pxCfgRotulo(s) +
+      " — " + (r.saidas != null ? fmtInt(r.saidas) + " " + pxT("saídas", "outputs") : pxT("nº de saídas sem dados", "number of outputs: no data")) +
+      " — " + pxT("por saída: ", "per output: ") + pxPorSaidaTxt(s);
+    var fonte = (r.porSaida && r.porSaida.fonte) || (r.modelo && r.modelo.fonte);
+    if (fonte) t += "\n    " + pxT("Fonte: ", "Source: ") + fonte + " (" + pxT("consultado em ", "checked on ") + PHC_CONSULTADO() + ")";
+    r.avisos.forEach(function (a) { t += "\n    " + pxAviso(a); });
+    if (r.semDados.length) t += "\n    " + pxT("Sem dados na ficha: ", "No data in the datasheet: ") + r.semDados.map(pxAviso).join("; ") + ".";
+    return t;
+  }
+  function PHC_CONSULTADO() { return (PHC_DADOS && PHC_DADOS.consultado) || ""; }
   function saidasRes(w, h) { return fmtInt(w) + "×" + fmtInt(h) + "px"; }
   function saidasMP(mp) { return fmt(mp, mp < 10 ? 2 : 1) + " MP"; }
   function saidasPct(p) { return fmt(p, 0) + "%"; }
@@ -9764,7 +9841,7 @@
     var out = ["Saídas a usar" + (lido.n != null ? " (N = " + fmtInt(lido.n) + ")" : " (todas as saídas)") + ":"];
     modelos.forEach(function (M, idx) {
       var av = itens[idx].av;
-      var modeTxt = av.s.outputModes ? " [" + av.s.outputModes[av.modeIdx].label + "]" : "";
+      var modeTxt = av.s.outputModes ? " [" + av.s.outputModes[av.modeIdx].label + "]" : (av.s.configuracaoPixelhue ? " [" + pxCfgRotulo(av.s) + "]" : "");
       var linha = "  " + M.nome + modeTxt;
       if (M.resumo) {
         linha += " — " + M.resumo.saidas + " saídas — canvas contínuo: máx. " + M.resumo.canvasMax + ", " + (M.resumo.canvasCabe ? "o sinal cabe" : "o sinal não cabe") +
@@ -9866,7 +9943,8 @@
     // só com as que o aparelho tem.
     var saidasInput = document.getElementById("sg-saidas");
     var saidasLido = SaidasSwitcher.lerSaidas(saidasInput.value, !!(saidasInput.validity && saidasInput.validity.badInput));
-    var switchersMP = (PROCESSORS_DATA.switchers || []).map(function (s) {
+    var switchersMP = (PROCESSORS_DATA.switchers || []).map(function (s0) {
+      var s = efetivoSw(s0);   // com a configuração PixelHue escolhida (os outros ficam como estão)
       // Capacidade sempre pela unidade única (config. mínima/base), nunca
       // pelos valores "*Linked" (várias unidades ligadas) — ver nota igual
       // em calcProjeto(). Só entra com "Modo avançado" ligado.
@@ -9925,8 +10003,11 @@
     var saidasItens = [];
     if (h > 0 && v > 0 && fps > 0 && isFinite(h * v)) {
       var saidasCtx = {
-        todos: PROCESSORS_DATA.switchers || [],
-        escolhidos: function (s2) { return selectedSinalSwitcherKeys.has(itemKey(s2.marca, s2.modelo)); }
+        todos: (PROCESSORS_DATA.switchers || []).map(efetivoSw),
+        escolhidos: function (s2) { return selectedSinalSwitcherKeys.has(itemKey(s2.marca, s2.modelo)); },
+        // aparelhos com várias configurações (P80) entram com todas
+        variantes: function (s2) { var m = PHC.modeloDe(s2); return m ? PHC.variantes(s2, m, cfgEstado(s2, m)) : [s2]; },
+        rotulo: pxCfgRotuloDe
       };
       var saidasArmar = function (s, key, modeIdx, semCobertura) {
         var it = { s: s, key: key, semCobertura: semCobertura };
@@ -9940,7 +10021,8 @@
       // sai da lista de opções (como sempre saiu) mas continua aqui, a dizer
       // que não cabe — senão a comparação desaparecia justamente quando o
       // sinal cresce.
-      (PROCESSORS_DATA.switchers || []).forEach(function (s) {
+      (PROCESSORS_DATA.switchers || []).forEach(function (s0) {
+        var s = efetivoSw(s0);
         var key = itemKey(s.marca, s.modelo);
         if (!selectedSinalSwitcherKeys.has(key) || switchersChosen.some(function (x) { return x.key === key; })) return;
         saidasItens.push(saidasArmar(s, key, s.outputModes ? (selectedSinalOutputMode.get(key) || 0) : null, true));
@@ -10003,12 +10085,14 @@
       return '<div class="sinal-detail-card"><h3>' + x.s.marca + ' ' + x.s.modelo + ' ' + srcLinkHtml(x.s.fonte) + '</h3>' +
         '<div class="sinal-detail-row"><span class="k">Entrada</span><span class="v">' + entradaVal + '</span></div>' +
         '<div class="sinal-detail-row"><span class="k">Saída</span><span class="v">' + saidaVal + modeSelect + '</span></div>' +
+        pxCfgHtml(x.s) +
         '<div class="sinal-detail-row"><span class="k">Capacidade</span><span class="v">' + fmt(x.cap, 1) + ' MP — ' + x.pct + '%</span></div>' +
         advancedWarn +
         (saidasItem ? saidasCaixaHtml(saidasItem.M) : '') +
         '</div>';
     }).join("") + saidasItens.filter(function (it) { return it.semCobertura; }).map(function (it) {
       return '<div class="sinal-detail-card"><h3>' + saidasNome(it.s) + ' ' + srcLinkHtml(it.s.fonte) + '</h3>' +
+        pxCfgHtml(it.s) +
         saidasCaixaHtml(it.M) +
         '<button type="button" class="copy saidas-remover" data-key="' + it.key + '" style="margin-top:10px;">Tirar da escolha</button></div>';
     }).join("");
@@ -10019,6 +10103,29 @@
       });
     });
 
+    document.getElementById("sg-switcher-detail").querySelectorAll(".pxh-cfg").forEach(function (sel) {
+      sel.addEventListener("change", function () {
+        var ant = selectedSinalConfig.get(sel.dataset.key), qtd = ant && ant.qtd ? ant.qtd : null;
+        if (sel.value === "manual" && !qtd) {
+          // «À mão» parte da configuração que estava escolhida (não de zero cartões)
+          var s0 = (PROCESSORS_DATA.switchers || []).filter(function (s) { return itemKey(s.marca, s.modelo) === sel.dataset.key; })[0];
+          var m0 = s0 && PHC.modeloDe(s0);
+          if (m0) { qtd = {}; PHC.resolver(m0, cfgEstado(s0, m0)).cartoes.forEach(function (c) { qtd[c.id] = c.qtd; }); }
+        }
+        selectedSinalConfig.set(sel.dataset.key, { id: sel.value, qtd: qtd });
+        calcSinal();
+      });
+    });
+    document.getElementById("sg-switcher-detail").querySelectorAll(".pxh-qtd").forEach(function (inp) {
+      inp.addEventListener("change", function () {
+        var q = {};
+        document.getElementById("sg-switcher-detail").querySelectorAll('.pxh-qtd[data-key="' + inp.dataset.key + '"]').forEach(function (i2) {
+          q[i2.dataset.cartao] = parseInt(i2.value, 10) || 0;
+        });
+        selectedSinalConfig.set(inp.dataset.key, { id: "manual", qtd: q });
+        calcSinal();
+      });
+    });
     document.getElementById("sg-switcher-detail").querySelectorAll(".sinal-mode-select").forEach(function (sel) {
       sel.addEventListener("change", function () {
         selectedSinalOutputMode.set(sel.dataset.key, parseInt(sel.value, 10));
@@ -10052,7 +10159,7 @@
       ? ledProcShown.map(function (x) {
           var checked = selectedSinalLedProcKeys.has(x.key) ? " checked" : "";
           var tilesInfo = x.tilesPerPort != null ? " (máx. " + fmtInt(x.tilesPerPort) + " tiles/porta, " + (refTile.modelo) + ")" : "";
-          return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + '<strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.p.ports) + ' portas, ' + fmtInt(x.unitCapacity) + ' px/unidade) — usar ' + fmtInt(x.portsUsed) + ' de ' + fmtInt(x.portsAvailable) + ' portas (' + x.pct + '%)' + tilesInfo + '</span></span></label>';
+          return '<label class="lm-item lm-checkitem"><input type="checkbox" class="lm-check" data-key="' + x.key + '"' + checked + '><span class="lm-row"><span>' + priorityBadgeHtml(x) + marketBadgeHtml(x) + '<strong>' + x.p.marca + '</strong> <span class="lm-model">' + x.p.modelo + '</span>' + srcLinkHtml(x.p.fonte) + '</span><span>' + fmtInt(x.numUnits) + '× (' + fmtInt(x.p.ports) + ' portas' + (x.p.portaTipo ? ' ' + x.p.portaTipo : '') + ', ' + fmtInt(x.unitCapacity) + ' px/unidade) — usar ' + fmtInt(x.portsUsed) + ' de ' + fmtInt(x.portsAvailable) + ' portas (' + x.pct + '%)' + tilesInfo + '</span></span></label>';
         }).join("")
       : '<div class="lm-item"><span>Sem processos de LED na base de dados</span></div>') +
       (ledProcChosen.length
@@ -10082,12 +10189,13 @@
           var saidaTxt = x.connsNeeded != null
             ? (x.connsEstimated ? "~" : "") + fmtInt(x.connsNeeded) + (x.usedOutputs ? " de " + fmtInt(x.usedOutputs) + " saídas" + saidasEscolhidasTxt(x) : " ligações") + (x.outputsEnough === false ? " — ⚠ insuficiente" : "")
             : (x.usedOutputs ? fmtInt(x.usedOutputs) + " saídas" + saidasEscolhidasTxt(x) + " (sem dados para calcular quantas usar)" : "sem dados de saídas");
-          var modeTxt = x.s.outputModes ? " [" + x.s.outputModes[x.modeIdx].label + "]" : "";
+          var modeTxt = x.s.outputModes ? " [" + x.s.outputModes[x.modeIdx].label + "]" : (x.s.configuracaoPixelhue ? " [" + pxCfgRotulo(x.s) + "]" : "");
           var line = "  " + x.s.marca + " " + x.s.modelo + modeTxt + " — entrada: " + entradaTxt + " — saída: " + saidaTxt + " — capacidade: " + fmt(x.cap, 1) + " MP (" + x.pct + "%)";
           if (x.perConnRes) line += "\n    resolução a aplicar em cada ligação: " + fmtInt(x.perConnRes.w) + "×" + fmtInt(x.perConnRes.h) + "px" + (x.connsEstimated ? " (estimado por capacidade em MP — a marca não publica o pixel clock máximo deste aparelho, por isso não é tão fino como a conta por pixel clock)" : "");
           else if (x.connsEstimated) line += "\n    resolução exata por ligação não calculável.";
           if (x.inputsEnough === false) line += "\n    ⚠ precisa de mais ligações de entrada do que este switcher tem fisicamente — o sinal não cabe todo, mesmo repartido.";
           if (x.advancedNota) line += "\n    ⚠ modo avançado: " + x.advancedNota;
+          if (x.s.configuracaoPixelhue) line += pxCfgRelatorio(x.s);
           if (x.s.nota) line += "\n    " + x.s.nota;
           return line;
         }).join("\n")
@@ -11317,7 +11425,9 @@
     fetch("data/lenses.json").then(function (r) { return r.json(); }),
     fetch("data/processors.json").then(function (r) { return r.json(); }),
     fetch("data/tvs.json").then(function (r) { return r.json(); }),
-    fetch("data/fibra.json").then(function (r) { return r.json(); })
+    fetch("data/fibra.json").then(function (r) { return r.json(); }),
+    // Configurações dos aparelhos PixelHue: se faltar, a app trabalha como antes.
+    fetch("data/pixelhue-configuracoes.json").then(function (r) { return r.json(); }).catch(function () { return null; })
   ]).then(function (results) {
     // O MEU INVENTÁRIO decide o que é «de mercado»: o catálogo é neutro (js/meu-inventario.js).
     if (window.MeuInventario) {
@@ -11326,6 +11436,8 @@
     }
     var projectors = results[0], ledTiles = results[1], lenses = results[2], processors = results[3], tvs = results[4];
     FIBRA_DATA = results[5] || null;
+    PHC.definir(results[6]);
+    PHC_DADOS = results[6];
     PROJECTORS_DATA = projectors;
     LED_TILES_DATA = ledTiles;
     PROCESSORS_DATA = processors;

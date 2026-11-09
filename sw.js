@@ -13,6 +13,7 @@ const APP_SHELL = [
   "./js/meu-inventario.js",
   "./js/utils.js",
   "./js/saidas-switcher.js",
+  "./js/pixelhue-config.js",
   "./js/corrente-serie.js",
   "./js/ligacao-led.js",
   "./js/ledwall-help-en.js",
@@ -35,6 +36,7 @@ const DATA_FILES = [
   "./data/tvs.json",
   "./data/fibra.json",
   "./data/transportes.json",
+  "./data/pixelhue-configuracoes.json",
   // Notas da aba Conhecimento: network-first como os dados, para uma nota
   // nova aparecer logo com rede e a última cópia continuar a abrir sem rede.
   "./conhecimento/indice.json",

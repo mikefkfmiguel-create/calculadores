@@ -721,6 +721,13 @@
   .saidas-sug { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--ink); }
   .saidas-sug li { margin-bottom: 4px; overflow-wrap: anywhere; }
   .saidas-bloco .sinal-detail-row .v { overflow-wrap: anywhere; }
+  /* Configuração dos aparelhos PixelHue (cartões de saída × quantidade) */
+  .pxh-cfg-row select.pxh-cfg { max-width: 100%; margin-top: 2px; }
+  .pxh-qtds { display: grid; gap: 6px; margin-top: 8px; }
+  .pxh-qtd-l { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
+  .pxh-qtd-l span { min-width: 0; overflow-wrap: anywhere; }
+  .pxh-qtd-l input.pxh-qtd { width: 4.5em; flex: none; }
+  .pxh-sem { margin-top: 6px; font-size: 12px; line-height: 1.4; }
   .field .hint.saidas-erro { color: var(--danger-600); }
   .saidas-comp { margin-bottom: 16px; }
   .saidas-comp h4 { font-size: 13px; margin: 0 0 8px; color: var(--ink); }
@@ -2218,6 +2225,7 @@
   .lw-tabela { display: grid; border: 1px solid var(--line-soft); border-radius: 10px; overflow: hidden; margin-top: 8px; }
   .lw-linhatab { display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(0, .9fr) minmax(0, 1fr) minmax(0, 1.5fr); gap: 6px; align-items: center; text-align: left; font: inherit; font-size: 13px; padding: 8px 10px; border: 0; border-bottom: 1px solid var(--line-soft); background: var(--paper-raised); color: var(--ink); width: 100%; }
   button.lw-linhatab { cursor: pointer; }
+  .lw-grupo-t { padding: 8px 10px 4px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); background: var(--paper); border-top: 1px solid var(--line-soft); }
   .lw-linhatab:last-child { border-bottom: 0; }
   .lw-linhatab.lw-cab { font-weight: 700; font-size: 12px; color: var(--ink-soft); background: var(--paper); }
   .lw-linhatab.ativa { outline: 2px solid var(--blue-600); outline-offset: -2px; }

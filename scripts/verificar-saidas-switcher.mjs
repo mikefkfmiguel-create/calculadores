@@ -53,6 +53,9 @@ const S3 = sw("Barco", "S3-4K");
 const P80 = sw("PixelHUE", "P80");
 const P20DS = sw("PixelHUE", "P20-DS");
 const P10 = sw("PixelHUE", "P10");
+// Aparelhos SEM pixel clock publicado (os PixelHUE passaram a ter o deles, derivado da resolução máxima por saída):
+const ME3 = sw("Barco (Folsom)", "Encore 3 ME");      // sem nº de saídas
+const PDS = sw("Barco", "PDS-902 3G");                 // 2 saídas, 2,3 MP
 const H5 = sw("NovaStar", "H5");
 const aprox = (a, b, tol = 1e-9) => assert.ok(Math.abs(a - b) <= tol, a + " != " + b);
 
@@ -221,22 +224,22 @@ test("switcher com outputModes (P80): N limitado pelo modo; sem pixel clock -> e
   assert.equal(split.continuo.precisa, base.splitCanvasForCapacity(3840, 1080, (35 * 1e6) / 12).n);
 });
 
-test("sem pixel clock e sem saídas (P10): sem dados até se indicar N; com N só a capacidade", () => {
-  const sinal = { h: 1920, v: 1080, fps: 60 };
-  const sem = S.avaliar(P10, sinal, {});
+test("sem pixel clock e sem saídas (Encore 3 ME): sem dados até se indicar N; com N só a capacidade", () => {
+  const sinal = { h: 1280, v: 720, fps: 60 };
+  const sem = S.avaliar(ME3, sinal, {});
   assert.equal(sem.semDados, true);
-  const com = S.avaliar(P10, sinal, { n: 2 });
+  const com = S.avaliar(ME3, sinal, { n: 2 });
   assert.equal(com.semDados, undefined);
   assert.equal(com.semLimite, true);
   assert.equal(com.estimado, true);
   assert.ok(com.continuo.max && com.continuo.max.limite === "capacidade");
 });
 
-test("sem pixel clock com saídas (P20-DS): orçamento por ligação = capacidade / saídas, marcado estimado", () => {
-  const av = S.avaliar(P20DS, { h: 3840, v: 2160, fps: 60 }, { n: 4 });
+test("sem pixel clock com saídas (PDS-902 3G): orçamento por ligação = capacidade / saídas, marcado estimado", () => {
+  const av = S.avaliar(PDS, { h: 1920, v: 1080, fps: 60 }, { n: 2 });
   assert.equal(av.estimado, true);
-  aprox(av.lim.px, (35.4 * 1e6) / 8, 1e-6);
-  assert.equal(av.continuo.precisa, base.splitCanvasForCapacity(3840, 2160, (35.4 * 1e6) / 8).n);
+  aprox(av.lim.px, (2.3 * 1e6) / 2, 1e-6);
+  assert.equal(av.continuo.precisa, base.splitCanvasForCapacity(1920, 1080, (2.3 * 1e6) / 2).n);
 });
 
 test("H5: com a placa de fibra (modo avançado) a capacidade é a avançada", () => {

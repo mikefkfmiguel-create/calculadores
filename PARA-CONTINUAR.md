@@ -11,6 +11,40 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
+## 6 de novembro — Saídas e capacidades da PixelHue com as configurações, e transportes só com dados do fabricante (v4.71) — PR ABERTO, POR FUNDIR (espera o ok do Mike)
+
+**AV Planner v4.71** (sw `calculadores-v460`). Pedido do Mike: «nas saídas e capacidades podes incluir as da PixelHue com as configurações delas» e, a seguir, sobre a lista «Tipo de transporte» do LED Wall Help: «não é indicado por mim e não é ethernet e fibra; vai ver as indicações do fabricante».
+
+### PixelHue (data/pixelhue-configuracoes.json + js/pixelhue-config.js)
+
+- **Fontes lidas em 2026-11-06** (cada valor com `fonte`, `confianca` e a data; o que a ficha não publica é `null` e vem em `sem_dados`/`sem_dados_en`): pixelhue.com (P20/P10, P80, Q8) e proav.pixelhue.com (Lumina 5U/2U e placas LU_). O nº de saídas do P20 vem da tabela comparativa P20/P80/Q8 da apresentação da PixelHue (alojada num revendedor: `indicativo`).
+- **Aba Sinal & Data Rate**: ao escolher um switcher PixelHue aparece **«Configuração»** (cartões). `efetivoSw()` (index.html) transforma a configuração escolhida num switcher «efetivo» (saídas, pixel clock por saída por CVT-RB2 a partir da resolução máxima da ficha, e capacidade) e as contas de «Saídas a usar (N)» (`js/saidas-switcher.js`) ficam como estavam. P80: Split (12 saídas, DL = 4096×1080@60, DERIVADO/indicativo) e Copy (8 saídas, 4096×2160@60); P20/P20-DS: 2 saídas HDMI 2.0 4096×2160@60; P10: HDMI 1.3 2048×1080@60 e nº de saídas «sem dados» (indica N à mão); **Q8 (novo)**: cartões de saída × quantidade (4 saídas por cartão, 4 cartões, 16 no máximo) ou «À mão» com validação contra o máximo da ficha; capacidade do Q8 DERIVADA (saídas × 4096×2160), a ficha não a publica. O relatório e «Adicionar ao projeto» levam a configuração, o limite por saída, a fonte e a data.
+- **LED Wall Help**: as placas de envio **Lumina** (LU_20×RJ45, LU_16×RJ45+2×OPT, LU_4×OPT) são controladores novos em `processors.json › ledProcessors`, com o tipo de porta (`portaTipo`: RJ45 GbE / OPT 10G). LU_4×OPT: porta ótica = 8 portas Ethernet (ficha) = 7,44 Gb/s úteis (regra dos 0,93 Gb/s da app). As óticas da LU_16 só copiam: não se oferecem como capacidade (`optica.copia`). As óticas 10G do Lumina, Q8 e P80 entram na lista de transportes.
+- **Dados corrigidos/avisados** (a ficha manda): P20-DS tinha 8 saídas, passou a 2; P10 ganhou o pixel clock da saída HDMI 1.3 (2048×1080@60) e fica com aviso porque a capacidade guardada (8,3 / 17,7 MP) não bate com a ficha; o antigo seletor de modos do P80 deu lugar a «Configuração».
+- **Sem dados** (ver `sem_dados` e `nao_tratados`): nº de ranhuras e máximo de placas do chassi Lumina 2U/5U; ranhuras que cada LU_ ocupa (a LU_4×OPT não o diz); 10 bits da LU_4×OPT; capacidade total em MP do P10/P20/P80/Q8; nº de saídas do P10; se se podem misturar tipos de cartão no Q8; definição de DL na ficha da P80; Q8 Pro e série J (não existem nas páginas oficiais); série F (a ficha diz «2K@60 por cartão» sem dizer se por conector): não modelada.
+
+### Transportes (data/transportes.json, LED Wall Help)
+
+- Retirados os presets «Lightware (HDMI 2.0) 18» e «Blustream IP500 10» e todo o «indicado pelo Mike». Entram equipamentos reais, cada um com o seu tipo de ligação e a capacidade da ficha (URL + data de consulta + frase de origem em `nota`): Lightware UBEX-PRO20 (1 × SFP+ 10 Gb/s; 2 × SFP+ 20 Gb/s, manual), HDMI20-OPTC e OPTJ (fibra multimodo, 18), HDMI-TPX (CATx SDVoE direct-link, 18), HDMI-TPS-97 (HDBaseT, 3,4 por cor = 10,2), HDMI-3D-OPT (9), DP-OPT-150 (10,8), MX2-16x16-HDMI20 (porta, 18), VINX-120 (IP 1G, até 0,8); Blustream IP500UHD-TZ e IP510UHD-TZ (SDVoE em rede 10G = 10), FVE4K-KIT (SFP+ 10G = 10), IP300UHD (rede 1G = 1), HEX18G-KIT (HDBaseT 3.0, 18). Onde a ficha não dá o débito real na ligação (IP500/510, IP300, TPX) a nota diz «sem dados» e usa-se a velocidade da ligação. O IP500 aparece como «descontinuado» no site da Blustream.
+- A lista passou a ser por famílias (Ethernet/fibra, SDI, HDMI/DisplayPort, Lightware, Blustream, óticas dos processadores, Outro), ordenada por capacidade, com o débito uma só vez (nome + capacidade); a tabela comparativa leva cabeçalhos por família. Ids antigos (`lightware18`, `blustream10`) guardados num projeto antigo caem no por omissão `eth10`.
+
+### Ficheiros
+
+`data/pixelhue-configuracoes.json` (novo), `js/pixelhue-config.js` (novo), `data/processors.json`, `data/transportes.json`, `js/saidas-switcher.js` (`ctx.variantes`), `js/ligacao-led.js`, `js/ledwall-help.js`, `js/ledwall-help-en.js`, `js/i18n.js` (evento `i18n-lang`), `index.html`, `css/app.css`, `sw.js` (v460 + ficheiros novos), `scripts/verificar-pixelhue-config.mjs` e `scripts/verificar-pixelhue-pagina.py` (novos), `scripts/verificar-ligacao-led.mjs`, `scripts/verificar-saidas-switcher*.{mjs,py}`, `scripts/verificar-ledwall-help-pagina.py`, capturas em `scripts/capturas-pixelhue/` e `scripts/capturas-ledwall/`.
+
+### Como verificar
+
+- `node --test scripts/verificar-pixelhue-config.mjs` (9), `verificar-ligacao-led.mjs` (18), `verificar-saidas-switcher.mjs` (17), `verificar-corrente-serie.mjs`.
+- `PYTHONIOENCODING=utf-8 python scripts/verificar-pixelhue-pagina.py [--capturas]`, `verificar-ledwall-help-pagina.py [--capturas]`, `verificar-saidas-switcher-pagina.py <pasta da v4.70>` (os PixelHUE mudaram de propósito e testam-se à parte), `verificar-corrente-serie-pagina.py <pasta da v4.70>`. Os `.mjs` com Playwright falham neste PC por faltar o playwright do node (igual na v4.70).
+
+### Por fazer
+
+- Confirmar com o Mike/a PixelHue: ranhuras e máximo de placas do Lumina; DL do P80 em píxeis; nº de saídas do P10; capacidade total em MP de cada aparelho.
+- Pedir à Lightware/Blustream o débito real de vídeo na rede do IP500/IP510 e do IP300 (compressão); ficha própria do DP-OPT-TX100/RX100.
+- Entradas do Q8 (3 tipos de cartão, 6 no máximo) estão nos dados mas não entram nas contas.
+
+---
+
 ## 5–6 de novembro — Separador NOVO «LED Wall Help»: transporte, divisão do sinal e ligação dos cabinets (v4.70) — PR ABERTO, POR FUNDIR (espera o ok do Mike)
 
 **AV Planner v4.70** (sw `calculadores-v459`). O **LED Wall Help é um separador novo e à parte** (cor azul, a seguir a «Ecrã LED & Pixel Pitch»; mesmo nome em PT e EN). A aba «Ecrã LED & Pixel Pitch» ficou como estava, só com um atalho discreto «Abrir no LED Wall Help» (leva o ecrã). Pedido do Mike: saber a capacidade por porta em **cabinets**, desenhar a **forma de ligação** (onde começar, por onde entra o sinal) e **dividir o sinal por ligações** sem passar a capacidade do transporte escolhido.

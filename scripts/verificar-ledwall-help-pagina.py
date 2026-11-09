@@ -181,9 +181,9 @@ with sync_playwright() as p:
     pg.select_option("#lw-bits", "8"); pg.fill("#lw-hz", "60"); pg.wait_for_timeout(200)
 
     # ------------------------------------------------------------------ 5
-    print("5. Divisão do sinal: Lightware 18, Blustream IP500 10, Ethernet 25")
+    print("5. Divisão do sinal: Lightware HDMI20-OPTC 18, UBEX 2×10G, Blustream IP500 10, Ethernet 25 (valores das fichas)")
     sub(pg, "transporte")
-    esp = {"lightware18": {"8": 1, "10": 1, "12": 2}, "blustream10": {"8": 2, "10": 2, "12": 2}, "eth25": {"8": 1, "10": 1, "12": 1}}
+    esp = {"lw-optc": {"8": 1, "10": 1, "12": 2}, "lw-ubex-2x10": {"8": 1, "10": 1, "12": 1}, "bs-ip500": {"8": 2, "10": 2, "12": 2}, "eth25": {"8": 1, "10": 1, "12": 1}}
     for tid, por_bits in esp.items():
         pg.select_option("#lw-transp", tid)
         for bits, n_esp in por_bits.items():
@@ -193,16 +193,17 @@ with sync_playwright() as p:
             confirmar(all(r <= n["cap"] + 1e-9 for r in n["grupos"]), "   nenhuma ligação acima de %s Gb/s" % n["cap"])
             confirmar(abs(n["soma"] - n["total"]) < 1e-9, "   soma das ligações = débito total (%.4f)" % n["total"])
             confirmar(pg.locator("#lw-avisos .warn").count() == 0, "   sem avisos a vermelho")
-    pg.select_option("#lw-bits", "12"); pg.select_option("#lw-transp", "lightware18"); pg.wait_for_timeout(120)
+    pg.select_option("#lw-bits", "12"); pg.select_option("#lw-transp", "lw-optc"); pg.wait_for_timeout(120)
     sub(pg, "divisao")
     t = txt(pg, "#lw-div-lista")
     confirmar("Ligação 1" in t and "Ligação 2" in t and "%" in t, "a Divisão lista as ligações com a % de cada uma")
     confirmar("colunas" in t and "cabinets" in t, "diz o que cada ligação leva (portas, cabinets, colunas, linhas)")
     sub(pg, "transporte")
     tab = txt(pg, "#lw-comp")
-    confirmar("Lightware (HDMI 2.0)" in tab and "indicado pelo Mike" in tab and "Blustream IP500" in tab, "tabela comparativa com os presets do Mike rotulados")
+    confirmar("HDMI20-OPTC" in tab and "IP500UHD-TZ" in tab and "indicado pelo Mike" not in tab, "tabela comparativa com os equipamentos do fabricante (sem «indicado pelo Mike»)")
+    confirmar("UBEX-PRO20" in tab and "Ethernet 10 Gb/s — 10 Gb/s" not in tab, "a tabela mostra a capacidade uma só vez")
     info = txt(pg, "#lw-transp-info")
-    confirmar("indicado pelo Mike" in info and "CONFIRMAR NA FICHA" in info, "o preset diz «indicado pelo Mike» e «a confirmar na ficha»")
+    confirmar("ficha do fabricante" in info and "consultada em 2026-11-06" in info and "Max Video Data rate: 18 Gbps" in info and "indicado pelo Mike" not in info, "o equipamento diz a ficha do fabricante, a frase e a data de consulta")
     # outro / à mão e margem
     pg.select_option("#lw-transp", "outro"); pg.fill("#lw-cap", "2"); pg.fill("#lw-margem", "80"); pg.select_option("#lw-bits", "8"); pg.wait_for_timeout(150)
     n = lw_num(pg)
@@ -270,22 +271,23 @@ with sync_playwright() as p:
 
     # ------------------------------------------------------------------ 7
     print("7. Adicionar ao projeto, relatório, guardar/abrir, recarregar")
-    pg.select_option("#lw-transp", "lightware18") if pg.locator("#lw-transp").is_visible() else None
-    sub(pg, "transporte"); pg.select_option("#lw-transp", "blustream10"); pg.fill("#lw-margem", "90"); pg.select_option("#lw-bits", "10"); pg.wait_for_timeout(200)
+    pg.select_option("#lw-transp", "lw-optc") if pg.locator("#lw-transp").is_visible() else None
+    sub(pg, "transporte"); pg.select_option("#lw-transp", "bs-ip500"); pg.fill("#lw-margem", "90"); pg.select_option("#lw-bits", "10"); pg.wait_for_timeout(200)
     pg.locator("#lw-addproject").check(); pg.wait_for_timeout(200)
     resumo = pg.inner_text("#lw-sum")
-    confirmar("LED WALL HELP" in resumo and "Blustream IP500" in resumo and "margem 90 %" in resumo, "o resumo diz o transporte e a margem")
-    confirmar("indicado pelo Mike" in resumo, "o resumo rotula o preset «indicado pelo Mike»")
+    confirmar("LED WALL HELP" in resumo and "IP500UHD-TZ" in resumo and "margem 90 %" in resumo, "o resumo diz o transporte e a margem")
+    confirmar("indicado pelo Mike" not in resumo and "ficha do fabricante" in resumo, "o resumo diz «ficha do fabricante» e não «indicado pelo Mike»")
+    confirmar("Ligação 1" in resumo and "Porta 1" in resumo and "cabinets por porta" in resumo, "o resumo traz ligações, portas e cabinets por porta")
     confirmar("Ligação 1" in resumo and "Porta 1" in resumo and "cabinets por porta" in resumo, "o resumo traz ligações, portas e cabinets por porta")
     pg.click('button.tab[data-mode="projeto"]'); pg.wait_for_timeout(300)
     rel = pg.text_content("#proj-items-list")
-    confirmar("LED Wall Help" in rel and "Blustream IP500" in rel, "entra no relatório do Projeto")
+    confirmar("LED Wall Help" in rel and "IP500UHD-TZ" in rel, "entra no relatório do Projeto")
     # relatório simplificado: tira o detalhe a 4 espaços mas mantém o essencial
     simples = pg.evaluate("window.textoDoResumo ? 1 : 0")
     confirmar(simples == 1, "relatório simplificado disponível")
     est = pg.evaluate("estadoDoProjeto()")
     lw = est.get("ledWall")
-    confirmar(lw and lw["transp"] == "blustream10" and str(lw["margem"]) == "90" and lw["bits"] == "10" and lw["noProjeto"] is True, "o estado do projeto leva o LED Wall Help (transporte, margem, bits)")
+    confirmar(lw and lw["transp"] == "bs-ip500" and str(lw["margem"]) == "90" and lw["bits"] == "10" and lw["noProjeto"] is True, "o estado do projeto leva o LED Wall Help (transporte, margem, bits)")
     guardado = json.dumps(est)
     # mexer em tudo e abrir de novo
     ir_lw(pg)
@@ -293,12 +295,12 @@ with sync_playwright() as p:
     pg.evaluate("applyProjState(%s)" % guardado)
     pg.wait_for_timeout(300)
     ir_lw(pg)
-    confirmar(pg.input_value("#lw-transp") == "blustream10" and pg.input_value("#lw-margem") == "90", "abrir o projeto repõe o transporte e a margem")
+    confirmar(pg.input_value("#lw-transp") == "bs-ip500" and pg.input_value("#lw-margem") == "90", "abrir o projeto repõe o transporte e a margem")
     confirmar(pg.input_value("#lw-cols") == "38" and pg.input_value("#lw-rows") == "6", "abrir o projeto repõe o ecrã")
     confirmar(pg.inner_text("#lw-sum") == resumo or pg.inner_text("#lw-sum").split("\n")[2] == resumo.split("\n")[2], "o resumo reabre igual")
     pg.reload(); pg.wait_for_timeout(1200)
     pg.get_by_text("Abrir a calculadora completa").first.click(); ir_lw(pg)
-    confirmar(pg.input_value("#lw-transp") == "blustream10" and pg.input_value("#lw-cols") == "38", "recarregar a página mantém o transporte e o ecrã (neste aparelho)")
+    confirmar(pg.input_value("#lw-transp") == "bs-ip500" and pg.input_value("#lw-cols") == "38", "recarregar a página mantém o transporte e o ecrã (neste aparelho)")
     confirmar(not pg.erros, "sem erros na consola (%s)" % pg.erros)
 
     # ------------------------------------------------------------------ 8

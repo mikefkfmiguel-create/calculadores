@@ -8,7 +8,7 @@
 //
 // DADOS: nada é inventado. A capacidade das portas vem do que a aba Sinal já
 // usa (processors.json); a das ligações vem de data/transportes.json, onde cada
-// valor tem fonte ou vem rotulado «indicado pelo Mike». O que faltar mostra-se
+// valor tem fonte (norma, ou ficha/página oficial do fabricante, com a data). O que faltar mostra-se
 // «sem dados».
 (function (root) {
   "use strict";
@@ -168,6 +168,9 @@
     return (p && p.ledProcessors) || [];
   }
   function chaveProc(p) { return p.marca + "|" + p.modelo; }
+  // A «fibra do processador» só é uma opção à parte quando a ótica NÃO é a própria saída
+  // (`soOptica`: as portas já são óticas) nem uma cópia das Ethernet (`optica.copia`).
+  function fibraOferecida(p) { return !!(p && p.optica && !p.soOptica && !p.optica.copia); }
   function procEscolhido() {
     var ps = processadores(), k = E.proc;
     for (var i = 0; i < ps.length; i++) if (chaveProc(ps[i]) === k) return ps[i];
@@ -199,7 +202,7 @@
     if (!(x.hz > 0)) { x.falta = "hz"; return x; }
     x.debito = L.debitoGbps(x.totalPx, x.hz, x.bits, 3);
     x.gbpsPorPx = x.debito / x.totalPx;
-    x.portaTipo = E.tipoPorta === "fibra" && !(x.proc && x.proc.optica) ? "eth" : E.tipoPorta;
+    x.portaTipo = E.tipoPorta === "fibra" && !fibraOferecida(x.proc) ? "eth" : E.tipoPorta;
     x.portPx = L.pxPorPorta({ tipo: x.portaTipo, portGbpsUsable: x.proc && x.proc.portGbpsUsable, bits: x.bits, hz: x.hz, manualPx: num(E.pxManual) });
     x.ok = true;
     return x;
@@ -232,7 +235,7 @@
       x.unidades = Math.max(Math.ceil(x.nPortas / pp.ports), Math.ceil(x.totalPx / unidCap));
     }
     // Comparação de transportes (com o esquema desenhado).
-    x.comp = L.tabelaTransportes(x.portas, x.gbpsPorPx, TRANSPORTES.filter(function (t) { return t.grupo !== "Processadores de LED (dados da app)"; }), x.margem);
+    x.comp = L.tabelaTransportes(x.portas, x.gbpsPorPx, TRANSPORTES.filter(function (t) { return t.grupo !== L.GRUPO_PROC; }), x.margem);
     // Tabela por bits (a melhor sugestão de cada um).
     x.tabBits = L.tabelaBits({ g: x.g, hz: x.hz, tipoPorta: x.portaTipo, portGbpsUsable: x.proc && x.proc.portGbpsUsable, pxManual: num(E.pxManual), lado: E.entrada, esc: x.esc, cap: x.cap || 0 });
     // Corrente (a conta da v4.68), se houver dados.
@@ -250,11 +253,14 @@
     if (!t) return "sem dados";
     return t.nome + " (" + nf(t.gbps, t.gbps % 1 ? 2 : 0) + " Gb/s por ligação)";
   }
+  // Nome + capacidade, uma só vez: se o nome já traz o débito («Ethernet 10 Gb/s») não se repete.
+  function nomeComCapacidade(t) {
+    return t.nome.indexOf("Gb/s") >= 0 ? t.nome : t.nome + " — " + nf(t.gbps, t.gbps % 1 ? 2 : 0) + " Gb/s";
+  }
   function etiqueta(t) {
     if (!t) return "";
-    if (t.indicadoPeloMike) return '<span class="lw-tag lw-tag-mike">indicado pelo Mike</span>';
     if (t.manual) return '<span class="lw-tag">valor à mão</span>';
-    var c = t.confianca === "norma" ? "norma" : t.confianca === "indicativo" ? "indicativo" : esc(t.confianca || "");
+    var c = t.confianca === "norma" ? "norma" : t.confianca === "indicativo" ? "indicativo" : t.confianca === "fabricante" ? "ficha do fabricante" : esc(t.confianca || "");
     return '<span class="lw-tag">' + c + "</span>";
   }
 
@@ -263,18 +269,18 @@
     var ps = processadores().slice().sort(function (a, b) { return (a.marca + a.modelo).localeCompare(b.marca + b.modelo, "pt"); });
     var sel = $("lw-proc");
     sel.innerHTML = opc("", "Porta Gigabit genérica (0,93 Gb/s úteis, como no Sinal & Data Rate)", !E.proc) +
-      ps.map(function (p) { return opc(chaveProc(p), p.marca + " " + p.modelo + " — " + p.ports + " portas", chaveProc(p) === E.proc); }).join("");
+      ps.map(function (p) { return opc(chaveProc(p), p.marca + " " + p.modelo + " — " + p.ports + " portas" + (p.portaTipo ? " " + p.portaTipo : ""), chaveProc(p) === E.proc); }).join("");
     // Tipo de porta
     var p = procEscolhido();
-    $("lw-tipo").innerHTML = opc("eth", "Ethernet (RJ45), com a capacidade da app", E.tipoPorta === "eth") +
-      (p && p.optica ? opc("fibra", "Fibra do processador (sem dados da capacidade)", E.tipoPorta === "fibra") : "") +
+    $("lw-tipo").innerHTML = opc("eth", p && p.soOptica ? "Óticas 10G do processador (cada porta = 8 × Ethernet, da ficha)" : "Ethernet (RJ45), com a capacidade da app", E.tipoPorta === "eth") +
+      (fibraOferecida(p) ? opc("fibra", "Fibra do processador (sem dados da capacidade)", E.tipoPorta === "fibra") : "") +
       opc("manual", "Capacidade por porta à mão", E.tipoPorta === "manual");
     // Transporte
     var grupos = {}, ordem = [];
     TRANSPORTES.forEach(function (t) { if (!grupos[t.grupo]) { grupos[t.grupo] = []; ordem.push(t.grupo); } grupos[t.grupo].push(t); });
     $("lw-transp").innerHTML = ordem.map(function (g) {
       return '<optgroup label="' + esc(g) + '">' + grupos[g].map(function (t) {
-        return opc(t.id, t.nome + " — " + nf(t.gbps, t.gbps % 1 ? 2 : 0) + " Gb/s" + (t.indicadoPeloMike ? " (indicado pelo Mike)" : ""), t.id === E.transp);
+        return opc(t.id, nomeComCapacidade(t), t.id === E.transp);
       }).join("") + "</optgroup>";
     }).join("") + '<optgroup label="Outro">' + opc("outro", "Outro / valor à mão", E.transp === "outro") + "</optgroup>";
   }
@@ -380,15 +386,18 @@
         '<div>Capacidade nominal: <strong>' + nf(t.gbps, t.gbps % 1 ? 2 : 0) + " Gb/s</strong> por ligação · usável com a margem: <strong>" + nf(x.cap, 2) + " Gb/s</strong></div>" +
         (t.gbpsUtil ? "<div>Débito útil indicado pela fonte: " + nf(t.gbpsUtil, 2) + " Gb/s (a conta usa o nominal; a margem cobre a diferença).</div>" : "") +
         (t.nota ? '<div class="hint">' + esc(t.nota) + "</div>" : "") +
-        (t.fonte ? "<div>" + (typeof root.srcLinkHtml === "function" ? root.srcLinkHtml(t.fonte, "Fonte") : "") + "</div>" : "") + "</div>";
+        (t.fonte ? "<div>" + (typeof root.srcLinkHtml === "function" ? root.srcLinkHtml(t.fonte, "Fonte") : "") + (t.consultado ? " · consultada em " + t.consultado : "") + "</div>" : "") + "</div>";
     } else h += '<div class="note">Sem dados: escolhe um transporte da lista ou «Outro / valor à mão».</div>';
     $("lw-transp-info").innerHTML = h;
     if (!x.ok || !x.comp) { $("lw-comp").innerHTML = '<div class="note">Indica o ecrã para comparar.</div>'; return; }
+    var ultimoGrupo = null;
     var rows = x.comp.map(function (c) {
       var sel = c.t.id === E.transp;
+      var cabGrupo = c.t.grupo !== ultimoGrupo ? '<div class="lw-grupo-t">' + esc(c.t.grupo || "") + "</div>" : "";
+      ultimoGrupo = c.t.grupo;
       var av = c.aviso === "acima" ? "⚠ acima do limite" : c.aviso === "acima-util" ? "⚠ acima do débito útil da fonte" : "—";
-      return '<button type="button" class="lw-linhatab' + (sel ? " ativa" : "") + (c.aviso === "acima" ? " lw-mau" : "") + '" data-transp="' + esc(c.t.id) + '">' +
-        '<span class="lw-c1">' + esc(c.t.nome) + (c.t.indicadoPeloMike ? " <em>(indicado pelo Mike)</em>" : "") + " · " + nf(c.t.gbps, c.t.gbps % 1 ? 2 : 0) + ' Gb/s</span>' +
+      return cabGrupo + '<button type="button" class="lw-linhatab' + (sel ? " ativa" : "") + (c.aviso === "acima" ? " lw-mau" : "") + '" data-transp="' + esc(c.t.id) + '">' +
+        '<span class="lw-c1">' + esc(nomeComCapacidade(c.t)) + '</span>' +
         '<span class="lw-c2">' + (c.n != null ? ni(c.n) : "—") + '</span><span class="lw-c3">' + (c.fillMax != null ? nf(c.fillMax, 0) + " %" : "—") + '</span><span class="lw-c4">' + av + "</span></button>";
     }).join("");
     $("lw-comp").innerHTML = '<div class="lw-tabela lw-tab-comp"><div class="lw-linhatab lw-cab"><span class="lw-c1">Transporte</span><span class="lw-c2">Ligações</span><span class="lw-c3">Enchimento máx.</span><span class="lw-c4">Aviso</span></div>' + rows +
@@ -569,7 +578,7 @@
       (x.mw > 0 ? ", " + nf(x.C * x.mw / 1000, 2) + " × " + nf(x.R * x.mh / 1000, 2) + " m, pitch " + nf(x.mw / x.rx, 2) + " mm" : "") + (num(E.nits) > 0 ? ", " + ni(num(E.nits)) + " nits" : ""));
     l.push("Sinal: " + nf(x.hz, 0) + " Hz, " + x.bits + "-bit, 3 canais — débito total " + gb(x.debito));
     if (x.transp && x.transp.gbps > 0) {
-      l.push("Transporte: " + x.transp.nome + " — " + nf(x.transp.gbps, x.transp.gbps % 1 ? 2 : 0) + " Gb/s por ligação" + (x.transp.indicadoPeloMike ? " (indicado pelo Mike, a confirmar na ficha)" : x.transp.manual ? " (valor à mão)" : " (nominal)") + ", margem " + nf(x.margem, 0) + " %");
+      l.push("Transporte: " + x.transp.nome + " — " + nf(x.transp.gbps, x.transp.gbps % 1 ? 2 : 0) + " Gb/s por ligação" + (x.transp.manual ? " (valor à mão)" : x.transp.confianca === "fabricante" ? " (ficha do fabricante)" : " (nominal)") + ", margem " + nf(x.margem, 0) + " %");
       if (x.liga && x.liga.estado === "ok") {
         l.push("Divisão: " + ni(x.liga.n) + (x.liga.n === 1 ? " ligação" : " ligações") + ", a mais carregada com " + nf(x.liga.max / x.transp.gbps * 100, 0) + " % (soma " + gb(x.liga.grupos.reduce(function (s, g) { return s + g.rate; }, 0)) + ")");
         x.liga.grupos.forEach(function (g, i) {
@@ -701,7 +710,7 @@
     if (k === "link" && v) { sincro = true; try { lerDoSinal(); } finally { sincro = false; } }
     if (k === "proc") {
       var p = procEscolhido();
-      if (E.tipoPorta === "fibra" && !(p && p.optica)) E.tipoPorta = "eth";
+      if (E.tipoPorta === "fibra" && !fibraOferecida(p)) E.tipoPorta = "eth";
     }
     render();
     if (k === "hz" || k === "bits" || k === "proc") paraSinal(k);

@@ -356,20 +356,29 @@
    * A lista de transportes: os de data/transportes.json mais as saídas óticas dos
    * processadores de LED que a app já conhece (processors.json › optica.gbps).
    */
+  var GRUPO_PROC = "Saídas óticas dos processadores de LED";
   function montarTransportes(dados, processadores) {
     var lista = ((dados && dados.transportes) || []).map(function (t) { return Object.assign({}, t); });
     var vistos = {};
-    ((processadores && processadores.ledProcessors) || []).forEach(function (p) {
+    var aparelhos = ((processadores && processadores.ledProcessors) || []).concat((processadores && processadores.switchers) || []);
+    aparelhos.forEach(function (p) {
       if (!p.optica || !(p.optica.gbps > 0)) return;
       var id = "proc-" + (p.marca + "-" + p.modelo).toLowerCase().replace(/[^a-z0-9]+/g, "-");
       if (vistos[id]) return; vistos[id] = 1;
       lista.push({
-        id: id, grupo: "Processadores de LED (dados da app)", nome: "Saída ótica do " + p.marca + " " + p.modelo,
+        id: id, grupo: GRUPO_PROC, nome: p.marca + " " + p.modelo + " · saída ótica",
         gbps: p.optica.gbps, origem: "processors.json › optica", confianca: "dados da app",
         fonte: p.optica.fonte || p.fonte || null,
-        nota: "Débito nominal da saída ótica deste processador, tal como está em processors.json." + (p.optica.nota ? " " + p.optica.nota : "")
+        nota: "Débito nominal da saída ótica deste aparelho, tal como está em processors.json." + (p.optica.nota ? " " + p.optica.nota : "")
       });
     });
+    // Ordem: as famílias pela ordem de `dados.grupos`, e dentro de cada uma pela capacidade
+    // (depois pelo nome), para se encontrar depressa; a ordem de origem desempata.
+    var ordem = ((dados && dados.grupos) || []).concat([GRUPO_PROC]);
+    var rank = function (g) { var i = ordem.indexOf(g); return i < 0 ? ordem.length : i; };
+    lista.forEach(function (t, i) { t._i = i; });
+    lista.sort(function (a, b) { return rank(a.grupo) - rank(b.grupo) || a.gbps - b.gbps || String(a.nome).localeCompare(String(b.nome), "pt") || a._i - b._i; });
+    lista.forEach(function (t) { delete t._i; });
     return lista;
   }
 
@@ -415,7 +424,7 @@
     cortar: cortar, formasDeBloco: formasDeBloco, melhorBloco: melhorBloco, construir: construir,
     pontoEntrada: pontoEntrada, medir: medir, candidatos: candidatos, sugerir: sugerir,
     descreverCfg: descreverCfg, blocoNoEcra: blocoNoEcra, dividirLigacoes: dividirLigacoes, ligacoesPorTransporte: ligacoesPorTransporte,
-    tabelaBits: tabelaBits, montarTransportes: montarTransportes, tabelaTransportes: tabelaTransportes,
+    tabelaBits: tabelaBits, montarTransportes: montarTransportes, GRUPO_PROC: GRUPO_PROC, tabelaTransportes: tabelaTransportes,
     CANTOS: CANTOS, LADOS: LADOS
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

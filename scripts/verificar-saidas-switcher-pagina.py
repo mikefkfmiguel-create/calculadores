@@ -103,8 +103,27 @@ CENARIOS = [
 ]
 
 
+def sem_pixelhue_texto(t):
+    """Tira as linhas dos aparelhos PixelHUE (e o que está por baixo delas, com 4 espaços): na v4.71 esses
+    aparelhos ganharam configurações (pixel clock por saída, Q8) e mudam de propósito; os outros não podem mudar."""
+    out, saltar = [], False
+    for l in t.split("\n"):
+        if "PixelHUE" in l:
+            saltar = True
+            continue
+        if saltar and (l.startswith("    ") or re.match(r"^[0-9][0-9 ,.]* MP \(", l)):   # continuação no relatório / 2.ª linha do item da lista
+            continue
+        saltar = False
+        out.append(l)
+    return "\n".join(out)
+
+
+def sem_pixelhue_cartoes(c):
+    return [x for x in c if not x.startswith("PixelHUE")]
+
+
 def regressao(p):
-    print("\n[1] Regressão: sem N tudo igual ao que era")
+    print("\n[1] Regressão: sem N tudo igual ao que era (os PixelHUE mudaram na v4.71 e testam-se à parte)")
     if not VELHO:
         print("  (sem pasta da versão antiga — a comparação foi saltada)")
         return
@@ -115,7 +134,7 @@ def regressao(p):
             sinal(pg, h, v, fps)
             for m in escolhas:
                 escolher(pg, m)
-            res.append((lista(pg), cartoes(pg), relatorio_antigo(pg)))
+            res.append((sem_pixelhue_texto(lista(pg)), sem_pixelhue_cartoes(cartoes(pg)), sem_pixelhue_texto(relatorio_antigo(pg))))
             b.close()
         confirmar(res[0][0] == res[1][0], nome + ": lista de switchers igual")
         confirmar(res[0][1] == res[1][1], nome + ": cartões (Entrada/Saída/Capacidade) iguais")
@@ -249,15 +268,15 @@ def contas(p):
         pg.wait_for_timeout(250)
     confirmar("já não cobre" not in pg.inner_text("#sg-switcher-detail"), "G) «Tirar da escolha» remove-os")
 
-    # Caso H: PixelHUE P80 com modos de saída (sem pixel clock -> estimado «~»)
+    # Caso H: PixelHUE P80 com configurações de saída (v4.71: o pixel clock por saída vem da resolução máxima da ficha, sem «~»)
     sinal(pg, 3840, 1080, 60)
     escolher(pg, "P80")
     pg.fill("#sg-saidas", "10")
     pg.wait_for_timeout(250)
     det = pg.inner_text("#sg-switcher-detail")
     confirmar("Saídas a usar: 10/12" in det, "H) P80 modo Split: 10/12")
-    confirmar("Sem pixel clock publicado" in det and "~" in det, "H) marcado como estimado (~)")
-    pg.locator(".sinal-mode-select").select_option("1")   # modo Copy: 8 saídas
+    confirmar("Sem pixel clock publicado" not in det and "278,4 MHz" in det, "H) Split: pixel clock por saída derivado de 4096×1080@60 (278,4 MHz), sem «~»")
+    pg.locator(".pxh-cfg").select_option("copy")   # configuração Copy: 8 saídas
     pg.wait_for_timeout(250)
     det = pg.inner_text("#sg-switcher-detail")
     confirmar("Pediste 10 saídas, mas este switcher só tem 8" in det, "H) modo Copy: limitado a 8")
