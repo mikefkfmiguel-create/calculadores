@@ -3,7 +3,7 @@
 //   node --test scripts/verificar-ligacao-led.mjs
 //
 // O caso de referência é o ecrã de 19 × 3 m, pitch 2,6 mm, 7296 × 1152 px:
-// 38 × 6 gabinetes de 500 × 500 mm e 192 × 192 px (a conta fecha: 38 × 192 =
+// 38 × 6 cabinets de 500 × 500 mm e 192 × 192 px (a conta fecha: 38 × 192 =
 // 7296 e 6 × 192 = 1152). Cada número esperado está escrito com a conta à vista.
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -39,8 +39,8 @@ test("referência: débito total por bit (bits × 3 canais × Hz × píxeis)", (
   assert.ok(Math.abs(L.debitoGbps(g.total, 60, 12, 3) - 18.15478272) < 1e-9);
 });
 
-test("referência: gabinetes por porta, portas e enchimento a 8, 10 e 12 bits", () => {
-  // Porta GigE: 930 000 000 b/s ÷ (24 bpp × 60 Hz) = 645 833 px; gabinete = 36 864 px.
+test("referência: cabinets por porta, portas e enchimento a 8, 10 e 12 bits", () => {
+  // Porta GigE: 930 000 000 b/s ÷ (24 bpp × 60 Hz) = 645 833 px; cabinet = 36 864 px.
   // 8 bits : 645 833 ÷ 36 864 = 17,5 -> 17 por porta; 228 ÷ 17 = 13,4 -> 14 portas.
   // 10/12  : 930e6 ÷ (48 × 60) = 322 916 px -> 8,76 -> 8 por porta; 228 ÷ 8 = 28,5 -> 29 portas.
   const esperado = { 8: [645833, 17, 14], 10: [322916, 8, 29], 12: [322916, 8, 29] };
@@ -48,7 +48,7 @@ test("referência: gabinetes por porta, portas e enchimento a 8, 10 e 12 bits", 
     const px = L.pxPorPorta({ tipo: "eth", bits, hz: 60 });
     const [pxE, K, P] = esperado[bits];
     assert.equal(px, pxE, `px por porta a ${bits} bits`);
-    assert.equal(Math.floor(px / g.maxPx), K, `gabinetes por porta a ${bits} bits`);
+    assert.equal(Math.floor(px / g.maxPx), K, `cabinets por porta a ${bits} bits`);
     const s = L.sugerir(g, px, "baixo", ESC);
     assert.equal(s.Pmin, P, `portas mínimas a ${bits} bits`);
     const prin = s.sugestoes[0];
@@ -59,7 +59,7 @@ test("referência: gabinetes por porta, portas e enchimento a 8, 10 e 12 bits", 
   }
 });
 
-test("referência: a 50 Hz cabem mais gabinetes por porta", () => {
+test("referência: a 50 Hz cabem mais cabinets por porta", () => {
   // 930e6 ÷ (24 × 50) = 775 000 px -> 21 por porta -> 11 portas; a 10 bits: 387 500 -> 10 -> 23 portas.
   const px8 = L.pxPorPorta({ tipo: "eth", bits: 8, hz: 50 });
   assert.equal(px8, 775000);
@@ -92,7 +92,7 @@ function celulasUnicas(g, esq) {
   return true;
 }
 
-test("cada gabinete aparece exatamente UMA vez em TODOS os esquemas candidatos (várias grelhas e bits)", () => {
+test("cada cabinet aparece exatamente UMA vez em TODOS os esquemas candidatos (várias grelhas e bits)", () => {
   const casos = [[38, 6, 192, 192], [1, 1, 192, 192], [7, 5, 128, 128], [16, 9, 128, 128], [10, 3, 256, 128]];
   for (const [c, r, rx, ry] of casos) {
     const gg = L.grelhaUniforme(c, r, rx, ry);
@@ -103,7 +103,7 @@ test("cada gabinete aparece exatamente UMA vez em TODOS os esquemas candidatos (
           const cd = L.candidatos(gg, px, lado, ESC);
           assert.ok(cd.lista.length > 0);
           for (const cand of cd.lista) {
-            assert.ok(celulasUnicas(gg, cand.esq), `${c}x${r} ${bits}b ${hz}Hz ${cand.m.sig}: gabinetes repetidos ou em falta`);
+            assert.ok(celulasUnicas(gg, cand.esq), `${c}x${r} ${bits}b ${hz}Hz ${cand.m.sig}: cabinets repetidos ou em falta`);
             // as portas são percursos ligados: sem retorno, cada passo é um vizinho
             if (cand.cfg.padrao === "serp") {
               cand.esq.portas.forEach((p) => p.cels.forEach((cel, i) => {
@@ -119,7 +119,7 @@ test("cada gabinete aparece exatamente UMA vez em TODOS os esquemas candidatos (
   }
 });
 
-test("grelha com meio-tile (colunas de largura diferente): cada gabinete uma vez e portas dentro do limite", () => {
+test("grelha com meio-tile (colunas de largura diferente): cada cabinet uma vez e portas dentro do limite", () => {
   // 5 colunas de 192 px + 1 coluna de meio-tile de 96 px; 4 linhas de 192 px.
   const gg = L.criarGrelha(6, 4, [192, 192, 192, 192, 192, 96], [192, 192, 192, 192]);
   const px = L.pxPorPorta({ tipo: "eth", bits: 8, hz: 60 });
@@ -132,11 +132,11 @@ test("grelha com meio-tile (colunas de largura diferente): cada gabinete uma vez
   }
 });
 
-test("um gabinete que sozinho excede a porta fica assinalado (sobre > 0)", () => {
+test("um cabinet que sozinho excede a porta fica assinalado (sobre > 0)", () => {
   const gg = L.grelhaUniforme(4, 2, 192, 192);
   const esq = L.construir(gg, { canto: "SE", eixo: "linhas", padrao: "serp", forma: "equilibrada", bloco: null }, 10000);
   const m = L.medir(gg, esq, "baixo", 10000, ESC);
-  assert.equal(m.sobre, 8, "as 8 portas (um gabinete cada) passam a capacidade");
+  assert.equal(m.sobre, 8, "as 8 portas (um cabinet cada) passam a capacidade");
   assert.ok(celulasUnicas(gg, esq));
 });
 

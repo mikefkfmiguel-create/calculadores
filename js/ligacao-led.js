@@ -1,8 +1,8 @@
-// LIGAÇÃO DOS GABINETES DO ECRÃ LED — capacidade por porta, desenho do cabo e
+// LIGAÇÃO DOS CABINETS DO ECRÃ LED — capacidade por porta, desenho do cabo e
 // divisão do sinal por ligações (aba «Ecrã LED & Pixel Pitch»).
 //
 // Pedido do Mike: incluir na aba do ecrã LED a conta que a aba «Sinal & Data
-// Rate» já faz (quantos GABINETES cabem em cada porta, dados o refresh e a
+// Rate» já faz (quantos CABINETS cabem em cada porta, dados o refresh e a
 // profundidade de cor) e DESENHAR a forma de ligação: de onde se começa, por
 // onde vai o cabo, onde entra o sinal; e dividir o sinal total por ligações de
 // uma capacidade escolhida (10 Gb/s por omissão) sem passar o limite.
@@ -51,7 +51,7 @@
     return Math.floor(bps / (bpp * o.hz));
   }
 
-  /** A grelha de gabinetes. colPx/rowPx = píxeis de cada coluna/linha (meios-tiles incluídos). */
+  /** A grelha de cabinets. colPx/rowPx = píxeis de cada coluna/linha (meios-tiles incluídos). */
   function criarGrelha(C, R, colPx, rowPx) {
     var g = { C: C, R: R, colPx: colPx, rowPx: rowPx, total: 0, maxPx: 0 };
     for (var c = 0; c < C; c++) for (var r = 0; r < R; r++) {
@@ -63,7 +63,7 @@
     return g;
   }
 
-  /** Uma grelha simples: C × R gabinetes iguais de rx × ry píxeis. */
+  /** Uma grelha simples: C × R cabinets iguais de rx × ry píxeis. */
   function grelhaUniforme(C, R, rx, ry) {
     var colPx = [], rowPx = [], i;
     for (i = 0; i < C; i++) colPx.push(rx);
@@ -155,7 +155,7 @@
     return fs[0] || { w: 1, h: 1 };
   }
 
-  /** O esquema inteiro: lista de portas, cada uma com a sua fila de gabinetes. */
+  /** O esquema inteiro: lista de portas, cada uma com a sua fila de cabinets. */
   function construir(g, cfg, portPx) {
     var q = quadro(g, cfg), serp = cfg.padrao !== "retorno", grupos = [], bloco = null;
     var K = Math.max(1, Math.floor((portPx + EPS) / (g.maxPx || 1)));
@@ -174,7 +174,7 @@
     return { cfg: cfg, bloco: bloco, portas: portas, q: q, K: K };
   }
 
-  /** O ponto de entrada do sinal (em unidades de gabinete, fora do ecrã). */
+  /** O ponto de entrada do sinal (em unidades de cabinet, fora do ecrã). */
   function pontoEntrada(g, lado) {
     if (lado === "topo") return { x: g.C / 2, y: 0 };
     if (lado === "esq") return { x: 0, y: g.R / 2 };
@@ -182,7 +182,7 @@
     return { x: g.C / 2, y: g.R };
   }
 
-  /** Mede um esquema: enchimento, retornos, comprimento de cabo (em gabinetes ou metros). */
+  /** Mede um esquema: enchimento, retornos, comprimento de cabo (em cabinets ou metros). */
   function medir(g, esq, lado, portPx, esc) {
     esc = esc || { cw: 1, ch: 1 };
     var E = pontoEntrada(g, lado), portas = esq.portas;
@@ -256,7 +256,7 @@
   function descreverCfg(cfg, bloco) {
     var b = bloco ? blocoNoEcra(cfg, bloco) : null;
     var forma = cfg.forma === "blocos" && b ? "blocos de " + b.cols + (b.cols === 1 ? " coluna × " : " colunas × ") + b.lin + (b.lin === 1 ? " linha" : " linhas")
-      : cfg.forma === "cheia" ? "portas cheias (a última sai mais vazia)" : "portas com o mesmo nº de gabinetes";
+      : cfg.forma === "cheia" ? "portas cheias (a última sai mais vazia)" : "portas com o mesmo nº de cabinets";
     return "começa no canto " + CANTOS[cfg.canto] + ", " + (cfg.eixo === "colunas" ? "por colunas" : "por linhas") + ", " +
       (cfg.padrao === "retorno" ? "com retorno (volta ao início de cada fila)" : "em S (serpentina)") + ", " + forma;
   }
@@ -297,7 +297,7 @@
     if (s.chave === "facil") {
       return "Percurso regular: " + (m.retornos === 0 ? "sem retornos" : m.retornos + " retornos") +
         (m.tipo === "faixas" ? ", cada porta leva filas inteiras" : m.tipo === "retangulos" ? ", cada porta leva um bloco retangular" : ", uma só cadeia cortada em partes iguais") +
-        ", " + gabs + " gabinetes por porta" +
+        ", " + gabs + " cabinets por porta" +
         (m.P > Pmin ? " (" + (m.P - Pmin) + (m.P - Pmin === 1 ? " porta a mais" : " portas a mais") + " do que o mínimo possível)" : " (o mínimo possível de portas)") +
         " e entrada " + LADOS[lado] + ".";
     }
@@ -309,10 +309,10 @@
     }
     if (s.chave === "simples") {
       var extra = m.P - prin.m.P;
-      return "Cada porta leva filas inteiras (" + gabs + " gabinetes): a mais simples de explicar à equipa" +
+      return "Cada porta leva filas inteiras (" + gabs + " cabinets): a mais simples de explicar à equipa" +
         (extra > 0 ? ", à custa de " + extra + (extra === 1 ? " porta a mais" : " portas a mais") + " do que a principal." : ".");
     }
-    return "A mais equilibrada: portas com " + gabs + " gabinetes e cabos de comprimentos parecidos.";
+    return "A mais equilibrada: portas com " + gabs + " cabinets e cabos de comprimentos parecidos.";
   }
 
   // ---- divisão do sinal por ligações -----------------------------------

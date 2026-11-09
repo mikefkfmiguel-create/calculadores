@@ -1,5 +1,5 @@
 // LED WALL HELP — separador novo: como transportar e dividir o sinal de um ecrã
-// LED e como ligar os gabinetes (portas, cabo, entrada).
+// LED e como ligar os cabinets (portas, cabo, entrada).
 //
 // As contas estão em js/ligacao-led.js (puras, testáveis em Node); aqui é a
 // interface: o ecrã, os valores do sinal (ligados à aba «Sinal & Data Rate»),
@@ -53,27 +53,27 @@
 
   raiz.innerHTML =
     '<details class="howto"><summary>Como usar o LED Wall Help</summary><div class="howto-body">' +
-      '<p>Define o ecrã (ou traz o da aba <strong>Ecrã LED &amp; Pixel Pitch</strong> com um toque), o refresh e os bits por canal. A app diz quantos gabinetes cabem em cada porta, quantas portas são precisas e como dividir o sinal por ligações sem passar a capacidade do transporte que escolheres.</p>' +
-      '<p><strong>Transporte</strong>: escolhe o tipo de ligação e a capacidade (e compara vários lado a lado). <strong>Divisão</strong>: quantas ligações, % de cada uma e o que levam. <strong>Ligação</strong>: sugestões de percurso do cabo, e o desenho dos gabinetes e das portas — podes escolher onde começar e por onde entra o sinal.</p>' +
+      '<p>Define o ecrã (ou traz o da aba <strong>Ecrã LED &amp; Pixel Pitch</strong> com um toque), o refresh e os bits por canal. A app diz quantos cabinets cabem em cada porta, quantas portas são precisas e como dividir o sinal por ligações sem passar a capacidade do transporte que escolheres.</p>' +
+      '<p><strong>Transporte</strong>: escolhe o tipo de ligação e a capacidade (e compara vários lado a lado). <strong>Divisão</strong>: quantas ligações, % de cada uma e o que levam. <strong>Ligação</strong>: sugestões de percurso do cabo, e o desenho dos cabinets e das portas — podes escolher onde começar e por onde entra o sinal.</p>' +
     '</div></details>' +
     '<div class="sinal-col">' +
     '<details class="card sinal-block" open id="lw-card-ecra"><summary>Ecrã</summary><div class="sinal-block-body">' +
       '<div class="lw-linha-botoes">' +
         '<button type="button" class="copy" id="lw-trazer">↙ Trazer o ecrã do Ecrã LED &amp; Pixel Pitch</button>' +
-        '<button type="button" class="copy" id="lw-exemplo" title="Carrega um ecrã de 19 × 3 m com gabinetes de 500 × 500 mm e 192 × 192 px (pitch 2,6 mm)">Exemplo: 19 × 3 m, P2,6</button>' +
+        '<button type="button" class="copy" id="lw-exemplo" title="Carrega um ecrã de 19 × 3 m com cabinets de 500 × 500 mm e 192 × 192 px (pitch 2,6 mm)">Exemplo: 19 × 3 m, P2,6</button>' +
       '</div>' +
       '<div class="hint" id="lw-trazer-msg"></div>' +
       '<div class="row2">' +
-        '<div class="field"><label for="lw-cols">Gabinetes na horizontal</label><div class="inputgroup"><input id="lw-cols" data-k="cols" type="number" inputmode="numeric" autocomplete="off" min="1" step="1" placeholder="38"></div></div>' +
-        '<div class="field"><label for="lw-rows">Gabinetes na vertical</label><div class="inputgroup"><input id="lw-rows" data-k="rows" type="number" inputmode="numeric" autocomplete="off" min="1" step="1" placeholder="6"></div></div>' +
+        '<div class="field"><label for="lw-cols">Cabinets na horizontal</label><div class="inputgroup"><input id="lw-cols" data-k="cols" type="number" inputmode="numeric" autocomplete="off" min="1" step="1" placeholder="38"></div></div>' +
+        '<div class="field"><label for="lw-rows">Cabinets na vertical</label><div class="inputgroup"><input id="lw-rows" data-k="rows" type="number" inputmode="numeric" autocomplete="off" min="1" step="1" placeholder="6"></div></div>' +
       '</div>' +
       '<div class="row2">' +
-        '<div class="field"><label for="lw-rx">Píxeis do gabinete (horizontal)</label><div class="inputgroup"><input id="lw-rx" data-k="rx" type="number" inputmode="numeric" autocomplete="off" min="1" step="1" placeholder="192"><span class="unit">px</span></div></div>' +
-        '<div class="field"><label for="lw-ry">Píxeis do gabinete (vertical)</label><div class="inputgroup"><input id="lw-ry" data-k="ry" type="number" inputmode="numeric" autocomplete="off" min="1" step="1" placeholder="192"><span class="unit">px</span></div></div>' +
+        '<div class="field"><label for="lw-rx">Píxeis do cabinet (horizontal)</label><div class="inputgroup"><input id="lw-rx" data-k="rx" type="number" inputmode="numeric" autocomplete="off" min="1" step="1" placeholder="192"><span class="unit">px</span></div></div>' +
+        '<div class="field"><label for="lw-ry">Píxeis do cabinet (vertical)</label><div class="inputgroup"><input id="lw-ry" data-k="ry" type="number" inputmode="numeric" autocomplete="off" min="1" step="1" placeholder="192"><span class="unit">px</span></div></div>' +
       '</div>' +
       '<div class="row2">' +
-        '<div class="field"><label for="lw-mw">Largura do gabinete</label><div class="inputgroup"><input id="lw-mw" data-k="mw" type="number" inputmode="decimal" autocomplete="off" min="1" step="1" placeholder="500"><span class="unit">mm</span></div></div>' +
-        '<div class="field"><label for="lw-mh">Altura do gabinete</label><div class="inputgroup"><input id="lw-mh" data-k="mh" type="number" inputmode="decimal" autocomplete="off" min="1" step="1" placeholder="500"><span class="unit">mm</span></div></div>' +
+        '<div class="field"><label for="lw-mw">Largura do cabinet</label><div class="inputgroup"><input id="lw-mw" data-k="mw" type="number" inputmode="decimal" autocomplete="off" min="1" step="1" placeholder="500"><span class="unit">mm</span></div></div>' +
+        '<div class="field"><label for="lw-mh">Altura do cabinet</label><div class="inputgroup"><input id="lw-mh" data-k="mh" type="number" inputmode="decimal" autocomplete="off" min="1" step="1" placeholder="500"><span class="unit">mm</span></div></div>' +
       '</div>' +
       '<div class="field"><label for="lw-nits">Brilho (opcional)</label><div class="inputgroup"><input id="lw-nits" data-k="nits" type="number" inputmode="decimal" autocomplete="off" min="0" step="50"><span class="unit">nits</span></div></div>' +
       '<div class="divider">Sinal</div>' +
@@ -138,8 +138,8 @@
           '<div class="field"><label for="lw-padrao">Padrão</label><select id="lw-padrao" class="plain"><option value="serp">Em S (serpentina)</option><option value="retorno">Com retorno (volta ao início)</option></select></div>' +
           '<div class="field"><label for="lw-forma">Repartição pelas portas</label><select id="lw-forma" class="plain"><option value="equilibrada">Equilibrada (mesmo nº em todas)</option><option value="cheia">Cheias (a última sai mais vazia)</option><option value="blocos">Blocos regulares</option></select></div>' +
         '</div>' +
-        '<div class="field"><label for="lw-disp">Portas disponíveis (opcional)</label><div class="inputgroup"><input id="lw-disp" data-k="disp" type="number" inputmode="numeric" autocomplete="off" min="1" step="1" placeholder="sem limite"><span class="unit">portas</span></div><div class="hint">Se indicares quantas portas tens, os gabinetes das portas que faltarem ficam assinalados como sem ligação.</div></div>' +
-        '<div class="field"><label for="lw-amp">Corrente por gabinete (opcional)</label><div class="row2"><div class="inputgroup"><input id="lw-amp" data-k="amp" type="number" inputmode="decimal" autocomplete="off" min="0" step="0.01" placeholder="A por gabinete"><span class="unit">A</span></div><div class="inputgroup"><input id="lw-ampmax" data-k="ampmax" type="number" inputmode="decimal" autocomplete="off" min="0" step="0.1" placeholder="corrente máx. de saída"><span class="unit">A</span></div></div><div class="hint">Só para a camada de corrente do desenho (a margem de segurança é a da aba Ecrã LED).</div></div>' +
+        '<div class="field"><label for="lw-disp">Portas disponíveis (opcional)</label><div class="inputgroup"><input id="lw-disp" data-k="disp" type="number" inputmode="numeric" autocomplete="off" min="1" step="1" placeholder="sem limite"><span class="unit">portas</span></div><div class="hint">Se indicares quantas portas tens, os cabinets das portas que faltarem ficam assinalados como sem ligação.</div></div>' +
+        '<div class="field"><label for="lw-amp">Corrente por cabinet (opcional)</label><div class="row2"><div class="inputgroup"><input id="lw-amp" data-k="amp" type="number" inputmode="decimal" autocomplete="off" min="0" step="0.01" placeholder="A por cabinet"><span class="unit">A</span></div><div class="inputgroup"><input id="lw-ampmax" data-k="ampmax" type="number" inputmode="decimal" autocomplete="off" min="0" step="0.1" placeholder="corrente máx. de saída"><span class="unit">A</span></div></div><div class="hint">Só para a camada de corrente do desenho (a margem de segurança é a da aba Ecrã LED).</div></div>' +
       '</details>' +
       '<div class="lw-camadas">' +
         '<label class="lw-chk"><input type="checkbox" id="lw-cabos" data-k="cabos"> Cabos desde a entrada</label>' +
@@ -318,7 +318,7 @@
       (pitch ? it("Pixel pitch", nf(pitch, 2) + "<small>mm</small>") : "") +
       it("Formato", typeof root.describeRatio === "function" ? root.describeRatio(pw, ph) : nf(pw / ph, 2) + ":1") +
       (num(E.nits) > 0 ? it("Brilho", ni(num(E.nits)) + "<small>nits</small>") : "") +
-      it("Gabinetes", ni(x.C * x.R));
+      it("Cabinets", ni(x.C * x.R));
   }
 
   function leituraSinal(x) {
@@ -331,7 +331,7 @@
     } else h += it("Ligações", "sem dados");
     if (x.semPorta) h += it("Portas", "sem dados");
     else {
-      h += it("Gabinetes por porta", ni(x.K) + (x.K < 1 ? "<small>⚠</small>" : ""));
+      h += it("Cabinets por porta", ni(x.K) + (x.K < 1 ? "<small>⚠</small>" : ""));
       h += it("Portas", ni(x.nPortas));
       h += it("Enchimento das portas", nf(x.m.fillMin, 0) + "–" + nf(x.m.fillMax, 0) + "<small>%</small>");
     }
@@ -341,15 +341,15 @@
   function avisosGerais(x) {
     var av = [];
     if (!x.ok) {
-      av.push(x.falta === "hz" ? "Indica o refresh (Hz)." : "Indica os gabinetes na horizontal e na vertical e os píxeis de cada gabinete — ou traz o ecrã da aba Ecrã LED & Pixel Pitch.");
+      av.push(x.falta === "hz" ? "Indica o refresh (Hz)." : "Indica os cabinets na horizontal e na vertical e os píxeis de cada cabinet — ou traz o ecrã da aba Ecrã LED & Pixel Pitch.");
       return av;
     }
     if (!x.transp || !(x.transp.gbps > 0)) av.push("Sem dados: escolhe um transporte ou indica a capacidade por ligação à mão.");
     if (x.semPorta) av.push("Sem dados: " + (E.tipoPorta === "fibra" ? "a capacidade em píxeis da fibra deste processador não está nos dados da app (só há o débito nominal). Escolhe «Capacidade por porta à mão» se a souberes." : "indica os píxeis por porta."));
     else {
-      if (x.K < 1) av.push("⚠ Um só gabinete (" + ni(x.g.maxPx) + " px) já excede uma porta (" + ni(x.portPx) + " px) a " + nf(x.hz, 0) + " Hz e " + x.bits + " bits. Baixa o refresh ou os bits.");
+      if (x.K < 1) av.push("⚠ Um só cabinet (" + ni(x.g.maxPx) + " px) já excede uma porta (" + ni(x.portPx) + " px) a " + nf(x.hz, 0) + " Hz e " + x.bits + " bits. Baixa o refresh ou os bits.");
       else if (x.m.sobre) av.push("⚠ " + x.m.sobre + (x.m.sobre === 1 ? " porta ultrapassa" : " portas ultrapassam") + " a capacidade.");
-      if (x.disp >= 1 && x.nPortas > x.disp) av.push("⚠ Faltam " + (x.nPortas - x.disp) + " portas: os gabinetes das portas " + (x.disp + 1) + " a " + x.nPortas + " ficam sem ligação.");
+      if (x.disp >= 1 && x.nPortas > x.disp) av.push("⚠ Faltam " + (x.nPortas - x.disp) + " portas: os cabinets das portas " + (x.disp + 1) + " a " + x.nPortas + " ficam sem ligação.");
     }
     if (x.liga && x.liga.estado === "ok" && x.liga.max > x.cap + 1e-9) av.push("⚠ Pelo menos uma ligação passa o limite de " + nf(x.cap, 2) + " Gb/s. " + sugestaoExcede(x));
     if (x.transp && x.transp.gbpsUtil && x.liga && x.liga.estado === "ok" && x.liga.max > x.transp.gbpsUtil + 1e-9)
@@ -367,7 +367,7 @@
     if (x.bits > 8) o.push("baixar para 8 bits");
     if (x.hz > 50) o.push("baixar o refresh para 50 Hz");
     o.push("usar um transporte de maior capacidade");
-    o.push("dividir por mais ligações (mais portas, cada uma com menos gabinetes)");
+    o.push("dividir por mais ligações (mais portas, cada uma com menos cabinets)");
     return "Sugestão: " + o.join(", ") + ".";
   }
 
@@ -425,7 +425,7 @@
       return '<div class="lw-liga' + (mau ? " lw-mau" : "") + '"><div class="lw-liga-topo"><span class="lw-chip" style="background:var(--lw-c' + (i % PALETA) + ')"></span><strong>Ligação ' + (i + 1) + "</strong>" +
         '<span class="lw-liga-v">' + gb(g.rate) + " · " + nf(pct, 0) + " %" + (mau ? " ⚠" : "") + "</span></div>" +
         '<div class="lw-barra"><span style="width:' + Math.min(100, pct) + '%;background:var(--lw-c' + (i % PALETA) + ')"></span></div>' +
-        '<div class="hint">Portas ' + (g.ini + 1) + (g.fim > g.ini ? "–" + (g.fim + 1) : "") + " · " + ni(z.n) + " gabinetes · colunas " + z.c0 + "–" + z.c1 + ", linhas " + z.r0 + "–" + z.r1 + "</div></div>";
+        '<div class="hint">Portas ' + (g.ini + 1) + (g.fim > g.ini ? "–" + (g.fim + 1) : "") + " · " + ni(z.n) + " cabinets · colunas " + z.c0 + "–" + z.c1 + ", linhas " + z.r0 + "–" + z.r1 + "</div></div>";
     }).join("");
   }
 
@@ -439,7 +439,7 @@
     box.innerHTML = '<div class="lw-tabela">' + cab +
       linha("Débito total", function (t) { return t.debito != null ? nf(t.debito, 2) + " Gb/s" : "—"; }) +
       linha("Píxeis por porta", function (t) { return t.portPx ? ni(t.portPx) : "sem dados"; }) +
-      linha("Gabinetes por porta", function (t) { return t.K != null ? (t.K < 1 ? "⚠ 0" : ni(t.K)) : "—"; }) +
+      linha("Cabinets por porta", function (t) { return t.K != null ? (t.K < 1 ? "⚠ 0" : ni(t.K)) : "—"; }) +
       linha("Portas", function (t) { return t.P ? ni(t.P) : "—"; }) +
       linha("Enchimento das portas", function (t) { return t.fillMin != null ? nf(t.fillMin, 0) + "–" + nf(t.fillMax, 0) + " %" : "—"; }) +
       linha(capNom ? "Ligações de " + capNom + " Gb/s" : "Ligações", function (t) { return t.lig && t.lig.estado === "ok" ? ni(t.lig.n) : "—"; }) +
@@ -455,13 +455,13 @@
       $("lw-lig-avisos").innerHTML = htmlAvisos(avisosGerais(x).slice(0, 1)); return;
     }
     var it = function (k, v, wide) { return '<div class="item' + (wide ? " wide" : "") + '"><div class="k">' + k + '</div><div class="v">' + v + "</div></div>"; };
-    res.innerHTML = it("Píxeis por porta", ni(x.portPx) + "<small>px</small>") + it("Gabinete", ni(x.rx) + "×" + ni(x.ry) + "<small>px</small>") +
-      it("Gabinetes por porta", x.K < 1 ? "⚠ 0" : ni(x.K)) + it("Portas", ni(x.nPortas)) +
+    res.innerHTML = it("Píxeis por porta", ni(x.portPx) + "<small>px</small>") + it("Cabinet", ni(x.rx) + "×" + ni(x.ry) + "<small>px</small>") +
+      it("Cabinets por porta", x.K < 1 ? "⚠ 0" : ni(x.K)) + it("Portas", ni(x.nPortas)) +
       it("Enchimento", nf(x.m.fillMin, 0) + "–" + nf(x.m.fillMax, 0) + "<small>%</small>") +
       it("Retornos", ni(x.m.retornos)) +
       (x.unidades ? it(x.proc.marca + " " + x.proc.modelo, ni(x.unidades) + "×<small>" + ni(x.proc.ports) + " portas</small>", true) : "") +
       (x.corr && x.corr.estado === "ok" ? it("Corrente", ni(x.corr.M) + "<small>entradas (até " + ni(x.corr.N) + " em série)</small>", true) : "");
-    var avs = avisosGerais(x).filter(function (a) { return /portas|Um só gabinete|ultrapass/.test(a); });
+    var avs = avisosGerais(x).filter(function (a) { return /portas|Um só cabinet|ultrapass/.test(a); });
     $("lw-lig-avisos").innerHTML = htmlAvisos(avs);
 
     // sugestões
@@ -496,9 +496,9 @@
         return '<span class="lw-leg-item"><span class="lw-chip" style="background:var(--lw-c' + (i % PALETA) + ')"></span>Ligação ' + (i + 1) + " · portas " + (g.ini + 1) + (g.fim > g.ini ? "–" + (g.fim + 1) : "") + " · " + gb(g.rate) + "</span>";
       }).join("") + "</div>");
     }
-    partes.push('<div class="hint">O número redondo marca onde cada porta começa; as linhas seguem o cabo de gabinete em gabinete' + (E.cabos ? "; as linhas a tracejado vão da entrada ao início de cada porta" : "") + ". Sem ligação: gabinetes às riscas vermelhas.</div>");
+    partes.push('<div class="hint">O número redondo marca onde cada porta começa; as linhas seguem o cabo de cabinet em cabinet' + (E.cabos ? "; as linhas a tracejado vão da entrada ao início de cada porta" : "") + ". Sem ligação: cabinets às riscas vermelhas.</div>");
     $("lw-leg").innerHTML = partes.join("");
-    $("lw-portas").innerHTML = '<div class="lw-tabela lw-tab-portas"><div class="lw-linhatab lw-cab"><span class="lw-c1">Porta</span><span class="lw-c2">Ligação</span><span class="lw-c3">Gabinetes</span><span class="lw-c4">Enchimento</span></div>' +
+    $("lw-portas").innerHTML = '<div class="lw-tabela lw-tab-portas"><div class="lw-linhatab lw-cab"><span class="lw-c1">Porta</span><span class="lw-c2">Ligação</span><span class="lw-c3">Cabinets</span><span class="lw-c4">Enchimento</span></div>' +
       x.portas.map(function (p, i) {
         var mau = p.px > x.portPx + 1e-9, sem = x.disp >= 1 && i >= x.disp;
         return '<div class="lw-linhatab' + (mau || sem ? " lw-mau" : "") + '"><span class="lw-c1">' + (i + 1) + '</span><span class="lw-c2">' + (lp[i] != null ? lp[i] + 1 : "—") + '</span><span class="lw-c3">' + ni(p.cels.length) + '</span><span class="lw-c4">' + nf(p.fill, 0) + " %" + (mau ? " ⚠" : sem ? " sem ligação" : "") + "</span></div>";
@@ -516,9 +516,9 @@
     var cor = function (i) { return "var(--lw-c" + ((porLigacao ? lp[i] || 0 : i) % PALETA) + ")"; };
     var sem = function (i) { return x.disp >= 1 && i >= x.disp; };
     var cx = function (c) { return M + c * S0 + S0 / 2; }, cy = function (r) { return M + r * S0 + S0 / 2; };
-    var s = '<svg id="lw-svg" role="img" aria-label="Desenho da ligação dos gabinetes" viewBox="0 0 ' + W + " " + H + '" width="' + (E.tam === "grande" ? Math.round(W * escala) : "100%") + '" style="display:block;' + (E.tam === "grande" ? "max-width:none;" : "") + '">' +
+    var s = '<svg id="lw-svg" role="img" aria-label="Desenho da ligação dos cabinets" viewBox="0 0 ' + W + " " + H + '" width="' + (E.tam === "grande" ? Math.round(W * escala) : "100%") + '" style="display:block;' + (E.tam === "grande" ? "max-width:none;" : "") + '">' +
       '<defs><pattern id="lw-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" style="fill:var(--lw-semfundo)"/><line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--lw-erro);stroke-width:2.2"/></pattern></defs>';
-    // gabinetes
+    // cabinets
     x.portas.forEach(function (p, i) {
       p.cels.forEach(function (c, k) {
         s += '<rect x="' + (M + c.c * S0 + 0.5) + '" y="' + (M + c.r * S0 + 0.5) + '" width="' + (S0 - 1) + '" height="' + (S0 - 1) + '" rx="2" style="fill:' + (sem(i) ? "url(#lw-hatch)" : cor(i)) + ";fill-opacity:" + (sem(i) ? 1 : 0.28) + ';stroke:var(--line);stroke-width:0.6"/>';
@@ -574,7 +574,7 @@
     l.push("LED WALL HELP");
     if (!x.ok) { l.push("Ecrã por definir."); return l.join("\n"); }
     var pw = x.C * x.rx, ph = x.R * x.ry;
-    l.push("Ecrã: " + x.C + " × " + x.R + " gabinetes (" + (x.mw > 0 ? nf(x.mw, 0) + " × " + nf(x.mh, 0) + " mm, " : "") + ni(x.rx) + " × " + ni(x.ry) + " px cada) = " + ni(pw) + " × " + ni(ph) + " px" +
+    l.push("Ecrã: " + x.C + " × " + x.R + " cabinets (" + (x.mw > 0 ? nf(x.mw, 0) + " × " + nf(x.mh, 0) + " mm, " : "") + ni(x.rx) + " × " + ni(x.ry) + " px cada) = " + ni(pw) + " × " + ni(ph) + " px" +
       (x.mw > 0 ? ", " + nf(x.C * x.mw / 1000, 2) + " × " + nf(x.R * x.mh / 1000, 2) + " m, pitch " + nf(x.mw / x.rx, 2) + " mm" : "") + (num(E.nits) > 0 ? ", " + ni(num(E.nits)) + " nits" : ""));
     l.push("Sinal: " + nf(x.hz, 0) + " Hz, " + x.bits + "-bit, 3 canais — débito total " + gb(x.debito));
     if (x.transp && x.transp.gbps > 0) {
@@ -583,24 +583,24 @@
         l.push("Divisão: " + ni(x.liga.n) + (x.liga.n === 1 ? " ligação" : " ligações") + ", a mais carregada com " + nf(x.liga.max / x.transp.gbps * 100, 0) + " % (soma " + gb(x.liga.grupos.reduce(function (s, g) { return s + g.rate; }, 0)) + ")");
         x.liga.grupos.forEach(function (g, i) {
           var z = zonaDoGrupo(x, g);
-          l.push("    Ligação " + (i + 1) + ": " + gb(g.rate) + " (" + nf(g.rate / x.transp.gbps * 100, 0) + " %) — portas " + (g.ini + 1) + (g.fim > g.ini ? "–" + (g.fim + 1) : "") + ", " + ni(z.n) + " gabinetes");
+          l.push("    Ligação " + (i + 1) + ": " + gb(g.rate) + " (" + nf(g.rate / x.transp.gbps * 100, 0) + " %) — portas " + (g.ini + 1) + (g.fim > g.ini ? "–" + (g.fim + 1) : "") + ", " + ni(z.n) + " cabinets");
         });
         if (x.liga.max > x.cap + 1e-9) l.push("⚠ Pelo menos uma ligação passa o limite de " + nf(x.cap, 2) + " Gb/s.");
       }
     } else l.push("Transporte: sem dados (escolher o tipo ou indicar a capacidade).");
     if (x.semPorta) l.push("Portas: sem dados (" + (E.tipoPorta === "fibra" ? "capacidade em píxeis da fibra não está nos dados" : "indicar os píxeis por porta") + ")");
     else {
-      l.push("Portas: " + (x.proc ? x.proc.marca + " " + x.proc.modelo : "porta Gigabit genérica") + " — " + ni(x.portPx) + " px por porta, " + ni(x.K) + " gabinetes por porta, " + ni(x.nPortas) + " portas, enchimento " + nf(x.m.fillMin, 0) + "–" + nf(x.m.fillMax, 0) + " %" + (x.unidades ? ", " + ni(x.unidades) + "× " + x.proc.modelo : ""));
-      if (x.K < 1) l.push("⚠ Um só gabinete excede uma porta a este refresh e bits.");
+      l.push("Portas: " + (x.proc ? x.proc.marca + " " + x.proc.modelo : "porta Gigabit genérica") + " — " + ni(x.portPx) + " px por porta, " + ni(x.K) + " cabinets por porta, " + ni(x.nPortas) + " portas, enchimento " + nf(x.m.fillMin, 0) + "–" + nf(x.m.fillMax, 0) + " %" + (x.unidades ? ", " + ni(x.unidades) + "× " + x.proc.modelo : ""));
+      if (x.K < 1) l.push("⚠ Um só cabinet excede uma porta a este refresh e bits.");
       var dsc = L.descreverCfg(x.cfg, x.esq.bloco);
-      l.push("Ligação dos gabinetes: " + dsc + "; entrada " + L.LADOS[E.entrada] + " (montagem " + (E.montagem === "pendurada" ? "pendurada" : "empilhada no chão") + "); " + ni(x.m.retornos) + " retornos");
+      l.push("Ligação dos cabinets: " + dsc + "; entrada " + L.LADOS[E.entrada] + " (montagem " + (E.montagem === "pendurada" ? "pendurada" : "empilhada no chão") + "); " + ni(x.m.retornos) + " retornos");
       x.portas.forEach(function (p, i) {
         var a = p.cels[0], b = p.cels[p.cels.length - 1];
-        l.push("    Porta " + (i + 1) + ": " + ni(p.cels.length) + " gabinetes, " + nf(p.fill, 0) + " %, de (coluna " + (a.c + 1) + ", linha " + (a.r + 1) + ") a (coluna " + (b.c + 1) + ", linha " + (b.r + 1) + ")");
+        l.push("    Porta " + (i + 1) + ": " + ni(p.cels.length) + " cabinets, " + nf(p.fill, 0) + " %, de (coluna " + (a.c + 1) + ", linha " + (a.r + 1) + ") a (coluna " + (b.c + 1) + ", linha " + (b.r + 1) + ")");
       });
-      if (x.disp >= 1 && x.nPortas > x.disp) l.push("⚠ Faltam " + (x.nPortas - x.disp) + " portas: gabinetes das portas " + (x.disp + 1) + " a " + x.nPortas + " sem ligação.");
+      if (x.disp >= 1 && x.nPortas > x.disp) l.push("⚠ Faltam " + (x.nPortas - x.disp) + " portas: cabinets das portas " + (x.disp + 1) + " a " + x.nPortas + " sem ligação.");
     }
-    if (x.corr && x.corr.estado === "ok") l.push("Alimentação: " + ni(x.corr.M) + " entradas, até " + ni(x.corr.N) + " gabinetes em série por entrada.");
+    if (x.corr && x.corr.estado === "ok") l.push("Alimentação: " + ni(x.corr.M) + " entradas, até " + ni(x.corr.N) + " cabinets em série por entrada.");
     return l.join("\n");
   }
 
@@ -770,13 +770,13 @@
     }
     E.cols = mx; E.rows = my; E.rx = rx; E.ry = ry; E.mw = valorDe("l-mw"); E.mh = valorDe("l-mh"); E.nits = valorDe("l-nits");
     E.amp = valorDe("l-amp"); E.ampmax = valorDe("l-ampmax"); E.cfg = null;
-    if (msg) msg.textContent = "Trazido: " + mx + " × " + my + " gabinetes de " + rx + " × " + ry + " px.";
+    if (msg) msg.textContent = "Trazido: " + mx + " × " + my + " cabinets de " + rx + " × " + ry + " px.";
     render();
     return true;
   }
   function exemplo() {
     E.cols = "38"; E.rows = "6"; E.rx = "192"; E.ry = "192"; E.mw = "500"; E.mh = "500"; E.nits = "1000"; E.cfg = null;
-    $("lw-trazer-msg").textContent = "Exemplo carregado: 19 × 3 m, 38 × 6 gabinetes de 500 × 500 mm (192 × 192 px).";
+    $("lw-trazer-msg").textContent = "Exemplo carregado: 19 × 3 m, 38 × 6 cabinets de 500 × 500 mm (192 × 192 px).";
     render();
   }
 

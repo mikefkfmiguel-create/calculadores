@@ -8,18 +8,18 @@ deixa a página ler data/*.json). Com --capturas grava as imagens (390 e 1280 px
 tema claro e escuro) em scripts/capturas-ledwall/.
 
 O caso de referência é o ecrã de 19 × 3 m, 2,60 mm, 7296 × 1152 px (38 × 6
-gabinetes de 500 × 500 mm e 192 × 192 px).
+cabinets de 500 × 500 mm e 192 × 192 px).
 
 O que confirma:
   1. O separador existe, o da aba Ecrã LED fica como estava (com o atalho discreto).
   2. Resolução, tamanho, área, pitch, formato e brilho do exemplo.
-  3. Gabinetes por porta e portas a 8, 10 e 12 bits, e a MESMA conta que a aba
+  3. Cabinets por porta e portas a 8, 10 e 12 bits, e a MESMA conta que a aba
      Sinal & Data Rate faz («máx. N tiles/porta»).
   4. A ligação entre separadores (refresh, bits, processador) nos dois sentidos,
      e o interruptor desligado.
   5. Divisão do sinal: Lightware 18, Blustream IP500 10 e Ethernet 25 a 8, 10 e
      12 bits (nº de ligações, nenhuma acima da capacidade, soma igual ao débito).
-  6. O desenho: cada gabinete uma vez, um percurso por porta, o canto escolhido.
+  6. O desenho: cada cabinet uma vez, um percurso por porta, o canto escolhido.
   7. «Adicionar ao projeto» e o relatório; guardar/abrir o projeto; recarregar.
   8. EN sem português solto e EN->PT a repor o texto; 390 px sem rolagem lateral.
   9. Sem erros na consola.
@@ -111,7 +111,7 @@ with sync_playwright() as p:
     pg.wait_for_timeout(500)
     confirmar(pg.locator('.panel[data-mode="ledwall"]').evaluate("e=>e.classList.contains('active')"), "o atalho abre o LED Wall Help")
     confirmar(pg.input_value("#lw-cols") == "38" and pg.input_value("#lw-rows") == "6" and pg.input_value("#lw-rx") == "192", "o atalho trouxe colunas, linhas e píxeis")
-    confirmar(pg.input_value("#lw-mw") == "500", "trouxe a largura do gabinete")
+    confirmar(pg.input_value("#lw-mw") == "500", "trouxe a largura do cabinet")
 
     # ------------------------------------------------------------------ 2
     print("2. O exemplo de referência (19 × 3 m, 2,60 mm)")
@@ -124,10 +124,10 @@ with sync_playwright() as p:
     confirmar("2,60" in fis, "pitch 2,60 mm")
     confirmar("6,33:1" in fis, "formato 6,33:1")
     confirmar("1.000" in fis or "1000" in fis, "brilho 1000 nits")
-    confirmar("228" in fis, "228 gabinetes")
+    confirmar("228" in fis, "228 cabinets")
 
     # ------------------------------------------------------------------ 3
-    print("3. Gabinetes por porta a 8, 10 e 12 bits, e a conta da aba Sinal")
+    print("3. Cabinets por porta a 8, 10 e 12 bits, e a conta da aba Sinal")
     esperado = {("8", "60"): (17, 14), ("10", "60"): (8, 29), ("12", "60"): (8, 29), ("8", "50"): (21, 11), ("10", "50"): (10, 23)}
     # tile de referência na aba Sinal: um com 192 × 192 px
     pg.click('button.tab[data-mode="sinal"]')
@@ -141,7 +141,7 @@ with sync_playwright() as p:
         pg.fill("#lw-hz", hz)
         pg.wait_for_timeout(150)
         n = lw_num(pg)
-        confirmar(n["K"] == K and n["P"] == P, "%s bits, %s Hz: %d gabinetes por porta, %d portas (página: %s/%s)" % (bits, hz, K, P, n["K"], n["P"]))
+        confirmar(n["K"] == K and n["P"] == P, "%s bits, %s Hz: %d cabinets por porta, %d portas (página: %s/%s)" % (bits, hz, K, P, n["K"], n["P"]))
         # a conta do Sinal & Data Rate, com um processador GigE «normal» escolhido lá
         pg.click('button.tab[data-mode="sinal"]')
         pg.evaluate("""() => { const f = document.getElementById('sg-led-tile'); }""")
@@ -197,7 +197,7 @@ with sync_playwright() as p:
     sub(pg, "divisao")
     t = txt(pg, "#lw-div-lista")
     confirmar("Ligação 1" in t and "Ligação 2" in t and "%" in t, "a Divisão lista as ligações com a % de cada uma")
-    confirmar("colunas" in t and "gabinetes" in t, "diz o que cada ligação leva (portas, gabinetes, colunas, linhas)")
+    confirmar("colunas" in t and "cabinets" in t, "diz o que cada ligação leva (portas, cabinets, colunas, linhas)")
     sub(pg, "transporte")
     tab = txt(pg, "#lw-comp")
     confirmar("HDMI20-OPTC" in tab and "IP500UHD-TZ" in tab and "indicado pelo Mike" not in tab, "tabela comparativa com os equipamentos do fabricante (sem «indicado pelo Mike»)")
@@ -219,7 +219,7 @@ with sync_playwright() as p:
     # tabela por bits (Divisão)
     sub(pg, "divisao")
     bt = txt(pg, "#lw-bits-tab")
-    confirmar(all(s in bt for s in ["8 bits", "10 bits", "12 bits", "Gabinetes por porta", "Portas"]), "a Divisão mostra 8, 10 e 12 bits lado a lado")
+    confirmar(all(s in bt for s in ["8 bits", "10 bits", "12 bits", "Cabinets por porta", "Portas"]), "a Divisão mostra 8, 10 e 12 bits lado a lado")
     # transporte sem dados
     sub(pg, "transporte")
     pg.select_option("#lw-transp", "outro"); pg.fill("#lw-cap", ""); pg.wait_for_timeout(150)
@@ -231,25 +231,25 @@ with sync_playwright() as p:
     pg.select_option("#lw-bits", "8"); pg.wait_for_timeout(150)
     sub(pg, "ligacao")
     celulas = pg.locator('#lw-svg rect[style*="stroke-width:0.6"]').count()
-    confirmar(celulas == 228, "228 gabinetes desenhados, cada um uma vez (%d)" % celulas)
+    confirmar(celulas == 228, "228 cabinets desenhados, cada um uma vez (%d)" % celulas)
     percursos = pg.locator("#lw-svg polyline").count()
     confirmar(percursos >= 14, "um percurso por porta (%d)" % percursos)
     confirmar(pg.locator("#lw-svg circle").count() == 14, "14 inícios de porta")
     sug = pg.locator(".lw-sugcard").count()
     confirmar(2 <= sug <= 3 or sug == 1, "sugestões de ligação (%d)" % sug)
     confirmar("Mais fácil de montar" in txt(pg, "#lw-sug") and "sugestão principal" in txt(pg, "#lw-sug"), "a principal é a «mais fácil de montar»")
-    # cada sugestão: cada gabinete uma vez (confirma na página, esquema a esquema)
+    # cada sugestão: cada cabinet uma vez (confirma na página, esquema a esquema)
     for i in range(sug):
         pg.locator(".lw-sugcard").nth(i).click(); pg.wait_for_timeout(150)
         r = pg.evaluate("""() => { const x = window.ledWallHelp._ultimo(); const v = new Set(); let n = 0;
             x.portas.forEach(p => p.cels.forEach(c => { v.add(c.c + ',' + c.r); n++; })); return [v.size, n, x.nPortas]; }""")
-        confirmar(r[0] == 228 and r[1] == 228, "sugestão %d: %d gabinetes, sem repetidos nem buracos (%d portas)" % (i + 1, r[0], r[2]))
+        confirmar(r[0] == 228 and r[1] == 228, "sugestão %d: %d cabinets, sem repetidos nem buracos (%d portas)" % (i + 1, r[0], r[2]))
     pg.locator(".lw-sugcard").nth(0).click(); pg.wait_for_timeout(150)
     # clicar num canto
     pg.locator('#lw-svg rect[data-canto="ID"]').dispatch_event("click"); pg.wait_for_timeout(200)
     cfg = pg.evaluate("window.ledWallHelp._estado().cfg")
     confirmar(cfg and cfg["canto"] == "ID", "tocar no canto inferior direito escolhe-o como ponto de partida")
-    confirmar(pg.locator('#lw-svg rect[style*="stroke-width:0.6"]').count() == 228, "o desenho refaz-se com os 228 gabinetes")
+    confirmar(pg.locator('#lw-svg rect[style*="stroke-width:0.6"]').count() == 228, "o desenho refaz-se com os 228 cabinets")
     # à mão: entrada por cima e montagem pendurada
     pg.select_option("#lw-montagem", "pendurada"); pg.wait_for_timeout(150)
     confirmar(pg.input_value("#lw-entrada") == "topo", "montagem pendurada -> entrada por cima (pressuposto, editável)")
@@ -258,10 +258,10 @@ with sync_playwright() as p:
     pg.select_option("#lw-montagem", "empilhada"); pg.select_option("#lw-entrada", "baixo")
     # sem ligação: portas disponíveis
     pg.click("#lw-ajuste summary"); pg.fill("#lw-disp", "5"); pg.wait_for_timeout(200)
-    confirmar(pg.locator('#lw-svg rect[style*="url(#lw-hatch)"]').count() > 0, "gabinetes sem ligação ficam às riscas (portas disponíveis = 5)")
+    confirmar(pg.locator('#lw-svg rect[style*="url(#lw-hatch)"]').count() > 0, "cabinets sem ligação ficam às riscas (portas disponíveis = 5)")
     confirmar("sem ligação" in txt(pg, "#lw-lig-avisos") or "Faltam" in txt(pg, "#lw-lig-avisos"), "aviso a vermelho das portas em falta")
     pg.fill("#lw-disp", "")
-    # um gabinete que excede a porta
+    # um cabinet que excede a porta
     pg.fill("#lw-hz", "1000"); pg.wait_for_timeout(200)
     pg.fill("#lw-hz", "60"); pg.wait_for_timeout(150)
     # corrente
@@ -277,7 +277,8 @@ with sync_playwright() as p:
     resumo = pg.inner_text("#lw-sum")
     confirmar("LED WALL HELP" in resumo and "IP500UHD-TZ" in resumo and "margem 90 %" in resumo, "o resumo diz o transporte e a margem")
     confirmar("indicado pelo Mike" not in resumo and "ficha do fabricante" in resumo, "o resumo diz «ficha do fabricante» e não «indicado pelo Mike»")
-    confirmar("Ligação 1" in resumo and "Porta 1" in resumo and "gabinetes por porta" in resumo, "o resumo traz ligações, portas e gabinetes por porta")
+    confirmar("Ligação 1" in resumo and "Porta 1" in resumo and "cabinets por porta" in resumo, "o resumo traz ligações, portas e cabinets por porta")
+    confirmar("Ligação 1" in resumo and "Porta 1" in resumo and "cabinets por porta" in resumo, "o resumo traz ligações, portas e cabinets por porta")
     pg.click('button.tab[data-mode="projeto"]'); pg.wait_for_timeout(300)
     rel = pg.text_content("#proj-items-list")
     confirmar("LED Wall Help" in rel and "IP500UHD-TZ" in rel, "entra no relatório do Projeto")

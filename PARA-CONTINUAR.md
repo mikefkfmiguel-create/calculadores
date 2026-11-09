@@ -45,24 +45,24 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
-## 5–6 de novembro — Separador NOVO «LED Wall Help»: transporte, divisão do sinal e ligação dos gabinetes (v4.70) — PR ABERTO, POR FUNDIR (espera o ok do Mike)
+## 5–6 de novembro — Separador NOVO «LED Wall Help»: transporte, divisão do sinal e ligação dos cabinets (v4.70) — PR ABERTO, POR FUNDIR (espera o ok do Mike)
 
-**AV Planner v4.70** (sw `calculadores-v459`). O **LED Wall Help é um separador novo e à parte** (cor azul, a seguir a «Ecrã LED & Pixel Pitch»; mesmo nome em PT e EN). A aba «Ecrã LED & Pixel Pitch» ficou como estava, só com um atalho discreto «Abrir no LED Wall Help» (leva o ecrã). Pedido do Mike: saber a capacidade por porta em **gabinetes**, desenhar a **forma de ligação** (onde começar, por onde entra o sinal) e **dividir o sinal por ligações** sem passar a capacidade do transporte escolhido.
+**AV Planner v4.70** (sw `calculadores-v459`). O **LED Wall Help é um separador novo e à parte** (cor azul, a seguir a «Ecrã LED & Pixel Pitch»; mesmo nome em PT e EN). A aba «Ecrã LED & Pixel Pitch» ficou como estava, só com um atalho discreto «Abrir no LED Wall Help» (leva o ecrã). Pedido do Mike: saber a capacidade por porta em **cabinets**, desenhar a **forma de ligação** (onde começar, por onde entra o sinal) e **dividir o sinal por ligações** sem passar a capacidade do transporte escolhido.
 
 ### O que há no separador
 
-- **Ecrã**: colunas × linhas de gabinetes, píxeis e mm do gabinete, brilho; «↙ Trazer o ecrã do Ecrã LED & Pixel Pitch» (um toque) e «Exemplo: 19 × 3 m, P2,6». **Sinal**: Refresh (com 50/60 Hz de toque), bits por canal (8/10/12), controlador, tipo de porta. Interruptor **«Usar os valores do Sinal & Data Rate»** (ligado por omissão): `#lw-hz` ↔ `#sg-fps` (e daí `proj-refresh`/`ms-fps`), `#lw-bits` ↔ `#sg-bits`, controlador ↔ `selectedSinalLedProcKeys` (um só). Desligado = valores só do ecrã.
-- **Resultado** sempre à vista (ecrã físico + débito, ligações, gabinetes por porta, portas, enchimento, avisos).
+- **Ecrã**: colunas × linhas de cabinets, píxeis e mm do cabinet, brilho; «↙ Trazer o ecrã do Ecrã LED & Pixel Pitch» (um toque) e «Exemplo: 19 × 3 m, P2,6». **Sinal**: Refresh (com 50/60 Hz de toque), bits por canal (8/10/12), controlador, tipo de porta. Interruptor **«Usar os valores do Sinal & Data Rate»** (ligado por omissão): `#lw-hz` ↔ `#sg-fps` (e daí `proj-refresh`/`ms-fps`), `#lw-bits` ↔ `#sg-bits`, controlador ↔ `selectedSinalLedProcKeys` (um só). Desligado = valores só do ecrã.
+- **Resultado** sempre à vista (ecrã físico + débito, ligações, cabinets por porta, portas, enchimento, avisos).
 - Sub-abas **Transporte** (tipo e capacidade por ligação, margem de segurança, tabela comparativa «transporte | ligações | enchimento máx. | aviso»), **Divisão** (frase com a conta, cada ligação com Gb/s, % e o que leva, e o ecrã a 8/10/12 bits lado a lado) e **Ligação** (sugestões, ajuste à mão, desenho SVG, lista de portas).
 - **Resumo** (`#lw-sum`) com «Adicionar ao projeto» (entra no relatório do Projeto como «LED Wall Help»), Partilhar/Guardar, Completo/Simplificado (linhas a 4 espaços saem no simplificado).
 
 ### As contas (js/ligacao-led.js, puras)
 
-- **Gabinetes por porta** = `floor(px por porta ÷ px do gabinete)`; px por porta = a conta da aba Sinal (`floor(930 Mbit/s ÷ (24|48 bpp × Hz))`, `portGbpsUsable` do processador quando existe; 10 e 12 bits contam 48 bpp, como a NovaStar). Fibra do processador = **sem dados** (processors.json só tem o débito nominal); há «capacidade por porta à mão».
+- **Cabinets por porta** = `floor(px por porta ÷ px do cabinet)`; px por porta = a conta da aba Sinal (`floor(930 Mbit/s ÷ (24|48 bpp × Hz))`, `portGbpsUsable` do processador quando existe; 10 e 12 bits contam 48 bpp, como a NovaStar). Fibra do processador = **sem dados** (processors.json só tem o débito nominal); há «capacidade por porta à mão».
 - **Débito do sinal** = `bits × 3 × Hz × píxeis` (a mesma conta de `debitoGbps`, injetada por `configurar`).
 - **Divisão**: `L ≥ ceil(débito ÷ capacidade usável)` ligações, portas por ordem repartidas por peso igual (cortes pelo ponto médio); sobe L até nenhuma passar. Se uma só porta passar a capacidade, fica assinalada.
-- **Esquemas de cabo**: cadeia em S ou com retorno, por linhas ou colunas, desde um canto, cortada em portas equilibradas/cheias, ou **blocos retangulares regulares**. Cada gabinete aparece uma vez (testado em todos os candidatos). **Sugestões**: a principal é a «mais fácil de montar» (poucos retornos, portas iguais, começa do lado da entrada, cabos parecidos); alternativas só aparecem se tiverem vantagem real (menos portas, menos cabo, filas inteiras por porta). A pontuação é um critério de ORDENAÇÃO (pesos em `candidatos()`), não um dado técnico.
-- **Entrada/montagem**: entrada por baixo/cima/esquerda/direita; «empilhada no chão → entrada por baixo» e «pendurada → por cima» é um **pressuposto por confirmar** (editável). O comprimento de cabo é uma estimativa em metros (gabinetes × mm), sem folgas.
+- **Esquemas de cabo**: cadeia em S ou com retorno, por linhas ou colunas, desde um canto, cortada em portas equilibradas/cheias, ou **blocos retangulares regulares**. Cada cabinet aparece uma vez (testado em todos os candidatos). **Sugestões**: a principal é a «mais fácil de montar» (poucos retornos, portas iguais, começa do lado da entrada, cabos parecidos); alternativas só aparecem se tiverem vantagem real (menos portas, menos cabo, filas inteiras por porta). A pontuação é um critério de ORDENAÇÃO (pesos em `candidatos()`), não um dado técnico.
+- **Entrada/montagem**: entrada por baixo/cima/esquerda/direita; «empilhada no chão → entrada por baixo» e «pendurada → por cima» é um **pressuposto por confirmar** (editável). O comprimento de cabo é uma estimativa em metros (cabinets × mm), sem folgas.
 
 ### Transportes (data/transportes.json) — só valores com fonte ou «indicado pelo Mike»
 
@@ -70,7 +70,7 @@ Ethernet 1/10/25/40/100, SDI 3G/6G/12G (repetem `fibra.json`; o teste confirma q
 
 ### Caso de referência (teste)
 
-19 × 3 m, 2,60 mm, 7296 × 1152 px = **38 × 6 gabinetes de 500 × 500 mm, 192 × 192 px** (deduzido: não está guardado no repositório; é o que a conta fecha). A 60 Hz: débito 12,10 / 15,13 / 18,15 Gb/s (8/10/12 bits); 17 / 8 / 8 gabinetes por porta, 14 / 29 / 29 portas; Lightware 18 → 1 / 1 / 2 ligações, Blustream 10 → 2 / 2 / 2, Ethernet 25 → 1 / 1 / 1; a 50 Hz: 21 gabinetes por porta (11 portas) a 8 bits.
+19 × 3 m, 2,60 mm, 7296 × 1152 px = **38 × 6 cabinets de 500 × 500 mm, 192 × 192 px** (deduzido: não está guardado no repositório; é o que a conta fecha). A 60 Hz: débito 12,10 / 15,13 / 18,15 Gb/s (8/10/12 bits); 17 / 8 / 8 cabinets por porta, 14 / 29 / 29 portas; Lightware 18 → 1 / 1 / 2 ligações, Blustream 10 → 2 / 2 / 2, Ethernet 25 → 1 / 1 / 1; a 50 Hz: 21 cabinets por porta (11 portas) a 8 bits.
 
 ### Ficheiros
 
@@ -78,7 +78,7 @@ Ethernet 1/10/25/40/100, SDI 3G/6G/12G (repetem `fibra.json`; o teste confirma q
 
 ### Como verificar
 
-- `node --test scripts/verificar-ligacao-led.mjs` — 18 testes das contas, dos esquemas (cada gabinete uma vez) e dos dados.
+- `node --test scripts/verificar-ligacao-led.mjs` — 18 testes das contas, dos esquemas (cada cabinet uma vez) e dos dados.
 - `PYTHONIOENCODING=utf-8 python scripts/verificar-ledwall-help-pagina.py [--capturas]` — Playwright (Edge): tudo o acima na página, ligação ao Sinal, projeto guardar/abrir, EN/PT, 390 px.
 - Regressão: `verificar-saidas-switcher-pagina.py` e `verificar-corrente-serie-pagina.py <pasta da v4.69>` (OK). Os `.mjs` com Playwright correm com `PLAYWRIGHT=file:///…/playwright/index.mjs` e `PLAYWRIGHT_CHROMIUM=…msedge.exe`; neste PC falham (também na v4.69, por isso não é desta versão): `area-de-visualizacao`, `extensoes`, `folgas`, `limpeza`, `modelo-novo`. `verificar-traducao.mjs` precisa de `/opt/node22`: foi corrido numa cópia adaptada (Edge, ficheiro local) e não acrescenta nada novo por traduzir face à v4.69.
 
@@ -86,7 +86,7 @@ Ethernet 1/10/25/40/100, SDI 3G/6G/12G (repetem `fibra.json`; o teste confirma q
 
 - Confirmar na ficha da Lightware (18 Gb/s) e da Blustream IP500 (10 Gb/s, PTP) e acrescentar `gbpsUtil` se a ficha o der; confirmar HDMI/DisplayPort na norma.
 - Confirmar o pressuposto «empilhada → entrada por baixo; pendurada → por cima» e a pontuação da sugestão «mais fácil».
-- Um único transporte por ecrã (transportes diferentes no mesmo projeto, e vários ecrãs, ficaram por fazer); clicar num gabinete que não seja de canto para começar aí; portas de saída do controlador a limitar o nº de portas (só há o campo «portas disponíveis»).
+- Um único transporte por ecrã (transportes diferentes no mesmo projeto, e vários ecrãs, ficaram por fazer); clicar num cabinet que não seja de canto para começar aí; portas de saída do controlador a limitar o nº de portas (só há o campo «portas disponíveis»).
 - Meios-tiles: o separador trata colunas iguais; «Trazer» copia `l-mx × l-my` tal como estão. A grelha com meio-tile está nas contas e nos testes (`criarGrelha`) mas não há campo para a pôr à mão.
 - A 1280 px a barra de abas já alargava a página (1360 px antes, 1424 px agora com mais um separador): é anterior a esta versão.
 
