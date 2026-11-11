@@ -285,6 +285,23 @@
   // disjuntores e cadeias em série continuam a usar o máximo (100 %).
   var AVISO_ESTIMATIVA = "Estimativa: o consumo real depende do conteúdo e do ecrã; o dimensionamento de disjuntores e cadeias continua a usar o máximo (100 %).";
 
+  // CABINETS EM SÉRIE A CADA BRILHO (pedido do Mike, v4.72). Como a corrente de
+  // cada cabinet desce com o brilho (a mesma fração `f` do modelo acima), cabem
+  // mais na mesma cadeia: a conta é a do 100 %, com a corrente do cabinet a esse
+  // brilho e a MESMA margem de segurança:
+  //     N(b) = floor( I_max × (1 − margem) ÷ (I_cab × f) )     M(b) = ceil( n ÷ N(b) )
+  // s = { imax, icab, n, margemPct } — sem corrente máx. de saída (ou sem
+  // corrente por cabinet / sem cabinets) não há coluna. `todos` diz que a
+  // cadeia aguentava mais do que os cabinets que o ecrã tem (M = 1).
+  function serieNoBrilho(s, f) {
+    if (!s) return null;
+    var imax = parseFloat(s.imax), icab = parseFloat(s.icab), n = Math.round(parseFloat(s.n));
+    if (!(imax > 0) || !(icab > 0) || !(n >= 1)) return null;
+    var m = margemValida(s.margemPct) ? lerNumero(s.margemPct) : MARGEM_PADRAO;
+    var N = Math.floor(imax * (1 - m / 100) / (icab * f) + EPS);
+    return { N: N, M: N >= 1 ? Math.ceil(n / N) : null, n: n, margemPct: m, todos: N >= n };
+  }
+
   function consumoPorBrilho(o) {
     var itotal = parseFloat(o.itotal);
     if (!(itotal > 0)) return null;
@@ -294,7 +311,7 @@
     return PATAMARES.map(function (b) {
       var f = base + (1 - base) * (b / 100);
       var i = itotal * f;
-      return { brilho: b, i: i, iFase: i / 3, w: v ? i * v : null, poupanca: (1 - f) * 100 };
+      return { brilho: b, i: i, iFase: i / 3, w: v ? i * v : null, poupanca: (1 - f) * 100, serie: serieNoBrilho(o.serie, f) };
     });
   }
   function textoPotencia(w) {
@@ -303,6 +320,12 @@
   }
   function pctBase(o) { return num(margemValida(o.basePct) ? lerNumero(o.basePct) : 0); }
 
+  function textoSerieLinha(sr) {
+    if (!sr) return "";
+    if (sr.N < 1) return " — nenhum cabinet cabe numa entrada";
+    return " — máx. " + sr.N + " cabinets em série por entrada → " + sr.M + pl(sr.M, " entrada de alimentação", " entradas de alimentação");
+  }
+
   // Linhas do relatório (só quando o interruptor está ligado — quem chama decide).
   function linhasConsumo(linhas, o, nome) {
     if (!linhas) return [];
@@ -310,14 +333,14 @@
     var l = ["Consumo estimado por brilho" + suf + " (estimativa linear, consumo mínimo de " + pctBase(o) + " %)"];
     linhas.forEach(function (r) {
       l.push("Brilho " + r.brilho + " %: " + num(r.i) + " A (" + num(r.iFase) + " A/fase)" +
-        (r.w != null ? " — " + textoPotencia(r.w) : "") + " — poupança de " + num(r.poupanca, 0) + " %");
+        (r.w != null ? " — " + textoPotencia(r.w) : "") + " — poupança de " + num(r.poupanca, 0) + " %" + textoSerieLinha(r.serie));
     });
     return l;
   }
   function linhaConsumoZona(nome, linhas) {
     if (!linhas) return "";
     return "Consumo por brilho — " + nome + ": " + linhas.map(function (r) {
-      return r.brilho + " %: " + num(r.i) + " A";
+      return r.brilho + " %: " + num(r.i) + " A" + (r.serie ? " (" + (r.serie.N < 1 ? "nenhum em série" : r.serie.N + " em série") + ")" : "");
     }).join(" · ");
   }
   function linhaAviso() { return AVISO_ESTIMATIVA; }
@@ -325,20 +348,39 @@
   function htmlTabelaConsumo(linhas, o, titulo) {
     if (!linhas) return "";
     var temW = linhas[0].w != null;
+    var temS = !!linhas[0].serie;
     var h = '<div class="saidas-comp cs-consumo"><h4>' + esc(titulo || "Consumo estimado por brilho") + '</h4>' +
       '<div class="saidas-comp-scroll"><table class="saidas-tab cs-tab"><thead><tr>' +
       "<th>Brilho</th><th>Corrente total</th><th>Corrente por fase (trifásica)</th>" +
-      (temW ? "<th>Potência</th>" : "") + "<th>Poupança face a 100 %</th></tr></thead><tbody>";
+      (temW ? "<th>Potência</th>" : "") + "<th>Poupança face a 100 %</th>" +
+      (temS ? "<th>Máx. de cabinets em série por entrada</th><th>Entradas necessárias</th>" : "") +
+      "</tr></thead><tbody>";
     linhas.forEach(function (r) {
       h += "<tr><td>" + r.brilho + " %</td><td>" + esc(num(r.i)) + " A</td><td>" + esc(num(r.iFase)) + " A</td>" +
-        (temW ? "<td>" + esc(textoPotencia(r.w)) + "</td>" : "") + "<td>" + esc(num(r.poupanca, 0)) + " %</td></tr>";
+        (temW ? "<td>" + esc(textoPotencia(r.w)) + "</td>" : "") + "<td>" + esc(num(r.poupanca, 0)) + " %</td>" +
+        (temS ? "<td>" + esc(r.serie.N) + "</td><td>" + (r.serie.M == null ? "—" : esc(r.serie.M)) + "</td>" : "") + "</tr>";
     });
     h += "</tbody></table></div>" +
-      '<p class="note">' + esc("Modelo linear: I = I máx. × (base + (1 − base) × brilho); consumo mínimo (base) de " + pctBase(o) + " %.") + "</p>" +
-      '<p class="note">' + esc(AVISO_ESTIMATIVA) + "</p></div>";
+      '<p class="note">' + esc("Modelo linear: I = I máx. × (base + (1 − base) × brilho); consumo mínimo (base) de " + pctBase(o) + " %.") + "</p>";
+    if (temS) h += notasSerie(linhas);
+    h += '<p class="note">' + esc(AVISO_ESTIMATIVA) + "</p></div>";
     return h;
   }
-  // Várias zonas: corrente de cada uma, por patamar.
+  // Notas da coluna «em série por brilho».
+  function notasSerie(linhas) {
+    var sr = linhas[0].serie;
+    var h = '<p class="note">' + esc("Cabinets em série por brilho: mesma conta do 100 % (corrente utilizável, com margem de " +
+      num(sr.margemPct) + " %, ÷ corrente de cada cabinet a esse brilho). Só estimativa para ver a folga: as cadeias montam-se e dimensionam-se pelo máximo (100 %).") + "</p>";
+    if (linhas.some(function (r) { return r.serie.todos; })) {
+      h += '<p class="note">' + esc("Onde o máximo passa dos " + sr.n + " cabinets do ecrã, cabem todos numa só cadeia (1 entrada).") + "</p>";
+    }
+    if (linhas.some(function (r) { return r.serie.N < 1; })) {
+      h += '<p class="note">' + esc("0 em série (—): nenhum cabinet cabe numa entrada a este brilho.") + "</p>";
+    }
+    return h;
+  }
+  // Várias zonas: corrente de cada uma, por patamar — e, se a zona tem corrente
+  // máx. de saída, quantos cabinets cabem em série a cada brilho.
   function htmlTabelaZonasConsumo(zonas) {
     if (!zonas.length) return "";
     var h = '<div class="saidas-comp-scroll"><table class="saidas-tab cs-tab"><thead><tr><th>Zona</th>';
@@ -349,7 +391,22 @@
       z.linhas.forEach(function (r) { h += "<td>" + esc(num(r.i)) + " A</td>"; });
       h += "</tr>";
     });
-    return h + "</tbody></table></div>";
+    h += "</tbody></table></div>";
+    var comSerie = zonas.filter(function (z) { return z.linhas[0].serie; });
+    if (comSerie.length) {
+      h += '<p class="note"><strong>' + esc("Máx. de cabinets em série por entrada") + "</strong></p>" +
+        '<div class="saidas-comp-scroll"><table class="saidas-tab cs-tab"><thead><tr><th>Zona</th>';
+      PATAMARES.forEach(function (b) { h += "<th>" + b + " %</th>"; });
+      h += "</tr></thead><tbody>";
+      comSerie.forEach(function (z) {
+        h += "<tr><th>" + esc(z.nome) + "</th>";
+        z.linhas.forEach(function (r) { h += "<td>" + esc(r.serie.N) + "</td>"; });
+        h += "</tr>";
+      });
+      h += "</tbody></table></div>" +
+        '<p class="note">' + esc("Mesma conta do 100 % a cada brilho; só estimativa — as cadeias montam-se e dimensionam-se pelo máximo (100 %).") + "</p>";
+    }
+    return h;
   }
 
   var api = {
@@ -362,7 +419,7 @@
     aoMudar: aoMudar, montarParametros: montarParametros,
     consumoPorBrilho: consumoPorBrilho, linhasConsumo: linhasConsumo, linhaConsumoZona: linhaConsumoZona,
     linhaAviso: linhaAviso, htmlTabelaConsumo: htmlTabelaConsumo, htmlTabelaZonasConsumo: htmlTabelaZonasConsumo,
-    textoPotencia: textoPotencia
+    textoPotencia: textoPotencia, serieNoBrilho: serieNoBrilho
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.correnteSerie = api;
