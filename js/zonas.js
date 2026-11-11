@@ -2775,11 +2775,16 @@
       }).join(", ") + '.</p>';
     }
     // Consumo estimado por brilho: total das zonas LED e, havendo várias, cada uma.
-    var brilho = pesoDesconhecido ? null : cs.consumoPorBrilho({ itotal: totalAmp, basePct: p.base, tensao: p.tensao });
+    // Cabinets em série por brilho: no total só com UMA zona (várias têm cadeias
+    // diferentes — nesse caso vai uma linha por zona, na tabela das zonas).
+    var serieUnica = !varias && feitas.length === 1
+      ? { imax: zonasLed[0].ampMax, icab: zonasLed[0].ampTile, n: zonasLed[0].numTiles, margemPct: p.margem } : null;
+    var brilho = pesoDesconhecido ? null : cs.consumoPorBrilho({ itotal: totalAmp, basePct: p.base, tensao: p.tensao, serie: serieUnica });
     if (brilho) {
       html += cs.htmlTabelaConsumo(brilho, { basePct: p.base }, varias ? "Consumo estimado por brilho (total das zonas LED)" : "Consumo estimado por brilho");
       var porZona = varias ? zonasLed.map(function (z) {
-        return { nome: z.name, linhas: cs.consumoPorBrilho({ itotal: z.amp, basePct: p.base, tensao: p.tensao }) };
+        return { nome: z.name, linhas: cs.consumoPorBrilho({ itotal: z.amp, basePct: p.base, tensao: p.tensao,
+          serie: { imax: z.ampMax, icab: z.ampTile, n: z.numTiles, margemPct: p.margem } }) };
       }).filter(function (x) { return x.linhas; }) : [];
       if (porZona.length) html += cs.htmlTabelaZonasConsumo(porZona);
       if (p.incluir) {

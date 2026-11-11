@@ -144,3 +144,118 @@ test("linhas do relatório: nada quando o interruptor está desligado é decisã
   assert.equal(c[1], "Brilho 100 %: 52 A (17,33 A/fase) — 11,96 kW — poupança de 0 %");
   assert.equal(c[5], "Brilho 10 %: 5,2 A (1,73 A/fase) — 1,2 kW — poupança de 90 %");
 });
+
+// ------------------------------------------------ cabinets em série por brilho (v4.72)
+// Referência à mão: o maior k com k × (icab × f) <= util, em milésimas de A.
+function referenciaSerieBrilho(imax, icab, margem, base, brilho) {
+  const f = base / 100 + (1 - base / 100) * (brilho / 100);
+  const util = Math.round(imax * 1e4 * (100 - margem) / 100);
+  const c = Math.round(icab * f * 1e4);
+  let k = 0;
+  while ((k + 1) * c <= util) k++;
+  return k;
+}
+
+test("exemplo do Mike: 9 A, margem 20 %, 0,75 A por cabinet -> 9 / 12 / 19 / 38 / 96 em série", () => {
+  const r = cs.consumoPorBrilho({ itotal: 4.5, basePct: 0, tensao: 230,
+    serie: { imax: 9, icab: 0.75, n: 6, margemPct: 20 } });
+  assert.deepEqual(r.map(x => x.brilho), [100, 75, 50, 25, 10]);
+  assert.deepEqual(r.map(x => x.serie.N), [9, 12, 19, 38, 96]);
+  // 100 % coincide com a conta da cadeia que a página já mostrava
+  assert.equal(r[0].serie.N, cs.calcular({ imax: 9, icab: 0.75, n: 6, margemPct: 20 }).N);
+  // 6 cabinets no ecrã: cabem todos numa cadeia a qualquer brilho
+  assert.deepEqual(r.map(x => x.serie.M), [1, 1, 1, 1, 1]);
+  assert.ok(r.every(x => x.serie.todos));
+});
+
+test("entradas por brilho = ceil(n ÷ N) e baixam com o brilho", () => {
+  const r = cs.consumoPorBrilho({ itotal: 52, basePct: 0, tensao: null,
+    serie: { imax: 8, icab: 0.52, n: 100, margemPct: 20 } });
+  assert.deepEqual(r.map(x => x.serie.N), [12, 16, 24, 49, 123]);
+  assert.deepEqual(r.map(x => x.serie.M), [9, 7, 5, 3, 1]);
+  assert.equal(r[0].serie.M, cs.calcular({ imax: 8, icab: 0.52, n: 100, margemPct: 20 }).M);
+  assert.deepEqual(r.map(x => x.serie.todos), [false, false, false, false, true]);
+  for (let i = 1; i < r.length; i++) assert.ok(r[i].serie.N >= r[i - 1].serie.N && r[i].serie.M <= r[i - 1].serie.M);
+});
+
+test("coincide com a referência para muitas combinações (com margem e consumo mínimo)", () => {
+  for (const imax of [8, 10, 16, 32])
+    for (const icab of [0.4, 0.52, 0.75, 1.2, 2.5])
+      for (const margem of [0, 20, 50])
+        for (const base of [0, 10, 30, 50])
+          for (const n of [1, 6, 100]) {
+            const r = cs.consumoPorBrilho({ itotal: icab * n, basePct: base, tensao: null,
+              serie: { imax, icab, n, margemPct: margem } });
+            r.forEach(x => {
+              const N = referenciaSerieBrilho(imax, icab, margem, base, x.brilho);
+              assert.equal(x.serie.N, N, `N ${imax} A, ${icab} A, ${margem} %, base ${base}, ${x.brilho} %`);
+              if (N >= 1) assert.equal(x.serie.M, referenciaM(n, N));
+              else assert.equal(x.serie.M, null);
+              // nunca se promete uma cadeia mais carregada do que a capacidade utilizável
+              if (N >= 1) {
+                const maxCad = Math.min(N, Math.ceil(n / x.serie.M));
+                const f = base / 100 + (1 - base / 100) * (x.brilho / 100);
+                assert.ok(maxCad * icab * f <= imax * (1 - margem / 100) + 1e-9);
+              }
+            });
+          }
+});
+
+test("consumo mínimo (base) sobe a corrente por cabinet e tira cabinets da cadeia", () => {
+  const semBase = cs.consumoPorBrilho({ itotal: 52, basePct: 0, serie: { imax: 8, icab: 0.52, n: 100, margemPct: 20 } });
+  const comBase = cs.consumoPorBrilho({ itotal: 52, basePct: 50, serie: { imax: 8, icab: 0.52, n: 100, margemPct: 20 } });
+  // 10 % com base 50 %: f = 0,55 -> 0,286 A -> 6,4 ÷ 0,286 = 22,38 -> 22
+  assert.equal(comBase[4].serie.N, 22);
+  assert.ok(comBase[4].serie.N < semBase[4].serie.N);
+  assert.equal(comBase[0].serie.N, semBase[0].serie.N);        // 100 % não depende da base
+});
+
+test("sem corrente máx. de saída (ou sem icab / n) -> sem série no brilho", () => {
+  for (const s of [undefined, null, { imax: "", icab: 0.5, n: 10 }, { imax: NaN, icab: 0.5, n: 10 }, { imax: 8, icab: "", n: 10 }, { imax: 8, icab: 0.5, n: 0 }]) {
+    const r = cs.consumoPorBrilho({ itotal: 5, basePct: 0, tensao: null, serie: s });
+    assert.ok(r.every(x => x.serie === null));
+    assert.ok(!/<th>Máx\. de cabinets em série/.test(cs.htmlTabelaConsumo(r, { basePct: 0 })));
+    assert.ok(!cs.linhasConsumo(r, { basePct: 0 }).some(l => /em série/.test(l)));
+  }
+});
+
+test("cabinet que não cabe a 100 % pode caber a brilho mais baixo", () => {
+  // 7 A por cabinet, 8 A de capacidade, margem 20 % -> 6,4 A utilizáveis
+  const r = cs.consumoPorBrilho({ itotal: 70, basePct: 0, serie: { imax: 8, icab: 7, n: 10, margemPct: 20 } });
+  assert.deepEqual(r.map(x => x.serie.N), [0, 1, 1, 3, 9]);
+  assert.equal(r[0].serie.M, null);
+  assert.deepEqual(r.map(x => x.serie.M), [null, 10, 10, 4, 2]);
+  const h = cs.htmlTabelaConsumo(r, { basePct: 0 });
+  assert.match(h, /nenhum cabinet cabe numa entrada a este brilho/);
+  assert.match(cs.linhasConsumo(r, { basePct: 0 })[1], /nenhum cabinet cabe numa entrada$/);
+});
+
+test("tabela: coluna nova com os valores certos; nota de estimativa e de «todos numa cadeia»", () => {
+  const r = cs.consumoPorBrilho({ itotal: 4.5, basePct: 0, tensao: 230, serie: { imax: 9, icab: 0.75, n: 6, margemPct: 20 } });
+  const h = cs.htmlTabelaConsumo(r, { basePct: 0 });
+  assert.match(h, /<th>Máx\. de cabinets em série por entrada<\/th><th>Entradas necessárias<\/th>/);
+  assert.match(h, /<td>100 %<\/td>[^]*?<td>0 %<\/td><td>9<\/td><td>1<\/td><\/tr>/);
+  assert.match(h, /<td>10 %<\/td>[^]*?<td>90 %<\/td><td>96<\/td><td>1<\/td><\/tr>/);
+  assert.match(h, /dimensionam-se pelo máximo \(100 %\)/);
+  assert.match(h, /Onde o máximo passa dos 6 cabinets do ecrã/);
+  // sem serie: tabela igual à de antes (5 colunas com tensão)
+  const sem = cs.htmlTabelaConsumo(cs.consumoPorBrilho({ itotal: 4.5, basePct: 0, tensao: 230 }), { basePct: 0 });
+  assert.ok(!/em série/.test(sem));
+});
+
+test("linhas do relatório com a série por brilho", () => {
+  const r = cs.consumoPorBrilho({ itotal: 52, basePct: 0, tensao: 230, serie: { imax: 8, icab: 0.52, n: 100, margemPct: 20 } });
+  const l = cs.linhasConsumo(r, { basePct: 0 });
+  assert.equal(l[1], "Brilho 100 %: 52 A (17,33 A/fase) — 11,96 kW — poupança de 0 % — máx. 12 cabinets em série por entrada → 9 entradas de alimentação");
+  assert.equal(l[5], "Brilho 10 %: 5,2 A (1,73 A/fase) — 1,2 kW — poupança de 90 % — máx. 123 cabinets em série por entrada → 1 entrada de alimentação");
+  // por zona
+  assert.equal(cs.linhaConsumoZona("Zona A", r.slice(0, 2)), "Consumo por brilho — Zona A: 100 %: 52 A (12 em série) · 75 %: 39 A (16 em série)");
+});
+
+test("a série por brilho não mexe no dimensionamento nem nos valores de antes", () => {
+  const antes = cs.calcular({ imax: 8, icab: 0.52, n: 100, margemPct: 20 });
+  const sem = cs.consumoPorBrilho({ itotal: 52, basePct: 0, tensao: 230 });
+  const com = cs.consumoPorBrilho({ itotal: 52, basePct: 0, tensao: 230, serie: { imax: 8, icab: 0.52, n: 100, margemPct: 20 } });
+  assert.deepEqual(cs.calcular({ imax: 8, icab: 0.52, n: 100, margemPct: 20 }), antes);
+  assert.deepEqual(com.map(({ serie, ...resto }) => resto), sem.map(({ serie, ...resto }) => resto));
+});

@@ -11,6 +11,19 @@ alarme, e a lista de decisões já tomadas que não se voltam a discutir).
 
 ---
 
+## 11 de novembro — Cabinets em série a cada brilho (v4.72) — PR ABERTO, POR FUNDIR (espera o ok do Mike)
+
+**AV Planner v4.72** (sw `calculadores-v461`). Pedido do Mike (olhando para 9 A de saída, margem 20 %, 0,75 A por cabinet → 9 em série): na tabela «Consumo estimado por brilho» acrescentar, por percentagem de brilho, quantos cabinets cabem em série por entrada.
+
+- **Conta:** a do 100 %, com a corrente do cabinet a esse brilho (a mesma fração do modelo linear, com o consumo mínimo/base): `N(b) = floor(I_max × (1 − margem) ÷ (I_cab × f))`, `entradas = ceil(n ÷ N)`. Exemplo (9 A, 0,75 A, 6 cabinets): 9 / 12 / 19 / 38 / 96 a 100/75/50/25/10 %.
+- **Onde:** `js/corrente-serie.js` (`serieNoBrilho`, `consumoPorBrilho` aceita `serie: {imax, icab, n, margemPct}`; colunas «Máx. de cabinets em série por entrada» e «Entradas necessárias»; linhas do relatório com a série; tabela por zona). Ligado em `index.html` (`alimLedAtualizar`) e `js/zonas.js` (`lzAlimentacao`). No Ecrã Complexo, com UMA zona a tabela do total leva as colunas; com várias, há uma tabela «Máx. de cabinets em série por entrada» por zona e brilho.
+- **Regras:** sem «Corrente máx. de saída» não há coluna nem linhas no relatório; vai no «Copiar relatório» só com o interruptor «Incluir consumo por brilho no relatório» ligado; a nota diz que é estimativa e que cadeias e disjuntores se dimensionam pelo máximo (100 %). O máximo pode passar dos cabinets do ecrã (mostra-se a capacidade) — as «Entradas necessárias» (=1) dão o limite físico e há nota. Se não cabe nenhum a 100 % mas cabe a brilho mais baixo, mostra-se 0 e «—».
+- **i18n:** chaves novas em `CORRENTE_EN` (`js/i18n.js`).
+- **Testes:** `node --test scripts/verificar-corrente-serie.mjs` (20) e `python -X utf8 scripts/verificar-corrente-serie-pagina.py` (secção [2b] nova; a de «nenhum cabe» passou a só olhar acima da tabela por brilho).
+- **Publicar:** só com o ok do Mike — PR para main (GitHub Pages).
+
+---
+
 ## 6 de novembro — Saídas e capacidades da PixelHue com as configurações, e transportes só com dados do fabricante (v4.71) — PR ABERTO, POR FUNDIR (espera o ok do Mike)
 
 **AV Planner v4.71** (sw `calculadores-v460`). Pedido do Mike: «nas saídas e capacidades podes incluir as da PixelHue com as configurações delas» e, a seguir, sobre a lista «Tipo de transporte» do LED Wall Help: «não é indicado por mim e não é ethernet e fibra; vai ver as indicações do fabricante».

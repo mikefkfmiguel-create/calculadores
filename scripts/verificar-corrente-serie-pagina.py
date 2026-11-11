@@ -172,7 +172,8 @@ with sync_playwright() as p:
     led(pg, amp=7, ampmax=8)
     t = texto(pg, "#l-alim")
     confirmar("Nenhum cabinet cabe numa entrada" in t and "7 A por cabinet" in t, "aviso quando 1 cabinet excede a corrente utilizável (7 > 6,4)")
-    confirmar("Máx. de cabinets em série" not in t, "sem números de cadeia quando nenhum cabe")
+    confirmar("Máx. de cabinets em série" not in t.split("Consumo estimado por brilho")[0],
+              "sem números de cadeia quando nenhum cabe (a tabela por brilho pode mostrar onde já cabem)")
     confirmar("⚠" in relatorio(pg) and "Nenhum cabinet cabe" in relatorio(pg), "o aviso vai para o relatório")
     # Trifásica e vários ecrãs
     led(pg, amp=0.52, ampmax=8, qtd=3)
@@ -261,6 +262,66 @@ with sync_playwright() as p:
     confirmar(pg.input_value("#l-cs-margem") == "20", "ficheiro antigo: a margem fica como estava")
     b.close()
 
+    # ------------------------------------- 2b. cabinets em série por brilho (v4.72)
+    print("[2b] Cabinets em série a cada brilho")
+    b, pg = abrir(p, NOVO)
+    led(pg, amp=0.52, ampmax=8)                      # 100 tiles, 8 A, margem 20 %
+    t = texto(pg, "#l-alim")
+    confirmar("Máx. de cabinets em série por entrada" in t and "Entradas necessárias" in t.split("Brilho")[-1],
+              "a tabela do brilho tem as colunas «Máx. de cabinets em série por entrada» e «Entradas necessárias»")
+    cols = {int(m.group(1)): (int(m.group(2)), int(m.group(3)))
+            for m in re.finditer(r"^(\d+) %	[\d.,]+ A	[\d.,]+ A	\d+ %	(\d+)	(\d+)\s*$", t, re.M)}
+    confirmar(cols == {100: (12, 9), 75: (16, 7), 50: (24, 5), 25: (49, 3), 10: (123, 1)},
+              "0,52 A, 8 A, 20 %% -> série/entradas 100 %%: 12/9, 75 %%: 16/7, 50 %%: 24/5, 25 %%: 49/3, 10 %%: 123/1 [%s]" % cols)
+    confirmar(n_serie(pg) == 12 and cols.get(100, (0,))[0] == n_serie(pg), "a linha de 100 %% coincide com «Máx. de cabinets em série por entrada» de cima")
+    confirmar("dimensionam-se pelo máximo (100 %)" in t and "Onde o máximo passa dos 100 cabinets" in t, "notas: estimativa e «cabem todos numa só cadeia»")
+    # consumo mínimo (base) 50 %: 10 % -> f = 0,55
+    param(pg, "l", "base", 50)
+    t = texto(pg, "#l-alim")
+    confirmar(re.search(r"^10 %	[\d.,]+ A	[\d.,]+ A	45 %	22	5\s*$", t, re.M) is not None, "consumo mínimo 50 %%: 10 %% -> 22 em série, 5 entradas")
+    param(pg, "l", "base", 0)
+    # exemplo do Mike: 6 cabinets, 0,75 A, 9 A de saída
+    for k, v in dict(mx=3, my=2, amp=0.75, ampmax=9).items():
+        pg.fill("#l-" + k, str(v))
+    pg.evaluate("document.activeElement && document.activeElement.blur()")
+    pg.wait_for_timeout(300)
+    t = texto(pg, "#l-alim")
+    cols = {int(m.group(1)): (int(m.group(2)), int(m.group(3)))
+            for m in re.finditer(r"^(\d+) %	[\d.,]+ A	[\d.,]+ A	\d+ %	(\d+)	(\d+)\s*$", t, re.M)}
+    confirmar(cols == {100: (9, 1), 75: (12, 1), 50: (19, 1), 25: (38, 1), 10: (96, 1)}, "exemplo do Mike (9 A, 0,75 A, 6 cabinets): 9 / 12 / 19 / 38 / 96 em série [%s]" % cols)
+    # sem corrente máx. de saída: a coluna não aparece
+    pg.fill("#l-ampmax", "")
+    pg.evaluate("document.activeElement && document.activeElement.blur()")
+    pg.wait_for_timeout(300)
+    t = texto(pg, "#l-alim")
+    confirmar("Brilho" in t and "Máx. de cabinets em série por entrada" not in t.split("Brilho")[-1], "sem corrente máx. de saída não há coluna de cabinets em série")
+    # relatório
+    pg.fill("#l-ampmax", "8"); pg.fill("#l-mx", "10"); pg.fill("#l-my", "10"); pg.fill("#l-amp", "0.52")
+    pg.evaluate("document.activeElement && document.activeElement.blur()")
+    pg.wait_for_timeout(300)
+    for simples in (False, True):
+        r = relatorio(pg, simples=simples)
+        confirmar("Brilho 75" not in r, "interruptor desligado: sem linhas por brilho no relatório")
+    param(pg, "l", "incluir", True)
+    for simples in (False, True):
+        r = relatorio(pg, simples=simples)
+        confirmar("Brilho 75 %: 39 A (13 A/fase) — poupança de 25 % — máx. 16 cabinets em série por entrada → 7 entradas de alimentação" in r,
+                  "relatório %s: a linha de 75 %% leva a série e as entradas" % ("Simplificado" if simples else "Completo"))
+        confirmar("Brilho 10 %: 5,2 A (1,73 A/fase) — poupança de 90 % — máx. 123 cabinets em série por entrada → 1 entrada de alimentação" in r,
+                  "relatório %s: 10 %% -> 1 entrada (singular)" % ("Simplificado" if simples else "Completo"))
+    # EN
+    pg.click('#lang-toggle [data-lang="en"]')
+    pg.wait_for_timeout(500)
+    en = texto(pg, "#l-alim")
+    confirmar("Max cabinets in series per input" in en.split("Brightness")[-1] or "Max cabinets in series per input" in en, "EN: cabeçalho da coluna traduzido")
+    sobras = [w for w in ["Onde o máximo", "cabem todos", "Só estimativa", "montam-se", "folga", "em série", "Entradas de alimentação"] if w in en]
+    confirmar(not sobras, "EN: as notas novas ficam todas em inglês [%s]" % sobras)
+    rep_en = pg.inner_text("#l-sum")
+    sobras = [w for w in ["em série", "entrada de alimentação", "entradas de alimentação", "poupança"] if w in rep_en]
+    confirmar(not sobras and "max. 16 cabinets in series per input → 7 power inputs" in rep_en, "EN: relatório com a série por brilho em inglês [%s | %s]" % (sobras, [l for l in rep_en.splitlines() if "75 %" in l][:1]))
+    confirmar(not pg.erros, "sem erros na consola [%s]" % pg.erros)
+    b.close()
+
     # ---------------------------------------------------------- 3. várias zonas
     print("[3] Ecrã Complexo: várias zonas")
     b, pg = abrir(p, NOVO, aba="zonas")
@@ -296,6 +357,8 @@ with sync_playwright() as p:
     res = texto(pg, "#lz-alim-res")
     confirmar(re.search(r"^100 %\t76 A\t", res, re.M) is not None and re.search(r"^50 %\t38 A\t", res, re.M) is not None, "brilho (total das zonas LED): 76 A a 100 %% e 38 A a 50 %%")
     confirmar(re.search(r"^Zona 1\t52 A\t39 A\t26 A\t13 A\t5,2 A", res, re.M) is not None or "52 A" in res, "brilho por zona")
+    confirmar(re.search(r"^Zona 1	12	16	24	49	123\s*$", res, re.M) is not None and re.search(r"^Zona 2	6	8	13	26	66\s*$", res, re.M) is not None,
+              "várias zonas: tabela «Máx. de cabinets em série por entrada» por zona e brilho (12/16/24/49/123 e 6/8/13/26/66)")
     param(pg, "lz", "incluir", True)
     sm = texto(pg, "#lz-sum")
     confirmar("Consumo estimado por brilho — total das zonas LED" in sm and "Consumo por brilho — " in sm, "com o interruptor ligado, o relatório do Ecrã Complexo leva a tabela (total + por zona)")

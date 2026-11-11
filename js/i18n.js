@@ -1221,7 +1221,18 @@
     " — poupança de ": " — saving of ",
     "Consumo por brilho — ": "Consumption by brightness — ",
     "Modelo linear: I = I máx. × (base + (1 − base) × brilho); consumo mínimo (base) de ": "Linear model: I = I max × (base + (1 − base) × brightness); minimum consumption (base) of ",
-    "Estimativa: o consumo real depende do conteúdo e do ecrã; o dimensionamento de disjuntores e cadeias continua a usar o máximo (100 %).": "Estimate: real consumption depends on the content and the screen; breaker and chain sizing still use the maximum (100 %)."
+    "Estimativa: o consumo real depende do conteúdo e do ecrã; o dimensionamento de disjuntores e cadeias continua a usar o máximo (100 %).": "Estimate: real consumption depends on the content and the screen; breaker and chain sizing still use the maximum (100 %).",
+    "Cabinets em série por brilho: mesma conta do 100 % (corrente utilizável, com margem de ": "Cabinets in series by brightness: same calculation as at 100 % (usable current, with a margin of ",
+    " %, ÷ corrente de cada cabinet a esse brilho). Só estimativa para ver a folga: as cadeias montam-se e dimensionam-se pelo máximo (100 %).": " %, ÷ current of each cabinet at that brightness). Estimate only, to see the headroom: chains are built and sized at the maximum (100 %).",
+    "Onde o máximo passa dos ": "Where the maximum exceeds the ",
+    " cabinets do ecrã, cabem todos numa só cadeia (1 entrada).": " cabinets on the screen, they all fit on a single chain (1 input).",
+    "0 em série (—): nenhum cabinet cabe numa entrada a este brilho.": "0 in series (—): not even one cabinet fits on an input at this brightness.",
+    "Mesma conta do 100 % a cada brilho; só estimativa — as cadeias montam-se e dimensionam-se pelo máximo (100 %).": "Same calculation as at 100 % for each brightness; estimate only — chains are built and sized at the maximum (100 %).",
+    " — máx. ": " — max. ",
+    " — nenhum cabinet cabe numa entrada": " — not even one cabinet fits on an input",
+    " em série)": " in series)",
+    "nenhum em série": "none in series",
+    "Entradas necessárias": "Inputs needed"
   };
   Object.keys(CORRENTE_EN).forEach(function (k) { DICT_EN[k] = CORRENTE_EN[k]; });
 
